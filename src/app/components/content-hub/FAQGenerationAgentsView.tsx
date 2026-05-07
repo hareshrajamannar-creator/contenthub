@@ -16,8 +16,10 @@ import {
 import { MainCanvasViewHeader } from '@/app/components/layout/MainCanvasViewHeader';
 import { AppDataTable } from '@/app/components/ui/AppDataTable';
 import { TextTabsRow } from '@/app/components/ui/text-tabs';
-// @ts-ignore — JSX module without type declarations
-import AgentBuilderEmbed from '@/app/agent-builder/components/AgentBuilder/AgentBuilderEmbed';
+// Agent builder not included in this deployment
+const AgentBuilderEmbed = ({ pageTitle }: { pageTitle?: string; [k: string]: unknown }) => (
+  <div className="flex h-full items-center justify-center text-muted-foreground text-sm">Coming soon</div>
+);
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
