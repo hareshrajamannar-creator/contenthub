@@ -116,14 +116,9 @@ export default defineConfig({
 
   build: {
     rollupOptions: {
-      // Externalize packages that belong to the agent-builder sub-app only
-      // (not installed in this repo — agent-builder is stubbed for this deploy)
       external: [
         'react-onclickoutside',
         'react-datepicker/dist/react-datepicker.css',
-        '@dagrejs/dagre',
-        '@xyflow/react',
-        /^@birdeye\/elemental/,
       ],
     },
   },
