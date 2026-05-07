@@ -709,6 +709,10 @@ export default function App() {
               <FAQGenerationAgentsView onBuilderModeChange={setFaqAgentBuilderOpen} />
             ) : currentView === "content-hub-agents-blog" ? (
               <div className="flex-1 flex items-center justify-center text-muted-foreground text-sm">Blog recommendation agents — coming soon</div>
+            ) : currentView === "content-hub-assigned" ? (
+              <div className="flex-1 flex items-center justify-center text-muted-foreground text-sm">Assigned to me — coming soon</div>
+            ) : currentView === "content-hub-approve" ? (
+              <div className="flex-1 flex items-center justify-center text-muted-foreground text-sm">Awaiting approval — coming soon</div>
             ) : currentView === "content-hub-create" ? (
               createViewStartAtFAQCanvas ? (
                 <ContentEditorShell
