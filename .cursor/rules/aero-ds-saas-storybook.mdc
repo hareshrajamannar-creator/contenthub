@@ -1,0 +1,38 @@
+---
+description: SaaS-only UI scope + Storybook + theme.css alignment (mirrors aero-ds skill)
+alwaysApply: false
+globs: src/app/**/*.{tsx,ts}, src/stories/**/*.{tsx,ts,mdx}, .storybook/**/*.{tsx,ts}, src/styles/**/*.css, src/tokens/**/*.css, src/themes/**/*.css, src/config/**/*.{ts,tsx}, src/*.{ts,tsx}
+---
+
+# Aero DS — SaaS product + Storybook
+
+**Scope:** This rule is **glob-scoped** (see YAML `globs`)—Cursor attaches it when you work under `src/app`, `src/stories`, Storybook preview, theme/token CSS, `src/config`, or root `src/*.{ts,tsx}` (e.g. `main.tsx`). It is **not** `alwaysApply`; open a matching file or keep one in context so Aero DS guidance is included without `@` tags.
+
+This workspace is **one SaaS product** (ShareConsolidated / Bird AI shell): dashboards, agents, tasks, settings, workflows, in-app data views. **Do not** default to marketing landing pages, portfolio layouts, or generic “website” patterns unless the user explicitly asks for out-of-app marketing UI.
+
+## Sources of truth
+
+- **Colours and semantics:** [`src/tokens/theme.css`](src/tokens/theme.css) plus versioned [`src/themes/`](src/themes/) `tokens.css` (see `DESIGN_VERSION`) — use Tailwind semantic classes (`bg-primary`, `text-muted-foreground`, `border-border`, chart/sidebar tokens).
+- **Visual check:** Storybook **Design System/Tokens** ([`src/stories/DesignTokens.stories.tsx`](src/stories/DesignTokens.stories.tsx)). Run `npm run storybook` (port 6006) when validating token or layout changes.
+- **Preview:** [`.storybook/preview.tsx`](.storybook/preview.tsx) — theme toolbar, `DESIGN_VERSION` tokens + app styles; keep stories consistent with the Vite app.
+- **Spacing:** [spacing-grid.mdc](./spacing-grid.mdc) — especially for `src/stories/` and layout wrappers.
+
+## Main canvas + bordered widgets (dashboard-style)
+
+When a view combines **`MainCanvasViewHeader`** (or the same `MAIN_VIEW_*` title tokens) with **one or more bordered cards** (charts, KPI bands, tables):
+
+1. **One horizontal band** — Use the **same** horizontal padding on the sticky header row and the scroll body below (e.g. **`px-8`**). On `MainCanvasViewHeader`, override the default band `px-6` with **`className="!px-8"`** when this wider gutter is required (see [`Dashboard.v1.tsx`](src/app/components/Dashboard.v1.tsx)).
+2. **Titles** — Page title: `MainCanvasViewHeader` / `MAIN_VIEW_PRIMARY_HEADING_CLASS`. Card titles: same **`MAIN_VIEW_PRIMARY_HEADING_CLASS`** on an **`h3`** (or equivalent). Card sublines: **`MAIN_VIEW_SUBHEADING_CLASS`** from [`mainViewTitleClasses.ts`](src/app/components/layout/mainViewTitleClasses.ts).
+3. **Card interior** — Bordered shell + **`px-6`** (and vertical padding as needed) so content does not sit on the border; matches the **Elevation → Card** pattern in **Design System/Tokens**.
+4. **Flex** — Card column: **`flex flex-col items-stretch`** so header rows span full width (avoid **`items-center`**, which shrinks children and breaks alignment with the page title).
+
+**Storybook:** **Design System/Tokens → Main canvas + bordered widgets** ([`DesignTokens.stories.tsx`](src/stories/DesignTokens.stories.tsx)).
+
+## Out of scope by default
+
+- Hero-led marketing sites, campaign landings, blog/portfolio templates.
+- Suggesting ad hoc hex palettes instead of `theme.css` for in-repo components.
+
+## Optional deep reference
+
+The project skill [`.claude/skills/aero-ds/SKILL.md`](.claude/skills/aero-ds/SKILL.md) has Storybook-first workflows, guardrails, and designer-facing **How it works** / **Compatibility** sections (no CSV/BM25 tooling—tokens come from Storybook and theme files).

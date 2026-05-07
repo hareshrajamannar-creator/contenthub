@@ -1,0 +1,31 @@
+---
+description: 8px / 4px spacing grid for Storybook and UI layout (Tailwind)
+alwaysApply: true
+---
+
+# Spacing grid (8px + 4px dense)
+
+When adding or editing UI in this repo — **especially anything under `src/stories/`** (including `copy/` helpers), Storybook decorators, and layout wrappers — use this grid by default.
+
+## Rules
+
+- **Default rhythm:** multiples of **8px** between blocks, sections, and major padding (`8, 16, 24, 32, 40…`).
+- **Dense rhythm:** **4px** only for tight UI (label-to-control, metadata stacks, icon gaps).
+- **Tailwind scale** (1 unit = 4px): use **`1`** for 4px dense; use **`2, 4, 6, 8, 10…`** for 8px steps (`gap-2` = 8px, `gap-4` = 16px, etc.).
+
+## Avoid for layout
+
+- `gap-3`, `p-3`, `m-3`, `space-y-3`, and **`px-3` / `py-3` as layout rhythm** (12px — off the 8px grid).
+- `px-5`, `py-5`, `p-5`, `gap-5`, `m-5` (20px — not a multiple of 8); prefer **`4` or `6`** on the same axis (`px-4`/`px-6`, `py-4`/`py-6`).
+- `*-1.5`, `*-2.5`, `*-3.5` (6px / 10px / 14px) unless required by an external design spec.
+- Arbitrary spacing like `gap-[6px]`, `py-[7px]` for layout; prefer scale tokens above.
+
+## Reference
+
+See **Design System → Tokens → Spacing** in Storybook ([`src/stories/DesignTokens.stories.tsx`](src/stories/DesignTokens.stories.tsx)). Storybook canvas padding is **24px** (`1.5rem`, 3×8) in [`.storybook/preview.tsx`](.storybook/preview.tsx).
+
+## Shared UI
+
+Primitives under `src/app/components/ui/` should align to the same contract when touched for spacing-related changes so Storybook canvases match the grid inside components.
+
+**New work:** default to this grid for layouts, story wrappers, and component padding/margin unless a design spec says otherwise.

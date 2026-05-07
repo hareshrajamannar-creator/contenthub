@@ -1,0 +1,11 @@
+node_modules
+storybook-static
+dist
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/playwright/.auth/
+aero-ds/

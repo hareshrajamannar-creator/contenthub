@@ -1,0 +1,30 @@
+---
+description: Before adding UI primitives or Storybook stories — reuse vs extend vs new name (Sheet for floating panels)
+globs: src/stories/**/*.{tsx,ts,mdx}, src/app/components/ui/**/*.{tsx,ts}
+alwaysApply: false
+---
+
+# New UI / Storybook guardrail
+
+When the user (or task) adds or renames a **component** under `src/app/components/ui/` or a **story** under `src/stories/`:
+
+## Stop and surface a choice
+
+1. **State the intent** in one line (what job does this UI do for the user?).
+2. **Search** Storybook titles and `src/app/components/ui/` for an existing match (Sheet, Dialog, Drawer wording, Panel, Modal, etc.).
+3. **Report the closest existing story** (path like `UI/Sheet/...`, `App/...`) and component file.
+4. **Ask explicitly:** Should we **extend** that primitive, **compose** it in App/, **replace** an old entry, or is a **new primitive** justified—and why?
+
+Do **not** introduce a second primitive or story name for the same pattern without that decision.
+
+## Floating side panels (this product)
+
+- **Use `Sheet`** with `inset="floating"` and `floatingSize` (`sm` | `md` | `lg`).
+- Prefer **`FloatingSheetFrame`** plus **`FLOATING_SHEET_FRAME_CONTENT_CLASS`** on **`SheetContent`** for new floating sheets (edging header, body-only scroll, sticky footer CTAs).
+- **Do not** add Storybook stories for the vaul **Drawer** under `UI/Drawer` for this pattern; floating demos live under **UI/Sheet**.
+- Full checklist, Figma/screenshot rules, and copy-paste prompts: **Aero DS skill** [`.claude/skills/aero-ds/SKILL.md`](.claude/skills/aero-ds/SKILL.md) → section **Floating drawers / side panels (Figma, screenshots, specs)**.
+- Pointers: **aero-ds-saas-storybook** Cursor rule, Storybook **Design System → Before you add a component**.
+
+## Story titles
+
+Follow **Design System/**, **UI/**, **App/**, **Content /** — match existing naming; use sentence case for compact labels where applicable (**ui-tags-sentence-case** rule).

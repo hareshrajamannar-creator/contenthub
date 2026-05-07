@@ -1,0 +1,5 @@
+#!/bin/sh
+# Syncs CLAUDE.md → GEMINI.md, AGENTS.md, .github/copilot-instructions.md on every commit.
+# Install once per machine: cp scripts/hooks/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit
+node scripts/sync-ai-rules.mjs
+git add GEMINI.md AGENTS.md .github/copilot-instructions.md

@@ -1,0 +1,32 @@
+---
+description: Product UI icons use 1.6px stroke via l1StripIconTokens; Lucide absoluteStrokeWidth when sized off 24px
+globs: src/app/components/**/*.tsx, src/stories/**/*.{tsx,mdx}
+alwaysApply: false
+---
+
+# Icon stroke (1.6px)
+
+## Source of truth
+
+- [`src/app/components/l1StripIconTokens.ts`](src/app/components/l1StripIconTokens.ts): **`L1_STRIP_ICON_STROKE_PX = 1.6`** and **`L1_STRIP_ICON_SIZE`**.
+- Storybook: **Design System → Tokens** documents this next to spacing/radius.
+
+## Lucide (`lucide-react`)
+
+- Set **`strokeWidth={L1_STRIP_ICON_STROKE_PX}`** (or literal **`1.6`**) on outline icons.
+- When the rendered size is **not** the default 24px (custom `width`/`height` or `className` sizing), add **`absoluteStrokeWidth`** so the stroke stays **1.6px** on screen (see JSDoc in `l1StripIconTokens.ts`).
+- **Do not** rely on Lucide’s default stroke (**2**) for new product UI icons.
+- **`strokeWidth={0}`** is allowed for filled-only glyphs (e.g. filled stars).
+
+## Phosphor (L1 rail, etc.)
+
+- Use **`strokeWidth={L1_STRIP_ICON_STROKE_PX}`** on icon roots (matches [`Sidebar.v2.tsx`](src/app/components/Sidebar.v2.tsx) `IconStrip`).
+
+## Out of scope (do not force 1.6)
+
+- **Recharts** (and similar): `strokeWidth` on `<Line>`, `<Area>`, `<Bar>`, etc. is chart geometry, not iconography.
+- **Generated / Figma paste** under `src/imports/` unless deliberately normalizing a hand-maintained file.
+
+## Deferred bulk pass
+
+- Many files omit `strokeWidth` on Lucide (implicit **2**). Normalizing the whole repo is a separate, large visual pass. For **new or edited** UI in the globs above, apply **1.6** as above.

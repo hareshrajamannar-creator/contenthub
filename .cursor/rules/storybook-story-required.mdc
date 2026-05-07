@@ -1,0 +1,50 @@
+---
+description: Always create a Storybook story when building a new UI component
+globs: src/app/components/**/*.{tsx,ts}, src/app/components/ui/**/*.{tsx,ts}
+alwaysApply: false
+---
+
+# Storybook story required for every new component
+
+When you create a **new** component file under `src/app/components/` (including `ui/`), you **must** also create a corresponding story file under `src/stories/`.
+
+## Rules
+
+1. **One component = one story.** Do not ship a component without a story.
+2. **Story file location:** `src/stories/<ComponentName>.stories.tsx`
+3. **Story title convention:**
+   - Primitive UI elements → `UI/<ComponentName>`
+   - App-level views or panels → `App/<ComponentName>`
+   - Design token / layout demos → `Design System/<name>`
+   - Use sentence case for story names (see `ui-tags-sentence-case` rule)
+4. **Minimum story content:**
+   - A `Default` story showing the component in its base state
+   - A story per meaningful variant (e.g. `Loading`, `Empty`, `WithData`, `Destructive`)
+5. **Import from the component directly** — never mock or stub the component in the story; let it render with real props.
+6. **Do not** publish the component to `aero-ds` until it is stable and reviewed in Storybook first.
+
+## Story template
+
+```tsx
+import type { Meta, StoryObj } from "@storybook/react";
+import { MyComponent } from "@/app/components/MyComponent";
+
+const meta: Meta<typeof MyComponent> = {
+  title: "UI/MyComponent",
+  component: MyComponent,
+};
+export default meta;
+type Story = StoryObj<typeof MyComponent>;
+
+export const Default: Story = {
+  args: {
+    // default props here
+  },
+};
+```
+
+## References
+
+- Existing stories: [`src/stories/`](../../src/stories/)
+- Design tokens: **Design System/Tokens** in Storybook
+- Aero DS skill: [`.claude/skills/aero-ds/SKILL.md`](../../.claude/skills/aero-ds/SKILL.md)

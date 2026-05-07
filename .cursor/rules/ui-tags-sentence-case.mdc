@@ -1,0 +1,14 @@
+---
+description: Sentence case for badges, pills, status tags, and compact filter labels
+alwaysApply: false
+---
+
+# UI tags and pills — sentence case
+
+For **badges**, **pills**, **status tags**, **category chips**, and similar compact labels in the product UI (including Monitor agent activity, filters, and notifications):
+
+- Use **sentence case**: capitalize only the **first letter of the phrase**; subsequent words are **lowercase** unless they are proper nouns, acronyms, or product names that must stay capitalized.
+- **Do not** use title case for multi-word tags (avoid e.g. `Customer Interaction`; use `Customer interaction`).
+- **Single-word** labels stay as one capitalized word when that reads naturally (e.g. `Success`, `Failed`, `Automation`, `Error`, `Processing`).
+
+Keep **one convention** across category + status tags in the same surface so lists read consistently.
