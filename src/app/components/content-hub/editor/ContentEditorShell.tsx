@@ -970,11 +970,14 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
         </div>
       )}
       {setupPhase === 'generating' && mode === 'project' && flowData && (
-        <div className="flex-1 min-h-0">
-          <ProjectGenerationProgress
-            flowData={flowData}
-            onComplete={handleProjectGenerationComplete}
-          />
+        <div className="flex-1 min-h-0 flex">
+          <LeftPanelSkeleton />
+          <div className="flex-1 min-w-0 min-h-0">
+            <ProjectGenerationProgress
+              flowData={flowData}
+              onComplete={handleProjectGenerationComplete}
+            />
+          </div>
         </div>
       )}
       {setupPhase === 'generating' && mode !== 'faq' && mode !== 'blog' && mode !== 'project' && (
@@ -1105,6 +1108,7 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
                     setCards(newCards);
                   }}
                   initialContentType={mode === 'project' ? 'project' : mode as 'faq' | 'social' | 'email' | 'blog'}
+                  editorContext={cards.length > 0 ? 'editing' : 'setup'}
                 />
               ) : (
                 <ManualPanel mode={mode} onAddCard={handleAddCard} />

@@ -987,18 +987,14 @@ function StepSummary({
   data: Partial<InlineFlowData>;
   onChange: (d: Partial<InlineFlowData>) => void;
 }) {
-  const [thinking, setThinking] = useState(true);
-  const [ideas, setIdeas] = useState<SummaryIdea[]>([]);
+  const [ideas, setIdeas] = useState<SummaryIdea[]>(() => {
+    const generated = buildIdeas(data);
+    // Sync into parent data on first render via effect below
+    return generated;
+  });
 
   useEffect(() => {
-    const t = setTimeout(() => {
-      const generated = buildIdeas(data);
-      setIdeas(generated);
-      onChange({ ...data, ideas: generated });
-      setThinking(false);
-    }, 1400);
-    return () => clearTimeout(t);
-    // Only run once on mount
+    onChange({ ...data, ideas });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -1007,29 +1003,6 @@ function StepSummary({
     setIdeas(updated);
     onChange({ ...data, ideas: updated });
   };
-
-  if (thinking) {
-    return (
-      <div className="flex flex-col items-center justify-center py-16 gap-4">
-        <div className="size-12 rounded-xl bg-primary/[0.08] flex items-center justify-center">
-          <Sparkles size={20} strokeWidth={1.6} absoluteStrokeWidth className="text-primary animate-pulse" />
-        </div>
-        <div className="text-center">
-          <p className="text-[14px] font-medium text-foreground">Reviewing your brief…</p>
-          <p className="text-[13px] text-muted-foreground mt-1">AI is drafting content ideas based on your settings</p>
-        </div>
-        <div className="flex gap-1.5 mt-2">
-          {[0, 1, 2].map(i => (
-            <div
-              key={i}
-              className="size-2 rounded-full bg-primary/40 animate-pulse"
-              style={{ animationDelay: `${i * 0.2}s` }}
-            />
-          ))}
-        </div>
-      </div>
-    );
-  }
 
   const updateTitle = (id: string, title: string) => {
     const updated = ideas.map(idea => idea.id === id ? { ...idea, title } : idea);

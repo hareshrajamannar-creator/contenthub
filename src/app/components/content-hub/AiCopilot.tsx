@@ -239,11 +239,11 @@ interface FAQWizardAnswers {
 
 // ── EditorCopilot — content-quality focused chat shown after generation ────────
 
-type EditorMode = 'blog' | 'faq' | 'social' | 'email' | 'landing' | 'video';
+type EditorMode = 'blog' | 'faq' | 'social' | 'email' | 'landing' | 'video' | 'project';
 
 function EditorCopilot({ mode = 'faq' }: { mode?: EditorMode }) {
-  const opening  = mode === 'blog' ? EDITOR_OPENING_BLOG : EDITOR_OPENING;
-  const repliesMap = mode === 'blog' ? EDITOR_REPLIES_BLOG : EDITOR_REPLIES;
+  const opening  = mode === 'blog' ? EDITOR_OPENING_BLOG : mode === 'project' ? EDITOR_OPENING_PROJECT : EDITOR_OPENING;
+  const repliesMap = mode === 'blog' ? EDITOR_REPLIES_BLOG : mode === 'project' ? EDITOR_REPLIES_PROJECT : EDITOR_REPLIES;
 
   const [messages, setMessages] = useState<ChatMessage[]>([opening]);
   const [input, setInput] = useState('');
@@ -346,6 +346,64 @@ interface EditorReply {
 }
 
 // ── FAQ editor (default) ──────────────────────────────────────────────────────
+
+// ── Project editor ────────────────────────────────────────────────────────────
+
+const EDITOR_OPENING_PROJECT: ChatMessage = {
+  id: 'editor-0',
+  role: 'ai',
+  text: "Your content is ready. What would you like to refine or update?",
+  chips: [
+    'Refine the blog post',
+    'Improve social copy',
+    'Adjust the tone',
+    'Make it more compelling',
+    'Strengthen the CTA',
+    'Add location-specific details',
+    'Add a new content piece',
+    'Change the campaign angle',
+  ],
+};
+
+interface EditorReplyProject {
+  text: string;
+  chips?: string[];
+}
+
+const EDITOR_REPLIES_PROJECT: Record<string, EditorReplyProject> = {
+  'Refine the blog post': {
+    text: "Sure. Which part of the blog post needs work?",
+    chips: ['The headline', 'The opening paragraph', 'The body sections', 'The closing / CTA'],
+  },
+  'Improve social copy': {
+    text: "Got it. What would you like to change about the social posts?",
+    chips: ['Make it punchier', 'Change the hashtags', 'Adjust the CTA', 'Try a different angle'],
+  },
+  'Adjust the tone': {
+    text: "What tone would you like for the project content?",
+    chips: ['More conversational', 'More professional', 'More urgent', 'More friendly & warm'],
+  },
+  'Make it more compelling': {
+    text: "Which piece feels flat and needs more impact?",
+    chips: ['The blog post', 'The social posts', 'The email', 'All pieces'],
+  },
+  'Strengthen the CTA': {
+    text: "What action do you want readers to take?",
+    chips: ['Book now', 'Visit our website', 'Call us today', 'Leave a review', 'Claim the offer'],
+  },
+  'Add location-specific details': {
+    text: "Which locations should be highlighted in the content?",
+    chips: ['All locations', 'Top locations only', 'A specific location'],
+  },
+  'Add a new content piece': {
+    text: "What type of content would you like to add to this project?",
+    chips: ['Another social post', 'An email campaign', 'An FAQ page', 'A landing page'],
+  },
+  'Change the campaign angle': {
+    text: "What angle would work better for this campaign?",
+    chips: ['Focus on customer reviews', 'Highlight a new offer', 'Seasonal theme', 'Community focus'],
+  },
+};
 
 const EDITOR_OPENING: ChatMessage = {
   id: 'editor-0',
@@ -857,6 +915,7 @@ export const AiCopilot = ({ onStartGenerating, onGenerationComplete, initialCont
       initialContentType === 'social'  ? 'social'  :
       initialContentType === 'email'   ? 'email'   :
       initialContentType === 'faq'     ? 'faq'     :
+      initialContentType === 'project' ? 'project' :
       'faq';
     return <EditorCopilot mode={editorMode} />;
   }
