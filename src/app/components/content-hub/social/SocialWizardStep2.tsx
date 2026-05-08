@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { MapPin, Sparkles } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { ContentFlowChip } from '../shared/ContentFlowControls';
 
 const SOURCE_OPTIONS = [
   { id: 'brief',   label: 'Write a brief',       placeholder: 'Describe what the post should be about…' },
@@ -61,18 +61,12 @@ export const SocialWizardStep2 = ({
         <p className="text-[12px] font-semibold text-muted-foreground uppercase tracking-wide mb-3">Source content</p>
         <div className="flex gap-2 mb-3">
           {SOURCE_OPTIONS.map((opt) => (
-            <button
+            <ContentFlowChip
               key={opt.id}
+              label={opt.label}
+              selected={sourceType === opt.id}
               onClick={() => onSourceTypeChange(opt.id)}
-              className={cn(
-                'px-3 py-1.5 rounded-md border text-[12px] font-medium transition-all',
-                sourceType === opt.id
-                  ? 'border-primary bg-primary/5 text-primary'
-                  : 'border-border text-muted-foreground hover:text-foreground',
-              )}
-            >
-              {opt.label}
-            </button>
+            />
           ))}
         </div>
         {sourceType === 'url' ? (

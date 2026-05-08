@@ -1004,7 +1004,7 @@ export function BlogSectionCanvas({ sections, generationLabel, onEditSettings }:
   const [blocks, setBlocksState] = useState<BlogBlock[]>(() => generateBlogBlocks(sections));
   const [leftTab, setLeftTab] = useState<'ai' | 'manual'>('ai');
   const [zoom, setZoom] = useState(1);
-  const [scorePanelOpen, setScorePanelOpen] = useState(false);
+  const [scorePanelOpen, setScorePanelOpen] = useState(true);
   const [fixingAll, setFixingAll] = useState(false);
   const [panelBump, setPanelBump] = useState(0);
   const canvasRef = useRef<HTMLDivElement>(null);

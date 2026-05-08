@@ -75,7 +75,31 @@ const TYPE_ICON: Record<ContentItemType, React.ElementType> = {
 
 function BlogPreview() {
   return (
-    <div className="px-6 py-4 space-y-3">
+    <div className="px-6 py-5 space-y-5">
+      <div className="overflow-hidden rounded-xl border border-border bg-gradient-to-br from-emerald-50 via-white to-blue-50">
+        <div className="flex min-h-[180px] items-center justify-between gap-5 px-5 py-5">
+          <div className="max-w-[58%] space-y-2">
+            <span className="inline-flex rounded-full bg-primary/10 px-2.5 py-1 text-[11px] font-medium text-primary">
+              Local SEO guide
+            </span>
+            <h2 className="text-[20px] font-semibold leading-tight text-foreground">
+              How local businesses win with AI-powered review responses
+            </h2>
+            <p className="text-[12px] leading-relaxed text-muted-foreground">
+              A practical playbook for turning faster replies, stronger trust signals, and better service recovery into measurable growth.
+            </p>
+          </div>
+          <div className="flex h-[132px] flex-1 items-center justify-center rounded-xl bg-white/75 shadow-sm ring-1 ring-black/[0.05]">
+            <div className="grid grid-cols-2 gap-2">
+              <div className="h-12 w-16 rounded-lg bg-emerald-100" />
+              <div className="h-12 w-16 rounded-lg bg-blue-100" />
+              <div className="h-12 w-16 rounded-lg bg-amber-100" />
+              <div className="h-12 w-16 rounded-lg bg-violet-100" />
+            </div>
+          </div>
+        </div>
+      </div>
+
       <h2 className="text-[18px] font-semibold text-foreground leading-snug">
         How Local Businesses Are Winning With AI-Powered Review Responses
       </h2>
@@ -92,6 +116,43 @@ function BlogPreview() {
         response based on the reviewer's specific feedback, match your brand voice, and escalate negative
         reviews to the right team member automatically.
       </p>
+      <div className="grid grid-cols-3 gap-3">
+        {[
+          ['23%', 'more review volume'],
+          ['4.6x', 'faster response time'],
+          ['89%', 'trust public replies'],
+        ].map(([value, label]) => (
+          <div key={label} className="rounded-lg border border-border bg-muted/30 p-3">
+            <p className="text-[18px] font-semibold text-foreground">{value}</p>
+            <p className="text-[11px] leading-snug text-muted-foreground">{label}</p>
+          </div>
+        ))}
+      </div>
+      <div className="rounded-xl border border-border bg-background p-4">
+        <h3 className="text-[15px] font-semibold text-foreground">Implementation checklist</h3>
+        <ul className="mt-2 space-y-1.5 text-[13px] leading-relaxed text-foreground">
+          <li>Train reply guidance on your best historical responses and brand guardrails.</li>
+          <li>Route low-score or sensitive reviews to a human reviewer before publishing.</li>
+          <li>Measure response time, review velocity, and customer sentiment by location.</li>
+        </ul>
+      </div>
+      <div className="overflow-hidden rounded-xl border border-border bg-zinc-950">
+        <div className="flex h-[180px] items-center justify-center bg-gradient-to-br from-zinc-900 to-emerald-950">
+          <div className="flex size-14 items-center justify-center rounded-full bg-white/15 text-white">
+            <Video size={22} strokeWidth={1.6} absoluteStrokeWidth />
+          </div>
+        </div>
+        <div className="px-4 py-3">
+          <p className="text-[12px] font-medium text-white">Video embed: responding to a difficult review</p>
+          <p className="mt-0.5 text-[11px] text-zinc-400">2:18 · Customer experience training clip</p>
+        </div>
+      </div>
+      <div className="rounded-xl bg-primary px-5 py-4 text-primary-foreground">
+        <p className="text-[15px] font-semibold">Ready to respond faster?</p>
+        <p className="mt-1 text-[12px] leading-relaxed text-primary-foreground/80">
+          Start with your top three review scenarios and build an approval workflow your team trusts.
+        </p>
+      </div>
     </div>
   );
 }
@@ -172,17 +233,69 @@ function FAQPreview() {
 
 function LandingPreview() {
   return (
-    <div className="px-6 py-6 text-center space-y-4 bg-gradient-to-b from-primary/5 to-transparent rounded-b-xl">
-      <h2 className="text-[20px] font-semibold text-foreground leading-tight">
-        Fresh ingredients. Local sourcing. Great service.
-      </h2>
-      <p className="text-[13px] text-muted-foreground max-w-[360px] mx-auto leading-relaxed">
-        Experience the Olive Garden difference — made fresh daily at all 500 locations nationwide.
-      </p>
-      <div className="flex justify-center">
-        <span className="bg-primary text-primary-foreground text-[13px] font-medium px-6 py-2.5 rounded-lg">
-          Book your table now
-        </span>
+    <div className="space-y-5 px-6 py-5">
+      <div className="overflow-hidden rounded-xl border border-border bg-gradient-to-br from-primary/10 via-white to-emerald-50">
+        <div className="px-6 py-7 text-center">
+          <span className="text-[11px] font-medium uppercase tracking-wide text-primary">Spring campaign</span>
+          <h2 className="mx-auto mt-2 max-w-[420px] text-[24px] font-semibold leading-tight text-foreground">
+            Fresh ingredients. Local sourcing. Great service.
+          </h2>
+          <p className="mx-auto mt-3 max-w-[420px] text-[13px] leading-relaxed text-muted-foreground">
+            Experience the Olive Garden difference with seasonal menus, refreshed patios, and local offers across every participating location.
+          </p>
+          <div className="mt-5 flex justify-center gap-2">
+            <span className="rounded-lg bg-primary px-5 py-2.5 text-[13px] font-medium text-primary-foreground">
+              Book your table now
+            </span>
+            <span className="rounded-lg border border-border bg-background px-5 py-2.5 text-[13px] font-medium text-foreground">
+              View menu
+            </span>
+          </div>
+        </div>
+        <div className="grid grid-cols-3 gap-2 border-t border-border bg-background/70 p-3">
+          <div className="h-24 rounded-lg bg-emerald-100" />
+          <div className="h-24 rounded-lg bg-amber-100" />
+          <div className="h-24 rounded-lg bg-rose-100" />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-3 gap-3">
+        {['Seasonal dishes', 'Outdoor seating', 'Local offers'].map(label => (
+          <div key={label} className="rounded-lg border border-border bg-background p-3 text-center">
+            <div className="mx-auto mb-2 size-9 rounded-full bg-primary/10" />
+            <p className="text-[12px] font-medium text-foreground">{label}</p>
+            <p className="mt-1 text-[11px] leading-snug text-muted-foreground">Short supporting copy for the landing section.</p>
+          </div>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-[1.2fr_0.8fr] gap-4 rounded-xl border border-border bg-background p-4">
+        <div>
+          <h3 className="text-[16px] font-semibold text-foreground">Why customers choose us</h3>
+          <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+            Highlight fresh preparation, team hospitality, fast reservations, and location-specific proof points with scannable modules.
+          </p>
+          <ul className="mt-3 space-y-1.5 text-[13px] text-foreground">
+            <li>Same-day booking windows</li>
+            <li>Menu options for every guest</li>
+            <li>Family-friendly spaces</li>
+          </ul>
+        </div>
+        <div className="flex min-h-[150px] items-center justify-center rounded-lg bg-zinc-950 text-white">
+          <Video size={22} strokeWidth={1.6} absoluteStrokeWidth />
+        </div>
+      </div>
+
+      <div className="rounded-xl border border-border bg-muted/30 p-4">
+        <p className="text-[15px] font-semibold text-foreground">Customer quote module</p>
+        <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+          "The patio launch made it easy for our family to plan dinner after work. The page showed the offer, menu, and booking options in one place."
+        </p>
+      </div>
+
+      <div className="rounded-xl bg-primary px-5 py-4 text-center text-primary-foreground">
+        <p className="text-[16px] font-semibold">Reserve your spring dining experience</p>
+        <p className="mt-1 text-[12px] text-primary-foreground/80">CTA section with booking link, location selector, and campaign tracking.</p>
       </div>
     </div>
   );

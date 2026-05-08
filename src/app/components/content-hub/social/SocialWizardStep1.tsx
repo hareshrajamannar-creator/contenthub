@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { cn } from '@/lib/utils';
+import { Megaphone, MessageCircle, Lightbulb } from 'lucide-react';
+import { ContentFlowChip, ContentFlowChoiceCard } from '../shared/ContentFlowControls';
 
 // ── Platform data ──────────────────────────────────────────────────────────────
 
@@ -13,9 +14,9 @@ const PLATFORMS = [
 ];
 
 const POST_TYPES = [
-  { id: 'promotional',  label: 'Promotional',  description: 'Drive a sale or offer' },
-  { id: 'engagement',   label: 'Engagement',   description: 'Spark conversation or shares' },
-  { id: 'educational',  label: 'Educational',  description: 'Share a tip or how-to' },
+  { id: 'promotional', icon: Megaphone, label: 'Promotional', description: 'Drive a sale or offer' },
+  { id: 'engagement', icon: MessageCircle, label: 'Engagement', description: 'Spark conversation or shares' },
+  { id: 'educational', icon: Lightbulb, label: 'Educational', description: 'Share a tip or how-to' },
 ];
 
 // ── Phone preview ──────────────────────────────────────────────────────────────
@@ -102,33 +103,15 @@ export const SocialWizardStep1 = ({
           <p className="text-[12px] font-semibold text-muted-foreground uppercase tracking-wide mb-4">Platforms</p>
           <div className="flex flex-wrap gap-2">
             {PLATFORMS.map((p) => (
-              <button
+              <ContentFlowChip
                 key={p.id}
+                label={`${p.label}${p.connected ? ' connected' : ''}`}
+                selected={selectedPlatforms.includes(p.id)}
                 onClick={() => togglePlatform(p.id)}
-                className={cn(
-                  'flex items-center gap-2 rounded-full border px-4 py-2 text-[12px] font-medium transition-all',
-                  selectedPlatforms.includes(p.id)
-                    ? 'border-primary bg-primary/5 text-primary'
-                    : 'border-border bg-background text-foreground hover:border-primary/40 hover:bg-muted/50',
-                )}
-              >
-                <div className={cn(
-                  'w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0',
-                  selectedPlatforms.includes(p.id) ? 'bg-primary/20 text-primary' : 'bg-muted text-foreground',
-                )}>
-                  {p.label[0]}
-                </div>
-                <span>{p.label}</span>
-                {p.connected && (
-                  <span className={cn(
-                    'text-[9px] font-medium',
-                    selectedPlatforms.includes(p.id) ? 'text-primary/70' : 'text-green-600',
-                  )}>●</span>
-                )}
-              </button>
+              />
             ))}
           </div>
-          <p className="text-[11px] text-muted-foreground mt-2">● Connected &nbsp;○ Not connected</p>
+          <p className="text-[11px] text-muted-foreground mt-2">Connected platforms are ready to publish. Others can still be drafted.</p>
         </div>
 
         {/* Post type */}
@@ -136,27 +119,14 @@ export const SocialWizardStep1 = ({
           <p className="text-[12px] font-semibold text-muted-foreground uppercase tracking-wide mb-4">Post type</p>
           <div className="flex flex-col gap-2">
             {POST_TYPES.map((t) => (
-              <button
+              <ContentFlowChoiceCard
                 key={t.id}
+                selected={postType === t.id}
                 onClick={() => onPostTypeChange(t.id)}
-                className={cn(
-                  'flex items-center gap-3 rounded-[8px] border p-4 text-left transition-all',
-                  postType === t.id
-                    ? 'border-primary bg-primary/5'
-                    : 'border-border hover:bg-muted',
-                )}
-              >
-                <div className={cn(
-                  'w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0',
-                  postType === t.id ? 'border-primary' : 'border-muted-foreground',
-                )}>
-                  {postType === t.id && <div className="w-2 h-2 rounded-full bg-primary" />}
-                </div>
-                <div>
-                  <span className="text-[13px] font-medium text-foreground">{t.label}</span>
-                  <p className="text-[11px] text-muted-foreground">{t.description}</p>
-                </div>
-              </button>
+                icon={t.icon}
+                title={t.label}
+                description={t.description}
+              />
             ))}
           </div>
         </div>

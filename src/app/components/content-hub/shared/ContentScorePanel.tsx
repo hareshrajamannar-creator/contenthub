@@ -11,7 +11,7 @@
 import React, { useState } from 'react';
 import { X } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { scoreColor } from './scoreColors';
+import { scoreColor, scoreStrokeColor } from './scoreColors';
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -120,8 +120,9 @@ export function ContentScorePanel({
 
   const pendingItems = ALL_IMPROVEMENTS.filter(item => !doneIds.has(item.id));
 
-  const pct = Math.min(score, 100);
+  const pct = Math.max(0, Math.min(score, 100));
   const color = scoreColor(score).text;
+  const barColor = scoreStrokeColor(score);
 
   function handleFixItem(id: string) {
     if (fixingIds.has(id) || doneIds.has(id)) return;
@@ -150,7 +151,7 @@ export function ContentScorePanel({
   }
 
   return (
-    <div className={cn('flex flex-col h-full overflow-hidden bg-background', className)}>
+    <div className={cn('flex flex-col h-full min-h-0 bg-background', className)}>
 
       {/* Header */}
       <div className="flex-shrink-0 flex items-center justify-between px-5 py-3 border-b border-[#e5e9f0]">
@@ -197,10 +198,30 @@ export function ContentScorePanel({
         </div>
 
         {/* Progress bar — same color as the score number, no "You" pill */}
-        <div className="h-2.5 bg-[#e5e7eb] rounded-full overflow-hidden">
+        <div
+          className="overflow-hidden"
+          aria-label={`${scoreLabel} progress: ${pct} percent`}
+          role="meter"
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={pct}
+          style={{
+            width: '100%',
+            height: 10,
+            minHeight: 10,
+            borderRadius: 999,
+            backgroundColor: '#E5E7EB',
+          }}
+        >
           <div
-            className="h-full rounded-full transition-all duration-700"
-            style={{ width: `${pct}%`, backgroundColor: color }}
+            style={{
+              width: `${pct}%`,
+              minWidth: pct > 0 ? 8 : 0,
+              height: '100%',
+              borderRadius: 999,
+              backgroundColor: barColor,
+              transition: 'width 700ms ease, background-color 700ms ease',
+            }}
           />
         </div>
 

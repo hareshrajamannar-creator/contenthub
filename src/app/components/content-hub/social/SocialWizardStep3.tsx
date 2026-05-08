@@ -1,17 +1,18 @@
 import React from 'react';
-import { cn } from '@/lib/utils';
+import { Briefcase, MessageCircle, PartyPopper, ShieldCheck } from 'lucide-react';
+import { ContentFlowChip, ContentFlowChoiceCard } from '../shared/ContentFlowControls';
 
 const TONE_OPTIONS = [
-  { id: 'professional', label: 'Professional', description: 'Polished and credible' },
-  { id: 'friendly',     label: 'Friendly',     description: 'Warm and approachable' },
-  { id: 'playful',      label: 'Playful',       description: 'Fun and conversational' },
-  { id: 'authoritative',label: 'Authoritative', description: 'Bold and decisive' },
+  { id: 'professional', icon: Briefcase, label: 'Professional', description: 'Polished and credible' },
+  { id: 'friendly', icon: MessageCircle, label: 'Friendly', description: 'Warm and approachable' },
+  { id: 'playful', icon: PartyPopper, label: 'Playful', description: 'Fun and conversational' },
+  { id: 'authoritative', icon: ShieldCheck, label: 'Authoritative', description: 'Bold and decisive' },
 ];
 
 const SCHEDULE_OPTIONS = [
   { id: 'immediate', label: 'Publish immediately' },
-  { id: 'schedule',  label: 'Schedule' },
-  { id: 'calendar',  label: 'Add to content calendar' },
+  { id: 'schedule', label: 'Schedule' },
+  { id: 'calendar', label: 'Add to content calendar' },
 ];
 
 interface SocialWizardStep3Props {
@@ -47,17 +48,14 @@ export const SocialWizardStep3 = ({
       <p className="text-[12px] font-semibold text-muted-foreground uppercase tracking-wide mb-4">Tone</p>
       <div className="grid grid-cols-2 gap-2">
         {TONE_OPTIONS.map((t) => (
-          <button
+          <ContentFlowChoiceCard
             key={t.id}
+            selected={tone === t.id}
             onClick={() => onToneChange(t.id)}
-            className={cn(
-              'flex flex-col gap-1 rounded-[8px] border p-4 text-left transition-all',
-              tone === t.id ? 'border-primary bg-primary/5' : 'border-border hover:bg-muted',
-            )}
-          >
-            <span className="text-[13px] font-medium text-foreground">{t.label}</span>
-            <span className="text-[11px] text-muted-foreground">{t.description}</span>
-          </button>
+            icon={t.icon}
+            title={t.label}
+            description={t.description}
+          />
         ))}
       </div>
     </div>
@@ -104,33 +102,24 @@ export const SocialWizardStep3 = ({
     {/* Scheduling */}
     <div>
       <p className="text-[12px] font-semibold text-muted-foreground uppercase tracking-wide mb-4">Publishing</p>
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-wrap gap-2">
         {SCHEDULE_OPTIONS.map((opt) => (
-          <label key={opt.id} className="flex items-center gap-3 cursor-pointer">
-            <div className={cn(
-              'w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0',
-              schedule === opt.id ? 'border-primary' : 'border-muted-foreground',
-            )}>
-              {schedule === opt.id && <div className="w-2 h-2 rounded-full bg-primary" />}
-            </div>
-            <span
-              className="text-[13px] text-foreground"
-              onClick={() => onScheduleChange(opt.id)}
-            >
-              {opt.label}
-            </span>
-            {opt.id === 'calendar' && <span className="text-[11px] text-muted-foreground">(Calendar coming soon)</span>}
-          </label>
+          <ContentFlowChip
+            key={opt.id}
+            label={opt.id === 'calendar' ? `${opt.label} soon` : opt.label}
+            selected={schedule === opt.id}
+            onClick={() => onScheduleChange(opt.id)}
+          />
         ))}
+      </div>
         {schedule === 'schedule' && (
           <input
             type="datetime-local"
             value={scheduleDate}
             onChange={(e) => onScheduleDateChange(e.target.value)}
-            className="mt-2 ml-7 border border-input rounded-md h-9 px-3 text-[13px] bg-background w-auto focus:outline-none focus:ring-2 focus:ring-primary/30"
+            className="mt-3 border border-input rounded-md h-9 px-3 text-[13px] bg-background w-auto focus:outline-none focus:ring-2 focus:ring-primary/30"
           />
         )}
-      </div>
     </div>
 
     {/* Approval */}
