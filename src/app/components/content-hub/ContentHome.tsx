@@ -1,8 +1,9 @@
 import React from 'react';
 import {
   FileText, Share2, Mail,
-  MessageSquare, Monitor, Video, FolderPlus,
+  MessageSquare, Monitor, Video, FolderPlus, ArrowRight,
 } from 'lucide-react';
+import { ChannelChip } from './projectShared';
 import {
   MAIN_VIEW_HEADER_BAND_CLASS,
   MAIN_VIEW_PRIMARY_HEADING_CLASS,
@@ -266,6 +267,18 @@ const SUGGESTIONS: {
   },
 ];
 
+// ── WordPress chip (matches ChannelChip style from projectShared) ──────────────
+
+function WordPressChip() {
+  return (
+    <div className="size-[22px] rounded-full shrink-0 flex items-center justify-center" style={{ background: '#21759B' }}>
+      <svg viewBox="0 0 24 24" width="12" height="12" fill="white">
+        <path d="M2.025 12c0-5.517 4.458-9.975 9.975-9.975S21.975 6.483 21.975 12 17.517 21.975 12 21.975 2.025 17.517 2.025 12zM12 1.5C6.201 1.5 1.5 6.201 1.5 12S6.201 22.5 12 22.5 22.5 17.799 22.5 12 17.799 1.5 12 1.5zm-6.3 10.5c0 2.76 1.605 5.157 3.938 6.3L6.21 10.5A6.276 6.276 0 0 0 5.7 12zm10.545-.33c0-.862-.309-1.457-.573-1.922-.353-.572-.682-1.057-.682-1.63 0-.638.484-1.232 1.167-1.232.031 0 .06.004.09.005A6.3 6.3 0 0 0 12 5.7a6.295 6.295 0 0 0-5.302 2.9c.149.004.289.007.409.007.664 0 1.693-.08 1.693-.08.342-.02.383.482.041.522 0 0-.344.04-.727.06l2.312 6.878 1.39-4.168-.99-2.71c-.342-.02-.666-.06-.666-.06-.342-.02-.302-.542.04-.522 0 0 1.049.08 1.673.08.664 0 1.693-.08 1.693-.08.343-.02.383.482.042.522 0 0-.345.04-.728.06l2.294 6.824.634-2.117c.274-.877.483-1.508.483-2.05zm-4.26 4.494L13.812 12l-2.29 6.65a6.305 6.305 0 0 0 3.877-.1zm5.406-7.122a6.322 6.322 0 0 1 .053.82 5.83 5.83 0 0 1-.469 2.28l-1.882 5.44A6.3 6.3 0 0 0 17.691 9.54z"/>
+      </svg>
+    </div>
+  );
+}
+
 // ── Component ──────────────────────────────────────────────────────────────────
 
 export const ContentHome = ({ onNavigate, onOpenCanvas }: ContentHomeProps) => {
@@ -346,6 +359,38 @@ export const ContentHome = ({ onNavigate, onOpenCanvas }: ContentHomeProps) => {
               </div>
             );
           })}
+        </div>
+      </section>
+
+      {/* ── Connect your publishing channels ──────────────────────────────── */}
+      <section className="px-6 pb-8 shrink-0">
+        <div className="rounded-xl border border-border bg-background px-6 py-5 flex items-center gap-6">
+          {/* Platform icons — 2×2 grid */}
+          <div className="grid grid-cols-2 gap-1.5 flex-shrink-0">
+            <WordPressChip />
+            <ChannelChip id="facebook" />
+            <ChannelChip id="instagram" />
+            <ChannelChip id="youtube" />
+          </div>
+
+          {/* Copy */}
+          <div className="flex-1 min-w-0">
+            <p className="text-[14px] font-medium text-foreground leading-snug">
+              Connect your publishing channels
+            </p>
+            <p className="text-[12px] text-muted-foreground mt-1 leading-relaxed">
+              Publish directly to WordPress, Facebook, Instagram, YouTube, and more. Connect once and distribute everywhere.
+            </p>
+          </div>
+
+          {/* CTA */}
+          <button
+            type="button"
+            className="flex-shrink-0 flex items-center gap-1.5 h-9 px-4 rounded-lg border border-border bg-background text-[13px] font-medium text-foreground hover:bg-muted/50 transition-colors"
+          >
+            Connect accounts
+            <ArrowRight size={14} strokeWidth={1.6} absoluteStrokeWidth className="text-muted-foreground" />
+          </button>
         </div>
       </section>
 

@@ -5,15 +5,14 @@
  *
  * Steps:
  *  1. brand-kit — Select brand kit + business location
- *  2. setup     — Topic, keywords, tone, audience, blog count
+ *  2. setup     — Topic, keywords, tone, blog count
  *  3. topics    — Review / edit one card per blog post
  */
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Plus, Trash2, Minus, Check, Paperclip, X, FileText as FileIcon } from 'lucide-react';
+import { Check, Paperclip, X, FileText as FileIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Input } from '@/app/components/ui/input';
-import { Textarea } from '@/app/components/ui/textarea';
 import {
   Select,
   SelectContent,
@@ -21,6 +20,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/app/components/ui/select';
+import {
+  CONTENT_FLOW_FIELD_CLASS,
+  CONTENT_FLOW_STEP_TITLE_CLASS,
+  ContentFlowBrandKitSummary,
+  ContentFlowChip,
+  ContentFlowCountStepper,
+} from '../shared/ContentFlowControls';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -62,6 +68,7 @@ export interface BlogInlineCreationFlowProps {
   onCancel: () => void;
   controlRef?: React.MutableRefObject<FlowNavControls | null>;
   onNavStateChange?: (state: FlowNavState) => void;
+  hideProgress?: boolean;
 }
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -80,27 +87,12 @@ const LOCATIONS = [
   { id: 'chicago', label: 'Chicago, IL' },
 ];
 
-const BRAND_KIT_CHIPS = [
-  'Friendly, professional tone',
-  'Family dining audience',
-  'Core brand images loaded',
-  'Guardrails: no competitor mentions',
-  'Style: concise answers',
-];
-
 const TONE_OPTIONS = [
   'Conversational & friendly',
   'Expert & authoritative',
   'Educational & clear',
   'Storytelling-focused',
   'News & informative',
-];
-
-const AUDIENCE_OPTIONS = [
-  'Local consumers',
-  'Business owners',
-  'Existing customers',
-  'General audience',
 ];
 
 const WORD_COUNT_CHIPS: { label: string; value: number }[] = [
@@ -155,7 +147,7 @@ function StepIndicator({ current }: { current: number }) {
                 'w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-semibold transition-colors flex-shrink-0',
                 done || active ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground',
               )}>
-                {done ? <Check size={12} strokeWidth={2.2} /> : i + 1}
+                {done ? <Check size={12} strokeWidth={1.6} absoluteStrokeWidth /> : i + 1}
               </div>
               <span className={cn(
                 'text-[13px] transition-colors',
@@ -189,9 +181,9 @@ function Step1BrandKit({ brandKit, location, onChange }: Step1Props) {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-base font-semibold text-foreground mb-1">Select brand kit and location</h2>
+        <h2 className={CONTENT_FLOW_STEP_TITLE_CLASS}>Select brand kit and location</h2>
         <p className="text-[13px] text-muted-foreground">
-          Your brand kit handles tone, audience, style, and guardrails automatically.
+          Content will be created from the selected brand identity and location context.
         </p>
       </div>
 
@@ -199,7 +191,7 @@ function Step1BrandKit({ brandKit, location, onChange }: Step1Props) {
         <div className="space-y-1.5">
           <label className="text-[13px] font-medium text-foreground">Brand kit</label>
           <Select value={brandKit} onValueChange={v => onChange(v, location)}>
-            <SelectTrigger className="w-full h-9 text-[13px]">
+            <SelectTrigger className="h-10 w-full rounded-xl bg-background text-[13px]">
               <SelectValue placeholder="Select brand kit" />
             </SelectTrigger>
             <SelectContent>
@@ -213,7 +205,7 @@ function Step1BrandKit({ brandKit, location, onChange }: Step1Props) {
         <div className="space-y-1.5">
           <label className="text-[13px] font-medium text-foreground">Location</label>
           <Select value={location} onValueChange={v => onChange(brandKit, v)}>
-            <SelectTrigger className="w-full h-9 text-[13px]">
+            <SelectTrigger className="h-10 w-full rounded-xl bg-background text-[13px]">
               <SelectValue placeholder="Select location" />
             </SelectTrigger>
             <SelectContent>
@@ -225,21 +217,7 @@ function Step1BrandKit({ brandKit, location, onChange }: Step1Props) {
         </div>
       </div>
 
-      {brandKit && (
-        <div className="rounded-xl border border-border bg-muted/40 p-4 space-y-2">
-          <p className="text-[12px] font-medium text-muted-foreground uppercase tracking-wide">
-            Loaded from brand kit
-          </p>
-          <div className="flex flex-wrap gap-2">
-            {BRAND_KIT_CHIPS.map(chip => (
-              <div key={chip} className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-background border border-border">
-                <Check size={11} strokeWidth={2} className="text-primary flex-shrink-0" />
-                <span className="text-[12px] text-foreground">{chip}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+      {brandKit && <ContentFlowBrandKitSummary contentLabel="Blog content" />}
     </div>
   );
 }
@@ -250,14 +228,13 @@ interface Step2Props {
   topic: string;
   keywords: string;
   tone: string;
-  audience: string;
   wordTarget: number;
   attachments: string[];
   blogCount: number;
-  onChange: (patch: Partial<Pick<BlogFlowData, 'topic' | 'keywords' | 'tone' | 'audience' | 'wordTarget' | 'attachments' | 'blogCount'>>) => void;
+  onChange: (patch: Partial<Pick<BlogFlowData, 'topic' | 'keywords' | 'tone' | 'wordTarget' | 'attachments' | 'blogCount'>>) => void;
 }
 
-function Step2Setup({ topic, keywords, tone, audience, wordTarget, attachments, blogCount, onChange }: Step2Props) {
+function Step2Setup({ topic, keywords, tone, wordTarget, attachments, blogCount, onChange }: Step2Props) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFiles = (files: FileList | null) => {
@@ -273,9 +250,9 @@ function Step2Setup({ topic, keywords, tone, audience, wordTarget, attachments, 
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-base font-semibold text-foreground mb-1">Blog setup</h2>
+        <h2 className={CONTENT_FLOW_STEP_TITLE_CLASS}>Blog setup</h2>
         <p className="text-[13px] text-muted-foreground">
-          Configure the topic, tone, and audience for your blog posts.
+          Configure the topic, tone, length, and supporting material for your blog posts.
         </p>
       </div>
 
@@ -286,7 +263,7 @@ function Step2Setup({ topic, keywords, tone, audience, wordTarget, attachments, 
           value={topic}
           onChange={e => onChange({ topic: e.target.value })}
           placeholder="e.g. How to improve customer experience at your restaurant"
-          className="h-9 text-[13px]"
+          className={CONTENT_FLOW_FIELD_CLASS}
         />
       </div>
 
@@ -299,7 +276,7 @@ function Step2Setup({ topic, keywords, tone, audience, wordTarget, attachments, 
           value={keywords}
           onChange={e => onChange({ keywords: e.target.value })}
           placeholder="e.g. customer experience, restaurant reviews, local dining"
-          className="h-9 text-[13px]"
+          className={CONTENT_FLOW_FIELD_CLASS}
         />
         <p className="text-[12px] text-muted-foreground">Separate multiple keywords with commas.</p>
       </div>
@@ -307,47 +284,27 @@ function Step2Setup({ topic, keywords, tone, audience, wordTarget, attachments, 
       {/* Blog count */}
       <div className="space-y-2">
         <label className="text-[13px] font-medium text-foreground">How many blog posts do you want?</label>
-        <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={() => onChange({ blogCount: Math.max(1, blogCount - 1) })}
-            className="w-8 h-8 rounded-lg border border-border flex items-center justify-center hover:bg-muted transition-colors"
-          >
-            <Minus size={14} strokeWidth={1.6} absoluteStrokeWidth />
-          </button>
-          <span className="text-[15px] font-semibold text-foreground w-6 text-center">{blogCount}</span>
-          <button
-            type="button"
-            onClick={() => onChange({ blogCount: Math.min(10, blogCount + 1) })}
-            className="w-8 h-8 rounded-lg border border-border flex items-center justify-center hover:bg-muted transition-colors"
-          >
-            <Plus size={14} strokeWidth={1.6} absoluteStrokeWidth />
-          </button>
-        </div>
+        <ContentFlowCountStepper
+          value={blogCount}
+          min={1}
+          max={10}
+          ariaLabel="blog posts"
+          onChange={value => onChange({ blogCount: value })}
+        />
       </div>
 
       {/* Word count target */}
       <div className="space-y-2">
         <label className="text-[13px] font-medium text-foreground">Word count target</label>
         <div className="flex flex-wrap gap-2">
-          {WORD_COUNT_CHIPS.map(chip => {
-            const selected = wordTarget === chip.value;
-            return (
-              <button
-                key={chip.value}
-                type="button"
-                onClick={() => onChange({ wordTarget: chip.value })}
-                className={cn(
-                  'px-3 py-1.5 rounded-full text-[13px] border transition-colors',
-                  selected
-                    ? 'bg-primary text-primary-foreground border-primary'
-                    : 'bg-background text-foreground border-border hover:border-primary/60',
-                )}
-              >
-                {chip.label}
-              </button>
-            );
-          })}
+          {WORD_COUNT_CHIPS.map(chip => (
+            <ContentFlowChip
+              key={chip.value}
+              label={chip.label}
+              selected={wordTarget === chip.value}
+              onClick={() => onChange({ wordTarget: chip.value })}
+            />
+          ))}
         </div>
       </div>
 
@@ -355,49 +312,14 @@ function Step2Setup({ topic, keywords, tone, audience, wordTarget, attachments, 
       <div className="space-y-2">
         <label className="text-[13px] font-medium text-foreground">Tone</label>
         <div className="flex flex-wrap gap-2">
-          {TONE_OPTIONS.map(option => {
-            const selected = tone === option;
-            return (
-              <button
-                key={option}
-                type="button"
-                onClick={() => onChange({ tone: option })}
-                className={cn(
-                  'px-3 py-1.5 rounded-full text-[13px] border transition-colors',
-                  selected
-                    ? 'bg-primary text-primary-foreground border-primary'
-                    : 'bg-background text-foreground border-border hover:border-primary/60',
-                )}
-              >
-                {option}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Audience */}
-      <div className="space-y-2">
-        <label className="text-[13px] font-medium text-foreground">Target audience</label>
-        <div className="flex flex-wrap gap-2">
-          {AUDIENCE_OPTIONS.map(option => {
-            const selected = audience === option;
-            return (
-              <button
-                key={option}
-                type="button"
-                onClick={() => onChange({ audience: option })}
-                className={cn(
-                  'px-3 py-1.5 rounded-full text-[13px] border transition-colors',
-                  selected
-                    ? 'bg-primary text-primary-foreground border-primary'
-                    : 'bg-background text-foreground border-border hover:border-primary/60',
-                )}
-              >
-                {option}
-              </button>
-            );
-          })}
+          {TONE_OPTIONS.map(option => (
+            <ContentFlowChip
+              key={option}
+              label={option}
+              selected={tone === option}
+              onClick={() => onChange({ tone: option })}
+            />
+          ))}
         </div>
       </div>
 
@@ -410,7 +332,7 @@ function Step2Setup({ topic, keywords, tone, audience, wordTarget, attachments, 
           onClick={() => fileInputRef.current?.click()}
           onDragOver={e => e.preventDefault()}
           onDrop={e => { e.preventDefault(); handleFiles(e.dataTransfer.files); }}
-          className="w-full flex flex-col items-center gap-2 rounded-lg border border-dashed border-border bg-muted/30 px-4 py-5 text-center hover:border-primary/50 hover:bg-muted/50 transition-colors"
+          className="flex w-full flex-col items-center gap-2 rounded-xl border border-dashed border-border bg-background px-4 py-5 text-center shadow-sm shadow-black/[0.02] transition-colors hover:border-primary/50 hover:bg-muted/25"
         >
           <Paperclip size={18} strokeWidth={1.6} absoluteStrokeWidth className="text-muted-foreground" />
           <span className="text-[13px] text-muted-foreground">Attach PDFs for more context</span>
@@ -442,80 +364,124 @@ interface Step3Props {
   onChange: (sections: BlogSection[]) => void;
 }
 
+function BlogDescriptionCard({
+  section,
+  onDescriptionChange,
+}: {
+  section: BlogSection;
+  onDescriptionChange: (id: string, description: string) => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [localDesc, setLocalDesc] = useState(section.description);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    if (editing && textareaRef.current) {
+      textareaRef.current.focus();
+      textareaRef.current.select();
+    }
+  }, [editing]);
+
+  const commit = () => {
+    setEditing(false);
+    onDescriptionChange(section.id, localDesc);
+  };
+
+  return (
+    <div
+      className={cn(
+        'px-4 py-3 rounded-xl border bg-background cursor-text transition-colors',
+        editing ? 'border-primary/50 ring-1 ring-primary/20' : 'border-border hover:border-border/80',
+      )}
+      onClick={() => !editing && setEditing(true)}
+    >
+      {editing ? (
+        <textarea
+          ref={textareaRef}
+          value={localDesc}
+          onChange={e => setLocalDesc(e.target.value)}
+          onBlur={commit}
+          onKeyDown={e => { if (e.key === 'Escape') commit(); }}
+          rows={3}
+          className="w-full resize-none bg-transparent outline-none text-[13px] text-foreground leading-relaxed"
+        />
+      ) : (
+        <p className="text-[13px] text-muted-foreground leading-relaxed line-clamp-3">
+          {localDesc}
+        </p>
+      )}
+    </div>
+  );
+}
+
+function BlogTopicSkeleton({ index = 0 }: { index?: number }) {
+  return (
+    <div
+      className="px-4 py-3 rounded-xl border border-border bg-background animate-pulse"
+      style={{ animationDelay: `${index * 100}ms` }}
+    >
+      <div className="space-y-2">
+        <div className="h-2.5 rounded-full bg-muted w-[90%]" />
+        <div className="h-2.5 rounded-full bg-muted w-full" />
+        <div className="h-2.5 rounded-full bg-muted w-[65%]" />
+      </div>
+    </div>
+  );
+}
+
 function Step3Topics({ sections, onChange }: Step3Props) {
-  const updateSection = (id: string, patch: Partial<BlogSection>) => {
-    onChange(sections.map(s => s.id === id ? { ...s, ...patch } : s));
-  };
+  const [generating, setGenerating] = useState(true);
 
-  const deleteSection = (id: string) => {
-    onChange(sections.filter(s => s.id !== id));
-  };
+  useEffect(() => {
+    const t = setTimeout(() => setGenerating(false), 1400);
+    return () => clearTimeout(t);
+  }, []);
 
-  const addSection = () => {
-    onChange([...sections, makeSection(sections.length + 1)]);
+  const updateDescription = (id: string, description: string) => {
+    onChange(sections.map(s => s.id === id ? { ...s, description } : s));
   };
 
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-base font-semibold text-foreground mb-1">Review topics</h2>
+        <h2 className={CONTENT_FLOW_STEP_TITLE_CLASS}>Review topics</h2>
         <p className="text-[13px] text-muted-foreground">
-          Review and edit the title and description for each blog post before generating.
+          Click any topic to edit it before generating.
         </p>
       </div>
 
-      <div className="space-y-3">
-        {sections.map((section) => (
-          <div
-            key={section.id}
-            className="rounded-xl border border-border bg-background p-4 space-y-3"
-          >
-            <div className="space-y-1.5">
-              <Input
-                value={section.heading}
-                onChange={e => updateSection(section.id, { heading: e.target.value })}
-                className="h-8 text-[13px] font-medium"
-                placeholder="Blog post title"
+      {generating ? (
+        <div className="space-y-4">
+          {sections.map((_, i) => (
+            <div key={i} className="space-y-2">
+              <div
+                className="h-2.5 w-20 rounded-full bg-muted animate-pulse"
+                style={{ animationDelay: `${i * 120}ms` }}
               />
-              <Textarea
-                value={section.description}
-                onChange={e => updateSection(section.id, { description: e.target.value })}
-                className="text-[12px] text-muted-foreground resize-none"
-                placeholder="What should this post cover? (optional)"
-                rows={2}
+              <BlogTopicSkeleton index={i} />
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="space-y-4 animate-in fade-in duration-500">
+          {sections.map(section => (
+            <div key={section.id} className="space-y-2">
+              <p className="text-[12px] font-medium text-muted-foreground">{section.heading}</p>
+              <BlogDescriptionCard
+                section={section}
+                onDescriptionChange={updateDescription}
               />
             </div>
-
-            <div className="flex justify-end pt-1 border-t border-border">
-              <button
-                type="button"
-                onClick={() => deleteSection(section.id)}
-                disabled={sections.length <= 1}
-                className="flex items-center gap-1 text-[12px] text-muted-foreground hover:text-destructive transition-colors disabled:opacity-40"
-              >
-                <Trash2 size={13} strokeWidth={1.6} absoluteStrokeWidth />
-                Remove
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      <button
-        type="button"
-        onClick={addSection}
-        className="w-full flex items-center justify-center gap-2 rounded-xl border border-dashed border-border py-3 text-[13px] text-muted-foreground hover:text-foreground hover:border-primary/60 transition-colors"
-      >
-        <Plus size={14} strokeWidth={1.6} absoluteStrokeWidth />
-        Add topic
-      </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
 
 // ── Main component ────────────────────────────────────────────────────────────
 
-export function BlogInlineCreationFlow({ onComplete, onCancel, controlRef, onNavStateChange }: BlogInlineCreationFlowProps) {
+export function BlogInlineCreationFlow({ onComplete, onCancel, controlRef, onNavStateChange, hideProgress = false }: BlogInlineCreationFlowProps) {
   const TOTAL_STEPS = 3;
   const [step, setStep] = useState(0);
 
@@ -527,7 +493,6 @@ export function BlogInlineCreationFlow({ onComplete, onCancel, controlRef, onNav
   const [topic, setTopic]           = useState('');
   const [keywords, setKeywords]     = useState('');
   const [tone, setTone]             = useState('');
-  const [audience, setAudience]     = useState('');
   const [wordTarget, setWordTarget]   = useState(1200);
   const [attachments, setAttachments] = useState<string[]>([]);
   const [blogCount, setBlogCount]   = useState(3);
@@ -547,11 +512,10 @@ export function BlogInlineCreationFlow({ onComplete, onCancel, controlRef, onNav
     });
   }, [blogCount]);
 
-  const handleStep2Change = (patch: Partial<Pick<BlogFlowData, 'topic' | 'keywords' | 'tone' | 'audience' | 'wordTarget' | 'attachments' | 'blogCount'>>) => {
+  const handleStep2Change = (patch: Partial<Pick<BlogFlowData, 'topic' | 'keywords' | 'tone' | 'wordTarget' | 'attachments' | 'blogCount'>>) => {
     if (patch.topic !== undefined) setTopic(patch.topic);
     if (patch.keywords !== undefined) setKeywords(patch.keywords);
     if (patch.tone !== undefined) setTone(patch.tone);
-    if (patch.audience !== undefined) setAudience(patch.audience);
     if (patch.wordTarget !== undefined) setWordTarget(patch.wordTarget);
     if (patch.attachments !== undefined) setAttachments(patch.attachments);
     if (patch.blogCount !== undefined) setBlogCount(patch.blogCount);
@@ -559,14 +523,14 @@ export function BlogInlineCreationFlow({ onComplete, onCancel, controlRef, onNav
 
   const canAdvance = [
     brandKit !== '' && location !== '',
-    topic.trim() !== '' && tone !== '' && audience !== '',
+    topic.trim() !== '' && tone !== '',
     sections.length > 0,
   ][step];
 
   const handleGenerate = () => {
     onComplete({
       brandKit, location, topic, keywords,
-      tone, audience, wordTarget, publishTo: ['library'],
+      tone, audience: 'Brand kit target customers', wordTarget, publishTo: ['library'],
       attachments, blogCount, sections,
     });
   };
@@ -583,11 +547,12 @@ export function BlogInlineCreationFlow({ onComplete, onCancel, controlRef, onNav
   });
 
   return (
-    <div className="flex flex-col h-full bg-background">
-      {/* Step bar */}
-      <div className="flex-none px-8 py-4 border-b border-border bg-background flex justify-center">
-        <StepIndicator current={step} />
-      </div>
+    <div className="flex flex-col h-full bg-[var(--color-canvas,#F7F8FA)]">
+      {!hideProgress && (
+        <div className="flex-none px-8 py-4 border-b border-border bg-background flex justify-center">
+          <StepIndicator current={step} />
+        </div>
+      )}
 
       {/* Scrollable content */}
       <div className="flex-1 min-h-0 overflow-y-auto">
@@ -606,7 +571,6 @@ export function BlogInlineCreationFlow({ onComplete, onCancel, controlRef, onNav
               topic={topic}
               keywords={keywords}
               tone={tone}
-              audience={audience}
               wordTarget={wordTarget}
               attachments={attachments}
               blogCount={blogCount}

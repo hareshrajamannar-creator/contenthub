@@ -15,19 +15,23 @@
  *  landing  →  goal → template → fine-tune → summary
  */
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import type { FlowNavControls, FlowNavState } from '../faq/FAQInlineCreationFlow';
 import {
-  ChevronRight, Check, Sparkles,
+  ChevronRight, Check,
   FileText, Share2, Mail, MessageSquare, Monitor,
   MapPin, Package, Star, Layers, Pencil,
   Target, BookOpen, Megaphone, Users, Zap,
-  Trash2, Plus,
 } from 'lucide-react';
-import { Input } from '@/app/components/ui/input';
-import { Textarea } from '@/app/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import type { ContentMode } from '../editor/editorConfig';
+import {
+  CONTENT_FLOW_STEP_TITLE_CLASS,
+  CONTENT_FLOW_FIELD_CLASS,
+  ContentFlowBrandKitSummary,
+  ContentFlowChip,
+  ContentFlowChoiceCard,
+} from '../shared/ContentFlowControls';
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -70,7 +74,7 @@ export interface InlineFlowData {
 type StepId = 'project-type' | 'goal' | 'template' | 'fine-tune' | 'summary';
 
 const STEPS_BY_MODE: Record<InlineFlowMode, StepId[]> = {
-  project: ['project-type', 'goal', 'fine-tune', 'summary'],
+  project: ['project-type', 'goal', 'summary'],
   faq:     ['goal', 'template', 'fine-tune', 'summary'],
   blog:    ['goal', 'template', 'fine-tune', 'summary'],
   landing: ['goal', 'template', 'fine-tune', 'summary'],
@@ -80,7 +84,7 @@ const STEP_LABEL: Record<StepId, string> = {
   'project-type': 'Brand kit',
   goal:           'Project setup',
   template:       'Template',
-  'fine-tune':    'Content mix',
+  'fine-tune':    'Fine-tune',
   summary:        'Review topics',
 };
 
@@ -98,19 +102,12 @@ function PillRadio({
   return (
     <div className="flex flex-wrap gap-2">
       {options.map(opt => (
-        <button
+        <ContentFlowChip
           key={opt.value}
-          type="button"
+          label={opt.label}
+          selected={value === opt.value}
           onClick={() => onChange(opt.value)}
-          className={cn(
-            'px-4 h-8 rounded-full text-[13px] border transition-all',
-            value === opt.value
-              ? 'bg-primary text-primary-foreground border-primary'
-              : 'border-border bg-background text-foreground hover:border-primary/40',
-          )}
-        >
-          {opt.label}
-        </button>
+        />
       ))}
     </div>
   );
@@ -134,49 +131,14 @@ function SelectionCard({
   tags?: string[];
 }) {
   return (
-    <button
-      type="button"
+    <ContentFlowChoiceCard
+      selected={selected}
       onClick={onClick}
-      className={cn(
-        'w-full text-left flex items-start gap-4 px-4 py-4 rounded-xl border transition-all',
-        selected
-          ? 'border-primary bg-primary/[0.04] ring-1 ring-primary/20'
-          : 'border-border bg-background hover:border-primary/30 hover:bg-muted/30',
-      )}
-    >
-      <div
-        className={cn(
-          'size-9 rounded-lg flex items-center justify-center flex-none mt-0.5',
-          selected ? 'bg-primary/10' : 'bg-muted',
-        )}
-      >
-        <Icon
-          size={16}
-          strokeWidth={1.6}
-          absoluteStrokeWidth
-          className={selected ? 'text-primary' : 'text-foreground/60'}
-        />
-      </div>
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-[13px] font-medium text-foreground">{title}</span>
-          {tags?.map(t => (
-            <span key={t} className="px-1.5 py-0.5 rounded-md bg-muted text-[11px] text-muted-foreground">
-              {t}
-            </span>
-          ))}
-        </div>
-        <p className="text-[12px] text-muted-foreground mt-0.5 leading-snug">{description}</p>
-      </div>
-      <div
-        className={cn(
-          'size-5 rounded-full border-2 flex items-center justify-center flex-none mt-1 transition-all',
-          selected ? 'border-primary bg-primary' : 'border-border',
-        )}
-      >
-        {selected && <Check size={10} strokeWidth={2.5} className="text-primary-foreground" />}
-      </div>
-    </button>
+      icon={Icon}
+      title={title}
+      description={description}
+      tags={tags}
+    />
   );
 }
 
@@ -196,13 +158,6 @@ const PROJECT_LOCATIONS = [
   { value: 'san-antonio', label: 'San Antonio, TX' },
 ];
 
-const BRAND_KIT_CHIPS = [
-  'Friendly tone',
-  'Suburban homeowners',
-  '10 locations',
-  'Lawn care & landscaping',
-];
-
 function StepProjectType({
   data,
   onChange,
@@ -213,15 +168,15 @@ function StepProjectType({
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h2 className="text-[15px] font-semibold text-foreground">Select your brand kit</h2>
+        <h2 className={CONTENT_FLOW_STEP_TITLE_CLASS}>Select brand kit and location</h2>
         <p className="text-[13px] text-muted-foreground mt-1">
-          Your brand kit sets tone, audience, and guardrails for all generated content.
+          Content will be created from the selected brand identity and location context.
         </p>
       </div>
 
       <div className="flex flex-col gap-4">
         <div className="flex flex-col gap-2">
-          <label className="text-[12px] font-medium text-muted-foreground uppercase tracking-wide">Brand kit</label>
+          <label className="text-[13px] font-medium text-foreground">Brand kit</label>
           <div className="relative">
             <select
               value={data.brandKit ?? 'lushgreen'}
@@ -242,7 +197,7 @@ function StepProjectType({
         </div>
 
         <div className="flex flex-col gap-2">
-          <label className="text-[12px] font-medium text-muted-foreground uppercase tracking-wide">Location</label>
+          <label className="text-[13px] font-medium text-foreground">Location</label>
           <div className="relative">
             <select
               value={data.location ?? 'all'}
@@ -263,16 +218,7 @@ function StepProjectType({
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-2">
-        {BRAND_KIT_CHIPS.map(chip => (
-          <span
-            key={chip}
-            className="px-3 h-7 flex items-center rounded-full bg-muted border border-border text-[12px] text-muted-foreground"
-          >
-            {chip}
-          </span>
-        ))}
-      </div>
+      <ContentFlowBrandKitSummary contentLabel="Project content" />
     </div>
   );
 }
@@ -280,11 +226,11 @@ function StepProjectType({
 // ── Step 2: Goal ───────────────────────────────────────────────────────────────
 
 const PROJECT_GOALS = [
-  { value: 'bookings',     label: 'Drive more bookings' },
-  { value: 'reviews',      label: 'Generate customer reviews' },
-  { value: 'product',      label: 'Promote a new product or offer' },
-  { value: 'awareness',    label: 'Grow brand awareness' },
-  { value: 're-engage',    label: 'Re-engage past customers' },
+  { value: 'bookings',  icon: Target,    label: 'Drive more bookings', description: 'Create a campaign that turns local demand into appointments and quote requests' },
+  { value: 'reviews',   icon: Star,      label: 'Generate customer reviews', description: 'Ask happy customers for reviews and turn proof into follow-up content' },
+  { value: 'product',   icon: Package,   label: 'Promote a new product or offer', description: 'Launch an offer with supporting content across every selected channel' },
+  { value: 'awareness', icon: Megaphone, label: 'Grow brand awareness', description: 'Increase reach and recall with educational and social-first content' },
+  { value: 're-engage', icon: Users,     label: 'Re-engage past customers', description: 'Bring previous customers back with reminders, offers, and useful updates' },
 ];
 
 const FAQ_GOALS = [
@@ -317,15 +263,6 @@ const OBJECTIVES = [
   { value: 'traffic',     label: 'Increase traffic' },
 ];
 
-const PROJECT_AUDIENCES = [
-  { value: 'homeowners',   label: 'Homeowners' },
-  { value: 'businesses',   label: 'Businesses' },
-  { value: 'new-visitors', label: 'New visitors' },
-  { value: 'returning',    label: 'Returning customers' },
-  { value: 'families',     label: 'Families' },
-  { value: 'seniors',      label: 'Seniors' },
-];
-
 const DURATIONS = [
   { value: '1w',      label: '1 week' },
   { value: '2w',      label: '2 weeks' },
@@ -348,35 +285,30 @@ function StepGoal({
     return (
       <div className="flex flex-col gap-6">
         <div>
-          <h2 className="text-[15px] font-semibold text-foreground">Project setup</h2>
+          <h2 className={CONTENT_FLOW_STEP_TITLE_CLASS}>Project setup</h2>
           <p className="text-[13px] text-muted-foreground mt-1">
-            Set your goal, objective, audience, and campaign duration.
+            Set your goal, objective, campaign duration, and content mix.
           </p>
         </div>
 
         <div className="flex flex-col gap-2">
-          <label className="text-[12px] font-medium text-muted-foreground uppercase tracking-wide">Goal</label>
+          <label className="text-[13px] font-medium text-foreground">Goal</label>
           <div className="flex flex-col gap-2">
             {PROJECT_GOALS.map(g => (
-              <button
+              <ContentFlowChoiceCard
                 key={g.value}
-                type="button"
+                selected={data.goal === g.value}
                 onClick={() => onChange({ ...data, goal: g.value })}
-                className={cn(
-                  'w-full text-left px-4 py-3 rounded-xl border text-[13px] font-medium transition-all',
-                  data.goal === g.value
-                    ? 'border-primary bg-primary/[0.04] text-foreground ring-1 ring-primary/20'
-                    : 'border-border bg-background text-foreground hover:border-primary/30',
-                )}
-              >
-                {g.label}
-              </button>
+                icon={g.icon}
+                title={g.label}
+                description={g.description}
+              />
             ))}
           </div>
         </div>
 
         <div className="flex flex-col gap-2">
-          <label className="text-[12px] font-medium text-muted-foreground uppercase tracking-wide">Objective</label>
+          <label className="text-[13px] font-medium text-foreground">Objective</label>
           <PillRadio
             options={OBJECTIVES}
             value={data.objective ?? ''}
@@ -385,16 +317,7 @@ function StepGoal({
         </div>
 
         <div className="flex flex-col gap-2">
-          <label className="text-[12px] font-medium text-muted-foreground uppercase tracking-wide">Target audience</label>
-          <PillRadio
-            options={PROJECT_AUDIENCES}
-            value={data.audience ?? ''}
-            onChange={v => onChange({ ...data, audience: v })}
-          />
-        </div>
-
-        <div className="flex flex-col gap-2">
-          <label className="text-[12px] font-medium text-muted-foreground uppercase tracking-wide">Campaign duration</label>
+          <label className="text-[13px] font-medium text-foreground">Campaign duration</label>
           <PillRadio
             options={DURATIONS}
             value={data.duration ?? '1m'}
@@ -423,6 +346,26 @@ function StepGoal({
             </div>
           )}
         </div>
+
+        <div className="flex flex-col gap-2">
+          <label className="text-[13px] font-medium text-foreground">Content mix</label>
+          <div className="flex flex-col gap-2">
+            {(data.contentMix ?? getDefaultMix()).map((item, i, currentMix) => (
+              <ContentMixRow
+                key={item.type}
+                item={item}
+                onIncrement={() => {
+                  const updated = currentMix.map((m, idx) => idx === i ? { ...m, count: Math.min(5, m.count + 1) } : m);
+                  onChange({ ...data, contentMix: updated });
+                }}
+                onDecrement={() => {
+                  const updated = currentMix.map((m, idx) => idx === i ? { ...m, count: Math.max(0, m.count - 1) } : m);
+                  onChange({ ...data, contentMix: updated });
+                }}
+              />
+            ))}
+          </div>
+        </div>
       </div>
     );
   }
@@ -433,7 +376,7 @@ function StepGoal({
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h2 className="text-[15px] font-semibold text-foreground">
+        <h2 className={CONTENT_FLOW_STEP_TITLE_CLASS}>
           What's the primary goal for this {mode === 'faq' ? 'FAQ page' : mode === 'blog' ? 'blog post' : 'landing page'}?
         </h2>
         <p className="text-[13px] text-muted-foreground mt-1">
@@ -454,22 +397,6 @@ function StepGoal({
         ))}
       </div>
 
-      <div className="flex flex-col gap-2">
-        <label className="text-[12px] font-medium text-muted-foreground uppercase tracking-wide">
-          Target audience
-        </label>
-        <input
-          type="text"
-          value={data.audience ?? ''}
-          onChange={e => onChange({ ...data, audience: e.target.value })}
-          placeholder={
-            mode === 'faq'     ? 'e.g. Homeowners in suburban areas' :
-            mode === 'blog'    ? 'e.g. Restaurant managers, SMB owners' :
-                                 'e.g. New visitors, local families'
-          }
-          className="h-10 px-3 rounded-xl border border-border bg-background text-[13px] text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-1 focus:ring-primary/30 focus:border-primary/50"
-        />
-      </div>
     </div>
   );
 }
@@ -581,7 +508,7 @@ function StepTemplate({
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h2 className="text-[15px] font-semibold text-foreground">Choose a template</h2>
+        <h2 className={CONTENT_FLOW_STEP_TITLE_CLASS}>Choose a template</h2>
         <p className="text-[13px] text-muted-foreground mt-1">
           Templates give AI a proven structure to start from. You can always edit everything.
         </p>
@@ -702,69 +629,22 @@ function StepFineTune({
   data: Partial<InlineFlowData>;
   onChange: (d: Partial<InlineFlowData>) => void;
 }) {
-  // Initialise content mix for project mode
-  const initMix = useCallback(
-    () => data.contentMix ?? getDefaultMix(),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [],
-  );
-  const [mix, setMix] = useState<ContentMixItem[]>(initMix);
-
-  // Ensure contentMix is always in data even if user never changes counts
-  useEffect(() => {
-    if (!data.contentMix) {
-      onChange({ ...data, contentMix: mix });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const updateMix = (updated: ContentMixItem[]) => {
-    setMix(updated);
-    onChange({ ...data, contentMix: updated });
-  };
-
   if (mode === 'project') {
-    return (
-      <div className="flex flex-col gap-6">
-        <div>
-          <h2 className="text-[15px] font-semibold text-foreground">Content mix</h2>
-          <p className="text-[13px] text-muted-foreground mt-1">
-            Set how many of each content type to generate. Set to 0 to skip.
-          </p>
-        </div>
-
-        <div className="flex flex-col gap-2">
-          {mix.map((item, i) => (
-            <ContentMixRow
-              key={item.type}
-              item={item}
-              onIncrement={() => {
-                const updated = mix.map((m, idx) => idx === i ? { ...m, count: m.count + 1 } : m);
-                updateMix(updated);
-              }}
-              onDecrement={() => {
-                const updated = mix.map((m, idx) => idx === i ? { ...m, count: Math.max(0, m.count - 1) } : m);
-                updateMix(updated);
-              }}
-            />
-          ))}
-        </div>
-      </div>
-    );
+    return null;
   }
 
   if (mode === 'faq') {
     return (
       <div className="flex flex-col gap-6">
         <div>
-          <h2 className="text-[15px] font-semibold text-foreground">Fine-tune the FAQ</h2>
+          <h2 className={CONTENT_FLOW_STEP_TITLE_CLASS}>Fine-tune the FAQ</h2>
           <p className="text-[13px] text-muted-foreground mt-1">
             Set the number of questions and the tone of the answers.
           </p>
         </div>
 
         <div className="flex flex-col gap-2">
-          <label className="text-[12px] font-medium text-muted-foreground uppercase tracking-wide">Number of questions</label>
+          <label className="text-[13px] font-medium text-foreground">Number of questions</label>
           <PillRadio
             options={FAQ_COUNTS}
             value={String(data.count ?? 12)}
@@ -773,7 +653,7 @@ function StepFineTune({
         </div>
 
         <div className="flex flex-col gap-2">
-          <label className="text-[12px] font-medium text-muted-foreground uppercase tracking-wide">Tone</label>
+          <label className="text-[13px] font-medium text-foreground">Tone</label>
           <PillRadio
             options={TONES}
             value={data.tone ?? 'Professional'}
@@ -782,7 +662,7 @@ function StepFineTune({
         </div>
 
         <div className="flex flex-col gap-2">
-          <label className="text-[12px] font-medium text-muted-foreground uppercase tracking-wide">Reading level</label>
+          <label className="text-[13px] font-medium text-foreground">Reading level</label>
           <PillRadio
             options={[
               { value: 'general',    label: 'General audience' },
@@ -801,7 +681,7 @@ function StepFineTune({
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h2 className="text-[15px] font-semibold text-foreground">
+        <h2 className={CONTENT_FLOW_STEP_TITLE_CLASS}>
           Fine-tune your {mode === 'blog' ? 'blog post' : 'landing page'}
         </h2>
         <p className="text-[13px] text-muted-foreground mt-1">
@@ -810,7 +690,7 @@ function StepFineTune({
       </div>
 
       <div className="flex flex-col gap-2">
-        <label className="text-[12px] font-medium text-muted-foreground uppercase tracking-wide">Tone</label>
+        <label className="text-[13px] font-medium text-foreground">Tone</label>
         <PillRadio
           options={TONES}
           value={data.tone ?? 'Professional'}
@@ -820,7 +700,7 @@ function StepFineTune({
 
       {mode === 'blog' && (
         <div className="flex flex-col gap-2">
-          <label className="text-[12px] font-medium text-muted-foreground uppercase tracking-wide">Length</label>
+          <label className="text-[13px] font-medium text-foreground">Length</label>
           <PillRadio
             options={BLOG_LENGTHS}
             value={data.length ?? 'medium'}
@@ -830,7 +710,7 @@ function StepFineTune({
       )}
 
       <div className="flex flex-col gap-2">
-        <label className="text-[12px] font-medium text-muted-foreground uppercase tracking-wide">
+        <label className="text-[13px] font-medium text-foreground">
           Key focus or keywords
         </label>
         <input
@@ -842,7 +722,7 @@ function StepFineTune({
               ? 'e.g. local SEO, review management, customer trust'
               : 'e.g. seasonal menu, outdoor seating, private events'
           }
-          className="h-10 px-3 rounded-xl border border-border bg-background text-[13px] text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-1 focus:ring-primary/30 focus:border-primary/50"
+          className={CONTENT_FLOW_FIELD_CLASS}
         />
       </div>
     </div>
@@ -859,9 +739,11 @@ const TYPE_LABEL: Record<string, string> = {
 function buildIdeas(data: Partial<InlineFlowData>): SummaryIdea[] {
   const { mode, contentMix } = data;
 
-  if (mode === 'project' && contentMix) {
+  if (mode === 'project') {
+    const mix = contentMix ?? getDefaultMix();
+    const projectGoalHint = data.goal ?? '';
     const ideas: SummaryIdea[] = [];
-    contentMix.forEach(({ type, label, count }) => {
+    mix.forEach(({ type, label, count }) => {
       for (let i = 0; i < count; i++) {
         const titles: Record<string, string[]> = {
           blog:    ['How LushGreen became the top-rated landscaping service', 'Spring lawn care tips from our experts', '5 reasons customers choose LushGreen'],
@@ -926,57 +808,80 @@ function buildIdeas(data: Partial<InlineFlowData>): SummaryIdea[] {
   ];
 }
 
-function IdeaCard({
+function TopicDescriptionCard({
   idea,
-  onTitleChange,
+  onDescriptionChange,
 }: {
   idea: SummaryIdea;
-  onTitleChange: (id: string, title: string) => void;
+  onDescriptionChange: (id: string, description: string) => void;
 }) {
   const [editing, setEditing] = useState(false);
-  const [localTitle, setLocalTitle] = useState(idea.title);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const [localDesc, setLocalDesc] = useState(idea.description);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
-    if (editing) inputRef.current?.select();
+    if (editing && textareaRef.current) {
+      textareaRef.current.focus();
+      textareaRef.current.select();
+    }
   }, [editing]);
 
+  const commit = () => {
+    setEditing(false);
+    onDescriptionChange(idea.id, localDesc);
+  };
+
   return (
-    <div className="px-4 py-4 rounded-xl border border-border bg-background">
+    <div
+      className={cn(
+        'px-4 py-3 rounded-xl border bg-background cursor-text transition-colors',
+        editing ? 'border-primary/50 ring-1 ring-primary/20' : 'border-border hover:border-border/80',
+      )}
+      onClick={() => !editing && setEditing(true)}
+    >
       {editing ? (
-        <input
-          ref={inputRef}
-          type="text"
-          value={localTitle}
-          onChange={e => setLocalTitle(e.target.value)}
-          onBlur={() => { setEditing(false); onTitleChange(idea.id, localTitle); }}
-          onKeyDown={e => {
-            if (e.key === 'Enter' || e.key === 'Escape') {
-              setEditing(false);
-              onTitleChange(idea.id, localTitle);
-            }
-          }}
-          className="text-[13px] font-medium text-foreground bg-transparent border-b border-primary outline-none w-full"
+        <textarea
+          ref={textareaRef}
+          value={localDesc}
+          onChange={e => setLocalDesc(e.target.value)}
+          onBlur={commit}
+          onKeyDown={e => { if (e.key === 'Escape') commit(); }}
+          rows={2}
+          className="w-full resize-none bg-transparent outline-none text-[13px] text-foreground leading-relaxed"
         />
       ) : (
-        <button
-          type="button"
-          onClick={() => setEditing(true)}
-          className="text-[13px] font-medium text-foreground text-left hover:text-primary transition-colors group flex items-center gap-1"
-        >
-          {localTitle}
-          <Pencil
-            size={11}
-            strokeWidth={1.6}
-            absoluteStrokeWidth
-            className="text-muted-foreground/40 group-hover:text-primary/60 transition-colors ml-1 flex-none"
-          />
-        </button>
+        <p className="text-[13px] text-muted-foreground leading-relaxed line-clamp-2">
+          {localDesc}
+        </p>
       )}
-      <p className="text-[12px] text-muted-foreground mt-1 leading-snug">{idea.description}</p>
     </div>
   );
 }
+
+// ── Skeleton card shown while ideas are "generating" ──────────────────────────
+
+function IdeaCardSkeleton({ index = 0 }: { index?: number }) {
+  const descW1 = ['85%', '100%', '90%', '95%', '80%'][index % 5];
+  const descW2 = ['60%', '70%', '55%', '65%', '50%'][index % 5];
+  return (
+    <div
+      className="px-4 py-3 rounded-xl border border-border bg-background animate-pulse"
+      style={{ animationDelay: `${index * 100}ms` }}
+    >
+      <div className="space-y-2">
+        <div className="h-2.5 rounded-full bg-muted" style={{ width: descW1 }} />
+        <div className="h-2.5 rounded-full bg-muted" style={{ width: descW2 }} />
+      </div>
+    </div>
+  );
+}
+
+function GroupLabelSkeleton({ index = 0 }: { index?: number }) {
+  const w = ['64px', '80px', '56px', '72px'][index % 4];
+  return <div className="h-2.5 rounded-full bg-muted animate-pulse" style={{ width: w, animationDelay: `${index * 100}ms` }} />;
+}
+
+// ── Step 5: Summary / Idea review ──────────────────────────────────────────────
 
 function StepSummary({
   mode,
@@ -989,48 +894,19 @@ function StepSummary({
 }) {
   const [ideas, setIdeas] = useState<SummaryIdea[]>(() => {
     const generated = buildIdeas(data);
-    // Sync into parent data on first render via effect below
     return generated;
   });
+  const [generating, setGenerating] = useState(true);
 
   useEffect(() => {
     onChange({ ...data, ideas });
+    const t = setTimeout(() => setGenerating(false), 1400);
+    return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const handleTitleChange = (id: string, title: string) => {
-    const updated = ideas.map(idea => idea.id === id ? { ...idea, title } : idea);
-    setIdeas(updated);
-    onChange({ ...data, ideas: updated });
-  };
-
-  const updateTitle = (id: string, title: string) => {
-    const updated = ideas.map(idea => idea.id === id ? { ...idea, title } : idea);
-    setIdeas(updated);
-    onChange({ ...data, ideas: updated });
-  };
-
   const updateDesc = (id: string, description: string) => {
     const updated = ideas.map(idea => idea.id === id ? { ...idea, description } : idea);
-    setIdeas(updated);
-    onChange({ ...data, ideas: updated });
-  };
-
-  const removeIdea = (id: string) => {
-    const updated = ideas.filter(idea => idea.id !== id);
-    setIdeas(updated);
-    onChange({ ...data, ideas: updated });
-  };
-
-  const addIdea = () => {
-    const newIdea: SummaryIdea = {
-      id: `custom-${Date.now()}`,
-      type: 'blog',
-      typeLabel: 'Blog post',
-      title: '',
-      description: '',
-    };
-    const updated = [...ideas, newIdea];
     setIdeas(updated);
     onChange({ ...data, ideas: updated });
   };
@@ -1042,61 +918,46 @@ function StepSummary({
       return acc;
     }, []);
 
+    // Flatten skeleton count to match expected output shape
+    const skeletonGroups = typeGroups.map(g => ({ type: g.type, count: g.items.length }));
+    let skeletonIndex = 0;
+
     return (
       <div className="space-y-6">
         <div>
-          <h2 className="text-[15px] font-semibold text-foreground">Review topics</h2>
+          <h2 className={CONTENT_FLOW_STEP_TITLE_CLASS}>Review topics</h2>
           <p className="text-[13px] text-muted-foreground mt-0.5">
             Review and edit each piece before generating.
           </p>
         </div>
 
-        <div className="space-y-6">
-          {typeGroups.map((group, gi) => (
-            <div key={group.type} className="space-y-3">
-              {gi > 0 && <div className="border-t border-border" />}
-              <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">{group.label}</p>
-              {group.items.map(idea => (
-                <div key={idea.id} className="rounded-xl border border-border bg-background p-4 space-y-3">
-                  <div className="space-y-1.5">
-                    <Input
-                      value={idea.title}
-                      onChange={e => updateTitle(idea.id, e.target.value)}
-                      className="h-8 text-[13px] font-medium"
-                      placeholder="Content title"
-                    />
-                    <Textarea
-                      value={idea.description}
-                      onChange={e => updateDesc(idea.id, e.target.value)}
-                      className="text-[12px] text-muted-foreground resize-none"
-                      placeholder="What should this cover? (optional)"
-                      rows={2}
-                    />
-                  </div>
-                  <div className="flex justify-end pt-1 border-t border-border">
-                    <button
-                      type="button"
-                      onClick={() => removeIdea(idea.id)}
-                      className="flex items-center gap-1 text-[12px] text-muted-foreground hover:text-destructive transition-colors"
-                    >
-                      <Trash2 size={13} strokeWidth={1.6} absoluteStrokeWidth />
-                      Remove
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ))}
-        </div>
-
-        <button
-          type="button"
-          onClick={addIdea}
-          className="w-full flex items-center justify-center gap-2 rounded-xl border border-dashed border-border py-3 text-[13px] text-muted-foreground hover:text-foreground hover:border-primary/60 transition-colors"
-        >
-          <Plus size={14} strokeWidth={1.6} absoluteStrokeWidth />
-          Add topic
-        </button>
+        {generating ? (
+          <div className="space-y-6">
+            {skeletonGroups.map((g, gi) => (
+              <div key={g.type} className="space-y-2">
+                <GroupLabelSkeleton index={gi} />
+                {Array.from({ length: g.count }).map((_, i) => (
+                  <IdeaCardSkeleton key={i} index={skeletonIndex++} />
+                ))}
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="space-y-6 animate-in fade-in duration-500">
+            {typeGroups.map(group => (
+              <div key={group.type} className="space-y-2">
+                <p className="text-[12px] font-medium text-muted-foreground">{group.label}</p>
+                {group.items.map(idea => (
+                  <TopicDescriptionCard
+                    key={idea.id}
+                    idea={idea}
+                    onDescriptionChange={updateDesc}
+                  />
+                ))}
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     );
   }
@@ -1104,17 +965,23 @@ function StepSummary({
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h2 className="text-[15px] font-semibold text-foreground">Review topics</h2>
+        <h2 className={CONTENT_FLOW_STEP_TITLE_CLASS}>Review topics</h2>
         <p className="text-[13px] text-muted-foreground mt-0.5">
-          Click any title to rename it before generating.
+          Click any topic to edit it before generating.
         </p>
       </div>
 
-      <div className="flex flex-col gap-2">
-        {ideas.map(idea => (
-          <IdeaCard key={idea.id} idea={idea} onTitleChange={handleTitleChange} />
-        ))}
-      </div>
+      {generating ? (
+        <div className="flex flex-col gap-2">
+          {ideas.map((_, i) => <IdeaCardSkeleton key={i} index={i} />)}
+        </div>
+      ) : (
+        <div className="flex flex-col gap-2 animate-in fade-in duration-500">
+          {ideas.map(idea => (
+            <TopicDescriptionCard key={idea.id} idea={idea} onDescriptionChange={updateDesc} />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -1142,7 +1009,7 @@ function StepProgress({
               )}
             >
               {i < currentIndex ? (
-                <Check size={12} strokeWidth={2.2} />
+                <Check size={12} strokeWidth={1.6} absoluteStrokeWidth />
               ) : (
                 i + 1
               )}
@@ -1178,9 +1045,10 @@ export interface InlineCreationFlowProps {
   onCancel: () => void;
   controlRef?: React.MutableRefObject<FlowNavControls | null>;
   onNavStateChange?: (state: FlowNavState) => void;
+  hideProgress?: boolean;
 }
 
-export function InlineCreationFlow({ mode, onComplete, onCancel, controlRef, onNavStateChange }: InlineCreationFlowProps) {
+export function InlineCreationFlow({ mode, onComplete, onCancel, controlRef, onNavStateChange, hideProgress = false }: InlineCreationFlowProps) {
   const steps = STEPS_BY_MODE[mode];
   const [stepIndex, setStepIndex] = useState(0);
   const [data, setData] = useState<Partial<InlineFlowData>>({ mode, agent: 'balanced', tone: 'Professional' });
@@ -1252,10 +1120,11 @@ export function InlineCreationFlow({ mode, onComplete, onCancel, controlRef, onN
   return (
     <div className="flex flex-col h-full bg-[var(--color-canvas,#F7F8FA)]">
 
-      {/* Progress bar */}
-      <div className="flex-none px-8 py-4 border-b border-border bg-background flex justify-center">
-        <StepProgress steps={steps} currentIndex={stepIndex} />
-      </div>
+      {!hideProgress && (
+        <div className="flex-none px-8 py-4 border-b border-border bg-background flex justify-center">
+          <StepProgress steps={steps} currentIndex={stepIndex} />
+        </div>
+      )}
 
       {/* Scrollable step content */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto">

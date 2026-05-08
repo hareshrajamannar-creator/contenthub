@@ -19,7 +19,7 @@
  *  └────────────┴─────────────────────────────────────┴───────────────┘
  */
 
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import {
   ArrowLeft, ChevronDown, ChevronRight, Sparkles, Edit2,
   FileText, Share2, Mail, MessageSquare, Monitor, Video, FolderPlus,
@@ -65,6 +65,7 @@ import type { BlogFlowData } from '../blog/BlogInlineCreationFlow';
 import { BlogGenerationProgress } from '../blog/BlogGenerationProgress';
 import { BlogSectionCanvas } from '../blog/BlogSectionCanvas';
 import { ProjectGenerationProgress } from '../ProjectGenerationProgress';
+import { ContentFlowStepper, type ContentFlowStep } from '../shared/ContentFlowControls';
 // Note: FAQCanvas is kept for the project review canvas path (UnifiedReviewCanvas)
 import {
   type ContentMode,
@@ -77,6 +78,12 @@ import {
 
 /** Modes that use the block-based WYSIWYG canvas */
 const BLOCK_MODES = new Set<ContentMode>(['blog', 'landing', 'faq']);
+const CARD_CANVAS_GAP = 100;
+const CARD_CANVAS_PADDING = 120;
+const DEFAULT_CARD_WIDTH = 520;
+const DEFAULT_CARD_HEIGHT = 520;
+const CARD_MIN_WIDTH = 360;
+const CARD_MIN_HEIGHT = 260;
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -93,6 +100,15 @@ export interface ContentEditorShellProps {
   initialTitle?: string;
 }
 
+interface CanvasCardLayout {
+  x: number;
+  y: number;
+  width: number;
+  height?: number;
+}
+
+type ResizeEdge = 'top' | 'right' | 'bottom' | 'left';
+
 // ── Default FAQ flow data used when skipping the setup wizard ────────────────
 
 const DEFAULT_REC_FAQ_FLOW_DATA: FAQFlowData = {
@@ -101,6 +117,7 @@ const DEFAULT_REC_FAQ_FLOW_DATA: FAQFlowData = {
   template: 'general',
   sourceUrl: '',
   additionalContext: '',
+  questionCount: 14,
   signalSources: [],
   objective: 'aeo',
   publishTo: [],
@@ -136,6 +153,33 @@ const ICON_MAP: Record<string, React.ElementType> = {
   FolderPlus, FileText, Share2, Mail, MessageSquare, Monitor, Video,
 };
 
+const SETUP_STEPS_BY_MODE: Record<ContentMode, ContentFlowStep[]> = {
+  project: [
+    { id: 'brand-kit', label: 'Brand kit' },
+    { id: 'setup', label: 'Project setup' },
+    { id: 'review-topics', label: 'Review topics' },
+  ],
+  faq: [
+    { id: 'brand-kit', label: 'Brand kit' },
+    { id: 'setup', label: 'Content setup' },
+    { id: 'review-topics', label: 'Review topics' },
+  ],
+  blog: [
+    { id: 'brand-kit', label: 'Brand kit' },
+    { id: 'setup', label: 'Blog setup' },
+    { id: 'review-topics', label: 'Review topics' },
+  ],
+  landing: [
+    { id: 'goal', label: 'Goal' },
+    { id: 'template', label: 'Template' },
+    { id: 'fine-tune', label: 'Fine-tune' },
+    { id: 'review-topics', label: 'Review topics' },
+  ],
+  social: [],
+  email: [],
+  video: [],
+};
+
 // ── Left panel tab items ──────────────────────────────────────────────────────
 
 const LEFT_TAB_ITEMS = [
@@ -169,6 +213,40 @@ function makeMockCard(itemType: ContentItemType, idx: number): ContentCardData {
     score: typeScore[itemType] - (idx * 4),
     approved: false,
   };
+}
+
+function defaultCardSize(itemType: ContentItemType): Pick<CanvasCardLayout, 'width' | 'height'> {
+  if (itemType === 'blog') return { width: 560, height: 640 };
+  if (itemType === 'landing') return { width: 560, height: 680 };
+  if (itemType === 'email') return { width: 560, height: 420 };
+  if (itemType === 'social') return { width: 480, height: 560 };
+  return { width: DEFAULT_CARD_WIDTH, height: DEFAULT_CARD_HEIGHT };
+}
+
+function arrangeCardLayouts(
+  cards: ContentCardData[],
+  direction: 'vertical' | 'horizontal',
+  existing: Record<string, CanvasCardLayout> = {},
+  measuredHeights: Record<string, number> = {},
+): Record<string, CanvasCardLayout> {
+  let cursorX = CARD_CANVAS_PADDING;
+  let cursorY = CARD_CANVAS_PADDING;
+
+  return cards.reduce<Record<string, CanvasCardLayout>>((layouts, card) => {
+    const size = existing[card.id] ?? defaultCardSize(card.itemType);
+    const measuredHeight = measuredHeights[card.id] ?? defaultCardSize(card.itemType).height;
+    layouts[card.id] = {
+      x: cursorX,
+      y: cursorY,
+      width: size.width,
+      height: existing[card.id]?.height,
+    };
+
+    if (direction === 'horizontal') cursorX += size.width + CARD_CANVAS_GAP;
+    else cursorY += Math.max(existing[card.id]?.height ?? 0, measuredHeight) + CARD_CANVAS_GAP;
+
+    return layouts;
+  }, {});
 }
 
 /** For project mode, generate cards from selected content types */
@@ -546,7 +624,7 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
   const flowNavRef = useRef<FlowNavControls | null>(null);
   const [wizardNavState, setWizardNavState] = useState<FlowNavState>({
     step: 0,
-    totalSteps: (mode === 'faq' || mode === 'blog') ? 3 : mode === 'project' ? 5 : 4,
+    totalSteps: SETUP_STEPS_BY_MODE[mode].length || 1,
     canAdvance: true,
   });
 
@@ -655,7 +733,20 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
   // ── Floating toolbar state (canvas)
   const [viewMode, setViewMode] = useState<'grid' | 'list' | 'calendar'>('grid');
   const [zoom, setZoom] = useState(1);
-  const [layoutDirection, setLayoutDirection] = useState<'vertical' | 'horizontal'>('vertical');
+  const [layoutDirection, setLayoutDirection] = useState<'vertical' | 'horizontal'>('horizontal');
+  const [cardLayouts, setCardLayouts] = useState<Record<string, CanvasCardLayout>>({});
+  const [measuredCardHeights, setMeasuredCardHeights] = useState<Record<string, number>>({});
+  const cardResizeObserverRef = useRef<ResizeObserver | null>(null);
+  const cardElementRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const dragStateRef = useRef<{
+    type: 'move' | 'resize';
+    cardId: string;
+    edge?: ResizeEdge;
+    startX: number;
+    startY: number;
+    initial: CanvasCardLayout;
+    initialHeight: number;
+  } | null>(null);
 
   // ── Undo / redo history (tracks card list snapshots)
   const historyRef = useRef<ContentCardData[][]>([]);
@@ -683,6 +774,93 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
     setCards(historyRef.current[historyIdxRef.current]);
     setHistoryVersion(v => v + 1);
   }, []);
+
+  useEffect(() => {
+    if (cards.length === 0) {
+      setCardLayouts({});
+      return;
+    }
+
+    setCardLayouts(prev => {
+      let changed = false;
+      const next: Record<string, CanvasCardLayout> = {};
+      const fallback = arrangeCardLayouts(cards, layoutDirection, prev, measuredCardHeights);
+
+      cards.forEach(card => {
+        if (prev[card.id]) next[card.id] = prev[card.id];
+        else {
+          next[card.id] = fallback[card.id];
+          changed = true;
+        }
+      });
+
+      if (Object.keys(prev).length !== cards.length) changed = true;
+      return changed ? next : prev;
+    });
+  }, [cards, layoutDirection, measuredCardHeights]);
+
+  useEffect(() => () => {
+    cardResizeObserverRef.current?.disconnect();
+  }, []);
+
+  useEffect(() => {
+    function handlePointerMove(event: PointerEvent) {
+      const drag = dragStateRef.current;
+      if (!drag) return;
+
+      event.preventDefault();
+      const dx = (event.clientX - drag.startX) / zoom;
+      const dy = (event.clientY - drag.startY) / zoom;
+
+      setCardLayouts(prev => {
+        const current = prev[drag.cardId] ?? drag.initial;
+        if (drag.type === 'resize') {
+          const nextLayout = { ...current };
+          if (drag.edge === 'right') {
+            nextLayout.width = Math.max(CARD_MIN_WIDTH, drag.initial.width + dx);
+          }
+          if (drag.edge === 'left') {
+            const nextWidth = Math.max(CARD_MIN_WIDTH, drag.initial.width - dx);
+            nextLayout.width = nextWidth;
+            nextLayout.x = drag.initial.x + (drag.initial.width - nextWidth);
+          }
+          if (drag.edge === 'bottom') {
+            nextLayout.height = Math.max(CARD_MIN_HEIGHT, drag.initialHeight + dy);
+          }
+          if (drag.edge === 'top') {
+            const nextHeight = Math.max(CARD_MIN_HEIGHT, drag.initialHeight - dy);
+            nextLayout.height = nextHeight;
+            nextLayout.y = Math.max(0, drag.initial.y + (drag.initialHeight - nextHeight));
+          }
+
+          return {
+            ...prev,
+            [drag.cardId]: nextLayout,
+          };
+        }
+
+        return {
+          ...prev,
+          [drag.cardId]: {
+            ...current,
+            x: Math.max(0, drag.initial.x + dx),
+            y: Math.max(0, drag.initial.y + dy),
+          },
+        };
+      });
+    }
+
+    function handlePointerUp() {
+      dragStateRef.current = null;
+    }
+
+    window.addEventListener('pointermove', handlePointerMove);
+    window.addEventListener('pointerup', handlePointerUp);
+    return () => {
+      window.removeEventListener('pointermove', handlePointerMove);
+      window.removeEventListener('pointerup', handlePointerUp);
+    };
+  }, [zoom]);
 
   // Wrap setCards so every mutation is recorded in history
   const setCardsWithHistory = useCallback((updater: ContentCardData[] | ((prev: ContentCardData[]) => ContentCardData[])) => {
@@ -740,6 +918,101 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
     setCards([{ ...card, name: template.title }]);
   }, [mode]);
 
+  const handleArrangeCards = useCallback((direction: 'vertical' | 'horizontal') => {
+    setLayoutDirection(direction);
+    setCardLayouts(prev => arrangeCardLayouts(cards, direction, prev, measuredCardHeights));
+  }, [cards, measuredCardHeights]);
+
+  const handleCanvasWheel = useCallback((event: React.WheelEvent<HTMLDivElement>) => {
+    if (!event.ctrlKey && !event.metaKey) return;
+    event.preventDefault();
+    const nextZoom = zoom - event.deltaY * 0.002;
+    setZoom(Math.min(2, Math.max(0.5, +nextZoom.toFixed(2))));
+  }, [zoom]);
+
+  const handleCardPointerDown = useCallback((event: React.PointerEvent<HTMLDivElement>, cardId: string) => {
+    if (event.button !== 0) return;
+    const target = event.target as HTMLElement;
+    if (target.closest('button,input,textarea,select,a,[role="menuitem"],[data-no-card-drag="true"],[data-card-resize-edge]')) return;
+
+    const layout = cardLayouts[cardId];
+    if (!layout) return;
+    event.currentTarget.setPointerCapture(event.pointerId);
+    dragStateRef.current = {
+      type: 'move',
+      cardId,
+      startX: event.clientX,
+      startY: event.clientY,
+      initial: layout,
+      initialHeight: measuredCardHeights[cardId] ?? layout.height ?? CARD_MIN_HEIGHT,
+    };
+  }, [cardLayouts, measuredCardHeights]);
+
+  const handleResizePointerDown = useCallback((event: React.PointerEvent<HTMLDivElement>, cardId: string, edge: ResizeEdge) => {
+    event.preventDefault();
+    event.stopPropagation();
+    const layout = cardLayouts[cardId];
+    if (!layout) return;
+    event.currentTarget.setPointerCapture(event.pointerId);
+    dragStateRef.current = {
+      type: 'resize',
+      cardId,
+      edge,
+      startX: event.clientX,
+      startY: event.clientY,
+      initial: layout,
+      initialHeight: measuredCardHeights[cardId] ?? layout.height ?? CARD_MIN_HEIGHT,
+    };
+  }, [cardLayouts, measuredCardHeights]);
+
+  const handleCardMeasureRef = useCallback((cardId: string, node: HTMLDivElement | null) => {
+    const previousNode = cardElementRefs.current[cardId];
+    if (previousNode && previousNode !== node) {
+      cardResizeObserverRef.current?.unobserve(previousNode);
+    }
+
+    cardElementRefs.current[cardId] = node;
+    if (!node) return;
+
+    if (!cardResizeObserverRef.current) {
+      cardResizeObserverRef.current = new ResizeObserver(entries => {
+        setMeasuredCardHeights(prev => {
+          let changed = false;
+          const next = { ...prev };
+
+          entries.forEach(entry => {
+            const id = (entry.target as HTMLElement).dataset.cardId;
+            if (!id) return;
+            const height = Math.ceil(entry.contentRect.height);
+            if (next[id] !== height) {
+              next[id] = height;
+              changed = true;
+            }
+          });
+
+          return changed ? next : prev;
+        });
+      });
+    }
+
+    node.dataset.cardId = cardId;
+    cardResizeObserverRef.current.observe(node);
+  }, []);
+
+  const canvasBounds = cards.reduce(
+    (bounds, card) => {
+      const layout = cardLayouts[card.id];
+      if (!layout) return bounds;
+      const measuredHeight = measuredCardHeights[card.id] ?? defaultCardSize(card.itemType).height;
+      const cardHeight = Math.max(layout.height ?? 0, measuredHeight);
+      return {
+        width: Math.max(bounds.width, layout.x + layout.width + CARD_CANVAS_PADDING),
+        height: Math.max(bounds.height, layout.y + cardHeight + CARD_CANVAS_PADDING),
+      };
+    },
+    { width: 1800, height: 1200 },
+  );
+
   // ── Active card config for score panel
   const activeCard = cards.find(c => c.id === activeScoreCardId);
   const scorePanelConfig = activeCard
@@ -749,60 +1022,8 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
   return (
     <div className="flex flex-col h-full bg-background">
 
-      {/* ── Header — wizard mode during setup, full editor header after ── */}
-      {setupPhase === 'setup' ? (
-        /* Wizard setup header: back + title + Back/Continue or Generate CTA */
-        <div className="w-full bg-background border-b border-border h-[52px] flex items-center justify-between px-6 flex-shrink-0 sticky top-0 z-40">
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={onBack}
-              aria-label="Go back"
-              className="flex items-center justify-center w-8 h-8 rounded hover:bg-muted/60 text-muted-foreground hover:text-foreground transition-colors flex-none"
-            >
-              <ArrowLeft size={16} strokeWidth={1.6} absoluteStrokeWidth />
-            </button>
-            <span className="text-[14px] font-semibold text-foreground">
-              {isEditingSettings ? 'Edit settings' : `Create ${config.label}`}
-            </span>
-          </div>
-
-          <div className="flex items-center gap-2">
-            {wizardNavState.step > 0 && (
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => flowNavRef.current?.back()}
-              >
-                Back
-              </Button>
-            )}
-            {isEditingSettings && wizardNavState.step === wizardNavState.totalSteps - 1 ? (
-              <Button
-                onClick={() => setRegenConfirmOpen(true)}
-                disabled={!wizardNavState.canAdvance}
-              >
-                Regenerate
-                <ChevronRight size={14} strokeWidth={1.6} absoluteStrokeWidth />
-              </Button>
-            ) : (
-              <Button
-                onClick={() => {
-                  const isLast = wizardNavState.step === wizardNavState.totalSteps - 1;
-                  if (isLast) flowNavRef.current?.generate();
-                  else flowNavRef.current?.advance();
-                }}
-                disabled={!wizardNavState.canAdvance}
-              >
-                {wizardNavState.step === wizardNavState.totalSteps - 1 ? 'Generate' : 'Continue'}
-                <ChevronRight size={14} strokeWidth={1.6} absoluteStrokeWidth />
-              </Button>
-            )}
-          </div>
-        </div>
-      ) : (
-        /* Editor header: editable title + Draft + Publish */
-        <div className="w-full bg-background border-b border-border h-[52px] flex items-center justify-between px-6 flex-shrink-0 sticky top-0 z-40">
+      {/* ── Header — shared by setup, generation, and editor states ── */}
+      <div className="w-full bg-background border-b border-border h-[52px] flex items-center justify-between px-6 flex-shrink-0 sticky top-0 z-40">
 
           {/* Left cluster: back + editable title + Draft pill + subtitle */}
           <div className="flex items-center gap-4">
@@ -855,46 +1076,78 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
             </div>
           </div>
 
-          {/* Right cluster: Export + Save split */}
+          {/* Right cluster: setup navigation or editor actions */}
           <div className="flex items-center gap-2">
-
-            {/* Export secondary button */}
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setExportOpen(true)}
-            >
-              Export
-            </Button>
-
-            {/* Save split button */}
-            <DropdownMenu>
-              <div className="flex items-center">
-                <Button
-                  type="button"
-                  className="rounded-r-none"
-                >
-                  Save
-                </Button>
-                <DropdownMenuTrigger asChild>
+            {setupPhase === 'setup' ? (
+              <>
+                {wizardNavState.step > 0 && (
                   <Button
                     type="button"
-                    aria-label="Save options"
-                    className="rounded-l-none border-l border-primary-foreground/20 px-2"
+                    variant="outline"
+                    onClick={() => flowNavRef.current?.back()}
                   >
-                    <ChevronDown size={13} strokeWidth={1.6} absoluteStrokeWidth />
+                    Back
                   </Button>
-                </DropdownMenuTrigger>
-              </div>
-              <DropdownMenuContent align="end" className="w-44">
-                <DropdownMenuItem className="gap-2">Save</DropdownMenuItem>
-                <DropdownMenuItem className="gap-2">Add to library</DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                )}
+                {isEditingSettings && wizardNavState.step === wizardNavState.totalSteps - 1 ? (
+                  <Button
+                    onClick={() => setRegenConfirmOpen(true)}
+                    disabled={!wizardNavState.canAdvance}
+                  >
+                    Regenerate
+                    <ChevronRight size={14} strokeWidth={1.6} absoluteStrokeWidth />
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={() => {
+                      const isLast = wizardNavState.step === wizardNavState.totalSteps - 1;
+                      if (isLast) flowNavRef.current?.generate();
+                      else flowNavRef.current?.advance();
+                    }}
+                    disabled={!wizardNavState.canAdvance}
+                  >
+                    {wizardNavState.step === wizardNavState.totalSteps - 1 ? 'Generate' : 'Continue'}
+                    <ChevronRight size={14} strokeWidth={1.6} absoluteStrokeWidth />
+                  </Button>
+                )}
+              </>
+            ) : (
+              <>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setExportOpen(true)}
+                >
+                  Export
+                </Button>
 
+                <DropdownMenu>
+                  <div className="flex items-center">
+                    <Button
+                      type="button"
+                      className="rounded-r-none"
+                    >
+                      Save
+                    </Button>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        type="button"
+                        aria-label="Save options"
+                        className="rounded-l-none border-l border-primary-foreground/20 px-2"
+                      >
+                        <ChevronDown size={13} strokeWidth={1.6} absoluteStrokeWidth />
+                      </Button>
+                    </DropdownMenuTrigger>
+                  </div>
+                  <DropdownMenuContent align="end" className="w-44">
+                    <DropdownMenuItem className="gap-2">Save</DropdownMenuItem>
+                    <DropdownMenuItem className="gap-2">Add to library</DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </>
+            )}
           </div>
         </div>
-      )}
 
       {/* ── Generation info bar — hidden while in setup/edit-settings phase ── */}
       {generationInfo && setupPhase !== 'setup' && (
@@ -913,32 +1166,45 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
         </div>
       )}
 
-      {/* ── Inline creation flow (setup phase — no left pane) ─────────── */}
+      {/* ── Inline creation flow — same shell as the editor, with stepper in the left pane ─────────── */}
       {setupPhase === 'setup' && (
-        <div className="flex-1 min-h-0">
-          {mode === 'faq' ? (
-            <FAQInlineCreationFlow
-              onComplete={handleFAQFlowComplete}
-              onCancel={onBack}
-              controlRef={flowNavRef}
-              onNavStateChange={setWizardNavState}
-            />
-          ) : mode === 'blog' ? (
-            <BlogInlineCreationFlow
-              onComplete={handleBlogFlowComplete}
-              onCancel={onBack}
-              controlRef={flowNavRef}
-              onNavStateChange={setWizardNavState}
-            />
-          ) : (
-            <InlineCreationFlow
-              mode={BLOCK_MODES.has(mode) ? mode as 'faq' | 'blog' | 'landing' : 'project'}
-              onComplete={handleInlineFlowComplete}
-              onCancel={onBack}
-              controlRef={flowNavRef}
-              onNavStateChange={setWizardNavState}
-            />
-          )}
+        <div className="flex-1 min-h-0 flex">
+          <aside className="flex-shrink-0 bg-background" style={{ width: 300, borderRight: '1px solid #e5e9f0' }}>
+            <div className="px-4 py-4">
+              <ContentFlowStepper
+                steps={SETUP_STEPS_BY_MODE[mode]}
+                currentStep={wizardNavState.step}
+              />
+            </div>
+          </aside>
+          <div className="flex-1 min-w-0 min-h-0 bg-[var(--color-canvas,#F7F8FA)]">
+            {mode === 'faq' ? (
+              <FAQInlineCreationFlow
+                onComplete={handleFAQFlowComplete}
+                onCancel={onBack}
+                controlRef={flowNavRef}
+                onNavStateChange={setWizardNavState}
+                hideProgress
+              />
+            ) : mode === 'blog' ? (
+              <BlogInlineCreationFlow
+                onComplete={handleBlogFlowComplete}
+                onCancel={onBack}
+                controlRef={flowNavRef}
+                onNavStateChange={setWizardNavState}
+                hideProgress
+              />
+            ) : (
+              <InlineCreationFlow
+                mode={BLOCK_MODES.has(mode) ? mode as 'faq' | 'blog' | 'landing' : 'project'}
+                onComplete={handleInlineFlowComplete}
+                onCancel={onBack}
+                controlRef={flowNavRef}
+                onNavStateChange={setWizardNavState}
+                hideProgress
+              />
+            )}
+          </div>
         </div>
       )}
 
@@ -1120,8 +1386,10 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
             {/* Center canvas — card-based modes: social / email / video / project */}
             <div className={cn(
               'flex-1 min-w-0 bg-[var(--color-canvas,#F7F8FA)] relative',
-              mode === 'project' && layoutDirection === 'horizontal' ? 'overflow-auto' : 'overflow-y-auto',
-            )}>
+              'overflow-auto',
+            )}
+            onWheel={handleCanvasWheel}
+            >
 
               {/* Floating toolbar — always visible when canvas has cards */}
               {!isGenerating && cards.length > 0 && (
@@ -1158,8 +1426,8 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
                           <div className="flex items-center gap-1 bg-muted rounded-md p-1">
                             <button
                               type="button"
-                              title="Stack vertically"
-                              onClick={() => setLayoutDirection('vertical')}
+                              title="Arrange vertically"
+                              onClick={() => handleArrangeCards('vertical')}
                               className={cn(
                                 'flex items-center justify-center px-2 py-1 rounded-md transition-colors',
                                 layoutDirection === 'vertical' ? 'bg-background shadow-sm' : 'hover:bg-background/50',
@@ -1168,13 +1436,14 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
                               <ArrowDown
                                 size={16}
                                 strokeWidth={1.6}
+                                absoluteStrokeWidth
                                 className={layoutDirection === 'vertical' ? 'text-foreground' : 'text-muted-foreground'}
                               />
                             </button>
                             <button
                               type="button"
-                              title="Stack horizontally"
-                              onClick={() => setLayoutDirection('horizontal')}
+                              title="Arrange horizontally"
+                              onClick={() => handleArrangeCards('horizontal')}
                               className={cn(
                                 'flex items-center justify-center px-2 py-1 rounded-md transition-colors',
                                 layoutDirection === 'horizontal' ? 'bg-background shadow-sm' : 'hover:bg-background/50',
@@ -1183,6 +1452,7 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
                               <ArrowRight
                                 size={16}
                                 strokeWidth={1.6}
+                                absoluteStrokeWidth
                                 className={layoutDirection === 'horizontal' ? 'text-foreground' : 'text-muted-foreground'}
                               />
                             </button>
@@ -1210,6 +1480,7 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
                               <Icon
                                 size={16}
                                 strokeWidth={1.6}
+                                absoluteStrokeWidth
                                 className={viewMode === v ? 'text-foreground' : 'text-muted-foreground'}
                               />
                             </button>
@@ -1224,7 +1495,7 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
                           onClick={() => setZoom(z => Math.max(0.5, +(z - 0.1).toFixed(1)))}
                           className="p-1 hover:bg-muted rounded-md transition-colors"
                         >
-                          <ZoomOut size={16} strokeWidth={1.6} className="text-foreground" />
+                          <ZoomOut size={16} strokeWidth={1.6} absoluteStrokeWidth className="text-foreground" />
                         </button>
                         <span className="text-[13px] text-muted-foreground text-nowrap">
                           {Math.round(zoom * 100)}%
@@ -1234,7 +1505,7 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
                           onClick={() => setZoom(z => Math.min(2, +(z + 0.1).toFixed(1)))}
                           className="p-1 hover:bg-muted rounded-md transition-colors"
                         >
-                          <ZoomIn size={16} strokeWidth={1.6} className="text-foreground" />
+                          <ZoomIn size={16} strokeWidth={1.6} absoluteStrokeWidth className="text-foreground" />
                         </button>
                       </div>
                     </div>
@@ -1248,33 +1519,78 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
                 <EmptyCanvas mode={mode} onAddCard={handleAddCard} onSelectTemplate={handleSelectTemplate} />
               ) : (
                 <div
-                  className={cn(
-                    'px-6 py-6 gap-4',
-                    mode === 'project' && layoutDirection === 'horizontal'
-                      ? 'flex flex-row min-w-max'
-                      : 'flex flex-col max-w-[860px] mx-auto',
-                  )}
-                  style={{ zoom }}
+                  className="relative"
+                  style={{
+                    width: canvasBounds.width,
+                    height: canvasBounds.height,
+                    minWidth: '100%',
+                    minHeight: '100%',
+                    zoom,
+                  }}
                 >
                   {cards.map((card, idx) => (
                     <div
                       key={card.id}
+                      onPointerDown={event => handleCardPointerDown(event, card.id)}
                       className={cn(
-                        mode === 'project' && layoutDirection === 'horizontal' && 'w-[480px] flex-shrink-0',
+                        'absolute group/card select-none',
+                        dragStateRef.current?.cardId === card.id && 'cursor-grabbing',
                       )}
+                      style={{
+                        left: cardLayouts[card.id]?.x ?? CARD_CANVAS_PADDING,
+                        top: cardLayouts[card.id]?.y ?? CARD_CANVAS_PADDING,
+                        width: cardLayouts[card.id]?.width ?? defaultCardSize(card.itemType).width,
+                        minHeight: cardLayouts[card.id]?.height,
+                      }}
                     >
-                      <EditorContentCard
-                        card={card}
-                        onScoreClick={handleScoreClick}
-                        scoreActive={activeScoreCardId === card.id}
-                        onEdit={handleEdit}
-                        onAddAnother={handleAddAnother}
-                        showAddAnother={idx === cards.length - 1}
-                      />
+                      <div
+                        ref={node => handleCardMeasureRef(card.id, node)}
+                        className="rounded-xl"
+                        style={{ minHeight: cardLayouts[card.id]?.height }}
+                      >
+                        <EditorContentCard
+                          card={card}
+                          onScoreClick={handleScoreClick}
+                          scoreActive={activeScoreCardId === card.id}
+                          onEdit={handleEdit}
+                          onAddAnother={handleAddAnother}
+                          showAddAnother={idx === cards.length - 1}
+                        />
+                      </div>
+                      {(['top', 'right', 'bottom', 'left'] as ResizeEdge[]).map(edge => (
+                        <div
+                          key={edge}
+                          aria-label={`Resize ${card.name} from ${edge}`}
+                          role="button"
+                          tabIndex={-1}
+                          data-card-resize-edge={edge}
+                          onPointerDown={event => handleResizePointerDown(event, card.id, edge)}
+                          className={cn(
+                            'absolute z-10',
+                            edge === 'top' && '-top-1 left-2 right-2 h-2 cursor-ns-resize',
+                            edge === 'right' && 'bottom-2 -right-1 top-2 w-2 cursor-ew-resize',
+                            edge === 'bottom' && '-bottom-1 left-2 right-2 h-2 cursor-ns-resize',
+                            edge === 'left' && 'bottom-2 -left-1 top-2 w-2 cursor-ew-resize',
+                          )}
+                        />
+                      ))}
                     </div>
                   ))}
                   {/* Add more content button */}
-                  <AddContentButton mode={mode} onAdd={handleAddCard} />
+                  <div
+                    className="absolute"
+                    style={{
+                      left: CARD_CANVAS_PADDING,
+                      top: Math.max(...cards.map(card => {
+                        const layout = cardLayouts[card.id];
+                        if (!layout) return 0;
+                        const measuredHeight = measuredCardHeights[card.id] ?? defaultCardSize(card.itemType).height;
+                        return layout.y + Math.max(layout.height ?? 0, measuredHeight);
+                      }), CARD_CANVAS_PADDING) + CARD_CANVAS_GAP,
+                    }}
+                  >
+                    <AddContentButton mode={mode} onAdd={handleAddCard} />
+                  </div>
                 </div>
               )}
             </div>
