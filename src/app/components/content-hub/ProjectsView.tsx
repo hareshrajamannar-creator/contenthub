@@ -79,13 +79,13 @@ const TYPE_BADGE: Record<ContentType, string> = {
   ads:      'bg-amber-50 text-amber-700',
 };
 
-const TYPE_THUMB: Record<ContentType, { bg: string; iconBg: string; iconColor: string; Icon: React.ElementType }> = {
-  faq:      { bg: 'from-blue-50 to-blue-100',     iconBg: 'bg-blue-100',     iconColor: 'text-blue-600',     Icon: MessageSquare },
-  social:   { bg: 'from-purple-50 to-purple-100', iconBg: 'bg-purple-100',   iconColor: 'text-purple-600',   Icon: Share2        },
-  email:    { bg: 'from-indigo-50 to-indigo-100', iconBg: 'bg-indigo-100',   iconColor: 'text-indigo-600',   Icon: Mail          },
-  blog:     { bg: 'from-slate-50 to-slate-100',   iconBg: 'bg-slate-200',    iconColor: 'text-slate-600',    Icon: FileText      },
-  response: { bg: 'from-green-50 to-green-100',   iconBg: 'bg-green-100',    iconColor: 'text-green-600',    Icon: MessageCircle },
-  ads:      { bg: 'from-amber-50 to-amber-100',   iconBg: 'bg-amber-100',    iconColor: 'text-amber-600',    Icon: Megaphone     },
+const TYPE_THUMB: Record<ContentType, { iconBg: string; iconColor: string; Icon: React.ElementType }> = {
+  faq:      { iconBg: 'bg-blue-100',   iconColor: 'text-blue-600',   Icon: MessageSquare },
+  social:   { iconBg: 'bg-purple-100', iconColor: 'text-purple-600', Icon: Share2        },
+  email:    { iconBg: 'bg-indigo-100', iconColor: 'text-indigo-600', Icon: Mail          },
+  blog:     { iconBg: 'bg-slate-200',  iconColor: 'text-slate-600',  Icon: FileText      },
+  response: { iconBg: 'bg-green-100',  iconColor: 'text-green-600',  Icon: MessageCircle },
+  ads:      { iconBg: 'bg-amber-100',  iconColor: 'text-amber-600',  Icon: Megaphone     },
 };
 
 // ── Template card (matches "Suggested for you" style) ─────────────────────────
@@ -93,6 +93,8 @@ const TYPE_THUMB: Record<ContentType, { bg: string; iconBg: string; iconColor: s
 function TemplateCard({ tmpl, onUse }: { tmpl: TemplateItem; onUse: (t: TemplateItem) => void }) {
   const thumb = TYPE_THUMB[tmpl.type];
   const { Icon } = thumb;
+  const isBlog = tmpl.type === 'blog';
+  const isSocial = tmpl.type === 'social';
 
   return (
     <div
@@ -100,22 +102,56 @@ function TemplateCard({ tmpl, onUse }: { tmpl: TemplateItem; onUse: (t: Template
       className="border border-border rounded-[10px] bg-background hover:border-primary/30 transition-all cursor-pointer group flex flex-col overflow-hidden"
     >
       {/* Thumbnail preview area */}
-      <div className={cn('relative h-[160px] bg-gradient-to-br border-b border-border overflow-hidden flex flex-col items-center justify-center gap-3 p-6', thumb.bg)}>
-        {/* Icon */}
-        <div className={cn('size-12 rounded-xl flex items-center justify-center shrink-0', thumb.iconBg)}>
-          <Icon size={22} strokeWidth={1.6} absoluteStrokeWidth className={thumb.iconColor} />
-        </div>
-        {/* Preview shimmer lines */}
-        <div className="w-full flex flex-col gap-1.5">
-          {[90, 65, 80].map((w, i) => (
-            <div key={i} className="h-[6px] rounded-full bg-white/60" style={{ width: `${w}%` }} />
-          ))}
+      <div className="relative h-[160px] overflow-hidden border-b border-border bg-zinc-100">
+        <div className="absolute inset-0 p-6">
+          <div className="flex h-full w-full flex-col overflow-hidden rounded-lg border border-zinc-200 bg-white">
+            <div className="flex items-center gap-2 border-b border-zinc-100 px-2 py-1">
+              <div className={cn('flex size-[18px] shrink-0 items-center justify-center rounded-[4px] border', thumb.iconBg)}>
+                <Icon size={9} strokeWidth={1.6} absoluteStrokeWidth className={thumb.iconColor} />
+              </div>
+              <span className="flex-1 text-[6px] font-semibold text-zinc-700">{TYPE_LABEL[tmpl.type]}</span>
+              <div className="flex items-center gap-1">
+                <div className="h-[3px] w-8 overflow-hidden rounded-full bg-zinc-100">
+                  <div className="h-full w-4/5 rounded-full bg-emerald-600" />
+                </div>
+                <span className="rounded-[2px] bg-emerald-50 px-1 text-[5px] font-bold text-emerald-700">92</span>
+              </div>
+            </div>
+            {isBlog && (
+              <div className="relative h-[46px] shrink-0 overflow-hidden border-b border-zinc-100">
+                <div className="absolute inset-0 bg-gradient-to-b from-sky-200 to-green-100" />
+                <div className="absolute inset-x-0 bottom-0 h-4 bg-emerald-600" />
+                <div className="absolute bottom-4 left-3 h-6 w-5 rounded-t-full bg-emerald-700" />
+                <div className="absolute bottom-4 right-4 h-5 w-4 rounded-t-full bg-emerald-700/70" />
+                <div className="absolute right-7 top-2 size-2 rounded-full bg-amber-300" />
+              </div>
+            )}
+            <div className="flex flex-1 flex-col gap-1 overflow-hidden px-2 py-2">
+              <div className="flex gap-1">
+                <span className={cn('rounded-[2px] px-1 py-0.5 text-[5px] font-semibold', TYPE_BADGE[tmpl.type])}>
+                  {TYPE_LABEL[tmpl.type]}
+                </span>
+                {isSocial && <span className="rounded-[2px] bg-purple-50 px-1 py-0.5 text-[5px] font-semibold text-purple-700">Post</span>}
+              </div>
+              <span className="text-[6px] font-bold leading-tight text-zinc-800">{tmpl.name}</span>
+              <div className="mt-0.5 flex items-center gap-1">
+                <div className="size-2 rounded-full bg-zinc-300" />
+                <div className="h-[2px] w-7 rounded-full bg-zinc-200" />
+                <div className="h-[2px] w-4 rounded-full bg-zinc-100" />
+              </div>
+              <div className="mt-0.5 flex flex-col gap-0.5">
+                <div className="h-[2px] w-full rounded-full bg-zinc-200" />
+                <div className="h-[2px] w-10/12 rounded-full bg-zinc-200" />
+                <div className="h-[2px] w-7/12 rounded-full bg-zinc-100" />
+              </div>
+            </div>
+          </div>
         </div>
         {/* Hover overlay */}
         <div className="absolute inset-0 bg-zinc-900/0 group-hover:bg-zinc-900/40 transition-all duration-200 flex items-center justify-center opacity-0 group-hover:opacity-100">
           <button
             onClick={e => { e.stopPropagation(); onUse(tmpl); }}
-            className="h-7 px-3 rounded-md bg-primary text-[11px] font-medium text-primary-foreground hover:bg-primary/90 transition-colors shadow-sm"
+            className="h-7 rounded-md bg-primary px-2 text-[11px] font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
           >
             Use template
           </button>
@@ -123,16 +159,16 @@ function TemplateCard({ tmpl, onUse }: { tmpl: TemplateItem; onUse: (t: Template
       </div>
 
       {/* Card body */}
-      <div className="p-3 flex flex-col gap-1.5">
-        <span className={cn('self-start text-[10px] font-medium px-1.5 py-0.5 rounded', TYPE_BADGE[tmpl.type])}>
+      <div className="flex flex-col gap-2 p-4">
+        <span className={cn('self-start text-[10px] font-medium px-2 py-0.5 rounded', TYPE_BADGE[tmpl.type])}>
           {TYPE_LABEL[tmpl.type]}
         </span>
         <p className="text-[12px] text-foreground font-medium leading-snug line-clamp-2">{tmpl.name}</p>
         <p className="text-[10px] text-muted-foreground leading-relaxed line-clamp-2">{tmpl.description}</p>
         {tmpl.useCases.length > 0 && (
-          <div className="flex flex-wrap gap-1 mt-0.5">
+          <div className="mt-0.5 flex flex-wrap gap-1">
             {tmpl.useCases.slice(0, 2).map(uc => (
-              <span key={uc} className="text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded-full">{uc}</span>
+              <span key={uc} className="rounded-full bg-muted px-2 py-0.5 text-[10px] text-muted-foreground">{uc}</span>
             ))}
           </div>
         )}
@@ -147,10 +183,18 @@ const col = createColumnHelper<ProjectRow>();
 
 // ── View ──────────────────────────────────────────────────────────────────────
 
-export const ProjectsView = ({ onNavigate }: { onNavigate: (view: 'content-hub-create') => void }) => {
-  const [activeTab, setActiveTab] = useState<TabId>('saved');
+export const ProjectsView = ({
+  initialTab = 'saved',
+  onNavigate,
+}: {
+  initialTab?: TabId;
+  onNavigate: (view: 'content-hub-create') => void;
+}) => {
+  const [activeTab, setActiveTab] = useState<TabId>(initialTab);
   const [libTab, setLibTab] = useState<LibTabId>('all');
   const [libQuery, setLibQuery] = useState('');
+  const [libSearchOpen, setLibSearchOpen] = useState(false);
+  const [libFiltersOpen, setLibFiltersOpen] = useState(true);
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
   const [columnSheetOpen, setColumnSheetOpen] = useState(false);
 
@@ -275,15 +319,60 @@ export const ProjectsView = ({ onNavigate }: { onNavigate: (view: 'content-hub-c
           )}
 
           {activeTab === 'library' && (
-            <div className="relative">
-              <Search size={13} strokeWidth={1.6} absoluteStrokeWidth className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
-              <input
-                value={libQuery}
-                onChange={e => setLibQuery(e.target.value)}
-                placeholder="Search templates..."
-                className="border border-input rounded-md h-[var(--button-height)] pl-8 pr-3 text-[13px] bg-background w-[200px] focus:outline-none focus:ring-2 focus:ring-primary/30"
-              />
-            </div>
+            <>
+              {libSearchOpen || libQuery ? (
+                <div className="relative h-[var(--button-height)] w-[240px]">
+                  <Search
+                    size={14}
+                    strokeWidth={1.6}
+                    absoluteStrokeWidth
+                    className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground"
+                    aria-hidden
+                  />
+                  <input
+                    type="search"
+                    value={libQuery}
+                    onChange={e => setLibQuery(e.target.value)}
+                    onBlur={() => {
+                      if (!libQuery) setLibSearchOpen(false);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Escape') {
+                        setLibQuery('');
+                        setLibSearchOpen(false);
+                      }
+                    }}
+                    autoFocus
+                    placeholder="Search templates"
+                    className="h-full w-full rounded-md border border-input bg-background py-0 pl-8 pr-2 text-[13px] outline-none transition-colors placeholder:text-muted-foreground focus:border-primary focus:ring-1 focus:ring-primary"
+                    aria-label="Search templates"
+                  />
+                </div>
+              ) : (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  aria-label="Open template search"
+                  title="Search templates"
+                  onClick={() => setLibSearchOpen(true)}
+                >
+                  <Search className="size-4" strokeWidth={1.6} absoluteStrokeWidth aria-hidden />
+                </Button>
+              )}
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                aria-label="Filter templates"
+                aria-pressed={libFiltersOpen || libTab !== 'all'}
+                title="Filter templates"
+                onClick={() => setLibFiltersOpen(open => !open)}
+                className={cn((libFiltersOpen || libTab !== 'all') && 'border-primary/40 bg-primary/10 text-primary')}
+              >
+                <Filter className="size-4" strokeWidth={1.6} absoluteStrokeWidth aria-hidden />
+              </Button>
+            </>
           )}
         </div>
       </div>
@@ -319,13 +408,15 @@ export const ProjectsView = ({ onNavigate }: { onNavigate: (view: 'content-hub-c
       {activeTab === 'library' && (
         <div className="min-h-0 flex-1 flex flex-col overflow-hidden">
           {/* Type filter tabs */}
-          <TextTabsRow<LibTabId>
-            items={LIB_TABS}
-            value={libTab}
-            onChange={setLibTab}
-            ariaLabel="Template types"
-            className="px-6"
-          />
+          {libFiltersOpen && (
+            <TextTabsRow<LibTabId>
+              items={LIB_TABS}
+              value={libTab}
+              onChange={setLibTab}
+              ariaLabel="Template types"
+              className="px-6"
+            />
+          )}
 
           {/* Grid */}
           <div className="flex-1 overflow-y-auto px-6 py-4">

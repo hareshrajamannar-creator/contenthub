@@ -16,3 +16,10 @@ export default meta;
 type Story = StoryObj<typeof ProjectsView>;
 
 export const Default: Story = {};
+
+export const Library: Story = {
+  name: 'Library',
+  args: {
+    initialTab: 'library',
+  },
+};
