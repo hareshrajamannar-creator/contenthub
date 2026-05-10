@@ -4,6 +4,9 @@ import { CalendarView } from "@/app/components/content-hub/CalendarView";
 const meta: Meta<typeof CalendarView> = {
   title: "App/ContentHub/Calendar",
   component: CalendarView,
+  parameters: {
+    layout: "fullscreen",
+  },
 };
 export default meta;
 type Story = StoryObj<typeof CalendarView>;
