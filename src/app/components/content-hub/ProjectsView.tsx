@@ -1,11 +1,16 @@
 import { useMemo, useState } from 'react';
 import { createColumnHelper } from '@tanstack/react-table';
 import {
-  Filter, LayoutGrid, List, MoreHorizontal, Search,
+  LayoutGrid, List, MoreVertical, Search,
   FileText, Share2, Mail, MessageSquare, Monitor, Megaphone, MessageCircle,
 } from 'lucide-react';
 import { AppDataTable } from '@/app/components/ui/AppDataTable';
 import { AppDataTableColumnSettingsTrigger } from '@/app/components/ui/AppDataTableColumnSettingsTrigger';
+import {
+  FilterPane,
+  FilterPaneTriggerButton,
+} from '@/app/components/FilterPane';
+import type { FilterItem } from '@/app/components/FilterPanel.v1';
 import { Button } from '@/app/components/ui/button';
 import { ToggleGroup, ToggleGroupItem } from '@/app/components/ui/toggle-group';
 import { TextTabsRow, type TextTabItem } from '@/app/components/ui/text-tabs';
@@ -39,6 +44,13 @@ const PROJECTS: ProjectRow[] = [
   { id: 9,  name: 'Sustainable landscaping education', status: 'Completed', channels: ['facebook','instagram','web','blog'],                           locations: 500, updated: 'Sep 05, 2025', createdBy: 'Mia S',     hue: 130 },
   { id: 10, name: 'Re-engagement offer',               status: 'Completed', channels: ['web','blog','email'],                                          locations: 500, updated: 'Sep 05, 2025', createdBy: 'Mia S',     hue: 260 },
 ];
+
+const TEMPLATE_CREATORS = ['BirdAI', 'Content team', 'Marketing team', 'SEO team'] as const;
+
+function getTemplateCreator(templateId: string) {
+  const seed = templateId.split('').reduce((sum, char) => sum + char.charCodeAt(0), 0);
+  return TEMPLATE_CREATORS[seed % TEMPLATE_CREATORS.length];
+}
 
 // ── Tab config ────────────────────────────────────────────────────────────────
 
@@ -87,6 +99,29 @@ const TYPE_THUMB: Record<ContentType, { iconBg: string; iconColor: string; Icon:
   response: { iconBg: 'bg-green-100',  iconColor: 'text-green-600',  Icon: MessageCircle },
   ads:      { iconBg: 'bg-amber-100',  iconColor: 'text-amber-600',  Icon: Megaphone     },
 };
+
+const CONTENT_TYPE_OPTIONS = ['All content types', ...Object.values(TYPE_LABEL)];
+const PROJECT_CHANNEL_OPTIONS = ['All channels', 'Facebook', 'Instagram', 'Twitter', 'LinkedIn', 'YouTube', 'Web', 'Blog', 'Email'];
+const PROJECT_CREATOR_OPTIONS = ['All creators', ...Array.from(new Set(PROJECTS.map(project => project.createdBy)))];
+const PROJECT_STATUS_OPTIONS = ['All statuses', 'Draft', 'Running', 'Paused', 'Completed'];
+const TEMPLATE_TAG_OPTIONS = ['All tags', ...Array.from(new Set(TEMPLATES.flatMap(template => template.useCases))).sort()];
+const TEMPLATE_CREATOR_OPTIONS = ['All creators', ...TEMPLATE_CREATORS];
+
+const SAVED_FILTERS: FilterItem[] = [
+  { id: 'status', label: 'Status', options: PROJECT_STATUS_OPTIONS },
+  { id: 'channel', label: 'Channel', options: PROJECT_CHANNEL_OPTIONS },
+  { id: 'creator', label: 'Creator', options: PROJECT_CREATOR_OPTIONS },
+  { id: 'updated', label: 'Last updated', options: ['Any time', 'Last 7 days', 'Last 30 days', 'Last 90 days'] },
+  { id: 'locations', label: 'Locations', options: ['Any locations', '1-100', '101-500', '500+'] },
+];
+
+const LIBRARY_FILTERS: FilterItem[] = [
+  { id: 'contentType', label: 'Content type', options: CONTENT_TYPE_OPTIONS },
+  { id: 'tag', label: 'Tags', options: TEMPLATE_TAG_OPTIONS },
+  { id: 'creator', label: 'Creator', options: TEMPLATE_CREATOR_OPTIONS },
+  { id: 'goal', label: 'Goal', options: ['Any goal', 'Search visibility', 'Customer education', 'Promotion', 'Retention', 'Reputation'] },
+  { id: 'format', label: 'Format', options: ['Any format', 'Template', 'Suggestion', 'Campaign asset'] },
+];
 
 // ── Template card (matches "Suggested for you" style) ─────────────────────────
 
@@ -181,6 +216,14 @@ function TemplateCard({ tmpl, onUse }: { tmpl: TemplateItem; onUse: (t: Template
 
 const col = createColumnHelper<ProjectRow>();
 
+function filterValue(filters: FilterItem[], id: string) {
+  return filters.find(filter => filter.id === id)?.value;
+}
+
+function isAllFilter(value: string | undefined, allLabel: string) {
+  return value === undefined || value === allLabel;
+}
+
 // ── View ──────────────────────────────────────────────────────────────────────
 
 export const ProjectsView = ({
@@ -194,20 +237,53 @@ export const ProjectsView = ({
   const [libTab, setLibTab] = useState<LibTabId>('all');
   const [libQuery, setLibQuery] = useState('');
   const [libSearchOpen, setLibSearchOpen] = useState(false);
-  const [libFiltersOpen, setLibFiltersOpen] = useState(true);
+  const [filterPanelOpen, setFilterPanelOpen] = useState(false);
+  const [savedFilters, setSavedFilters] = useState<FilterItem[]>(SAVED_FILTERS);
+  const [libraryFilters, setLibraryFilters] = useState<FilterItem[]>(LIBRARY_FILTERS);
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
   const [columnSheetOpen, setColumnSheetOpen] = useState(false);
 
-  const tableData = useMemo(() => PROJECTS, []);
+  const tableData = useMemo(() => {
+    const status = filterValue(savedFilters, 'status');
+    const channel = filterValue(savedFilters, 'channel');
+    const creator = filterValue(savedFilters, 'creator');
+    const locations = filterValue(savedFilters, 'locations');
+
+    return PROJECTS.filter(project => {
+      const matchesStatus = isAllFilter(status, 'All statuses') || project.status === status;
+      const matchesChannel = isAllFilter(channel, 'All channels') || project.channels.includes(channel!.toLowerCase() as ProjectRow['channels'][number]);
+      const matchesCreator = isAllFilter(creator, 'All creators') || project.createdBy === creator;
+      const matchesLocations =
+        isAllFilter(locations, 'Any locations') ||
+        (locations === '1-100' && project.locations <= 100) ||
+        (locations === '101-500' && project.locations > 100 && project.locations <= 500) ||
+        (locations === '500+' && project.locations > 500);
+
+      return matchesStatus && matchesChannel && matchesCreator && matchesLocations;
+    });
+  }, [savedFilters]);
 
   const filteredTemplates = useMemo(() => {
     const q = libQuery.toLowerCase();
+    const contentType = filterValue(libraryFilters, 'contentType');
+    const tag = filterValue(libraryFilters, 'tag');
+    const creator = filterValue(libraryFilters, 'creator');
+    const goal = filterValue(libraryFilters, 'goal');
+
     return TEMPLATES.filter(t => {
       const matchesTab = libTab === 'all' || t.type === libTab;
       const matchesQ = !q || t.name.toLowerCase().includes(q) || t.description.toLowerCase().includes(q);
-      return matchesTab && matchesQ;
+      const matchesType = isAllFilter(contentType, 'All content types') || TYPE_LABEL[t.type] === contentType;
+      const matchesTag = isAllFilter(tag, 'All tags') || t.useCases.includes(tag!);
+      const matchesCreator = isAllFilter(creator, 'All creators') || getTemplateCreator(t.id) === creator;
+      const matchesGoal =
+        isAllFilter(goal, 'Any goal') ||
+        t.useCases.some(useCase => useCase.toLowerCase().includes(goal!.split(' ')[0].toLowerCase())) ||
+        t.description.toLowerCase().includes(goal!.split(' ')[0].toLowerCase());
+
+      return matchesTab && matchesQ && matchesType && matchesTag && matchesCreator && matchesGoal;
     });
-  }, [libTab, libQuery]);
+  }, [libTab, libQuery, libraryFilters]);
 
   const columns = useMemo(() => [
     col.accessor('name', {
@@ -276,20 +352,24 @@ export const ProjectsView = ({
     }),
   ], [onNavigate]);
 
+  const activeFilters = activeTab === 'library' ? libraryFilters : savedFilters;
+  const handleActiveFiltersChange = activeTab === 'library' ? setLibraryFilters : setSavedFilters;
+  const filterStorageKey = activeTab === 'library'
+    ? 'content_hub_library_filters'
+    : 'content_hub_projects_filters';
+
   return (
-    <div className="flex h-full min-h-0 flex-col bg-background">
+    <div className="flex h-full min-h-0 overflow-hidden bg-background">
+      <div className="flex min-w-0 flex-1 flex-col">
 
       {/* Header band */}
       <div className={MAIN_VIEW_HEADER_BAND_CLASS}>
         <h1 className={MAIN_VIEW_PRIMARY_HEADING_CLASS}>Projects</h1>
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-2">
           {activeTab === 'saved' && (
             <>
               <Button type="button" variant="outline" size="icon" aria-label="Search projects">
-                <Search className="size-4" strokeWidth={1.6} absoluteStrokeWidth aria-hidden />
-              </Button>
-              <Button type="button" variant="outline" size="icon" aria-label="More options">
-                <MoreHorizontal className="size-4" strokeWidth={1.6} absoluteStrokeWidth aria-hidden />
+                <Search className="size-[14px]" strokeWidth={1.6} absoluteStrokeWidth aria-hidden />
               </Button>
               <ToggleGroup
                 type="single"
@@ -301,20 +381,24 @@ export const ProjectsView = ({
               >
                 <ToggleGroupItem value="grid" aria-label="Grid view"
                   className="h-[var(--button-height)] min-w-[var(--button-height)] px-0 border-border">
-                  <LayoutGrid className="size-4" strokeWidth={1.6} absoluteStrokeWidth aria-hidden />
+                  <LayoutGrid className="size-[14px]" strokeWidth={1.6} absoluteStrokeWidth aria-hidden />
                 </ToggleGroupItem>
                 <ToggleGroupItem value="list" aria-label="List view"
                   className="h-[var(--button-height)] min-w-[var(--button-height)] px-0 border-border">
-                  <List className="size-4" strokeWidth={1.6} absoluteStrokeWidth aria-hidden />
+                  <List className="size-[14px]" strokeWidth={1.6} absoluteStrokeWidth aria-hidden />
                 </ToggleGroupItem>
               </ToggleGroup>
+              <Button type="button" variant="outline" size="icon" aria-label="More options">
+                <MoreVertical className="size-[14px]" strokeWidth={1.6} absoluteStrokeWidth aria-hidden />
+              </Button>
               <AppDataTableColumnSettingsTrigger
                 sheetTitle="Project columns"
                 onClick={() => setColumnSheetOpen(true)}
               />
-              <Button type="button" variant="outline" size="icon" aria-label="Filter projects">
-                <Filter className="size-4" strokeWidth={1.6} absoluteStrokeWidth aria-hidden />
-              </Button>
+              <FilterPaneTriggerButton
+                open={filterPanelOpen}
+                onOpenChange={setFilterPanelOpen}
+              />
             </>
           )}
 
@@ -357,21 +441,16 @@ export const ProjectsView = ({
                   title="Search templates"
                   onClick={() => setLibSearchOpen(true)}
                 >
-                  <Search className="size-4" strokeWidth={1.6} absoluteStrokeWidth aria-hidden />
+                  <Search className="size-[14px]" strokeWidth={1.6} absoluteStrokeWidth aria-hidden />
                 </Button>
               )}
-              <Button
-                type="button"
-                variant="outline"
-                size="icon"
-                aria-label="Filter templates"
-                aria-pressed={libFiltersOpen || libTab !== 'all'}
-                title="Filter templates"
-                onClick={() => setLibFiltersOpen(open => !open)}
-                className={cn((libFiltersOpen || libTab !== 'all') && 'border-primary/40 bg-primary/10 text-primary')}
-              >
-                <Filter className="size-4" strokeWidth={1.6} absoluteStrokeWidth aria-hidden />
+              <Button type="button" variant="outline" size="icon" aria-label="More options">
+                <MoreVertical className="size-[14px]" strokeWidth={1.6} absoluteStrokeWidth aria-hidden />
               </Button>
+              <FilterPaneTriggerButton
+                open={filterPanelOpen}
+                onOpenChange={setFilterPanelOpen}
+              />
             </>
           )}
         </div>
@@ -408,15 +487,13 @@ export const ProjectsView = ({
       {activeTab === 'library' && (
         <div className="min-h-0 flex-1 flex flex-col overflow-hidden">
           {/* Type filter tabs */}
-          {libFiltersOpen && (
-            <TextTabsRow<LibTabId>
-              items={LIB_TABS}
-              value={libTab}
-              onChange={setLibTab}
-              ariaLabel="Template types"
-              className="px-6"
-            />
-          )}
+          <TextTabsRow<LibTabId>
+            items={LIB_TABS}
+            value={libTab}
+            onChange={setLibTab}
+            ariaLabel="Template types"
+            className="px-6"
+          />
 
           {/* Grid */}
           <div className="flex-1 overflow-y-auto px-6 py-4">
@@ -438,6 +515,18 @@ export const ProjectsView = ({
           </div>
         </div>
       )}
+      </div>
+
+      <FilterPane
+        key={activeTab}
+        initialFilters={activeFilters}
+        open={filterPanelOpen}
+        onOpenChange={setFilterPanelOpen}
+        onFiltersChange={handleActiveFiltersChange}
+        motion="static"
+        dock="right"
+        storageKey={filterStorageKey}
+      />
     </div>
   );
 };
