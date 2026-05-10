@@ -459,11 +459,11 @@ function InlineTemplateCard({
         'flex flex-col rounded-xl border overflow-hidden text-left transition-all group',
         selected
           ? 'border-primary ring-2 ring-primary/20'
-          : 'border-border hover:border-primary/40 hover:shadow-sm',
+          : 'border-border hover:border-primary/40',
       )}
     >
       <div className="w-full bg-zinc-100 p-4 relative">
-        <div className="w-full bg-white rounded-lg overflow-hidden shadow-sm ring-1 ring-black/[0.06]" style={{ height: 96 }}>
+        <div className="w-full bg-white rounded-lg overflow-hidden ring-1 ring-black/[0.06]" style={{ height: 96 }}>
           <div className="h-9 w-full flex items-center gap-2 px-2.5" style={{ background: headerBg }}>
             <div className="size-4 rounded-full bg-white/30 flex-none" />
             <div className="flex flex-col gap-[3px] flex-1">

@@ -300,7 +300,7 @@ function Step2Setup({ template, customAgent, sourceUrl, additionalContext, quest
         )}
       </div>
 
-      <div className="flex items-center justify-between gap-4 rounded-xl border border-border bg-background px-4 py-3 shadow-sm shadow-black/[0.02]">
+      <div className="flex items-center justify-between gap-4 rounded-xl border border-border bg-background px-4 py-3">
         <div>
           <label className="text-[13px] font-medium text-foreground">Number of questions</label>
           <p className="mt-0.5 text-[12px] text-muted-foreground">We will distribute these across your review topics.</p>
@@ -371,7 +371,7 @@ function Step2Setup({ template, customAgent, sourceUrl, additionalContext, quest
           onClick={() => fileInputRef.current?.click()}
           onDragOver={e => e.preventDefault()}
           onDrop={e => { e.preventDefault(); handleFiles(e.dataTransfer.files); }}
-          className="flex w-full flex-col items-center gap-2 rounded-xl border border-dashed border-border bg-background px-4 py-5 text-center shadow-sm shadow-black/[0.02] transition-colors hover:border-primary/50 hover:bg-muted/25"
+          className="flex w-full flex-col items-center gap-2 rounded-xl border border-dashed border-border bg-background px-4 py-5 text-center transition-colors hover:border-primary/50 hover:bg-muted/25"
         >
           <Paperclip size={18} strokeWidth={1.6} absoluteStrokeWidth className="text-muted-foreground" />
           <span className="text-[13px] text-muted-foreground">Attach PDFs for more context</span>

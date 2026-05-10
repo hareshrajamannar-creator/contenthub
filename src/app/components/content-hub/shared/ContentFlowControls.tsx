@@ -9,9 +9,9 @@ export interface ContentFlowStep {
 
 export const CONTENT_FLOW_STEP_TITLE_CLASS = 'text-[18px] font-semibold leading-7 text-foreground';
 export const CONTENT_FLOW_FIELD_CLASS =
-  'h-10 rounded-xl border-border bg-background text-[13px] text-foreground shadow-sm shadow-black/[0.02] placeholder:text-muted-foreground/55 focus-visible:ring-2 focus-visible:ring-primary/15 focus-visible:border-primary/50';
+  'h-10 rounded-xl border-border bg-background text-[13px] text-foreground placeholder:text-muted-foreground/55 focus-visible:ring-2 focus-visible:ring-primary/15 focus-visible:border-primary/50';
 export const CONTENT_FLOW_TEXTAREA_CLASS =
-  'min-h-20 rounded-xl border-border bg-background text-[13px] text-foreground shadow-sm shadow-black/[0.02] placeholder:text-muted-foreground/55 focus-visible:ring-2 focus-visible:ring-primary/15 focus-visible:border-primary/50';
+  'min-h-20 rounded-xl border-border bg-background text-[13px] text-foreground placeholder:text-muted-foreground/55 focus-visible:ring-2 focus-visible:ring-primary/15 focus-visible:border-primary/50';
 
 export function ContentFlowStepper({
   steps,
@@ -77,7 +77,7 @@ export function ContentFlowChip({
       className={cn(
         'inline-flex h-8 items-center gap-1.5 rounded-full border px-4 text-[13px] font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50',
         selected
-          ? 'border-primary bg-primary text-primary-foreground shadow-sm'
+          ? 'border-primary bg-primary text-primary-foreground'
           : 'border-border bg-background text-foreground hover:border-primary/40 hover:bg-muted/40',
       )}
     >
@@ -110,7 +110,7 @@ export function ContentFlowChoiceCard({
       onClick={onClick}
       aria-pressed={selected}
       className={cn(
-        'flex w-full items-start gap-4 rounded-lg border bg-background px-4 py-4 text-left shadow-sm transition-colors',
+        'flex w-full items-start gap-4 rounded-lg border bg-background px-4 py-4 text-left transition-colors',
         selected
           ? 'border-primary bg-primary/[0.04] ring-1 ring-primary/20'
           : 'border-border hover:border-primary/30 hover:bg-muted/30',
@@ -167,7 +167,7 @@ export function ContentFlowCountStepper({
   ariaLabel: string;
 }) {
   return (
-    <div className="inline-flex h-9 items-center rounded-xl border border-border bg-background shadow-sm shadow-black/[0.02]">
+    <div className="inline-flex h-9 items-center rounded-xl border border-border bg-background">
       <button
         type="button"
         aria-label={`Decrease ${ariaLabel}`}

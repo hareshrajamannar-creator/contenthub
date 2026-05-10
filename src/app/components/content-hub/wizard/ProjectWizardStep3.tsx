@@ -107,7 +107,7 @@ export function ProjectWizardStep3({ step1Data, data, onChange }: ProjectWizardS
                 onClick={() => onChange({ ...data, objective: obj.id })}
                 className={cn(
                   'relative flex items-center gap-3 text-left bg-background rounded-lg px-4 py-3 transition-all',
-                  selected ? 'shadow-sm' : 'border border-border hover:border-primary/40',
+                  selected ? '' : 'border border-border hover:border-primary/40',
                 )}
                 style={selected ? { border: '2px solid var(--color-primary)' } : undefined}
               >

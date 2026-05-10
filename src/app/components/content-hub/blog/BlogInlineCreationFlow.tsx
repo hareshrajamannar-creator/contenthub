@@ -332,7 +332,7 @@ function Step2Setup({ topic, keywords, tone, wordTarget, attachments, blogCount,
           onClick={() => fileInputRef.current?.click()}
           onDragOver={e => e.preventDefault()}
           onDrop={e => { e.preventDefault(); handleFiles(e.dataTransfer.files); }}
-          className="flex w-full flex-col items-center gap-2 rounded-xl border border-dashed border-border bg-background px-4 py-5 text-center shadow-sm shadow-black/[0.02] transition-colors hover:border-primary/50 hover:bg-muted/25"
+          className="flex w-full flex-col items-center gap-2 rounded-xl border border-dashed border-border bg-background px-4 py-5 text-center transition-colors hover:border-primary/50 hover:bg-muted/25"
         >
           <Paperclip size={18} strokeWidth={1.6} absoluteStrokeWidth className="text-muted-foreground" />
           <span className="text-[13px] text-muted-foreground">Attach PDFs for more context</span>

@@ -35,7 +35,7 @@ export function SegmentedToggle<T extends string>({
         const active = item.value === value;
         const sizing = iconOnly ? "h-full aspect-square" : "h-full px-3";
         const stateClasses = active
-          ? "bg-white dark:bg-[#333a47] shadow-[0_1px_3px_rgba(0,0,0,0.08)] text-[#212121] dark:text-[#e4e4e4]"
+          ? "bg-white dark:bg-[#333a47] text-[#212121] dark:text-[#e4e4e4]"
           : "text-[#888] dark:text-[#6b7280] hover:text-[#555] dark:hover:text-[#c0c6d4]";
         return (
           <button

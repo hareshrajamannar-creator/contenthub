@@ -76,13 +76,13 @@ export const FAQReviewScreen = ({
     <div className="flex-grow h-full bg-muted overflow-hidden relative flex flex-col">
 
       {/* Floating canvas toolbar — identical to InfiniteCanvas */}
-      <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-background rounded-lg z-30 shadow-sm border border-border">
+      <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-background rounded-lg z-30 border border-border">
         <div className="flex flex-row items-center px-4 py-2 gap-4">
           <span className="text-[13px] text-foreground text-nowrap">
             {selectedQuestionIndex !== null ? '1 selected' : '0 selected'}
           </span>
           <div className="flex items-center gap-1 bg-muted rounded-md p-1">
-            <div className="bg-background flex items-center justify-center px-2 py-1 rounded-md shadow-sm">
+            <div className="bg-background flex items-center justify-center px-2 py-1 rounded-md">
               <Grid size={16} strokeWidth={1.6} className="text-foreground" />
             </div>
             <div className="flex items-center justify-center px-2 py-1 rounded-md cursor-pointer hover:bg-background/50">

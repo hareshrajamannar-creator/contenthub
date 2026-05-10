@@ -116,7 +116,7 @@ export const FAQWizardStep2 = ({ template, onSourceDataChange }: FAQWizardStep2P
                 onClick={() => setActiveTab(tab)}
                 className={cn(
                   'px-3 py-1.5 rounded-md text-[12px] transition-colors',
-                  activeTab === tab ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
+                  activeTab === tab ? 'bg-background text-foreground' : 'text-muted-foreground hover:text-foreground'
                 )}
               >
                 {tab === 'upload' ? 'Upload file' : tab === 'url' ? 'Paste URL' : 'Paste text'}
@@ -171,7 +171,7 @@ export const FAQWizardStep2 = ({ template, onSourceDataChange }: FAQWizardStep2P
                 >
                   <span
                     className={cn(
-                      'absolute top-0.5 w-4 h-4 bg-white rounded-full shadow-sm transition-transform',
+                      'absolute top-0.5 w-4 h-4 bg-white rounded-full transition-transform',
                       supportToggles[key] ? 'translate-x-4' : 'translate-x-0.5'
                     )}
                   />

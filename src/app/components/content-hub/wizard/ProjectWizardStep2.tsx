@@ -143,7 +143,7 @@ export function ProjectWizardStep2({ step1Data: _s1, data, onChange }: ProjectWi
             >
               <span
                 className={cn(
-                  'absolute top-0.5 size-4 bg-white rounded-full shadow-sm transition-transform',
+                  'absolute top-0.5 size-4 bg-white rounded-full transition-transform',
                   sources.includes(src.id) ? 'translate-x-4' : 'translate-x-0.5',
                 )}
               />

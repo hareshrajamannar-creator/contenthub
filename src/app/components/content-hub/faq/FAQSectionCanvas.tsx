@@ -873,7 +873,7 @@ export function FAQSectionCanvas({ sections, generationLabel, onEditSettings }: 
             <div style={{ zoom }}>
             <div className={cn(
               'rounded-xl border bg-background transition-shadow',
-              scorePanelOpen ? 'border-primary/30 shadow-sm' : 'border-border hover:shadow-sm',
+              scorePanelOpen ? 'border-primary/30' : 'border-border hover:border-primary/30',
             )}>
 
               {/* Card header */}
