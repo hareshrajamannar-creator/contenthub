@@ -4,7 +4,14 @@ import { InlineCreationFlow } from '@/app/components/content-hub/inline/InlineCr
 const meta: Meta<typeof InlineCreationFlow> = {
   title: 'App/InlineCreationFlow',
   component: InlineCreationFlow,
-  parameters: { layout: 'fullscreen' },
+  parameters: {
+    layout: 'fullscreen',
+    docs: {
+      description: {
+        component: 'Shared project/blog/landing setup flow with stable parent navigation sync.',
+      },
+    },
+  },
   decorators: [
     (Story) => (
       <div style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>

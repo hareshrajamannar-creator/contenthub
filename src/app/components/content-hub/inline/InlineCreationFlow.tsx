@@ -15,7 +15,7 @@
  *  landing  →  goal → template → fine-tune → summary
  */
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import type { FlowNavControls, FlowNavState } from '../faq/FAQInlineCreationFlow';
 import {
   ChevronRight, Check,
@@ -1059,7 +1059,7 @@ export function InlineCreationFlow({ mode, onComplete, onCancel, controlRef, onN
   const currentStep = steps[stepIndex];
   const isLast = stepIndex === steps.length - 1;
 
-  function navigate(dir: 'forward' | 'back') {
+  const navigate = useCallback((dir: 'forward' | 'back') => {
     if (animating) return;
     setDirection(dir);
     setAnimating(true);
@@ -1069,9 +1069,9 @@ export function InlineCreationFlow({ mode, onComplete, onCancel, controlRef, onN
       setAnimating(false);
       scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
     }, 180);
-  }
+  }, [animating]);
 
-  function handleComplete() {
+  const handleComplete = useCallback(() => {
     onComplete({
       mode,
       projectType: data.projectType,
@@ -1091,9 +1091,9 @@ export function InlineCreationFlow({ mode, onComplete, onCancel, controlRef, onN
       contentMix: data.contentMix,
       ideas: data.ideas ?? [],
     });
-  }
+  }, [data, mode, onComplete]);
 
-  // Keep controlRef and parent nav state in sync (always re-run so closures stay fresh)
+  // Keep external navigation controls fresh without notifying parent state.
   useEffect(() => {
     if (controlRef) {
       controlRef.current = {
@@ -1102,8 +1102,12 @@ export function InlineCreationFlow({ mode, onComplete, onCancel, controlRef, onN
         generate: handleComplete,
       };
     }
-    onNavStateChange?.({ step: stepIndex, totalSteps: steps.length, canAdvance: true });
   });
+
+  // Notify parent navigation state only when the visible step state changes.
+  useEffect(() => {
+    onNavStateChange?.({ step: stepIndex, totalSteps: steps.length, canAdvance: true });
+  }, [onNavStateChange, stepIndex, steps.length]);
 
   function renderStep() {
     const stepProps = { mode, data, onChange: setData };

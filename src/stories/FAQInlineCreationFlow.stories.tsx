@@ -4,7 +4,14 @@ import { FAQInlineCreationFlow } from '@/app/components/content-hub/faq/FAQInlin
 const meta: Meta<typeof FAQInlineCreationFlow> = {
   title: 'App/FAQInlineCreationFlow',
   component: FAQInlineCreationFlow,
-  layout: 'fullscreen',
+  parameters: {
+    layout: 'fullscreen',
+    docs: {
+      description: {
+        component: 'Inline FAQ setup flow opened from Content Hub Home. Uses flat native selectors and stable parent navigation sync.',
+      },
+    },
+  },
   decorators: [
     (Story) => (
       <div style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>

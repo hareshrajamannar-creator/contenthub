@@ -9,17 +9,10 @@
  *  3. topics    — Review / edit one card per blog post
  */
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Check, Paperclip, X, FileText as FileIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Input } from '@/app/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/app/components/ui/select';
 import {
   CONTENT_FLOW_FIELD_CLASS,
   CONTENT_FLOW_STEP_TITLE_CLASS,
@@ -190,30 +183,28 @@ function Step1BrandKit({ brandKit, location, onChange }: Step1Props) {
       <div className="space-y-4">
         <div className="space-y-1.5">
           <label className="text-[13px] font-medium text-foreground">Brand kit</label>
-          <Select value={brandKit} onValueChange={v => onChange(v, location)}>
-            <SelectTrigger className="h-10 w-full rounded-xl bg-background text-[13px]">
-              <SelectValue placeholder="Select brand kit" />
-            </SelectTrigger>
-            <SelectContent>
-              {BRAND_KITS.map(bk => (
-                <SelectItem key={bk.id} value={bk.id} className="text-[13px]">{bk.label}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <select
+            value={brandKit}
+            onChange={e => onChange(e.target.value, location)}
+            className="h-10 w-full rounded-xl border border-border bg-background px-3 text-[13px] text-foreground outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/15"
+          >
+            {BRAND_KITS.map(bk => (
+              <option key={bk.id} value={bk.id}>{bk.label}</option>
+            ))}
+          </select>
         </div>
 
         <div className="space-y-1.5">
           <label className="text-[13px] font-medium text-foreground">Location</label>
-          <Select value={location} onValueChange={v => onChange(brandKit, v)}>
-            <SelectTrigger className="h-10 w-full rounded-xl bg-background text-[13px]">
-              <SelectValue placeholder="Select location" />
-            </SelectTrigger>
-            <SelectContent>
-              {LOCATIONS.map(loc => (
-                <SelectItem key={loc.id} value={loc.id} className="text-[13px]">{loc.label}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <select
+            value={location}
+            onChange={e => onChange(brandKit, e.target.value)}
+            className="h-10 w-full rounded-xl border border-border bg-background px-3 text-[13px] text-foreground outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/15"
+          >
+            {LOCATIONS.map(loc => (
+              <option key={loc.id} value={loc.id}>{loc.label}</option>
+            ))}
+          </select>
         </div>
       </div>
 
@@ -527,13 +518,13 @@ export function BlogInlineCreationFlow({ onComplete, onCancel, controlRef, onNav
     sections.length > 0,
   ][step];
 
-  const handleGenerate = () => {
+  const handleGenerate = useCallback(() => {
     onComplete({
       brandKit, location, topic, keywords,
       tone, audience: 'Brand kit target customers', wordTarget, publishTo: ['library'],
       attachments, blogCount, sections,
     });
-  };
+  }, [attachments, blogCount, brandKit, keywords, location, onComplete, sections, tone, topic, wordTarget]);
 
   useEffect(() => {
     if (controlRef) {
@@ -543,8 +534,11 @@ export function BlogInlineCreationFlow({ onComplete, onCancel, controlRef, onNav
         generate: handleGenerate,
       };
     }
-    onNavStateChange?.({ step, totalSteps: TOTAL_STEPS, canAdvance });
   });
+
+  useEffect(() => {
+    onNavStateChange?.({ step, totalSteps: TOTAL_STEPS, canAdvance });
+  }, [canAdvance, onNavStateChange, step]);
 
   return (
     <div className="flex flex-col h-full bg-[var(--color-canvas,#F7F8FA)]">
