@@ -632,6 +632,11 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
   const isEditingSettings = generationInfo !== null && setupPhase === 'setup';
   const [regenConfirmOpen, setRegenConfirmOpen] = useState(false);
   const [exportOpen, setExportOpen] = useState(false);
+  const setupHeaderTitle =
+    mode === 'project' ? 'Create project'
+    : mode === 'faq' ? "Create FAQ's"
+    : mode === 'blog' ? 'Create Blog post'
+    : `Create ${config.label.toLowerCase()}`;
 
   function buildGenerationLabel(data: InlineFlowData): string {
     const goalLabel: Record<string, string> = {
@@ -1025,7 +1030,7 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
       {/* ── Header — shared by setup, generation, and editor states ── */}
       <div className="w-full bg-background border-b border-border h-[52px] flex items-center justify-between px-6 flex-shrink-0 sticky top-0 z-40">
 
-          {/* Left cluster: back + editable title + Draft pill + subtitle */}
+          {/* Left cluster: back + title */}
           <div className="flex items-center gap-4">
             <button
               type="button"
@@ -1037,42 +1042,50 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
             </button>
 
             <div className="flex flex-col">
-              {/* Title row: text + pencil + Draft pill */}
-              <div className="flex items-center gap-2">
-                {isEditingTitle ? (
-                  <input
-                    autoFocus
-                    type="text"
-                    value={title}
-                    onChange={e => setTitle(e.target.value)}
-                    onBlur={() => setIsEditingTitle(false)}
-                    onKeyDown={e => { if (e.key === 'Enter' || e.key === 'Escape') setIsEditingTitle(false); }}
-                    className="text-[14px] font-semibold text-foreground bg-transparent border-b border-primary outline-none leading-tight min-w-[120px] max-w-[260px]"
-                  />
-                ) : (
-                  <span className="text-[14px] font-semibold text-foreground leading-tight truncate max-w-[240px]">
-                    {title}
+              {setupPhase === 'setup' ? (
+                <span className="text-[14px] font-semibold text-foreground leading-tight truncate max-w-[240px]">
+                  {setupHeaderTitle}
+                </span>
+              ) : (
+                <>
+                  {/* Title row: text + pencil + Draft pill */}
+                  <div className="flex items-center gap-2">
+                    {isEditingTitle ? (
+                      <input
+                        autoFocus
+                        type="text"
+                        value={title}
+                        onChange={e => setTitle(e.target.value)}
+                        onBlur={() => setIsEditingTitle(false)}
+                        onKeyDown={e => { if (e.key === 'Enter' || e.key === 'Escape') setIsEditingTitle(false); }}
+                        className="text-[14px] font-semibold text-foreground bg-transparent border-b border-primary outline-none leading-tight min-w-[120px] max-w-[260px]"
+                      />
+                    ) : (
+                      <span className="text-[14px] font-semibold text-foreground leading-tight truncate max-w-[240px]">
+                        {title}
+                      </span>
+                    )}
+                    {!isEditingTitle && (
+                      <button
+                        type="button"
+                        onClick={() => setIsEditingTitle(true)}
+                        className="text-muted-foreground hover:text-primary transition-colors"
+                        title="Rename"
+                      >
+                        <Edit2 size={14} strokeWidth={1.6} absoluteStrokeWidth />
+                      </button>
+                    )}
+                    {/* Static Draft pill */}
+                    <div className="bg-muted px-2 py-0.5 rounded-md">
+                      <span className="text-xs text-muted-foreground">Draft</span>
+                    </div>
+                  </div>
+                  {/* Subtitle row */}
+                  <span className="text-xs text-primary">
+                    Olive garden corporate · 10 locations
                   </span>
-                )}
-                {!isEditingTitle && (
-                  <button
-                    type="button"
-                    onClick={() => setIsEditingTitle(true)}
-                    className="text-muted-foreground hover:text-primary transition-colors"
-                    title="Rename"
-                  >
-                    <Edit2 size={14} strokeWidth={1.6} absoluteStrokeWidth />
-                  </button>
-                )}
-                {/* Static Draft pill */}
-                <div className="bg-muted px-2 py-0.5 rounded-md">
-                  <span className="text-xs text-muted-foreground">Draft</span>
-                </div>
-              </div>
-              {/* Subtitle row */}
-              <span className="text-xs text-primary">
-                Olive garden corporate · 10 locations
-              </span>
+                </>
+              )}
             </div>
           </div>
 
@@ -1080,15 +1093,14 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
           <div className="flex items-center gap-2">
             {setupPhase === 'setup' ? (
               <>
-                {wizardNavState.step > 0 && (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => flowNavRef.current?.back()}
-                  >
-                    Back
-                  </Button>
-                )}
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={onBack}
+                  className="text-muted-foreground hover:text-foreground"
+                >
+                  Cancel
+                </Button>
                 {isEditingSettings && wizardNavState.step === wizardNavState.totalSteps - 1 ? (
                   <Button
                     onClick={() => setRegenConfirmOpen(true)}
