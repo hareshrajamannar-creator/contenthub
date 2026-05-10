@@ -12,7 +12,7 @@ import {
 } from '@/app/components/FilterPane';
 import type { FilterItem } from '@/app/components/FilterPanel.v1';
 import { Button } from '@/app/components/ui/button';
-import { ToggleGroup, ToggleGroupItem } from '@/app/components/ui/toggle-group';
+import { SegmentedToggle } from '@/app/components/ui/segmented-toggle';
 import { TextTabsRow, type TextTabItem } from '@/app/components/ui/text-tabs';
 import { Badge } from '@/app/components/ui/badge';
 import { cn } from '@/app/components/ui/utils';
@@ -358,23 +358,16 @@ export const ProjectsView = ({
               <Button type="button" variant="outline" size="icon" aria-label="Search projects">
                 <Search className="size-[14px]" strokeWidth={1.6} absoluteStrokeWidth aria-hidden />
               </Button>
-              <ToggleGroup
-                type="single"
+              <SegmentedToggle<'grid' | 'list'>
+                iconOnly
+                ariaLabel="Projects view"
                 value={viewMode}
-                onValueChange={(v) => v && setViewMode(v as 'list' | 'grid')}
-                variant="outline"
-                aria-label="View mode"
-                className="shadow-none"
-              >
-                <ToggleGroupItem value="grid" aria-label="Grid view"
-                  className="h-[var(--button-height)] min-w-[var(--button-height)] px-0 border-border">
-                  <LayoutGrid className="size-[14px]" strokeWidth={1.6} absoluteStrokeWidth aria-hidden />
-                </ToggleGroupItem>
-                <ToggleGroupItem value="list" aria-label="List view"
-                  className="h-[var(--button-height)] min-w-[var(--button-height)] px-0 border-border">
-                  <List className="size-[14px]" strokeWidth={1.6} absoluteStrokeWidth aria-hidden />
-                </ToggleGroupItem>
-              </ToggleGroup>
+                onChange={setViewMode}
+                items={[
+                  { value: 'list', label: 'List view', icon: <List className="size-[14px]" strokeWidth={1.6} absoluteStrokeWidth aria-hidden /> },
+                  { value: 'grid', label: 'Grid view', icon: <LayoutGrid className="size-[14px]" strokeWidth={1.6} absoluteStrokeWidth aria-hidden /> },
+                ]}
+              />
               <Button type="button" variant="outline" size="icon" aria-label="More options">
                 <MoreVertical className="size-[14px]" strokeWidth={1.6} absoluteStrokeWidth aria-hidden />
               </Button>

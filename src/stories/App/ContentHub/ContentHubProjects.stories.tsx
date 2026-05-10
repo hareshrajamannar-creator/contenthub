@@ -13,6 +13,13 @@ type Story = StoryObj<typeof ProjectsView>;
 
 export const Default: Story = {
   args: { onNavigate: () => {} },
+  parameters: {
+    docs: {
+      description: {
+        story: "Saved projects view with the review-style list/grid switcher in the header.",
+      },
+    },
+  },
 };
 
 export const Library: Story = {
