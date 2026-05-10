@@ -61,20 +61,6 @@ const TABS: TextTabItem<TabId>[] = [
   { id: 'library', label: 'Library', suffix: <Badge variant="secondary" className="font-normal">40</Badge> },
 ];
 
-// ── Library filter tabs ───────────────────────────────────────────────────────
-
-type LibTabId = 'all' | ContentType;
-
-const LIB_TABS: TextTabItem<LibTabId>[] = [
-  { id: 'all',      label: 'All' },
-  { id: 'faq',      label: 'FAQ' },
-  { id: 'social',   label: 'Social' },
-  { id: 'email',    label: 'Email' },
-  { id: 'blog',     label: 'Blog' },
-  { id: 'response', label: 'Review response' },
-  { id: 'ads',      label: 'Ads' },
-];
-
 // ── Template type colours + icons ─────────────────────────────────────────────
 
 const TYPE_LABEL: Record<ContentType, string> = {
@@ -100,7 +86,7 @@ const TYPE_THUMB: Record<ContentType, { iconBg: string; iconColor: string; Icon:
   ads:      { iconBg: 'bg-amber-100',  iconColor: 'text-amber-600',  Icon: Megaphone     },
 };
 
-const CONTENT_TYPE_OPTIONS = ['All content types', ...Object.values(TYPE_LABEL)];
+const CONTENT_TYPE_OPTIONS = ['All', ...Object.values(TYPE_LABEL)];
 const PROJECT_CHANNEL_OPTIONS = ['All channels', 'Facebook', 'Instagram', 'Twitter', 'LinkedIn', 'YouTube', 'Web', 'Blog', 'Email'];
 const PROJECT_CREATOR_OPTIONS = ['All creators', ...Array.from(new Set(PROJECTS.map(project => project.createdBy)))];
 const PROJECT_STATUS_OPTIONS = ['All statuses', 'Draft', 'Running', 'Paused', 'Completed'];
@@ -234,7 +220,6 @@ export const ProjectsView = ({
   onNavigate: (view: 'content-hub-create') => void;
 }) => {
   const [activeTab, setActiveTab] = useState<TabId>(initialTab);
-  const [libTab, setLibTab] = useState<LibTabId>('all');
   const [libQuery, setLibQuery] = useState('');
   const [libSearchOpen, setLibSearchOpen] = useState(false);
   const [filterPanelOpen, setFilterPanelOpen] = useState(false);
@@ -271,9 +256,11 @@ export const ProjectsView = ({
     const goal = filterValue(libraryFilters, 'goal');
 
     return TEMPLATES.filter(t => {
-      const matchesTab = libTab === 'all' || t.type === libTab;
       const matchesQ = !q || t.name.toLowerCase().includes(q) || t.description.toLowerCase().includes(q);
-      const matchesType = isAllFilter(contentType, 'All content types') || TYPE_LABEL[t.type] === contentType;
+      const matchesType =
+        isAllFilter(contentType, 'All') ||
+        isAllFilter(contentType, 'All content types') ||
+        TYPE_LABEL[t.type] === contentType;
       const matchesTag = isAllFilter(tag, 'All tags') || t.useCases.includes(tag!);
       const matchesCreator = isAllFilter(creator, 'All creators') || getTemplateCreator(t.id) === creator;
       const matchesGoal =
@@ -281,9 +268,9 @@ export const ProjectsView = ({
         t.useCases.some(useCase => useCase.toLowerCase().includes(goal!.split(' ')[0].toLowerCase())) ||
         t.description.toLowerCase().includes(goal!.split(' ')[0].toLowerCase());
 
-      return matchesTab && matchesQ && matchesType && matchesTag && matchesCreator && matchesGoal;
+      return matchesQ && matchesType && matchesTag && matchesCreator && matchesGoal;
     });
-  }, [libTab, libQuery, libraryFilters]);
+  }, [libQuery, libraryFilters]);
 
   const columns = useMemo(() => [
     col.accessor('name', {
@@ -486,15 +473,6 @@ export const ProjectsView = ({
       {/* Library tab — template cards */}
       {activeTab === 'library' && (
         <div className="min-h-0 flex-1 flex flex-col overflow-hidden">
-          {/* Type filter tabs */}
-          <TextTabsRow<LibTabId>
-            items={LIB_TABS}
-            value={libTab}
-            onChange={setLibTab}
-            ariaLabel="Template types"
-            className="px-6"
-          />
-
           {/* Grid */}
           <div className="flex-1 overflow-y-auto px-6 py-4">
             {filteredTemplates.length === 0 ? (
