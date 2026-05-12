@@ -1,16 +1,20 @@
 import { useMemo, useState, type ReactNode } from 'react';
 import {
   BarChart3,
+  Braces,
   CheckCircle2,
   ChevronDown,
+  Code,
   Copy,
+  Download,
+  File,
   FileText,
   Image,
   Link2,
-  Linkedin,
   Lock,
   Presentation,
   Search,
+  Table,
   Users,
 } from 'lucide-react';
 import {
@@ -54,10 +58,13 @@ const MEMBERS = [
 ];
 
 const DOWNLOAD_OPTIONS = [
-  { id: 'pdf', label: 'PDF', icon: FileText },
-  { id: 'ppt', label: 'PowerPoint', icon: Presentation },
-  { id: 'slides', label: 'Google Slides', icon: Presentation },
-  { id: 'images', label: 'Images', icon: Image },
+  { id: 'png',  label: 'PNG',  icon: Image       },
+  { id: 'pdf',  label: 'PDF',  icon: FileText     },
+  { id: 'docx', label: 'DOCX', icon: File         },
+  { id: 'xls',  label: 'XLS',  icon: Table        },
+  { id: 'html', label: 'HTML', icon: Code         },
+  { id: 'json', label: 'JSON', icon: Braces       },
+  { id: 'ppt',  label: 'PPT',  icon: Presentation },
 ];
 
 function PermissionSelect({
@@ -142,12 +149,14 @@ export function ContentShareModal({
 
   return (
     <Dialog open={open} onOpenChange={isOpen => !isOpen && onClose()}>
-      <DialogContent className="!w-[960px] !max-w-[calc(100vw-32px)] gap-0 overflow-hidden p-0">
-        <DialogHeader className="border-b border-border px-6 py-4">
+      <DialogContent className="!w-[960px] !max-w-[calc(100vw-32px)] flex flex-col gap-0 overflow-hidden p-0 max-h-[680px]">
+        {/* Header — fixed */}
+        <DialogHeader className="shrink-0 border-b border-border px-6 py-4">
           <DialogTitle className="text-[15px] font-semibold">Share content</DialogTitle>
         </DialogHeader>
 
-        <div className="px-6">
+        {/* Tab bar — fixed */}
+        <div className="shrink-0 px-6">
           <div className="flex gap-8">
             {TABS.map(tab => (
               <button
@@ -167,7 +176,8 @@ export function ContentShareModal({
           </div>
         </div>
 
-        <div className="min-h-[380px] px-6 py-6">
+        {/* Scrollable content */}
+        <div className="flex-1 overflow-y-auto px-6 py-6">
           {activeTab === 'collaborate' && (
             <div className="space-y-6">
               <div className="flex items-center gap-2 rounded-lg border border-border bg-background px-4 py-2">
@@ -294,13 +304,10 @@ export function ContentShareModal({
 
           {activeTab === 'download' && (
             <div className="space-y-6">
-              <div className="rounded-xl border border-border/70 p-4">
+              <div className="rounded-[8px] border border-border/70 p-4">
                 <label className="flex flex-col gap-1">
                   <span className="text-[12px] font-medium text-foreground">Download scope</span>
-                  <Select
-                    value={downloadScope}
-                    onValueChange={setDownloadScope}
-                  >
+                  <Select value={downloadScope} onValueChange={setDownloadScope}>
                     <SelectTrigger className="h-9 border-border bg-background text-[13px]">
                       <SelectValue />
                     </SelectTrigger>
@@ -320,31 +327,20 @@ export function ContentShareModal({
                     <button
                       key={option.id}
                       type="button"
-                      className="flex items-center gap-4 rounded-xl border border-border/70 p-4 text-left transition-colors hover:border-primary/40 hover:bg-muted/30"
+                      className="group flex items-center gap-4 rounded-[8px] border border-border/70 p-4 text-left transition-colors hover:border-primary/40 hover:bg-muted/30"
                     >
-                      <div className="flex size-9 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+                      <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
                         <Icon size={17} strokeWidth={1.6} absoluteStrokeWidth />
                       </div>
-                      <span className="text-[13px] font-medium text-foreground">{option.label}</span>
+                      <span className="flex-1 text-[13px] font-medium text-foreground">{option.label}</span>
+                      <span className="flex items-center gap-1 text-[12px] font-medium text-primary opacity-0 transition-opacity group-hover:opacity-100">
+                        <Download size={13} strokeWidth={1.6} absoluteStrokeWidth />
+                        Download
+                      </span>
                     </button>
                   );
                 })}
               </div>
-
-              <button
-                type="button"
-                className="flex w-full items-center justify-between rounded-xl border border-border/70 p-4 text-left transition-colors hover:border-primary/40 hover:bg-muted/30"
-              >
-                <span className="flex items-center gap-2">
-                  <span className="flex size-9 items-center justify-center rounded-lg bg-muted text-muted-foreground">
-                    <Linkedin size={17} strokeWidth={1.6} absoluteStrokeWidth />
-                  </span>
-                  <span>
-                    <span className="block text-[13px] font-medium text-foreground">Post directly to LinkedIn</span>
-                    <span className="text-[12px] text-muted-foreground">Share without downloading a file.</span>
-                  </span>
-                </span>
-              </button>
             </div>
           )}
 
@@ -363,7 +359,8 @@ export function ContentShareModal({
           )}
         </div>
 
-        <div className="flex items-center justify-between border-t border-border px-6 py-4">
+        {/* Footer — fixed */}
+        <div className="shrink-0 flex items-center justify-between border-t border-border px-6 py-4">
           <Button type="button" variant="ghost" className="gap-2">
             <BarChart3 size={14} strokeWidth={1.6} absoluteStrokeWidth />
             View analytics
