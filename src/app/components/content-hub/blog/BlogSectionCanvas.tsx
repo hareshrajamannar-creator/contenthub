@@ -89,6 +89,7 @@ export interface BlogSectionCanvasProps {
   sections: BlogSection[];
   generationLabel?: string;
   onEditSettings?: () => void;
+  onVersionHistory?: () => void;
 }
 
 // ── Block generation ──────────────────────────────────────────────────────────
@@ -1063,7 +1064,7 @@ function QuoteBlock({ block, onUpdate }: { block: BlogBlock; onUpdate: (p: Parti
 
 // ── Main component ────────────────────────────────────────────────────────────
 
-export function BlogSectionCanvas({ sections, generationLabel }: BlogSectionCanvasProps) {
+export function BlogSectionCanvas({ sections, generationLabel, onVersionHistory }: BlogSectionCanvasProps) {
   const [blocks, setBlocksState] = useState<BlogBlock[]>(() => generateBlogBlocks(sections));
   const [leftTab, setLeftTab] = useState<'ai' | 'manual'>('ai');
   const [zoom, setZoom] = useState(1);
@@ -1349,6 +1350,7 @@ export function BlogSectionCanvas({ sections, generationLabel }: BlogSectionCanv
           zoom={zoom}
           onZoomOut={() => setZoom(z => Math.max(0.5, +(z - 0.1).toFixed(2)))}
           onZoomIn={() => setZoom(z => Math.min(2, +(z + 0.1).toFixed(2)))}
+          onVersionHistory={onVersionHistory}
           onActivity={() => setActivityOpen(true)}
         />
 

@@ -63,6 +63,7 @@ export interface FAQSectionCanvasProps {
   sections: FAQSection[];
   generationLabel?: string;
   onEditSettings?: () => void;
+  onVersionHistory?: () => void;
 }
 
 // ── Mock FAQ generation ───────────────────────────────────────────────────────
@@ -893,7 +894,7 @@ function SectionBlock({
 
 // ── Main component ────────────────────────────────────────────────────────────
 
-export function FAQSectionCanvas({ sections, generationLabel }: FAQSectionCanvasProps) {
+export function FAQSectionCanvas({ sections, generationLabel, onVersionHistory }: FAQSectionCanvasProps) {
   const [sectionData, setSectionData] = useState<FAQSectionData[]>(() =>
     generateMockFAQs(sections)
   );
@@ -1261,6 +1262,7 @@ export function FAQSectionCanvas({ sections, generationLabel }: FAQSectionCanvas
           zoom={zoom}
           onZoomOut={() => setZoom(z => Math.max(0.5, +(z - 0.1).toFixed(2)))}
           onZoomIn={() => setZoom(z => Math.min(2, +(z + 0.1).toFixed(2)))}
+          onVersionHistory={onVersionHistory}
           onActivity={() => setActivityOpen(true)}
           onSave={() => setSavingTarget('all')}
         />

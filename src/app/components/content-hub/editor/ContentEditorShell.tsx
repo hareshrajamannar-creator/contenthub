@@ -69,6 +69,7 @@ import { ContentFlowStepper, type ContentFlowStep } from '../shared/ContentFlowC
 import { CanvasEditorTopBar } from '../shared/CanvasEditorTopBar';
 import { ContentShareModal } from '../shared/ContentShareModal';
 import { ContentActivityDrawer } from '../shared/ContentActivityDrawer';
+import { ContentVersionHistory } from '../shared/ContentVersionHistory';
 // Note: FAQCanvas is kept for the project review canvas path (UnifiedReviewCanvas)
 import {
   type ContentMode,
@@ -698,6 +699,7 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
   const [exportOpen, setExportOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
   const [activityOpen, setActivityOpen] = useState(false);
+  const [versionHistoryOpen, setVersionHistoryOpen] = useState(false);
   const setupHeaderTitle =
     mode === 'project' ? 'Create project'
     : mode === 'faq' ? "Create FAQ's"
@@ -1091,7 +1093,7 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
     : config;
 
   return (
-    <div className="flex flex-col h-full bg-background">
+    <div className="relative flex flex-col h-full bg-background">
 
       {/* ── Header — shared by setup, generation, and editor states ── */}
       <div
@@ -1338,6 +1340,7 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
           sections={faqFlowData.sections}
           generationLabel={generationInfo?.label}
           onEditSettings={handleEditSettings}
+          onVersionHistory={() => setVersionHistoryOpen(true)}
         />
       )}
 
@@ -1347,6 +1350,7 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
           sections={blogFlowData.sections}
           generationLabel={generationInfo?.label}
           onEditSettings={handleEditSettings}
+          onVersionHistory={() => setVersionHistoryOpen(true)}
         />
       )}
 
@@ -1697,6 +1701,16 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
         onClose={() => setActivityOpen(false)}
         contentType={mode === 'blog' ? 'blog' : 'faq'}
       />
+
+      {/* Version history — full-screen overlay covering the entire editor */}
+      {versionHistoryOpen && (
+        <div className="absolute inset-0 z-30">
+          <ContentVersionHistory
+            contentType={mode === 'blog' ? 'blog' : 'faq'}
+            onClose={() => setVersionHistoryOpen(false)}
+          />
+        </div>
+      )}
     </div>
   );
 }
