@@ -17,9 +17,9 @@ export interface ContentFlowStep {
 
 export const CONTENT_FLOW_STEP_TITLE_CLASS = 'text-[18px] font-semibold leading-7 text-foreground';
 export const CONTENT_FLOW_FIELD_CLASS =
-  'h-10 rounded-xl border-[#e5e9f0] bg-white px-4 text-[13px] font-normal text-[#212121] placeholder:text-[#a3a3a3] transition-[color,box-shadow,border-color] hover:border-[#c0c6d4] focus-visible:border-[#2552ED] focus-visible:ring-[3px] focus-visible:ring-[#2552ED]/10 dark:border-[#333a47] dark:bg-[#262b35] dark:text-[#e4e4e4] dark:placeholder:text-[#4d5568] dark:hover:border-[#4d5568]';
+  'h-10 rounded-[8px] border-[#e5e9f0] bg-white px-4 text-[13px] font-normal text-[#212121] placeholder:text-[#a3a3a3] transition-[color,box-shadow,border-color] hover:border-[#c0c6d4] focus-visible:border-[#2552ED] focus-visible:ring-[3px] focus-visible:ring-[#2552ED]/10 dark:border-[#333a47] dark:bg-[#262b35] dark:text-[#e4e4e4] dark:placeholder:text-[#4d5568] dark:hover:border-[#4d5568]';
 export const CONTENT_FLOW_TEXTAREA_CLASS =
-  'min-h-28 rounded-xl border-[#e5e9f0] bg-white px-4 py-2 text-[14px] md:text-[14px] font-medium leading-6 text-[#212121] placeholder:text-[#a3a3a3] transition-[color,box-shadow,border-color] hover:border-[#c0c6d4] focus-visible:border-[#2552ED] focus-visible:ring-[3px] focus-visible:ring-[#2552ED]/10 dark:border-[#333a47] dark:bg-[#262b35] dark:text-[#e4e4e4] dark:placeholder:text-[#4d5568] dark:hover:border-[#4d5568]';
+  'min-h-28 rounded-[8px] border-[#e5e9f0] bg-white px-4 py-2 text-[14px] md:text-[14px] font-medium leading-6 text-[#212121] placeholder:text-[#a3a3a3] transition-[color,box-shadow,border-color] hover:border-[#c0c6d4] focus-visible:border-[#2552ED] focus-visible:ring-[3px] focus-visible:ring-[#2552ED]/10 dark:border-[#333a47] dark:bg-[#262b35] dark:text-[#e4e4e4] dark:placeholder:text-[#4d5568] dark:hover:border-[#4d5568]';
 
 export function ContentFlowTextInput({
   className,
@@ -137,7 +137,7 @@ export function ContentFlowChoiceCard({
       onClick={onClick}
       aria-pressed={selected}
       className={cn(
-        'flex w-full items-start gap-4 rounded-xl border bg-background px-4 py-4 text-left transition-colors',
+        'flex w-full items-start gap-4 rounded-[8px] border bg-background px-4 py-4 text-left transition-colors',
         selected
           ? 'border-primary bg-primary/[0.04] ring-1 ring-primary/20'
           : 'border-border hover:border-primary/30 hover:bg-muted/30',
@@ -197,7 +197,7 @@ export function ContentFlowRadioCard({
       onClick={onClick}
       aria-pressed={selected}
       className={cn(
-        'flex w-full items-start gap-2 rounded-xl border bg-background px-4 py-4 text-left transition-colors',
+        'flex w-full items-start gap-2 rounded-[8px] border bg-background px-4 py-4 text-left transition-colors',
         selected
           ? 'border-primary bg-primary/[0.03]'
           : 'border-border hover:border-primary/40 hover:bg-background',
@@ -235,7 +235,7 @@ export function ContentFlowCountStepper({
   ariaLabel: string;
 }) {
   return (
-    <div className="inline-flex h-9 items-center rounded-xl border border-border bg-background">
+    <div className="inline-flex h-9 items-center rounded-[8px] border border-border bg-background">
       <button
         type="button"
         aria-label={`Decrease ${ariaLabel}`}
@@ -317,7 +317,7 @@ export function ContentFlowMultiSelect({
           role="button"
           tabIndex={0}
           className={cn(
-            'flex min-h-12 w-full cursor-pointer items-center gap-2 rounded-xl border border-border bg-background px-4 py-2 text-left transition-[color,box-shadow]',
+            'flex min-h-12 w-full cursor-pointer items-center gap-2 rounded-[8px] border border-border bg-background px-4 py-2 text-left transition-[color,box-shadow]',
             'focus-visible:border-primary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/15',
           )}
         >
