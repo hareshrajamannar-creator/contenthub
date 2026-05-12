@@ -2,6 +2,13 @@ import { ArrowLeft, Check } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/app/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/app/components/ui/dialog';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -16,14 +23,10 @@ interface Version {
   isCurrent: boolean;
 }
 
-interface ChangedSpan {
-  text: string;
-  changed: boolean;
-}
-
 interface FAQItem {
   question: string;
-  answer: ChangedSpan[];
+  answer: string;
+  answerChanged?: boolean;
 }
 
 interface FAQVersionSection {
@@ -44,38 +47,37 @@ const VERSIONS: Version[] = [
   {
     id: 'v4',
     date: 'Dec 10, 2025 10:11 AM',
-    author: 'Mohammed Hussain',
-    initials: 'MH',
+    author: 'James Wilson',
+    initials: 'JW',
     avatarColor: 'bg-amber-500',
     isCurrent: true,
   },
   {
     id: 'v3',
     date: 'Dec 04, 2025 11:24 AM',
-    author: 'Adam',
-    initials: 'AD',
+    author: 'Sarah Mitchell',
+    initials: 'SM',
     avatarColor: 'bg-indigo-500',
     isCurrent: false,
   },
   {
     id: 'v2',
     date: 'Nov 28, 2025 04:12 PM',
-    author: 'Emily Jason',
-    initials: 'EJ',
+    author: 'David Parker',
+    initials: 'DP',
     avatarColor: 'bg-emerald-500',
     isCurrent: false,
   },
   {
     id: 'v1',
     date: 'Nov 28, 2025 11:24 AM',
-    author: 'Emily Jason',
+    author: 'Emily Johnson',
     initials: 'EJ',
     avatarColor: 'bg-emerald-500',
     isCurrent: false,
   },
 ];
 
-// FAQ content per version — older versions have fewer/weaker answers
 const FAQ_CONTENT: Record<VersionId, FAQVersionSection[]> = {
   v4: [
     {
@@ -83,15 +85,15 @@ const FAQ_CONTENT: Record<VersionId, FAQVersionSection[]> = {
       items: [
         {
           question: 'How quickly can you respond to an emergency?',
-          answer: [{ text: 'Our team is available 24/7 and typically responds to emergency calls within 30–60 minutes. We prioritize urgent situations to minimize disruption and ensure your safety.', changed: false }],
+          answer: 'Our team is available 24/7 and typically responds to emergency calls within 30–60 minutes. We prioritize urgent situations to minimize disruption and ensure your safety.',
         },
         {
           question: 'Do you offer same-day service?',
-          answer: [{ text: 'Yes, we offer same-day service for most requests submitted before 2 PM local time. Availability may vary during peak periods or holidays.', changed: false }],
+          answer: 'Yes, we offer same-day service for most requests submitted before 2 PM local time. Availability may vary during peak periods or holidays.',
         },
         {
           question: 'Are you licensed and insured?',
-          answer: [{ text: 'We are fully licensed, bonded, and insured. Our technicians carry all required certifications and our work is backed by a 1-year service guarantee.', changed: false }],
+          answer: 'We are fully licensed, bonded, and insured. Our technicians carry all required certifications and our work is backed by a 1-year service guarantee.',
         },
       ],
     },
@@ -100,11 +102,15 @@ const FAQ_CONTENT: Record<VersionId, FAQVersionSection[]> = {
       items: [
         {
           question: 'How do I book an appointment?',
-          answer: [{ text: 'You can book online at our website, call us directly, or use our app. Online bookings are available 24/7 and confirmed instantly.', changed: false }],
+          answer: 'You can book online at our website, call us directly, or use our app. Online bookings are available 24/7 and confirmed instantly.',
         },
         {
           question: 'How much does a standard service call cost?',
-          answer: [{ text: 'Standard service calls start at $85 for the first hour, with materials billed separately. We provide a detailed estimate before any work begins.', changed: false }],
+          answer: 'Standard service calls start at $85 for the first hour, with materials billed separately. We provide a detailed estimate before any work begins.',
+        },
+        {
+          question: 'Can I reschedule or cancel my appointment?',
+          answer: 'Yes, appointments can be rescheduled or cancelled up to 24 hours in advance at no charge. Same-day cancellations may incur a $25 fee.',
         },
       ],
     },
@@ -115,15 +121,17 @@ const FAQ_CONTENT: Record<VersionId, FAQVersionSection[]> = {
       items: [
         {
           question: 'How quickly can you respond to an emergency?',
-          answer: [{ text: 'Our team responds to emergency calls as quickly as possible. We prioritize urgent situations to minimize disruption.', changed: true }],
+          answer: 'Our team responds to emergency calls as quickly as possible. We prioritize urgent situations to minimize disruption.',
+          answerChanged: true,
         },
         {
           question: 'Do you offer same-day service?',
-          answer: [{ text: 'Yes, we offer same-day service for most requests submitted before 2 PM local time. Availability may vary during peak periods or holidays.', changed: false }],
+          answer: 'Yes, we offer same-day service for most requests submitted before 2 PM local time. Availability may vary during peak periods or holidays.',
         },
         {
           question: 'Are you licensed and insured?',
-          answer: [{ text: 'We are fully licensed and insured. Our technicians carry all required certifications.', changed: true }],
+          answer: 'We are fully licensed and insured. Our technicians carry all required certifications.',
+          answerChanged: true,
         },
       ],
     },
@@ -132,11 +140,17 @@ const FAQ_CONTENT: Record<VersionId, FAQVersionSection[]> = {
       items: [
         {
           question: 'How do I book an appointment?',
-          answer: [{ text: 'You can book online at our website or call us directly.', changed: true }],
+          answer: 'You can book online at our website or call us directly.',
+          answerChanged: true,
         },
         {
           question: 'How much does a standard service call cost?',
-          answer: [{ text: 'Standard service calls start at $85 for the first hour, with materials billed separately. We provide a detailed estimate before any work begins.', changed: false }],
+          answer: 'Standard service calls start at $85 for the first hour, with materials billed separately. We provide a detailed estimate before any work begins.',
+        },
+        {
+          question: 'Can I reschedule or cancel my appointment?',
+          answer: 'Yes, appointments can be rescheduled or cancelled with advance notice.',
+          answerChanged: true,
         },
       ],
     },
@@ -147,15 +161,18 @@ const FAQ_CONTENT: Record<VersionId, FAQVersionSection[]> = {
       items: [
         {
           question: 'How quickly can you respond to an emergency?',
-          answer: [{ text: 'Our team responds to emergency calls as quickly as possible.', changed: true }],
+          answer: 'Our team responds to emergency calls as quickly as possible.',
+          answerChanged: true,
         },
         {
           question: 'Do you offer same-day service?',
-          answer: [{ text: 'Same-day service may be available depending on schedule. Contact us to check.', changed: true }],
+          answer: 'Same-day service may be available depending on schedule. Contact us to check.',
+          answerChanged: true,
         },
         {
           question: 'Are you licensed and insured?',
-          answer: [{ text: 'We are fully licensed and insured.', changed: true }],
+          answer: 'We are fully licensed and insured.',
+          answerChanged: true,
         },
       ],
     },
@@ -164,11 +181,13 @@ const FAQ_CONTENT: Record<VersionId, FAQVersionSection[]> = {
       items: [
         {
           question: 'How do I book an appointment?',
-          answer: [{ text: 'Call us or visit our website to schedule a service visit.', changed: true }],
+          answer: 'Call us or visit our website to schedule a service visit.',
+          answerChanged: true,
         },
         {
           question: 'How much does a standard service call cost?',
-          answer: [{ text: 'Contact us for current pricing information.', changed: true }],
+          answer: 'Contact us for current pricing information.',
+          answerChanged: true,
         },
       ],
     },
@@ -179,11 +198,13 @@ const FAQ_CONTENT: Record<VersionId, FAQVersionSection[]> = {
       items: [
         {
           question: 'How quickly can you respond to an emergency?',
-          answer: [{ text: 'Contact us and we will get back to you as soon as possible.', changed: true }],
+          answer: 'Contact us and we will get back to you as soon as possible.',
+          answerChanged: true,
         },
         {
           question: 'Do you offer same-day service?',
-          answer: [{ text: 'Please call us to discuss availability.', changed: true }],
+          answer: 'Please call us to discuss availability.',
+          answerChanged: true,
         },
       ],
     },
@@ -192,7 +213,8 @@ const FAQ_CONTENT: Record<VersionId, FAQVersionSection[]> = {
       items: [
         {
           question: 'How do I book an appointment?',
-          answer: [{ text: 'Call us or send us an email to schedule.', changed: true }],
+          answer: 'Call us or send us an email to schedule.',
+          answerChanged: true,
         },
       ],
     },
@@ -209,11 +231,11 @@ const BLOG_CONTENT: Record<VersionId, BlogVersionBlock[]> = {
     { type: 'bullets', items: ['Respond to every review within 24 hours', 'Personalise onboarding for each customer segment', 'Build a feedback loop that feeds directly into product', 'Empower front-line staff to resolve issues on the spot'] },
   ],
   v3: [
-    { type: 'hero-title', text: 'The Complete Guide to Building Exceptional Customer Experiences', changed: false },
+    { type: 'hero-title', text: 'The Complete Guide to Building Exceptional Customer Experiences' },
     { type: 'hero-subtitle', text: 'How leading brands create loyalty-building interactions', changed: true },
     { type: 'heading', text: 'Why customer experience matters', changed: true },
     { type: 'paragraph', text: 'Customer experience has become increasingly important for businesses. Customers who feel valued are more likely to return and recommend your brand.', changed: true },
-    { type: 'heading', text: 'Key strategies for success' },
+    { type: 'heading', text: 'Key strategies for success', changed: true },
     { type: 'bullets', items: ['Respond to reviews promptly', 'Personalise the customer journey', 'Build a feedback loop', 'Empower your team'], changed: true },
   ],
   v2: [
@@ -230,81 +252,76 @@ const BLOG_CONTENT: Record<VersionId, BlogVersionBlock[]> = {
   ],
 };
 
-// ── Sub-components ─────────────────────────────────────────────────────────────
-
-function HighlightedText({ spans }: { spans: ChangedSpan[] }) {
-  return (
-    <>
-      {spans.map((span, i) =>
-        span.changed ? (
-          <mark key={i} className="bg-amber-100 text-foreground rounded-[3px] px-0.5 not-italic">
-            {span.text}
-          </mark>
-        ) : (
-          <span key={i}>{span.text}</span>
-        ),
-      )}
-    </>
-  );
-}
+// ── Read-only FAQ preview (matches FAQSectionCanvas visual style exactly) ─────
 
 function FAQReadOnlyPreview({ versionId }: { versionId: VersionId }) {
   const sections = FAQ_CONTENT[versionId];
   return (
-    <div className="flex flex-col gap-6">
-      {sections.map((section, si) => (
-        <div key={si} className="flex flex-col gap-3">
-          <h3 className="text-[13px] font-semibold text-foreground">{section.title}</h3>
-          <div className="flex flex-col gap-2">
-            {section.items.map((item, qi) => (
-              <div key={qi} className="rounded-[8px] border border-border/60 bg-muted/20 px-4 py-3">
-                <p className="text-[13px] font-medium text-foreground mb-1">{item.question}</p>
-                <p className="text-[13px] text-muted-foreground leading-relaxed">
-                  <HighlightedText spans={item.answer} />
-                </p>
-              </div>
-            ))}
+    <div className="rounded-xl border border-border/60 bg-background">
+      <div className="p-4 flex flex-col gap-3">
+        {sections.map((section, si) => (
+          <div key={si} className="rounded-xl border border-border/60 bg-background overflow-hidden">
+            {/* Section header — matches SectionBlock header */}
+            <div className="flex items-center gap-2 px-4 py-2.5 bg-muted/30 border-b border-border">
+              <span className="text-[13px] font-semibold text-foreground">{section.title}</span>
+            </div>
+            {/* Questions — matches divide-y pattern */}
+            <div>
+              {section.items.map((item, qi) => (
+                <div
+                  key={qi}
+                  className={cn(
+                    'border-b border-border last:border-b-0',
+                    item.answerChanged && 'bg-amber-50/60',
+                  )}
+                >
+                  <div className="flex items-start gap-2 px-4 py-3">
+                    {/* Index number — matches QuestionRow */}
+                    <span className="text-[12px] text-muted-foreground/60 mt-0.5 shrink-0 w-5 text-right select-none">
+                      {qi + 1}.
+                    </span>
+                    <div className="flex-1 min-w-0 space-y-2">
+                      <p className="text-[13px] font-medium text-foreground leading-snug">
+                        {item.question}
+                      </p>
+                      <p className={cn(
+                        'text-[13px] leading-relaxed text-muted-foreground',
+                        item.answerChanged && 'bg-amber-100 rounded-[3px] px-1',
+                      )}>
+                        {item.answer}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   );
 }
 
+// ── Read-only blog preview ─────────────────────────────────────────────────────
+
 function BlogReadOnlyPreview({ versionId }: { versionId: VersionId }) {
   const blocks = BLOG_CONTENT[versionId];
   return (
-    <div className="flex flex-col gap-4 max-w-2xl mx-auto">
+    <div className="rounded-xl border border-border/60 bg-background p-8 flex flex-col gap-4 max-w-2xl mx-auto">
       {blocks.map((block, i) => {
         const changed = block.changed ?? false;
-        const wrapClass = changed ? 'bg-amber-100 rounded-[3px] px-1' : '';
+        const hlClass = changed ? 'bg-amber-100 rounded-[3px] px-1' : '';
         if (block.type === 'hero-title') {
-          return (
-            <h1 key={i} className={cn('text-[22px] font-bold text-foreground leading-tight', wrapClass)}>
-              {block.text}
-            </h1>
-          );
+          return <h1 key={i} className={cn('text-[22px] font-bold text-foreground leading-tight', hlClass)}>{block.text}</h1>;
         }
         if (block.type === 'hero-subtitle') {
-          return (
-            <p key={i} className={cn('text-[15px] text-muted-foreground leading-relaxed', wrapClass)}>
-              {block.text}
-            </p>
-          );
+          return <p key={i} className={cn('text-[15px] text-muted-foreground leading-relaxed', hlClass)}>{block.text}</p>;
         }
         if (block.type === 'heading') {
-          return (
-            <h2 key={i} className={cn('text-[16px] font-semibold text-foreground mt-2', wrapClass)}>
-              {block.text}
-            </h2>
-          );
+          return <h2 key={i} className={cn('text-[16px] font-semibold text-foreground mt-2', hlClass)}>{block.text}</h2>;
         }
         if (block.type === 'paragraph') {
-          return (
-            <p key={i} className={cn('text-[13px] text-foreground leading-relaxed', wrapClass)}>
-              {block.text}
-            </p>
-          );
+          return <p key={i} className={cn('text-[13px] text-foreground leading-relaxed', hlClass)}>{block.text}</p>;
         }
         if (block.type === 'bullets' && block.items) {
           return (
@@ -330,37 +347,46 @@ export interface ContentVersionHistoryProps {
 
 export function ContentVersionHistory({ contentType, onClose }: ContentVersionHistoryProps) {
   const [selectedVersionId, setSelectedVersionId] = useState<VersionId>('v4');
+  const [restoreConfirmOpen, setRestoreConfirmOpen] = useState(false);
 
   const selectedVersion = VERSIONS.find(v => v.id === selectedVersionId)!;
   const isCurrentVersion = selectedVersion.isCurrent;
 
-  function handleRestore() {
+  function handleRestoreConfirm() {
+    setRestoreConfirmOpen(false);
     setSelectedVersionId('v4');
+    onClose();
   }
 
   return (
-    <div className="flex flex-col h-full bg-[var(--color-canvas,#F7F8FA)]">
+    <div className="flex flex-col h-full bg-background">
       {/* Header */}
-      <div className="shrink-0 flex items-center justify-between h-14 px-6 bg-background border-b border-border">
+      <div className="shrink-0 flex items-center gap-4 h-[52px] px-6 bg-background border-b border-border">
         <button
           type="button"
           onClick={onClose}
-          className="flex items-center gap-2 text-[13px] text-muted-foreground hover:text-foreground transition-colors"
+          className="flex items-center justify-center size-8 rounded-md text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+          aria-label="Back"
         >
-          <ArrowLeft size={15} strokeWidth={1.6} absoluteStrokeWidth />
-          Version history
+          <ArrowLeft size={16} strokeWidth={1.6} absoluteStrokeWidth />
         </button>
-        {!isCurrentVersion && (
-          <Button size="sm" onClick={handleRestore}>
-            Restore
+        <span className="text-[15px] font-semibold text-foreground">Version history</span>
+        <div className="ml-auto flex items-center gap-2">
+          {!isCurrentVersion && (
+            <Button size="sm" onClick={() => setRestoreConfirmOpen(true)}>
+              Restore
+            </Button>
+          )}
+          <Button size="sm" variant="outline" onClick={onClose}>
+            Cancel
           </Button>
-        )}
+        </div>
       </div>
 
       {/* Body */}
-      <div className="flex flex-1 min-h-0 gap-2 p-2">
+      <div className="flex flex-1 min-h-0 gap-2 p-2 bg-[var(--color-canvas,#F7F8FA)]">
         {/* Read-only content preview */}
-        <div className="flex-1 min-w-0 overflow-y-auto rounded-xl border border-border/60 bg-background">
+        <div className="flex-1 min-w-0 overflow-y-auto rounded-xl bg-background border border-border/60">
           <div className="px-8 py-6 pb-10">
             {contentType === 'faq' ? (
               <FAQReadOnlyPreview versionId={selectedVersionId} />
@@ -387,21 +413,14 @@ export function ContentVersionHistory({ contentType, onClose }: ContentVersionHi
                   type="button"
                   onClick={() => setSelectedVersionId(version.id)}
                   className={cn(
-                    'w-full text-left px-4 py-4 flex flex-col gap-1.5 transition-colors',
+                    'w-full text-left px-4 py-4 flex flex-col gap-2 transition-colors',
                     isSelected ? 'bg-primary/5' : 'hover:bg-muted/50',
                   )}
                 >
                   <div className="flex items-center justify-between gap-2">
                     <span className="text-[12px] font-medium text-foreground">{version.date}</span>
-                    {version.isCurrent && isSelected && (
+                    {isSelected && (
                       <Check size={14} strokeWidth={1.6} absoluteStrokeWidth className="text-primary shrink-0" />
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {version.isCurrent && (
-                      <span className="text-[11px] font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-full">
-                        Current version
-                      </span>
                     )}
                   </div>
                   <div className="flex items-center gap-2">
@@ -413,12 +432,43 @@ export function ContentVersionHistory({ contentType, onClose }: ContentVersionHi
                     </div>
                     <span className="text-[12px] text-muted-foreground">{version.author}</span>
                   </div>
+                  {version.isCurrent && (
+                    <span className="text-[11px] font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-full w-fit">
+                      Current version
+                    </span>
+                  )}
                 </button>
               );
             })}
           </div>
         </div>
       </div>
+
+      {/* Restore confirmation dialog */}
+      <Dialog open={restoreConfirmOpen} onOpenChange={setRestoreConfirmOpen}>
+        <DialogContent className="max-w-[420px]">
+          <DialogHeader>
+            <DialogTitle>Restore this version?</DialogTitle>
+          </DialogHeader>
+          <p className="text-[13px] text-muted-foreground leading-relaxed -mt-1">
+            This will replace your current content with the version from{' '}
+            <span className="font-medium text-foreground">{selectedVersion.date}</span>.
+            Your current version will remain accessible in version history.
+          </p>
+          <DialogFooter className="mt-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setRestoreConfirmOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button type="button" onClick={handleRestoreConfirm}>
+              Restore
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

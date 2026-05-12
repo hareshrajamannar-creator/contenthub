@@ -1704,7 +1704,7 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
 
       {/* Version history — full-screen overlay covering the entire editor */}
       {versionHistoryOpen && (
-        <div className="absolute inset-0 z-30">
+        <div className="absolute inset-0 z-50">
           <ContentVersionHistory
             contentType={mode === 'blog' ? 'blog' : 'faq'}
             onClose={() => setVersionHistoryOpen(false)}
