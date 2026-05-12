@@ -19,7 +19,7 @@ export const CONTENT_FLOW_STEP_TITLE_CLASS = 'text-[18px] font-semibold leading-
 export const CONTENT_FLOW_FIELD_CLASS =
   'h-10 rounded-lg border-[#e5e9f0] bg-white px-4 text-[13px] font-normal text-[#212121] placeholder:text-[#a3a3a3] transition-[color,box-shadow,border-color] hover:border-[#c0c6d4] focus-visible:border-[#2552ED] focus-visible:ring-[3px] focus-visible:ring-[#2552ED]/10 dark:border-[#333a47] dark:bg-[#262b35] dark:text-[#e4e4e4] dark:placeholder:text-[#4d5568] dark:hover:border-[#4d5568]';
 export const CONTENT_FLOW_TEXTAREA_CLASS =
-  'min-h-28 rounded-lg border-[#e5e9f0] bg-white px-4 py-2 text-[14px] font-normal leading-6 text-[#212121] placeholder:text-[#a3a3a3] transition-[color,box-shadow,border-color] hover:border-[#c0c6d4] focus-visible:border-[#2552ED] focus-visible:ring-[3px] focus-visible:ring-[#2552ED]/10 dark:border-[#333a47] dark:bg-[#262b35] dark:text-[#e4e4e4] dark:placeholder:text-[#4d5568] dark:hover:border-[#4d5568]';
+  'min-h-28 rounded-lg border-[#e5e9f0] bg-white px-4 py-2 text-[14px] md:text-[14px] font-medium leading-6 text-[#212121] placeholder:text-[#a3a3a3] transition-[color,box-shadow,border-color] hover:border-[#c0c6d4] focus-visible:border-[#2552ED] focus-visible:ring-[3px] focus-visible:ring-[#2552ED]/10 dark:border-[#333a47] dark:bg-[#262b35] dark:text-[#e4e4e4] dark:placeholder:text-[#4d5568] dark:hover:border-[#4d5568]';
 
 export function ContentFlowTextInput({
   className,

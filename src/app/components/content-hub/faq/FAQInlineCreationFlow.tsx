@@ -403,7 +403,7 @@ function Step3ContentBrief({ value, onChange }: Step3Props) {
             value={value}
             onChange={event => onChange(event.target.value)}
             rows={5}
-            className="text-[14px] leading-6"
+            className="text-[14px] md:text-[14px] font-medium leading-6"
           />
         </div>
       )}
