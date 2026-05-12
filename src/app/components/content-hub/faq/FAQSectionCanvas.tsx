@@ -733,11 +733,13 @@ interface SectionBlockProps {
   onAddQuestion: () => void;
   onSaveToSaved: () => void;
   fixingAll?: boolean;
+  entranceDelay?: number;
 }
 
 function SectionBlock({
   section, sectionIndex, totalSections,
   onUpdate, onDelete, onMoveUp, onMoveDown, onAddQuestion, onSaveToSaved, fixingAll,
+  entranceDelay = 0,
 }: SectionBlockProps) {
   const [editingTitle, setEditingTitle] = useState(false);
 
@@ -766,7 +768,10 @@ function SectionBlock({
   }, [section.questions, onUpdate]);
 
   return (
-    <div className="rounded-xl border border-border/60 bg-background overflow-hidden">
+    <div
+      className="rounded-xl border border-border/60 bg-background overflow-hidden animate-in fade-in slide-in-from-bottom-4 fill-mode-both"
+      style={{ animationDuration: '400ms', animationDelay: `${entranceDelay}ms` }}
+    >
       {/* Section header */}
       <div className="flex items-center gap-2 px-4 py-2.5 bg-muted/30 border-b border-border">
         <GripVertical
@@ -1203,11 +1208,11 @@ export function FAQSectionCanvas({ sections, generationLabel, onVersionHistory }
   }, [setData]);
 
   return (
-    <div className="flex flex-1 min-h-0 gap-2 bg-[var(--color-canvas,#F7F8FA)] p-2 animate-in fade-in duration-500">
+    <div className="flex flex-1 min-h-0 gap-2 bg-[var(--color-canvas,#F7F8FA)] p-2 animate-in fade-in duration-150">
       {/* ── Left panel ───────────────────────────────────────────────── */}
       <div
-        className="flex-shrink-0 flex flex-col overflow-hidden rounded-xl border border-border/60 bg-background"
-        style={{ width: 300 }}
+        className="flex-shrink-0 flex flex-col overflow-hidden rounded-xl border border-border/60 bg-background animate-in fade-in slide-in-from-left-6 fill-mode-both"
+        style={{ width: 300, animationDuration: '400ms', animationDelay: '0ms' }}
       >
         <div className="flex-none px-4 py-3 border-b border-border">
           <SegmentedToggle
@@ -1250,29 +1255,37 @@ export function FAQSectionCanvas({ sections, generationLabel, onVersionHistory }
             richTextPosition={richTextPosition}
           />
         )}
-        <CanvasEditorTopBar
-          score={setScore}
-          scoreLabel="Content score"
-          scorePanelOpen={scorePanelOpen}
-          onScoreClick={() => setScorePanelOpen(v => !v)}
-          canUndo={canUndo}
-          canRedo={canRedo}
-          onUndo={handleUndo}
-          onRedo={handleRedo}
-          zoom={zoom}
-          onZoomOut={() => setZoom(z => Math.max(0.5, +(z - 0.1).toFixed(2)))}
-          onZoomIn={() => setZoom(z => Math.min(2, +(z + 0.1).toFixed(2)))}
-          onVersionHistory={onVersionHistory}
-          onActivity={() => setActivityOpen(true)}
-          onSave={() => setSavingTarget('all')}
-        />
+        <div
+          className="animate-in fade-in slide-in-from-top-2 fill-mode-both"
+          style={{ animationDuration: '300ms', animationDelay: '80ms' }}
+        >
+          <CanvasEditorTopBar
+            score={setScore}
+            scoreLabel="Content score"
+            scorePanelOpen={scorePanelOpen}
+            onScoreClick={() => setScorePanelOpen(v => !v)}
+            canUndo={canUndo}
+            canRedo={canRedo}
+            onUndo={handleUndo}
+            onRedo={handleRedo}
+            zoom={zoom}
+            onZoomOut={() => setZoom(z => Math.max(0.5, +(z - 0.1).toFixed(2)))}
+            onZoomIn={() => setZoom(z => Math.min(2, +(z + 0.1).toFixed(2)))}
+            onVersionHistory={onVersionHistory}
+            onActivity={() => setActivityOpen(true)}
+            onSave={() => setSavingTarget('all')}
+          />
+        </div>
 
         <div ref={canvasRef} className="relative min-h-0 flex-1 overflow-y-auto rounded-xl bg-transparent">
 
           {/* FAQ card container — padding stays fixed, only the card scales */}
           <div className="px-8 py-6 pb-10">
             <div style={{ zoom }}>
-            <div className="rounded-xl border border-border/60 bg-background">
+            <div
+              className="rounded-xl border border-border/60 bg-background animate-in fade-in zoom-in-95 fill-mode-both"
+              style={{ animationDuration: '380ms', animationDelay: '160ms' }}
+            >
 
               {/* Section sub-cards with visual separation */}
               <div className="p-4 flex flex-col gap-3">
@@ -1307,6 +1320,7 @@ export function FAQSectionCanvas({ sections, generationLabel, onVersionHistory }
                       onAddQuestion={() => addQuestionToSection(section.id)}
                       onSaveToSaved={() => setSavingTarget(section)}
                       fixingAll={fixingAll}
+                      entranceDelay={260 + sectionIndex * 90}
                     />
                   );
                 })}

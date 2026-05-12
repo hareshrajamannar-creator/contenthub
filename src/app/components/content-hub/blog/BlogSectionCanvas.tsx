@@ -553,9 +553,10 @@ interface BlockRowProps {
   onMoveUp: () => void;
   onMoveDown: () => void;
   fixingAll?: boolean;
+  entranceDelay?: number;
 }
 
-function BlockRow({ block, index, total, onUpdate, onDelete, onMoveUp, onMoveDown, fixingAll }: BlockRowProps) {
+function BlockRow({ block, index, total, onUpdate, onDelete, onMoveUp, onMoveDown, fixingAll, entranceDelay = 0 }: BlockRowProps) {
   const [fixing, setFixing] = useState(false);
   const isBeingFixed = fixing || (!!fixingAll && block.status !== 'ready');
 
@@ -593,7 +594,10 @@ function BlockRow({ block, index, total, onUpdate, onDelete, onMoveUp, onMoveDow
   );
 
   return (
-    <div className={cn('group relative', statusRing)}>
+    <div
+      className={cn('group relative animate-in fade-in slide-in-from-bottom-3 fill-mode-both', statusRing)}
+      style={{ animationDuration: '380ms', animationDelay: `${entranceDelay}ms` }}
+    >
       {/* Drag handle + actions overlay */}
       <div className="absolute left-2 top-3 opacity-0 group-hover:opacity-100 transition-opacity z-10 flex flex-col gap-1">
         <GripVertical size={14} strokeWidth={1.6} absoluteStrokeWidth className="text-muted-foreground/40 cursor-grab" />
@@ -1292,11 +1296,11 @@ export function BlogSectionCanvas({ sections, generationLabel, onVersionHistory 
   }, [setBlocks]);
 
   return (
-    <div className="flex flex-1 min-h-0 gap-2 bg-[var(--color-canvas,#F7F8FA)] p-2 animate-in fade-in duration-500">
+    <div className="flex flex-1 min-h-0 gap-2 bg-[var(--color-canvas,#F7F8FA)] p-2 animate-in fade-in duration-150">
       {/* ── Left panel ───────────────────────────────────────────────── */}
       <div
-        className="flex-shrink-0 flex flex-col overflow-hidden rounded-xl border border-border/60 bg-background"
-        style={{ width: 300 }}
+        className="flex-shrink-0 flex flex-col overflow-hidden rounded-xl border border-border/60 bg-background animate-in fade-in slide-in-from-left-6 fill-mode-both"
+        style={{ width: 300, animationDuration: '400ms', animationDelay: '0ms' }}
       >
         <div className="flex-none px-4 py-3 border-b border-border">
           <SegmentedToggle
@@ -1338,28 +1342,36 @@ export function BlogSectionCanvas({ sections, generationLabel, onVersionHistory 
             richTextPosition={richTextPosition}
           />
         )}
-        <CanvasEditorTopBar
-          score={finalScore}
-          scoreLabel="Content score"
-          scorePanelOpen={scorePanelOpen}
-          onScoreClick={() => setScorePanelOpen(v => !v)}
-          canUndo={canUndo}
-          canRedo={canRedo}
-          onUndo={handleUndo}
-          onRedo={handleRedo}
-          zoom={zoom}
-          onZoomOut={() => setZoom(z => Math.max(0.5, +(z - 0.1).toFixed(2)))}
-          onZoomIn={() => setZoom(z => Math.min(2, +(z + 0.1).toFixed(2)))}
-          onVersionHistory={onVersionHistory}
-          onActivity={() => setActivityOpen(true)}
-        />
+        <div
+          className="animate-in fade-in slide-in-from-top-2 fill-mode-both"
+          style={{ animationDuration: '300ms', animationDelay: '80ms' }}
+        >
+          <CanvasEditorTopBar
+            score={finalScore}
+            scoreLabel="Content score"
+            scorePanelOpen={scorePanelOpen}
+            onScoreClick={() => setScorePanelOpen(v => !v)}
+            canUndo={canUndo}
+            canRedo={canRedo}
+            onUndo={handleUndo}
+            onRedo={handleRedo}
+            zoom={zoom}
+            onZoomOut={() => setZoom(z => Math.max(0.5, +(z - 0.1).toFixed(2)))}
+            onZoomIn={() => setZoom(z => Math.min(2, +(z + 0.1).toFixed(2)))}
+            onVersionHistory={onVersionHistory}
+            onActivity={() => setActivityOpen(true)}
+          />
+        </div>
 
         <div ref={canvasRef} className="relative min-h-0 flex-1 overflow-y-auto rounded-xl bg-transparent">
 
           {/* Blog card container — padding stays fixed, only the card scales */}
           <div className="px-8 py-6 pb-10">
             <div style={{ zoom }}>
-              <div className="rounded-xl border border-border/60 bg-background">
+              <div
+                className="rounded-xl border border-border/60 bg-background animate-in fade-in zoom-in-95 fill-mode-both"
+                style={{ animationDuration: '380ms', animationDelay: '160ms' }}
+              >
 
                 {/* Block list */}
                 <div className="divide-y divide-border/40">
@@ -1374,6 +1386,7 @@ export function BlogSectionCanvas({ sections, generationLabel, onVersionHistory 
                       onMoveUp={() => moveBlock(block.id, 'up')}
                       onMoveDown={() => moveBlock(block.id, 'down')}
                       fixingAll={fixingAll}
+                      entranceDelay={260 + idx * 60}
                     />
                   ))}
                 </div>

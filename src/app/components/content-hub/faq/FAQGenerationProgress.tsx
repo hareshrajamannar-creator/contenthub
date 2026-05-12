@@ -20,6 +20,7 @@ export interface FAQGenerationProgressProps {
   brandKit?: string;
   sourceUrl?: string;
   onComplete: () => void;
+  isExiting?: boolean;
 }
 
 type StepStatus = 'pending' | 'active' | 'done';
@@ -108,6 +109,7 @@ export function FAQGenerationProgress({
   sections,
   brandKit,
   onComplete,
+  isExiting = false,
 }: FAQGenerationProgressProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const totalQuestions = sections.reduce((sum, section) => sum + section.count, 0);
@@ -143,7 +145,10 @@ export function FAQGenerationProgress({
   };
 
   return (
-    <div className="relative min-h-0 flex-1 overflow-y-auto rounded-xl bg-transparent">
+    <div className={cn(
+      'relative min-h-0 flex-1 overflow-y-auto rounded-xl bg-transparent',
+      isExiting && 'animate-out fade-out slide-out-to-top-4 fill-mode-forwards duration-[320ms]',
+    )}>
       <div className="px-8 py-6 pb-10">
         <div className="rounded-xl border border-border/60 bg-background">
           <div className="p-8">

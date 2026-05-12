@@ -777,8 +777,14 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
     setSetupPhase('generating');
   }
 
+  const [faqGenerationExiting, setFaqGenerationExiting] = useState(false);
+
   function handleFAQGenerationComplete() {
-    setSetupPhase('done');
+    setFaqGenerationExiting(true);
+    window.setTimeout(() => {
+      setSetupPhase('done');
+      setFaqGenerationExiting(false);
+    }, 360);
   }
 
   function handleBlogFlowComplete(data: BlogFlowData) {
@@ -789,8 +795,14 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
     setSetupPhase('generating');
   }
 
+  const [blogGenerationExiting, setBlogGenerationExiting] = useState(false);
+
   function handleBlogGenerationComplete() {
-    setSetupPhase('done');
+    setBlogGenerationExiting(true);
+    window.setTimeout(() => {
+      setSetupPhase('done');
+      setBlogGenerationExiting(false);
+    }, 360);
   }
 
   function handleEditSettings() {
@@ -1298,6 +1310,7 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
               brandKit={faqFlowData.brandKit}
               sourceUrl={faqFlowData.sourceUrl}
               onComplete={handleFAQGenerationComplete}
+              isExiting={faqGenerationExiting}
             />
           </div>
           <ScorePanelSkeleton />
@@ -1312,6 +1325,7 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
               brandKit={blogFlowData.brandKit}
               topic={blogFlowData.topic}
               onComplete={handleBlogGenerationComplete}
+              isExiting={blogGenerationExiting}
             />
           </div>
           <ScorePanelSkeleton />
