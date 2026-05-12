@@ -12,7 +12,6 @@ import {
   Presentation,
   Search,
   Users,
-  X,
 } from 'lucide-react';
 import {
   Dialog,
@@ -143,25 +142,12 @@ export function ContentShareModal({
 
   return (
     <Dialog open={open} onOpenChange={isOpen => !isOpen && onClose()}>
-      <DialogContent className="!w-[960px] !max-w-[calc(100vw-32px)] gap-0 overflow-hidden p-0 [&>button:last-child]:hidden">
+      <DialogContent className="!w-[960px] !max-w-[calc(100vw-32px)] gap-0 overflow-hidden p-0">
         <DialogHeader className="border-b border-border px-6 py-4">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <DialogTitle className="text-[15px] font-semibold">Share content</DialogTitle>
-              <p className="mt-1 text-[13px] text-muted-foreground">{contentTitle}</p>
-            </div>
-            <button
-              type="button"
-              onClick={onClose}
-              className="-mr-2 -mt-2 flex size-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-              aria-label="Close"
-            >
-              <X size={16} strokeWidth={1.6} absoluteStrokeWidth />
-            </button>
-          </div>
+          <DialogTitle className="text-[15px] font-semibold">Share content</DialogTitle>
         </DialogHeader>
 
-        <div className="border-b border-border px-6">
+        <div className="px-6">
           <div className="flex gap-4">
             {TABS.map(tab => (
               <button
@@ -367,7 +353,7 @@ export function ContentShareModal({
               <p className="text-[13px] leading-5 text-muted-foreground">
                 Copy this embed code and paste it into any external website or page.
               </p>
-              <pre className="max-h-[220px] overflow-auto rounded-xl border border-border bg-muted/40 p-4 text-[12px] leading-5 text-foreground">
+              <pre className="max-h-[220px] overflow-auto rounded-xl border border-border bg-muted/40 p-4 text-[12px] leading-5 text-foreground whitespace-pre-wrap break-all">
                 {embedCode}
               </pre>
               <CopyButton text={embedCode} copied={copied} onCopy={copyText}>
