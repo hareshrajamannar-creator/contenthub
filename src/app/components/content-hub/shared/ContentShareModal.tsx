@@ -96,14 +96,16 @@ function CopyButton({
   copied,
   onCopy,
   children,
+  variant = 'default',
 }: {
   text: string;
   copied: boolean;
   onCopy: (text: string) => void;
   children: ReactNode;
+  variant?: 'default' | 'outline';
 }) {
   return (
-    <Button type="button" size="sm" onClick={() => onCopy(text)} className="gap-2">
+    <Button type="button" size="sm" variant={variant} onClick={() => onCopy(text)} className="gap-2">
       {copied ? <CheckCircle2 size={14} strokeWidth={1.6} absoluteStrokeWidth /> : <Copy size={14} strokeWidth={1.6} absoluteStrokeWidth />}
       {copied ? 'Copied' : children}
     </Button>
@@ -352,7 +354,7 @@ export function ContentShareModal({
               <pre className="max-h-[220px] overflow-auto rounded-xl border border-border bg-muted/40 p-4 text-[12px] leading-5 text-foreground whitespace-pre-wrap break-all">
                 {embedCode}
               </pre>
-              <CopyButton text={embedCode} copied={copied} onCopy={copyText}>
+              <CopyButton text={embedCode} copied={copied} onCopy={copyText} variant="outline">
                 Copy embed code
               </CopyButton>
             </div>
