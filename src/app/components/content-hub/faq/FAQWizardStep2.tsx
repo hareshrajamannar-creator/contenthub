@@ -59,7 +59,7 @@ export const FAQWizardStep2 = ({ template, onSourceDataChange }: FAQWizardStep2P
   return (
     <div className="p-6 flex flex-col gap-6 max-w-2xl">
       {/* Birdeye auto-suggest banner */}
-      <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 flex items-center gap-3">
+      <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 flex items-center gap-3">
         <Sparkles size={16} strokeWidth={1.6} className="text-primary shrink-0" />
         <div className="flex-1">
           <p className="text-[13px] font-medium text-foreground">Use your project context</p>
@@ -125,7 +125,7 @@ export const FAQWizardStep2 = ({ template, onSourceDataChange }: FAQWizardStep2P
             ))}
           </div>
           {activeTab === 'upload' && (
-            <div className="border-2 border-dashed border-border rounded-lg p-8 text-center flex flex-col items-center gap-2">
+            <div className="border-2 border-dashed border-border rounded-xl p-8 text-center flex flex-col items-center gap-2">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="text-muted-foreground">
                 <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
@@ -159,7 +159,7 @@ export const FAQWizardStep2 = ({ template, onSourceDataChange }: FAQWizardStep2P
             { key: 'tickets' as const, label: 'Support tickets', sub: 'Upload CSV', hasUpload: true },
             { key: 'nps' as const, label: 'NPS responses', sub: 'Upload CSV', hasUpload: true },
           ].map(({ key, label, sub, hasUpload }) => (
-            <div key={key} className="border border-border rounded-lg p-4 flex flex-col gap-3">
+            <div key={key} className="border border-border rounded-xl p-4 flex flex-col gap-3">
               <div className="flex items-center gap-3">
                 <button
                   onClick={() => setSupportToggles(prev => ({ ...prev, [key]: !prev[key] }))}
@@ -211,7 +211,7 @@ export const FAQWizardStep2 = ({ template, onSourceDataChange }: FAQWizardStep2P
           </div>
           <div className="flex flex-col gap-2">
             {visibleLocations.map(loc => (
-              <label key={loc} className="flex items-center gap-3 p-4 rounded-lg border border-border bg-background cursor-pointer hover:bg-muted/50">
+              <label key={loc} className="flex items-center gap-3 p-4 rounded-xl border border-border bg-background cursor-pointer hover:bg-muted/50">
                 <input
                   type="checkbox"
                   checked={selectedLocations.includes(loc)}

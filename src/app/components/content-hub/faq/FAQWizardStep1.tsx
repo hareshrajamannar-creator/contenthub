@@ -112,7 +112,7 @@ export const FAQWizardStep1 = ({
   return (
     <div className="flex flex-col gap-6 p-6 overflow-y-auto max-w-2xl">
       {/* Locked context banner */}
-        <div className="bg-muted border border-border rounded-lg px-4 py-3 flex items-center gap-3 flex-shrink-0">
+        <div className="bg-muted border border-border rounded-xl px-4 py-3 flex items-center gap-3 flex-shrink-0">
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="shrink-0 text-muted-foreground">
             <rect x="3" y="6" width="8" height="7" rx="1.5" stroke="currentColor" strokeWidth="1.4" />
             <path d="M5 6V4.5a2 2 0 014 0V6" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
@@ -137,7 +137,7 @@ export const FAQWizardStep1 = ({
                   onMouseLeave={() => handleHoverLeave()}
                   onClick={() => onTemplateChange(t.id)}
                   className={cn(
-                    'relative flex items-center gap-4 text-left bg-background rounded-[8px] p-4 transition-all w-full',
+                    'relative flex items-center gap-4 text-left bg-background rounded-xl p-4 transition-all w-full',
                     isSelected
                       ? 'border-2 border-primary bg-primary/5'
                       : 'border border-border hover:border-primary/40 hover:bg-muted/50',

@@ -100,7 +100,7 @@ export const FAQWizardStep3Combined = ({
                   key={obj.id}
                   onClick={() => handleObjectiveChange(obj.id)}
                   className={cn(
-                    'relative text-left bg-background rounded-lg px-4 py-3 flex flex-row items-center gap-3 transition-all',
+                    'relative text-left bg-background rounded-xl px-4 py-3 flex flex-row items-center gap-3 transition-all',
                     isSelected ? '' : 'border border-border hover:border-primary/40',
                   )}
                   style={isSelected ? { border: '2px solid var(--color-primary)' } : undefined}

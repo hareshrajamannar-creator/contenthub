@@ -346,7 +346,7 @@ function Step2Setup({ template, customAgent, sourceUrl, additionalContext, quest
         {attachments.length > 0 && (
           <div className="space-y-1.5">
             {attachments.map(name => (
-              <div key={name} className="flex items-center gap-2 rounded-lg border border-border bg-background px-3 py-2">
+              <div key={name} className="flex items-center gap-2 rounded-xl border border-border bg-background px-3 py-2">
                 <FileText size={14} strokeWidth={1.6} absoluteStrokeWidth className="text-muted-foreground shrink-0" />
                 <span className="text-[13px] text-foreground flex-1 truncate">{name}</span>
                 <button
