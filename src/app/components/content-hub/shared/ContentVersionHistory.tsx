@@ -372,14 +372,14 @@ export function ContentVersionHistory({ contentType, onClose }: ContentVersionHi
         </button>
         <span className="text-[15px] font-semibold text-foreground">Version history</span>
         <div className="ml-auto flex items-center gap-2">
+          <Button size="sm" variant="outline" onClick={onClose}>
+            Cancel
+          </Button>
           {!isCurrentVersion && (
             <Button size="sm" onClick={() => setRestoreConfirmOpen(true)}>
               Restore
             </Button>
           )}
-          <Button size="sm" variant="outline" onClick={onClose}>
-            Cancel
-          </Button>
         </div>
       </div>
 
