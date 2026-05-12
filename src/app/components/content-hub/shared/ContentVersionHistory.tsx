@@ -375,11 +375,9 @@ export function ContentVersionHistory({ contentType, onClose }: ContentVersionHi
           <Button size="sm" variant="outline" onClick={onClose}>
             Cancel
           </Button>
-          {!isCurrentVersion && (
-            <Button size="sm" onClick={() => setRestoreConfirmOpen(true)}>
-              Restore
-            </Button>
-          )}
+          <Button size="sm" disabled={isCurrentVersion} onClick={() => setRestoreConfirmOpen(true)}>
+            Restore
+          </Button>
         </div>
       </div>
 
