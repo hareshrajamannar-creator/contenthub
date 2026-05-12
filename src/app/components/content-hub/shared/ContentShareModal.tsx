@@ -148,14 +148,14 @@ export function ContentShareModal({
         </DialogHeader>
 
         <div className="px-6">
-          <div className="flex gap-4">
+          <div className="flex gap-8">
             {TABS.map(tab => (
               <button
                 key={tab.id}
                 type="button"
                 onClick={() => setActiveTab(tab.id)}
                 className={cn(
-                  'border-b-2 px-0 py-4 text-[13px] font-medium transition-colors',
+                  'border-b-2 px-0 pt-4 pb-1 text-[13px] font-medium transition-colors',
                   activeTab === tab.id
                     ? 'border-primary text-primary'
                     : 'border-transparent text-muted-foreground hover:text-foreground',
