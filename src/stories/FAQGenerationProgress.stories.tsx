@@ -33,6 +33,7 @@ export const Default: Story = {
 };
 
 export const SingleSection: Story = {
+  name: 'Single section',
   args: {
     sections: [{ id: 's1', title: 'Getting started', description: 'Intro questions', count: 8 }],
     brandKit: 'Birdeye demo brand',

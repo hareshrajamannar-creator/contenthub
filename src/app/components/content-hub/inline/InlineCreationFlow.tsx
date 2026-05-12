@@ -18,7 +18,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import type { FlowNavControls, FlowNavState } from '../faq/FAQInlineCreationFlow';
 import {
-  ChevronRight, Check,
+  ChevronRight, Check, X, Upload,
   FileText, Share2, Mail, MessageSquare, Monitor,
   MapPin, Package, Star, Layers, Pencil,
   Target, BookOpen, Megaphone, Users, Zap,
@@ -27,10 +27,13 @@ import { cn } from '@/lib/utils';
 import type { ContentMode } from '../editor/editorConfig';
 import {
   CONTENT_FLOW_STEP_TITLE_CLASS,
-  CONTENT_FLOW_FIELD_CLASS,
   ContentFlowBrandKitSummary,
   ContentFlowChip,
   ContentFlowChoiceCard,
+  ContentFlowRadioCard,
+  ContentFlowSelect,
+  ContentFlowTextarea,
+  ContentFlowTextInput,
 } from '../shared/ContentFlowControls';
 
 // ── Types ──────────────────────────────────────────────────────────────────────
@@ -68,6 +71,9 @@ export interface InlineFlowData {
   count?: number;
   length?: string;
   contentMix?: ContentMixItem[];
+  contentBrief?: string;
+  additionalContext?: string;
+  attachedFiles?: string[];
   ideas: SummaryIdea[];
 }
 
@@ -81,11 +87,11 @@ const STEPS_BY_MODE: Record<InlineFlowMode, StepId[]> = {
 };
 
 const STEP_LABEL: Record<StepId, string> = {
-  'project-type': 'Brand kit',
+  'project-type': 'Brand identity',
   goal:           'Project setup',
   template:       'Template',
   'fine-tune':    'Fine-tune',
-  summary:        'Review topics',
+  summary:        'Content brief',
 };
 
 // ── Pill radio ─────────────────────────────────────────────────────────────────
@@ -142,10 +148,10 @@ function SelectionCard({
   );
 }
 
-// ── Step 1: Brand kit ──────────────────────────────────────────────────────────
+// ── Step 1: Brand identity ──────────────────────────────────────────────────────────
 
 const PROJECT_BRAND_KITS = [
-  { value: 'lushgreen', label: 'LushGreen Brand Kit' },
+  { value: 'lushgreen', label: 'LushGreen corporate' },
   { value: 'evergreen', label: 'Evergreen Gardens' },
   { value: 'metro',     label: 'Metro Lawn Co.' },
 ];
@@ -168,7 +174,7 @@ function StepProjectType({
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h2 className={CONTENT_FLOW_STEP_TITLE_CLASS}>Select brand kit and location</h2>
+        <h2 className={CONTENT_FLOW_STEP_TITLE_CLASS}>Select brand identity and location</h2>
         <p className="text-[13px] text-muted-foreground mt-1">
           Content will be created from the selected brand identity and location context.
         </p>
@@ -176,45 +182,21 @@ function StepProjectType({
 
       <div className="flex flex-col gap-4">
         <div className="flex flex-col gap-2">
-          <label className="text-[13px] font-medium text-foreground">Brand kit</label>
-          <div className="relative">
-            <select
-              value={data.brandKit ?? 'lushgreen'}
-              onChange={e => onChange({ ...data, brandKit: e.target.value })}
-              className="w-full h-10 pl-3 pr-9 rounded-xl border border-border bg-background text-[13px] text-foreground appearance-none cursor-pointer focus:outline-none focus:ring-1 focus:ring-primary/30 focus:border-primary/50"
-            >
-              {PROJECT_BRAND_KITS.map(bk => (
-                <option key={bk.value} value={bk.value}>{bk.label}</option>
-              ))}
-            </select>
-            <ChevronRight
-              size={14}
-              strokeWidth={1.6}
-              absoluteStrokeWidth
-              className="absolute right-3 top-1/2 -translate-y-1/2 rotate-90 text-muted-foreground pointer-events-none"
-            />
-          </div>
+          <label className="text-[13px] font-medium text-foreground">Brand identity</label>
+          <ContentFlowSelect
+            value={data.brandKit ?? 'lushgreen'}
+            onChange={value => onChange({ ...data, brandKit: value })}
+            options={PROJECT_BRAND_KITS}
+          />
         </div>
 
         <div className="flex flex-col gap-2">
           <label className="text-[13px] font-medium text-foreground">Location</label>
-          <div className="relative">
-            <select
-              value={data.location ?? 'all'}
-              onChange={e => onChange({ ...data, location: e.target.value })}
-              className="w-full h-10 pl-3 pr-9 rounded-xl border border-border bg-background text-[13px] text-foreground appearance-none cursor-pointer focus:outline-none focus:ring-1 focus:ring-primary/30 focus:border-primary/50"
-            >
-              {PROJECT_LOCATIONS.map(loc => (
-                <option key={loc.value} value={loc.value}>{loc.label}</option>
-              ))}
-            </select>
-            <ChevronRight
-              size={14}
-              strokeWidth={1.6}
-              absoluteStrokeWidth
-              className="absolute right-3 top-1/2 -translate-y-1/2 rotate-90 text-muted-foreground pointer-events-none"
-            />
-          </div>
+          <ContentFlowSelect
+            value={data.location ?? 'all'}
+            onChange={value => onChange({ ...data, location: value })}
+            options={PROJECT_LOCATIONS}
+          />
         </div>
       </div>
 
@@ -272,6 +254,110 @@ const DURATIONS = [
   { value: 'custom',  label: 'Custom' },
 ];
 
+// ── Additional context + attachment section ────────────────────────────────────
+
+function AdditionalContextSection({
+  data,
+  onChange,
+}: {
+  data: Partial<InlineFlowData>;
+  onChange: (d: Partial<InlineFlowData>) => void;
+}) {
+  const [isDragOver, setIsDragOver] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const attachedFiles = data.attachedFiles ?? [];
+
+  function handleFiles(files: FileList | null) {
+    if (!files || files.length === 0) return;
+    const names = Array.from(files).map(f => f.name);
+    const next = [...attachedFiles, ...names].filter((v, i, arr) => arr.indexOf(v) === i);
+    onChange({ ...data, attachedFiles: next });
+  }
+
+  function removeFile(name: string) {
+    onChange({ ...data, attachedFiles: attachedFiles.filter(f => f !== name) });
+  }
+
+  return (
+    <div className="flex flex-col gap-4 pt-2 border-t border-border">
+      <div>
+        <p className="text-[13px] font-medium text-foreground">Additional context</p>
+        <p className="text-[12px] text-muted-foreground mt-0.5">
+          Add any extra instructions, background details, or constraints for the AI.
+        </p>
+      </div>
+
+      <ContentFlowTextarea
+        rows={3}
+        value={data.additionalContext ?? ''}
+        onChange={e => onChange({ ...data, additionalContext: e.target.value })}
+        placeholder="e.g. Avoid mentioning competitor brands. Focus on the spring promotion running until May 31..."
+      />
+
+      <div className="flex flex-col gap-2">
+        <p className="text-[13px] font-medium text-foreground">
+          Attachments
+          <span className="ml-2 text-[11px] font-normal text-muted-foreground">optional</span>
+        </p>
+
+        <button
+          type="button"
+          onClick={() => fileInputRef.current?.click()}
+          onDragOver={e => { e.preventDefault(); setIsDragOver(true); }}
+          onDragLeave={() => setIsDragOver(false)}
+          onDrop={e => {
+            e.preventDefault();
+            setIsDragOver(false);
+            handleFiles(e.dataTransfer.files);
+          }}
+          className={cn(
+            'w-full rounded-lg border-2 border-dashed px-4 py-5 flex flex-col items-center gap-2 transition-colors',
+            isDragOver
+              ? 'border-primary/50 bg-primary/5'
+              : 'border-border hover:border-primary/30 hover:bg-muted/30',
+          )}
+        >
+          <Upload size={18} strokeWidth={1.6} absoluteStrokeWidth className="text-muted-foreground" />
+          <span className="text-[13px] font-medium text-foreground">Drop files or click to browse</span>
+          <span className="text-[11px] text-muted-foreground">.pdf · .docx · .txt · .png · .jpg</span>
+        </button>
+
+        <input
+          ref={fileInputRef}
+          type="file"
+          multiple
+          accept=".pdf,.docx,.txt,.png,.jpg,.jpeg"
+          className="hidden"
+          onChange={e => handleFiles(e.target.files)}
+        />
+
+        {attachedFiles.length > 0 && (
+          <div className="flex flex-col gap-1">
+            {attachedFiles.map(name => (
+              <div
+                key={name}
+                className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted text-[12px]"
+              >
+                <FileText size={13} strokeWidth={1.6} absoluteStrokeWidth className="text-muted-foreground shrink-0" />
+                <span className="flex-1 text-foreground truncate">{name}</span>
+                <button
+                  type="button"
+                  onClick={() => removeFile(name)}
+                  className="text-muted-foreground hover:text-foreground transition-colors shrink-0"
+                >
+                  <X size={12} strokeWidth={1.6} absoluteStrokeWidth />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 function StepGoal({
   mode,
   data,
@@ -295,11 +381,10 @@ function StepGoal({
           <label className="text-[13px] font-medium text-foreground">Goal</label>
           <div className="flex flex-col gap-2">
             {PROJECT_GOALS.map(g => (
-              <ContentFlowChoiceCard
+              <ContentFlowRadioCard
                 key={g.value}
                 selected={data.goal === g.value}
                 onClick={() => onChange({ ...data, goal: g.value })}
-                icon={g.icon}
                 title={g.label}
                 description={g.description}
               />
@@ -309,38 +394,37 @@ function StepGoal({
 
         <div className="flex flex-col gap-2">
           <label className="text-[13px] font-medium text-foreground">Objective</label>
-          <PillRadio
+          <ContentFlowSelect
             options={OBJECTIVES}
             value={data.objective ?? ''}
-            onChange={v => onChange({ ...data, objective: v })}
+            onChange={value => onChange({ ...data, objective: value })}
+            placeholder="Select objective"
           />
         </div>
 
         <div className="flex flex-col gap-2">
           <label className="text-[13px] font-medium text-foreground">Campaign duration</label>
-          <PillRadio
+          <ContentFlowSelect
             options={DURATIONS}
             value={data.duration ?? '1m'}
-            onChange={v => onChange({ ...data, duration: v })}
+            onChange={value => onChange({ ...data, duration: value })}
           />
           {data.duration === 'custom' && (
             <div className="flex items-center gap-2 mt-2">
               <div className="flex flex-col gap-1 flex-1">
                 <label className="text-[11px] text-muted-foreground">Start date</label>
-                <input
+                <ContentFlowTextInput
                   type="date"
                   value={data.startDate ?? ''}
                   onChange={e => onChange({ ...data, startDate: e.target.value })}
-                  className="h-9 px-3 rounded-xl border border-border bg-background text-[13px] text-foreground focus:outline-none focus:ring-1 focus:ring-primary/30 focus:border-primary/50"
                 />
               </div>
               <div className="flex flex-col gap-1 flex-1">
                 <label className="text-[11px] text-muted-foreground">End date</label>
-                <input
+                <ContentFlowTextInput
                   type="date"
                   value={data.endDate ?? ''}
                   onChange={e => onChange({ ...data, endDate: e.target.value })}
-                  className="h-9 px-3 rounded-xl border border-border bg-background text-[13px] text-foreground focus:outline-none focus:ring-1 focus:ring-primary/30 focus:border-primary/50"
                 />
               </div>
             </div>
@@ -366,6 +450,8 @@ function StepGoal({
             ))}
           </div>
         </div>
+
+        <AdditionalContextSection data={data} onChange={onChange} />
       </div>
     );
   }
@@ -713,7 +799,7 @@ function StepFineTune({
         <label className="text-[13px] font-medium text-foreground">
           Key focus or keywords
         </label>
-        <input
+        <ContentFlowTextInput
           type="text"
           value={(data as Record<string, unknown>).keywords as string ?? ''}
           onChange={e => onChange({ ...data, keywords: e.target.value } as Partial<InlineFlowData>)}
@@ -722,7 +808,6 @@ function StepFineTune({
               ? 'e.g. local SEO, review management, customer trust'
               : 'e.g. seasonal menu, outdoor seating, private events'
           }
-          className={CONTENT_FLOW_FIELD_CLASS}
         />
       </div>
     </div>
@@ -815,45 +900,14 @@ function TopicDescriptionCard({
   idea: SummaryIdea;
   onDescriptionChange: (id: string, description: string) => void;
 }) {
-  const [editing, setEditing] = useState(false);
-  const [localDesc, setLocalDesc] = useState(idea.description);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-
-  useEffect(() => {
-    if (editing && textareaRef.current) {
-      textareaRef.current.focus();
-      textareaRef.current.select();
-    }
-  }, [editing]);
-
-  const commit = () => {
-    setEditing(false);
-    onDescriptionChange(idea.id, localDesc);
-  };
-
   return (
-    <div
-      className={cn(
-        'px-4 py-3 rounded-xl border bg-background cursor-text transition-colors',
-        editing ? 'border-primary/50 ring-1 ring-primary/20' : 'border-border hover:border-border/80',
-      )}
-      onClick={() => !editing && setEditing(true)}
-    >
-      {editing ? (
-        <textarea
-          ref={textareaRef}
-          value={localDesc}
-          onChange={e => setLocalDesc(e.target.value)}
-          onBlur={commit}
-          onKeyDown={e => { if (e.key === 'Escape') commit(); }}
-          rows={2}
-          className="w-full resize-none bg-transparent outline-none text-[13px] text-foreground leading-relaxed"
-        />
-      ) : (
-        <p className="text-[13px] text-muted-foreground leading-relaxed line-clamp-2">
-          {localDesc}
-        </p>
-      )}
+    <div>
+      <ContentFlowTextarea
+        value={idea.description}
+        onChange={event => onDescriptionChange(idea.id, event.target.value)}
+        rows={3}
+        className="text-[14px] leading-6"
+      />
     </div>
   );
 }
@@ -876,9 +930,16 @@ function IdeaCardSkeleton({ index = 0 }: { index?: number }) {
   );
 }
 
-function GroupLabelSkeleton({ index = 0 }: { index?: number }) {
-  const w = ['64px', '80px', '56px', '72px'][index % 4];
-  return <div className="h-2.5 rounded-full bg-muted animate-pulse" style={{ width: w, animationDelay: `${index * 100}ms` }} />;
+function buildProjectContentBrief(data: Partial<InlineFlowData>) {
+  const goalLabel = PROJECT_GOALS.find(goal => goal.value === data.goal)?.label ?? 'Drive measurable local growth';
+  const objective = OBJECTIVES.find(option => option.value === data.objective)?.label ?? 'balanced performance';
+  const duration = DURATIONS.find(option => option.value === data.duration)?.label ?? 'one month';
+  const mix = (data.contentMix ?? getDefaultMix())
+    .filter(item => item.count > 0)
+    .map(item => `${item.count} ${item.label.toLowerCase()}${item.count > 1 ? 's' : ''}`)
+    .join(', ');
+
+  return `Generate a coordinated content project focused on ${goalLabel.toLowerCase()} with a ${objective.toLowerCase()} objective over ${duration.toLowerCase()}. The output should include ${mix || 'the selected content mix'}, use the selected brand identity and location context, and produce channel-specific content that is clear, useful, locally relevant, and ready for review before publishing.`;
 }
 
 // ── Step 5: Summary / Idea review ──────────────────────────────────────────────
@@ -912,48 +973,44 @@ function StepSummary({
   };
 
   if (mode === 'project') {
-    const typeGroups = CONTENT_MIX_TYPES.reduce<{ type: string; label: string; items: SummaryIdea[] }[]>((acc, t) => {
-      const items = ideas.filter(idea => idea.type === t.type);
-      if (items.length > 0) acc.push({ type: t.type, label: t.label + (items.length > 1 ? 's' : ''), items });
-      return acc;
-    }, []);
-
-    // Flatten skeleton count to match expected output shape
-    const skeletonGroups = typeGroups.map(g => ({ type: g.type, count: g.items.length }));
+    const typeGroups = CONTENT_MIX_TYPES.map(type => ({
+      ...type,
+      ideas: ideas.filter(idea => idea.type === type.type),
+    })).filter(group => group.ideas.length > 0);
     let skeletonIndex = 0;
 
     return (
       <div className="space-y-6">
         <div>
-          <h2 className={CONTENT_FLOW_STEP_TITLE_CLASS}>Review topics</h2>
+          <h2 className={CONTENT_FLOW_STEP_TITLE_CLASS}>Content brief</h2>
           <p className="text-[13px] text-muted-foreground mt-0.5">
-            Review and edit each piece before generating.
+            Review the individual summaries for each content piece before generating.
           </p>
         </div>
 
         {generating ? (
           <div className="space-y-6">
-            {skeletonGroups.map((g, gi) => (
-              <div key={g.type} className="space-y-2">
-                <GroupLabelSkeleton index={gi} />
-                {Array.from({ length: g.count }).map((_, i) => (
-                  <IdeaCardSkeleton key={i} index={skeletonIndex++} />
-                ))}
+            {typeGroups.map(group => (
+              <div key={group.type} className="space-y-3">
+                <div className="h-2.5 w-24 rounded-full bg-muted animate-pulse" />
+                <div className="space-y-3">
+                  {group.ideas.map(() => (
+                    <IdeaCardSkeleton key={`${group.type}-${skeletonIndex}`} index={skeletonIndex++} />
+                  ))}
+                </div>
               </div>
             ))}
           </div>
         ) : (
           <div className="space-y-6 animate-in fade-in duration-500">
             {typeGroups.map(group => (
-              <div key={group.type} className="space-y-2">
-                <p className="text-[12px] font-medium text-muted-foreground">{group.label}</p>
-                {group.items.map(idea => (
-                  <TopicDescriptionCard
-                    key={idea.id}
-                    idea={idea}
-                    onDescriptionChange={updateDesc}
-                  />
-                ))}
+              <div key={group.type} className="space-y-3">
+                <p className="text-[12px] font-medium text-muted-foreground">{TYPE_LABEL[group.type] ?? group.label}</p>
+                <div className="space-y-4">
+                  {group.ideas.map(idea => (
+                    <TopicDescriptionCard key={idea.id} idea={idea} onDescriptionChange={updateDesc} />
+                  ))}
+                </div>
               </div>
             ))}
           </div>
@@ -965,7 +1022,7 @@ function StepSummary({
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h2 className={CONTENT_FLOW_STEP_TITLE_CLASS}>Review topics</h2>
+        <h2 className={CONTENT_FLOW_STEP_TITLE_CLASS}>Content brief</h2>
         <p className="text-[13px] text-muted-foreground mt-0.5">
           Click any topic to edit it before generating.
         </p>
@@ -1089,7 +1146,8 @@ export function InlineCreationFlow({ mode, onComplete, onCancel, controlRef, onN
       count: data.count,
       length: data.length,
       contentMix: data.contentMix,
-      ideas: data.ideas ?? [],
+      contentBrief: data.contentBrief ?? (mode === 'project' ? buildProjectContentBrief(data) : undefined),
+      ideas: data.ideas ?? buildIdeas(data),
     });
   }, [data, mode, onComplete]);
 
@@ -1100,6 +1158,7 @@ export function InlineCreationFlow({ mode, onComplete, onCancel, controlRef, onN
         advance:  () => { if (isLast) handleComplete(); else navigate('forward'); },
         back:     () => { if (stepIndex === 0) onCancel(); else navigate('back'); },
         generate: handleComplete,
+        goTo:     (nextStep: number) => setStepIndex(Math.max(0, Math.min(nextStep, steps.length - 1))),
       };
     }
   });
@@ -1122,7 +1181,7 @@ export function InlineCreationFlow({ mode, onComplete, onCancel, controlRef, onN
   }
 
   return (
-    <div className="flex flex-col h-full bg-[var(--color-canvas,#F7F8FA)]">
+    <div className="flex flex-col h-full bg-background">
 
       {!hideProgress && (
         <div className="flex-none px-8 py-4 border-b border-border bg-background flex justify-center">
@@ -1131,17 +1190,19 @@ export function InlineCreationFlow({ mode, onComplete, onCancel, controlRef, onN
       )}
 
       {/* Scrollable step content */}
-      <div ref={scrollRef} className="flex-1 overflow-y-auto">
+      <div ref={scrollRef} className="flex-1 min-h-0 overflow-hidden py-4 pl-4 pr-6">
         <div
           className={cn(
-            'transition-all duration-[180ms] ease-out',
+            'h-full transition-all duration-[180ms] ease-out',
             animating && direction === 'forward' && 'opacity-0 translate-x-4',
             animating && direction === 'back'    && 'opacity-0 -translate-x-4',
             !animating && 'opacity-100 translate-x-0',
           )}
         >
-          <div className="max-w-[560px] mx-auto px-8 py-8">
-            {renderStep()}
+          <div className="h-full overflow-y-auto rounded-lg border border-border bg-background px-[30px] pb-[30px] pt-[30px]">
+            <div className="w-1/2 min-w-[520px] max-w-[720px]">
+              {renderStep()}
+            </div>
           </div>
         </div>
       </div>

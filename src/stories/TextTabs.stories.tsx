@@ -11,7 +11,7 @@ const meta: Meta<typeof TextTabsRow> = {
     docs: {
       description: {
         component:
-          "Underline text tabs for main-canvas toolbars: a full-width baseline on the row plus a 2px tab indicator (primary when active, transparent when inactive) so spacing between tabs does not break the line.",
+          "Text tabs for main-canvas toolbars. The default underline variant uses a full-width baseline plus a 2px active indicator; the plain variant keeps the text treatment without lines.",
       },
     },
   },
@@ -66,6 +66,44 @@ export const WithBadges: Story = {
               suffix: (
                 <Badge variant="secondary" className="font-normal">
                   19
+                </Badge>
+              ),
+            },
+          ]}
+        />
+        <p className="text-sm text-muted-foreground">Selected: {value}</p>
+      </div>
+    );
+  },
+};
+
+export const PlainWithBadges: Story = {
+  name: "Plain with badges",
+  render: function TextTabsPlainWithBadges() {
+    const [value, setValue] = useState<"saved" | "library">("saved");
+    return (
+      <div className="flex max-w-lg flex-col gap-4">
+        <TextTabsRow
+          ariaLabel="Projects tabs"
+          value={value}
+          onChange={setValue}
+          variant="plain"
+          items={[
+            {
+              id: "saved",
+              label: "Saved",
+              suffix: (
+                <Badge variant="secondary" className="bg-muted text-muted-foreground font-normal">
+                  50
+                </Badge>
+              ),
+            },
+            {
+              id: "library",
+              label: "Library",
+              suffix: (
+                <Badge variant="secondary" className="bg-muted text-muted-foreground font-normal">
+                  40
                 </Badge>
               ),
             },

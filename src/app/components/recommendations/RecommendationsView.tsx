@@ -3,8 +3,8 @@ import { createPortal } from 'react-dom'
 import { cn } from '@/lib/utils'
 import {
   Clock, CheckCircle2, Check, XCircle,
-  Search, MoreHorizontal, MapPin, CircleCheck, CircleX,
-  ChevronDown, SlidersHorizontal,
+  Search, MoreVertical, MapPin, CircleCheck, CircleX,
+  ChevronDown,
 } from 'lucide-react'
 import { createColumnHelper } from '@tanstack/react-table'
 import { APP_MAIN_CONTENT_SHELL_CLASS } from '@/app/components/layout/appShellClasses'
@@ -13,7 +13,8 @@ import { AppDataTable } from '@/app/components/ui/AppDataTable'
 import { AppDataTableColumnSettingsTrigger } from '@/app/components/ui/AppDataTableColumnSettingsTrigger'
 import { useRecStore } from './useRecStore'
 import { RecDetailView } from './RecDetailView'
-import { RecFilterPanel } from './RecFilterPanel'
+import { FilterPane, FilterPaneTriggerButton } from '@/app/components/FilterPane'
+import type { FilterItem } from '@/app/components/FilterPanel.v1'
 import type { RecStatus, Recommendation, RecCategory } from './recTypes'
 import type { BusinessMetrics } from './recTypes'
 
@@ -100,15 +101,26 @@ interface RecommendationsViewProps {
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
+// ── Filter config ─────────────────────────────────────────────────────────────
+
+const REC_FILTER_ITEMS: FilterItem[] = [
+  { id: 'type',     label: 'Type',     options: ['Local SEO', 'Blog', 'FAQs', 'Conversion', 'Website content', 'Website improvement', 'Reviews', 'Social', 'Trust & Reputation', 'Technical SEO'] },
+  { id: 'impact',   label: 'Impact',   options: ['Quick win', 'Medium', 'Bigger lift'] },
+  { id: 'theme',    label: 'Theme',    options: ['Visibility', 'Citations', 'Sentiment', 'Engagement'] },
+  { id: 'location', label: 'Location', options: ['All locations', '1 location', '2-5 locations', '5+ locations'] },
+]
+
+const TYPE_DISPLAY_TO_CATEGORY: Record<string, RecCategory> = {
+  'Blog': 'Content',
+  'FAQs': 'FAQ',
+}
+
 const recColumnHelper = createColumnHelper<Recommendation>()
 
 export function RecommendationsView({ onNavigateToContentHub, onNavigateToBlogCanvas, initialRecId }: RecommendationsViewProps) {
   const store = useRecStore()
   const {
     recommendations, metrics, activeTab, setActiveTab,
-    showFilterPanel, toggleFilterPanel,
-    filterTypes, filterEffort,
-    setFilterTypes, setFilterEffort, clearFilters,
     rejectRec, acceptRec, completeRec,
   } = store
 
@@ -116,6 +128,8 @@ export function RecommendationsView({ onNavigateToContentHub, onNavigateToBlogCa
   const [searchQuery,        setSearchQuery]        = useState('')
   const [showSearch,         setShowSearch]         = useState(false)
   const [columnSheetOpen,    setColumnSheetOpen]    = useState(false)
+  const [filterPanelOpen,    setFilterPanelOpen]    = useState(false)
+  const [filterItems,        setFilterItems]        = useState<FilterItem[]>(REC_FILTER_ITEMS)
 
   // Location popover
   const [showLocPopover,  setShowLocPopover]  = useState(false)
@@ -135,8 +149,13 @@ export function RecommendationsView({ onNavigateToContentHub, onNavigateToBlogCa
   // Filtered list
   const filtered = recommendations.filter(r => {
     if (activeTab !== 'all' && r.status !== activeTab) return false
-    if (filterTypes.length > 0 && !filterTypes.includes(r.category)) return false
-    if (filterEffort.length > 0 && !filterEffort.includes(r.effort)) return false
+    const typeFilter = filterItems.find(f => f.id === 'type')?.value
+    if (typeFilter) {
+      const cat = (TYPE_DISPLAY_TO_CATEGORY[typeFilter] ?? typeFilter) as RecCategory
+      if (r.category !== cat) return false
+    }
+    const impactFilter = filterItems.find(f => f.id === 'impact')?.value
+    if (impactFilter && r.effort !== impactFilter) return false
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase()
       if (!r.title.toLowerCase().includes(q) && !r.description.toLowerCase().includes(q)) return false
@@ -176,7 +195,11 @@ export function RecommendationsView({ onNavigateToContentHub, onNavigateToBlogCa
       size: 140,
       sortingFn: 'alphanumeric',
       cell: ({ row }) => {
-        const label = row.original.category === 'FAQ' ? 'Content' : row.original.category;
+        const CATEGORY_DISPLAY: Partial<Record<string, string>> = {
+          FAQ: 'FAQs',
+          Content: 'Blog',
+        };
+        const label = CATEGORY_DISPLAY[row.original.category] ?? row.original.category;
         return (
           <span className="inline-flex items-center px-2 py-0.5 rounded border border-border bg-background text-[12px] text-muted-foreground leading-[18px] font-normal whitespace-nowrap">
             {label}
@@ -305,144 +328,139 @@ export function RecommendationsView({ onNavigateToContentHub, onNavigateToBlogCa
   }
 
   return (
-    <div className={cn(APP_MAIN_CONTENT_SHELL_CLASS, 'flex flex-col')}>
-      {/* ── Page header ────────────────────────────────────────────────── */}
-      <div className="flex-shrink-0 h-16 flex items-center px-6 gap-2 bg-background">
-        <div className="flex-1 flex items-center gap-2 min-w-0">
-          <span className="text-[18px] font-normal text-foreground tracking-[-0.36px] leading-[26px] whitespace-nowrap">
-            Recommendations
-          </span>
-        </div>
+    <div className={cn(APP_MAIN_CONTENT_SHELL_CLASS)}>
+      {/* ── Flex row: main content column + full-height filter pane ─────── */}
+      <div className="flex flex-1 min-h-0 overflow-hidden">
+        {/* Main content column */}
+        <div className="flex-1 flex flex-col min-w-0 min-h-0 overflow-hidden">
 
-        <div className="flex items-center gap-1 flex-shrink-0">
-          {showSearch && (
-            <div className="flex items-center gap-1.5 bg-muted/50 border border-border rounded px-2.5 py-1.5 mr-1">
-              <Search size={13} strokeWidth={1.6} absoluteStrokeWidth className="text-muted-foreground flex-shrink-0" />
-              <input
-                autoFocus
-                type="text"
-                placeholder="Search recommendations…"
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                onBlur={() => { if (!searchQuery) setShowSearch(false) }}
-                className="w-[200px] bg-transparent text-[13px] text-foreground placeholder:text-muted-foreground outline-none leading-[20px]"
-              />
-            </div>
-          )}
-
-          <Button
-            type="button"
-            variant="outline"
-            size="icon"
-            aria-label="Search recommendations"
-            onClick={() => setShowSearch(s => !s)}
-            className={cn((showSearch || searchQuery) && 'bg-primary/10 text-primary border-primary/30 hover:bg-primary/15 hover:text-primary')}
-          >
-            <Search className="size-4" strokeWidth={1.6} absoluteStrokeWidth aria-hidden />
-          </Button>
-
-          <Button
-            type="button"
-            variant="outline"
-            size="icon"
-            aria-label="More options"
-          >
-            <MoreHorizontal className="size-4" strokeWidth={1.6} absoluteStrokeWidth aria-hidden />
-          </Button>
-
-          <AppDataTableColumnSettingsTrigger
-            sheetTitle="Recommendation columns"
-            onClick={() => setColumnSheetOpen(true)}
-          />
-
-          <div className="relative">
-            <Button
-              type="button"
-              variant="outline"
-              size="icon"
-              aria-label="Filter recommendations"
-              onClick={toggleFilterPanel}
-              className={cn(showFilterPanel && 'bg-primary/10 text-primary border-primary/30 hover:bg-primary/15 hover:text-primary')}
-            >
-              <SlidersHorizontal className="size-4" strokeWidth={1.6} absoluteStrokeWidth aria-hidden />
-            </Button>
-            {(filterTypes.length > 0 || filterEffort.length > 0) && (
-              <span className="pointer-events-none absolute -top-1 -right-1 bg-primary text-primary-foreground text-[9px] leading-none px-1 py-0.5 rounded-full min-w-[14px] text-center">
-                {filterTypes.length + filterEffort.length}
+          {/* ── Page header ──────────────────────────────────────────────── */}
+          <div className="flex-shrink-0 h-16 flex items-center px-6 gap-2 bg-background">
+            <div className="flex-1 flex items-center gap-2 min-w-0">
+              <span className="text-[18px] font-normal text-foreground tracking-[-0.36px] leading-[26px] whitespace-nowrap">
+                Recommendations
               </span>
+            </div>
+
+            <div className="flex items-center gap-1 flex-shrink-0">
+              {showSearch && (
+                <div className="flex items-center gap-1.5 bg-muted/50 border border-border rounded px-2.5 py-1.5 mr-1">
+                  <Search size={13} strokeWidth={1.6} absoluteStrokeWidth className="text-muted-foreground flex-shrink-0" />
+                  <input
+                    autoFocus
+                    type="text"
+                    placeholder="Search recommendations…"
+                    value={searchQuery}
+                    onChange={e => setSearchQuery(e.target.value)}
+                    onBlur={() => { if (!searchQuery) setShowSearch(false) }}
+                    className="w-[200px] bg-transparent text-[13px] text-foreground placeholder:text-muted-foreground outline-none leading-[20px]"
+                  />
+                </div>
+              )}
+
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                aria-label="Search recommendations"
+                onClick={() => setShowSearch(s => !s)}
+                className={cn((showSearch || searchQuery) && 'bg-primary/10 text-primary border-primary/30 hover:bg-primary/15 hover:text-primary')}
+              >
+                <Search className="size-4" strokeWidth={1.6} absoluteStrokeWidth aria-hidden />
+              </Button>
+
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                aria-label="More options"
+              >
+                <MoreVertical className="size-4" strokeWidth={1.6} absoluteStrokeWidth aria-hidden />
+              </Button>
+
+              <AppDataTableColumnSettingsTrigger
+                sheetTitle="Recommendation columns"
+                onClick={() => setColumnSheetOpen(true)}
+              />
+
+              <FilterPaneTriggerButton open={filterPanelOpen} onOpenChange={setFilterPanelOpen} />
+            </div>
+          </div>
+
+          {/* ── Status tiles ─────────────────────────────────────────────── */}
+          <div className="flex-shrink-0 px-6">
+            <div className="flex">
+              {TILE_CONFIG.map(tile => {
+                const isSelected = activeTab === tile.tab
+                const n = counts[tile.tab]
+                return (
+                  <button
+                    key={tile.tab}
+                    onClick={() => setActiveTab(tile.tab)}
+                    className={cn(
+                      'flex-1 flex flex-col items-start px-4 pt-4 pb-4 text-left transition-colors',
+                      isSelected ? 'bg-primary/[0.06] border-b-2 border-primary' : 'border-b-2 border-transparent',
+                    )}
+                  >
+                    <span className={cn(
+                      'text-[32px] leading-[48px] font-normal tracking-[-0.64px] block',
+                      isSelected ? 'text-primary' : 'text-foreground',
+                    )}>
+                      {n}
+                    </span>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <tile.Icon
+                        size={16}
+                        strokeWidth={1.6}
+                        absoluteStrokeWidth
+                        className={isSelected ? 'text-primary' : 'text-muted-foreground'}
+                      />
+                      <span className="text-[14px] text-foreground leading-[20px] tracking-[-0.28px] font-normal">
+                        {tile.label}
+                      </span>
+                    </div>
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+
+          {/* ── Table ────────────────────────────────────────────────────── */}
+          <div className="flex-1 overflow-y-auto">
+            {filtered.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-full gap-2 text-muted-foreground">
+                <p className="text-[14px]">No recommendations match the current filters.</p>
+              </div>
+            ) : (
+              <div className="mt-5">
+                <AppDataTable<Recommendation>
+                  tableId="recommendations.list.v1"
+                  data={filtered}
+                  columns={columns}
+                  initialSorting={[{ id: 'impact', desc: false }]}
+                  getRowId={r => r.id}
+                  onRowClick={rec => setSelectedRecId(rec.id)}
+                  columnSheetTitle="Recommendation columns"
+                  hideColumnsButton
+                  columnSheetOpen={columnSheetOpen}
+                  onColumnSheetOpenChange={setColumnSheetOpen}
+                  scrollableBody={false}
+                  rowDensity="default"
+                />
+              </div>
             )}
           </div>
         </div>
-      </div>
 
-      {/* ── Status tiles ───────────────────────────────────────────────── */}
-      <div className="flex-shrink-0 px-6">
-        <div className="flex">
-          {TILE_CONFIG.map(tile => {
-            const isSelected = activeTab === tile.tab
-            const n = counts[tile.tab]
-            return (
-              <button
-                key={tile.tab}
-                onClick={() => setActiveTab(tile.tab)}
-                className={cn(
-                  'flex-1 flex flex-col items-start px-4 py-4 text-left transition-colors rounded-t',
-                  isSelected ? 'bg-primary/10 border-b-2 border-primary' : 'border-b-2 border-transparent',
-                )}
-              >
-                <span className={cn(
-                  'text-[28px] leading-[40px] font-normal tracking-tight block',
-                  isSelected ? 'text-primary' : 'text-foreground',
-                )}>
-                  {n}
-                </span>
-                <div className="flex items-center gap-1 mt-0.5">
-                  <tile.Icon size={14} strokeWidth={1.6} absoluteStrokeWidth className={isSelected ? 'text-primary' : 'text-muted-foreground'} />
-                  <span className="text-[13px] text-foreground leading-[20px] font-normal">{tile.label}</span>
-                </div>
-              </button>
-            )
-          })}
-        </div>
-      </div>
-
-      {/* ── Table + optional filter panel ──────────────────────────────── */}
-      <div className="flex flex-1 min-h-0 overflow-hidden">
-        <div className="flex-1 overflow-y-auto">
-          {filtered.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full gap-2 text-muted-foreground">
-              <p className="text-[14px]">No recommendations match the current filters.</p>
-            </div>
-          ) : (
-            <div className="mt-5">
-              <AppDataTable<Recommendation>
-                tableId="recommendations.list.v1"
-                data={filtered}
-                columns={columns}
-                initialSorting={[{ id: 'impact', desc: false }]}
-                getRowId={r => r.id}
-                onRowClick={rec => setSelectedRecId(rec.id)}
-                columnSheetTitle="Recommendation columns"
-                hideColumnsButton
-                columnSheetOpen={columnSheetOpen}
-                onColumnSheetOpenChange={setColumnSheetOpen}
-                scrollableBody={false}
-                rowDensity="default"
-              />
-            </div>
-          )}
-        </div>
-
-        {showFilterPanel && (
-          <RecFilterPanel
-            filterTypes={filterTypes}
-            filterEffort={filterEffort}
-            onFilterTypesChange={setFilterTypes}
-            onFilterEffortChange={setFilterEffort}
-            onClearAll={clearFilters}
-            onClose={toggleFilterPanel}
-          />
-        )}
+        {/* Full-height filter pane — sibling to main content column */}
+        <FilterPane
+          initialFilters={REC_FILTER_ITEMS}
+          open={filterPanelOpen}
+          onOpenChange={setFilterPanelOpen}
+          onFiltersChange={setFilterItems}
+          motion="static"
+          dock="right"
+        />
       </div>
 
       {/* Location popover portal */}

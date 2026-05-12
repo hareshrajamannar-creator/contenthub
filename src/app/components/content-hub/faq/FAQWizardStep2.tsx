@@ -3,6 +3,7 @@ import { Sparkles } from 'lucide-react';
 import { Button } from '@/app/components/ui/button';
 import { cn } from '@/lib/utils';
 import { STATUS_COLORS } from '../shared/scoreColors';
+import { ContentFlowTextarea, ContentFlowTextInput } from '../shared/ContentFlowControls';
 
 interface FAQWizardStep2Props {
   template: string;
@@ -62,7 +63,7 @@ export const FAQWizardStep2 = ({ template, onSourceDataChange }: FAQWizardStep2P
         <Sparkles size={16} strokeWidth={1.6} className="text-primary shrink-0" />
         <div className="flex-1">
           <p className="text-[13px] font-medium text-foreground">Use your project context</p>
-          <p className="text-[12px] text-muted-foreground">We found lushgreen.com/services from your brand kit</p>
+          <p className="text-[12px] text-muted-foreground">We found lushgreen.com/services from your brand identity</p>
         </div>
         <Button variant="outline" size="sm" onClick={handleAutoFill}>
           Use this
@@ -81,11 +82,11 @@ export const FAQWizardStep2 = ({ template, onSourceDataChange }: FAQWizardStep2P
             )}
           </div>
           <div className="flex items-center gap-2">
-            <input
+            <ContentFlowTextInput
               value={urlValue}
               onChange={(e) => setUrlValue(e.target.value)}
               placeholder="https://example.com/services"
-              className="flex-1 border border-border rounded-md px-3 py-2 text-[13px] bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+              className="flex-1"
             />
             <Button variant="outline" size="sm" onClick={handleScrape} disabled={!urlValue || urlScraping}>
               {urlScraping ? 'Scraping...' : 'Scrape page'}
@@ -133,20 +134,18 @@ export const FAQWizardStep2 = ({ template, onSourceDataChange }: FAQWizardStep2P
             </div>
           )}
           {activeTab === 'url' && (
-            <input
+            <ContentFlowTextInput
               value={urlValue}
               onChange={(e) => setUrlValue(e.target.value)}
               placeholder="https://yoursite.com/faq"
-              className="w-full border border-border rounded-md px-3 py-2 text-[13px] bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
             />
           )}
           {activeTab === 'paste' && (
-            <textarea
+            <ContentFlowTextarea
               rows={8}
               value={pasteText}
               onChange={(e) => setPasteText(e.target.value)}
               placeholder="Paste your existing FAQ content here..."
-              className="w-full border border-border rounded-md px-3 py-2 text-[13px] bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring resize-none"
             />
           )}
         </div>
@@ -238,12 +237,11 @@ export const FAQWizardStep2 = ({ template, onSourceDataChange }: FAQWizardStep2P
         <div className="flex flex-col gap-4">
           <div className="flex flex-col gap-2">
             <label className="text-[13px] font-medium text-foreground">Describe this FAQ page</label>
-            <textarea
+            <ContentFlowTextarea
               rows={5}
               value={customContext}
               onChange={(e) => setCustomContext(e.target.value)}
               placeholder="Describe what this FAQ page is about and who it's for..."
-              className="w-full border border-border rounded-md px-3 py-2 text-[13px] bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring resize-none"
             />
           </div>
           <div className="flex flex-col gap-2">

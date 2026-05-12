@@ -1,16 +1,15 @@
 /**
  * BlogGenerationProgress
  *
- * Animated 4-step generation loading card shown between the inline flow
- * and the final blog canvas. Matches the FAQ equivalent design but uses
- * blue brand colors for the blog content type.
+ * Animated 4-step generation loading surface shown between the inline flow
+ * and the final blog canvas.
  *
  * Steps animate: pending -> active (spinner) -> done (green check), 1.5 s apart.
  * After all steps complete + 600 ms grace period, calls onComplete().
  */
 
 import React, { useState, useEffect } from 'react';
-import { Check, Loader2 } from 'lucide-react';
+import { Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { BlogSection } from './BlogInlineCreationFlow';
 
@@ -28,7 +27,6 @@ type StepStatus = 'pending' | 'active' | 'done';
 interface GenStep {
   id: string;
   label: string;
-  sublabel: string;
 }
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -37,57 +35,65 @@ const STEP_DURATION_MS = 1500;
 const DONE_GRACE_MS = 600;
 
 const GEN_STEPS: GenStep[] = [
-  { id: 'profile',  label: 'Analyzing business profile',   sublabel: 'Reading brand kit, tone settings, and audience signals' },
-  { id: 'outline',  label: 'Building blog outline',         sublabel: 'Structuring headings, sections, and content flow' },
-  { id: 'writing',  label: 'Writing content sections',      sublabel: 'Drafting paragraphs, bullets, images, and callouts' },
-  { id: 'seo',      label: 'Optimizing for SEO',            sublabel: 'Inserting keywords, meta tags, and internal link suggestions' },
+  { id: 'profile', label: 'Analyzing business profile' },
+  { id: 'outline', label: 'Building blog outline' },
+  { id: 'writing', label: 'Writing content sections' },
+  { id: 'seo',     label: 'Optimizing for SEO' },
+];
+
+const PREVIEW_BLOCKS = [
+  {
+    heading: 'Why local visibility matters',
+    body: 'Customers often compare businesses before they call, book, or visit. Strong content helps answer those questions before competitors do.',
+  },
+  {
+    heading: 'How to turn search intent into useful content',
+    body: 'The best pages match real customer questions with clear answers, local details, and next steps that make action easy.',
+  },
 ];
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
 function StepRow({ step, status }: { step: GenStep; status: StepStatus }) {
   return (
-    <div className="flex items-start gap-3 py-3">
-      {/* Status icon */}
+    <div className="flex items-center gap-2 py-1">
       <div className={cn(
-        'w-7 h-7 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5 transition-all duration-300',
+        'flex size-5 flex-shrink-0 items-center justify-center rounded-full transition-all duration-300',
         status === 'pending' && 'border-border bg-background',
-        status === 'active'  && 'border-[#1E5BE5] bg-background',
+        status === 'pending' && 'border-2',
         status === 'done'    && 'border-[#1D9E75] bg-[#1D9E75]',
       )}>
         {status === 'active' && (
-          <Loader2
-            size={14}
-            strokeWidth={1.6}
-            absoluteStrokeWidth
-            className="text-[#1E5BE5] animate-spin"
-          />
+          <span className="size-5 rounded-full border-2 border-[#1E5BE5]/20 border-t-[#1E5BE5] animate-spin" />
         )}
         {status === 'done' && (
-          <Check size={13} strokeWidth={2.4} className="text-white" />
+          <Check size={12} strokeWidth={1.6} absoluteStrokeWidth className="text-white" />
         )}
       </div>
+      <p className="text-[15px] text-foreground">{step.label}</p>
+    </div>
+  );
+}
 
-      {/* Text */}
-      <div className="flex-1 min-w-0">
-        <p className={cn(
-          'text-[13px] font-medium transition-colors',
-          status === 'pending' ? 'text-muted-foreground' : 'text-foreground',
-        )}>
-          {step.label}
-        </p>
-        <p className={cn(
-          'text-[12px] mt-0.5 transition-colors',
-          status === 'pending' ? 'text-muted-foreground/60' : 'text-muted-foreground',
-        )}>
-          {step.sublabel}
-        </p>
-      </div>
+function PreviewBlock({ heading, body }: { heading: string; body: string }) {
+  return (
+    <div className="animate-in fade-in duration-500 space-y-2">
+      <p className="text-[15px] font-medium text-foreground">{heading}</p>
+      <p className="text-[14px] leading-7 text-muted-foreground">{body}</p>
+    </div>
+  );
+}
 
-      {/* Done badge */}
-      {status === 'done' && (
-        <span className="flex-shrink-0 text-[11px] text-[#1D9E75] font-medium mt-0.5">Done</span>
-      )}
+function ShimmerLines() {
+  return (
+    <div className="space-y-4 pt-2" aria-hidden>
+      <div className="h-4 w-full animate-pulse rounded-full bg-muted" />
+      <div className="h-4 w-full animate-pulse rounded-full bg-muted" />
+      <div className="h-4 w-5/12 animate-pulse rounded-full bg-muted" />
+      <div className="h-4 w-full animate-pulse rounded-full bg-muted" />
+      <div className="h-4 w-3/12 animate-pulse rounded-full bg-muted" />
+      <div className="h-4 w-full animate-pulse rounded-full bg-muted" />
+      <div className="h-4 w-5/12 animate-pulse rounded-full bg-muted" />
     </div>
   );
 }
@@ -101,8 +107,7 @@ export function BlogGenerationProgress({
   onComplete,
 }: BlogGenerationProgressProps) {
   const [currentStep, setCurrentStep] = useState(0);
-  const totalWords = sections.reduce((sum, s) => sum + s.wordCount, 0);
-
+  const totalWords = sections.reduce((sum, section) => sum + section.wordCount, 0);
   useEffect(() => {
     // Advance one step every STEP_DURATION_MS
     const timers: ReturnType<typeof setTimeout>[] = [];
@@ -126,6 +131,7 @@ export function BlogGenerationProgress({
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const progressPercent = Math.round((currentStep / GEN_STEPS.length) * 100);
+  const visiblePreviewCount = Math.min(PREVIEW_BLOCKS.length, Math.max(0, currentStep - 1));
 
   const getStatus = (idx: number): StepStatus => {
     if (idx < currentStep) return 'done';
@@ -134,52 +140,46 @@ export function BlogGenerationProgress({
   };
 
   return (
-    <div className="flex flex-col h-full items-center justify-center bg-[var(--color-canvas,#F7F8FA)] px-6 py-12">
-      <div className={cn(
-        'w-full max-w-[520px] rounded-2xl border-[1.5px] border-[#A0B8F5] bg-background',
-        'shadow-[0_4px_32px_rgba(30,91,229,0.10)]',
-      )}>
-        {/* Card header */}
-        <div className="px-6 pt-5 pb-4 border-b border-border">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <div className="px-2.5 py-0.5 rounded-full bg-[#EDF3FF] border border-[#BFD0FF]">
-                <span className="text-[11px] font-semibold text-[#1E5BE5] tracking-wide">BLOG</span>
+    <div className="relative min-h-0 flex-1 overflow-y-auto rounded-xl bg-transparent">
+      <div className="px-8 py-6 pb-10">
+        <div className="rounded-xl border border-border/60 bg-background">
+          <div className="p-8">
+            <div className="space-y-4">
+              <div className="space-y-1">
+                <h2 className="text-[18px] font-medium text-foreground">Generating your blog post</h2>
+                <p className="text-[13px] text-muted-foreground">{totalWords} words · {sections.length} sections</p>
               </div>
-              <span className="text-[13px] font-medium text-foreground">Generating your blog post</span>
+              <div className="h-1.5 overflow-hidden rounded-full bg-muted">
+                <div
+                  className="h-full rounded-full bg-[#1E5BE5] transition-all duration-700 ease-out"
+                  style={{ width: `${progressPercent}%` }}
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-[14px] text-muted-foreground">
+                  {brandKit ? `Brand identity: ${brandKit}` : topic ? `Topic: ${topic}` : 'Processing...'}
+                </span>
+                <span className="text-[14px] font-medium text-[#1E5BE5]">{progressPercent}%</span>
+              </div>
             </div>
-            <span className="text-[12px] text-muted-foreground">
-              {totalWords} words · {sections.length} sections
-            </span>
-          </div>
 
-          {/* Progress bar */}
-          <div className="h-1.5 rounded-full bg-muted overflow-hidden">
-            <div
-              className="h-full rounded-full bg-[#1E5BE5] transition-all duration-700 ease-out"
-              style={{ width: `${progressPercent}%` }}
-            />
-          </div>
-          <div className="flex justify-between mt-1.5">
-            <span className="text-[11px] text-muted-foreground">
-              {brandKit ? `Brand kit: ${brandKit}` : 'Processing...'}
-            </span>
-            <span className="text-[11px] text-[#1E5BE5] font-medium">{progressPercent}%</span>
-          </div>
-        </div>
+            <div className="mt-6 space-y-2">
+              {GEN_STEPS.map((step, idx) => (
+                <StepRow key={step.id} step={step} status={getStatus(idx)} />
+              ))}
+            </div>
 
-        {/* Steps list */}
-        <div className="px-6 divide-y divide-border">
-          {GEN_STEPS.map((step, idx) => (
-            <StepRow key={step.id} step={step} status={getStatus(idx)} />
-          ))}
-        </div>
+            <p className="mt-4 text-[14px] text-muted-foreground">
+              This usually takes 15-20 seconds. Results will appear automatically.
+            </p>
 
-        {/* Footer note */}
-        <div className="px-6 py-4 border-t border-border">
-          <p className="text-[12px] text-muted-foreground text-center">
-            This usually takes 15-20 seconds. Your blog will appear automatically.
-          </p>
+            <div className="mt-8 space-y-8">
+              {PREVIEW_BLOCKS.slice(0, visiblePreviewCount).map(item => (
+                <PreviewBlock key={item.heading} heading={item.heading} body={item.body} />
+              ))}
+              {currentStep < GEN_STEPS.length && <ShimmerLines />}
+            </div>
+          </div>
         </div>
       </div>
     </div>

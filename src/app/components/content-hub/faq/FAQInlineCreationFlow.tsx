@@ -5,24 +5,23 @@
  * Replaces InlineCreationFlow for mode === 'faq'.
  *
  * Steps:
- *  1. brand-kit — Select brand kit + business location
+ *  1. brand-kit — Select brand identity + business location
  *  2. setup     — Template, source URL, signal sources, objective, publish destinations
- *  3. sections  — Review / edit section titles, descriptions, question counts
+ *  3. brief     — Review / edit the content brief
  */
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Check, Paperclip, X, FileText, Zap, Wrench, MessageSquare, MapPin, Settings } from 'lucide-react';
+import { Check, Paperclip, X, FileText } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Input } from '@/app/components/ui/input';
-import { Textarea } from '@/app/components/ui/textarea';
 import {
   CONTENT_FLOW_STEP_TITLE_CLASS,
-  CONTENT_FLOW_FIELD_CLASS,
-  CONTENT_FLOW_TEXTAREA_CLASS,
   ContentFlowBrandKitSummary,
-  ContentFlowChip,
   ContentFlowCountStepper,
-  ContentFlowChoiceCard,
+  ContentFlowMultiSelect,
+  ContentFlowRadioCard,
+  ContentFlowSelect,
+  ContentFlowTextarea,
+  ContentFlowTextInput,
 } from '../shared/ContentFlowControls';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -44,6 +43,7 @@ export interface FAQFlowData {
   questionCount: number;
   signalSources: string[];
   attachments: string[];
+  contentBrief?: string;
   sections: FAQSection[];
 }
 
@@ -51,6 +51,7 @@ export interface FlowNavControls {
   advance: () => void;
   back: () => void;
   generate: () => void;
+  goTo?: (step: number) => void;
 }
 
 export interface FlowNavState {
@@ -72,7 +73,7 @@ export interface FAQInlineCreationFlowProps {
 const BRAND_KITS = [
   { id: 'olive-garden', label: 'Olive Garden corporate' },
   { id: 'birdeye-demo', label: 'Birdeye demo brand' },
-  { id: 'local-seo', label: 'Local SEO brand kit' },
+  { id: 'local-seo', label: 'Local SEO identity' },
 ];
 
 const LOCATIONS = [
@@ -83,13 +84,13 @@ const LOCATIONS = [
   { id: 'chicago', label: 'Chicago, IL' },
 ];
 
-const TEMPLATES: { id: string; label: string; description: string; Icon: React.FC<{ size: number; strokeWidth: number; absoluteStrokeWidth?: boolean; className?: string }> }[] = [
-  { id: 'aeo',      label: 'AEO optimized',        description: 'Win answer-engine visibility for specific queries',  Icon: Zap },
-  { id: 'newpage',  label: 'New page FAQ builder',  description: 'Generate FAQs for a new page or service',           Icon: FileText },
-  { id: 'existing', label: 'Optimize existing',     description: 'Improve existing FAQs on a page',                   Icon: Wrench },
-  { id: 'support',  label: 'Customer support FAQs', description: 'From tickets, reviews, queries',                    Icon: MessageSquare },
-  { id: 'location', label: 'Location-specific',     description: 'FAQs tailored to a specific location',              Icon: MapPin },
-  { id: 'custom',   label: 'Custom',                description: 'Configure everything manually',                     Icon: Settings },
+const TEMPLATES = [
+  { id: 'aeo',      label: 'AEO optimized',        description: 'Win answer-engine visibility for specific queries' },
+  { id: 'newpage',  label: 'New page FAQ builder',  description: 'Generate FAQs for a new page or service' },
+  { id: 'existing', label: 'Optimize existing',     description: 'Improve existing FAQs on a page' },
+  { id: 'support',  label: 'Customer support FAQs', description: 'From tickets, reviews, queries' },
+  { id: 'location', label: 'Location-specific',     description: 'FAQs tailored to a specific location' },
+  { id: 'custom',   label: 'Custom',                description: 'Configure everything manually' },
 ];
 
 const CUSTOM_AGENTS = [
@@ -126,7 +127,7 @@ function distributeQuestionCount(sections: FAQSection[], total: number): FAQSect
 
 // ── Step indicator ────────────────────────────────────────────────────────────
 
-const STEP_LABELS = ['Brand kit', 'Content setup', 'Review topics'];
+const STEP_LABELS = ['Brand identity', 'Content setup', 'Content brief'];
 
 function StepIndicator({ current }: { current: number }) {
   return (
@@ -163,7 +164,7 @@ function StepIndicator({ current }: { current: number }) {
   );
 }
 
-// ── Step 1: Brand kit + location ──────────────────────────────────────────────
+// ── Step 1: Brand identity + location ──────────────────────────────────────────────
 
 interface Step1Props {
   brandKit: string;
@@ -175,7 +176,7 @@ function Step1BrandKit({ brandKit, location, onChange }: Step1Props) {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className={CONTENT_FLOW_STEP_TITLE_CLASS}>Select brand kit and location</h2>
+        <h2 className={CONTENT_FLOW_STEP_TITLE_CLASS}>Select brand identity and location</h2>
         <p className="text-[13px] text-muted-foreground">
           Content will be created from the selected brand identity and location context.
         </p>
@@ -183,29 +184,21 @@ function Step1BrandKit({ brandKit, location, onChange }: Step1Props) {
 
       <div className="space-y-4">
         <div className="space-y-1.5">
-          <label className="text-[13px] font-medium text-foreground">Brand kit</label>
-          <select
+          <label className="text-[13px] font-medium text-foreground">Brand identity</label>
+          <ContentFlowSelect
             value={brandKit}
-            onChange={e => onChange(e.target.value, location)}
-            className="h-10 w-full rounded-xl border border-border bg-background px-3 text-[13px] text-foreground outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/15"
-          >
-            {BRAND_KITS.map(bk => (
-              <option key={bk.id} value={bk.id}>{bk.label}</option>
-            ))}
-          </select>
+            onChange={value => onChange(value, location)}
+            options={BRAND_KITS.map(bk => ({ value: bk.id, label: bk.label }))}
+          />
         </div>
 
         <div className="space-y-1.5">
           <label className="text-[13px] font-medium text-foreground">Location</label>
-          <select
+          <ContentFlowSelect
             value={location}
-            onChange={e => onChange(brandKit, e.target.value)}
-            className="h-10 w-full rounded-xl border border-border bg-background px-3 text-[13px] text-foreground outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/15"
-          >
-            {LOCATIONS.map(loc => (
-              <option key={loc.id} value={loc.id}>{loc.label}</option>
-            ))}
-          </select>
+            onChange={value => onChange(brandKit, value)}
+            options={LOCATIONS.map(loc => ({ value: loc.id, label: loc.label }))}
+          />
         </div>
       </div>
 
@@ -229,13 +222,6 @@ interface Step2Props {
 
 function Step2Setup({ template, customAgent, sourceUrl, additionalContext, questionCount, signalSources, attachments, onChange }: Step2Props) {
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const toggleSignal = (id: string) => {
-    const next = signalSources.includes(id)
-      ? signalSources.filter(s => s !== id)
-      : [...signalSources, id];
-    onChange({ signalSources: next });
-  };
 
   const handleFiles = (files: FileList | null) => {
     if (!files) return;
@@ -263,11 +249,10 @@ function Step2Setup({ template, customAgent, sourceUrl, additionalContext, quest
         <label className="text-[13px] font-medium text-foreground">What kind of FAQ are you creating?</label>
         <div className="flex flex-col gap-2">
           {TEMPLATES.map(t => (
-            <ContentFlowChoiceCard
+            <ContentFlowRadioCard
               key={t.id}
               selected={template === t.id}
               onClick={() => onChange({ template: t.id })}
-              icon={t.Icon}
               title={t.label}
               description={t.description}
             />
@@ -277,16 +262,12 @@ function Step2Setup({ template, customAgent, sourceUrl, additionalContext, quest
         {template === 'custom' && (
           <div className="space-y-1.5 pt-2">
             <label className="text-[13px] font-medium text-foreground">Select agent</label>
-            <select
+            <ContentFlowSelect
               value={customAgent}
-              onChange={e => onChange({ customAgent: e.target.value })}
-              className="h-10 w-full rounded-xl border border-border bg-background px-3 text-[13px] text-foreground outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/15"
-            >
-              <option value="">Choose a custom agent...</option>
-              {CUSTOM_AGENTS.map(a => (
-                <option key={a.id} value={a.id}>{a.label}</option>
-              ))}
-            </select>
+              onChange={value => onChange({ customAgent: value })}
+              placeholder="Choose a custom agent..."
+              options={CUSTOM_AGENTS.map(a => ({ value: a.id, label: a.label }))}
+            />
           </div>
         )}
       </div>
@@ -308,42 +289,36 @@ function Step2Setup({ template, customAgent, sourceUrl, additionalContext, quest
       {/* Source URL */}
       <div className="space-y-1.5">
         <label className="text-[13px] font-medium text-foreground">Source URL</label>
-        <Input
+        <ContentFlowTextInput
           value={sourceUrl}
           onChange={e => onChange({ sourceUrl: e.target.value })}
           placeholder="https://yourwebsite.com/faq"
-          className={CONTENT_FLOW_FIELD_CLASS}
         />
         <p className="text-[12px] text-muted-foreground">
           We will crawl this page to extract existing Q&amp;A content.
         </p>
       </div>
 
-      {/* Additional context */}
-      <div className="space-y-1.5">
-        <label className="text-[13px] font-medium text-foreground">Additional context <span className="text-muted-foreground font-normal">(optional)</span></label>
-        <Textarea
-          value={additionalContext}
-          onChange={e => onChange({ additionalContext: e.target.value })}
-          placeholder="Anything specific you want covered or avoided..."
-          className={CONTENT_FLOW_TEXTAREA_CLASS}
-          rows={2}
-        />
-      </div>
-
       {/* Signal sources */}
       <div className="space-y-2">
         <label className="text-[13px] font-medium text-foreground">Pull signals from</label>
-        <div className="flex flex-wrap gap-2">
-          {SIGNAL_SOURCES.map(src => (
-            <ContentFlowChip
-              key={src.id}
-              label={src.label}
-              selected={signalSources.includes(src.id)}
-              onClick={() => toggleSignal(src.id)}
-            />
-          ))}
-        </div>
+        <ContentFlowMultiSelect
+          values={signalSources}
+          onChange={values => onChange({ signalSources: values })}
+          options={SIGNAL_SOURCES.map(src => ({ value: src.id, label: src.label }))}
+          placeholder="Select signal sources"
+        />
+      </div>
+
+      {/* Additional context */}
+      <div className="space-y-1.5">
+        <label className="text-[13px] font-medium text-foreground">Additional context <span className="text-muted-foreground font-normal">(optional)</span></label>
+        <ContentFlowTextarea
+          value={additionalContext}
+          onChange={e => onChange({ additionalContext: e.target.value })}
+          placeholder="Anything specific you want covered or avoided..."
+          rows={2}
+        />
       </div>
 
       {/* Attachments */}
@@ -390,64 +365,14 @@ function Step2Setup({ template, customAgent, sourceUrl, additionalContext, quest
   );
 }
 
-// ── Step 3: Section review ────────────────────────────────────────────────────
+// ── Step 3: Content brief ─────────────────────────────────────────────────────
 
 interface Step3Props {
-  sections: FAQSection[];
-  onChange: (sections: FAQSection[]) => void;
+  value: string;
+  onChange: (value: string) => void;
 }
 
-function FAQDescriptionCard({
-  section,
-  onDescriptionChange,
-}: {
-  section: FAQSection;
-  onDescriptionChange: (description: string) => void;
-}) {
-  const [editing, setEditing] = useState(false);
-  const [localDesc, setLocalDesc] = useState(section.description);
-  const textareaRef = React.useRef<HTMLTextAreaElement>(null);
-
-  React.useEffect(() => {
-    if (editing && textareaRef.current) {
-      textareaRef.current.focus();
-      textareaRef.current.select();
-    }
-  }, [editing]);
-
-  const commit = () => {
-    setEditing(false);
-    onDescriptionChange(localDesc);
-  };
-
-  return (
-    <div
-      className={cn(
-        'px-4 py-3 rounded-xl border bg-background cursor-text transition-colors',
-        editing ? 'border-primary/50 ring-1 ring-primary/20' : 'border-border hover:border-border/80',
-      )}
-      onClick={() => !editing && setEditing(true)}
-    >
-      {editing ? (
-        <textarea
-          ref={textareaRef}
-          value={localDesc}
-          onChange={e => setLocalDesc(e.target.value)}
-          onBlur={commit}
-          onKeyDown={e => { if (e.key === 'Escape') commit(); }}
-          rows={3}
-          className="w-full resize-none bg-transparent outline-none text-[13px] text-foreground leading-relaxed"
-        />
-      ) : (
-        <p className="text-[13px] text-muted-foreground leading-relaxed line-clamp-3">
-          {localDesc}
-        </p>
-      )}
-    </div>
-  );
-}
-
-function Step3Sections({ sections, onChange }: Step3Props) {
+function Step3ContentBrief({ value, onChange }: Step3Props) {
   const [generating, setGenerating] = useState(true);
 
   useEffect(() => {
@@ -455,14 +380,12 @@ function Step3Sections({ sections, onChange }: Step3Props) {
     return () => clearTimeout(t);
   }, []);
 
-  const section = sections[0];
-
   return (
     <div className="space-y-6">
       <div>
-        <h2 className={CONTENT_FLOW_STEP_TITLE_CLASS}>Review topics</h2>
+        <h2 className={CONTENT_FLOW_STEP_TITLE_CLASS}>Content brief</h2>
         <p className="text-[13px] text-muted-foreground">
-          Click to edit what this FAQ should cover before generating.
+          Review the detailed brief for what this FAQ set will generate.
         </p>
       </div>
 
@@ -474,14 +397,16 @@ function Step3Sections({ sections, onChange }: Step3Props) {
             <div className="h-2.5 rounded-full bg-muted w-[70%]" />
           </div>
         </div>
-      ) : section ? (
+      ) : (
         <div className="animate-in fade-in duration-500">
-          <FAQDescriptionCard
-            section={section}
-            onDescriptionChange={desc => onChange(sections.map(s => s.id === section.id ? { ...s, description: desc } : s))}
+          <ContentFlowTextarea
+            value={value}
+            onChange={event => onChange(event.target.value)}
+            rows={5}
+            className="text-[14px] leading-6"
           />
         </div>
-      ) : null}
+      )}
     </div>
   );
 }
@@ -506,7 +431,8 @@ export function FAQInlineCreationFlow({ onComplete, onCancel, controlRef, onNavS
   const [attachments, setAttachments]     = useState<string[]>([]);
 
   // Step 3 state
-  const [sections, setSections] = useState<FAQSection[]>(DEFAULT_SECTIONS);
+  const [contentBrief, setContentBrief] = useState('Create an AEO-ready FAQ set that answers the most common customer questions about pricing, bookings, services, locations, response times, and edge cases. Use the selected brand identity and location context, pull supporting signals from reviews and website content, and keep answers clear, direct, and useful for search and AI-generated responses.');
+  const [sections] = useState<FAQSection[]>(DEFAULT_SECTIONS);
 
   const handleStep2Change = (patch: Partial<Pick<FAQFlowData, 'template' | 'customAgent' | 'sourceUrl' | 'additionalContext' | 'questionCount' | 'signalSources' | 'attachments'>>) => {
     if (patch.template !== undefined) setTemplate(patch.template);
@@ -521,19 +447,21 @@ export function FAQInlineCreationFlow({ onComplete, onCancel, controlRef, onNavS
   const canAdvance = [
     brandKit !== '' && location !== '',
     template !== '',
-    sections.length > 0,
+    contentBrief.trim() !== '',
   ][step];
 
   const handleGenerate = useCallback(() => {
-    const distributedSections = distributeQuestionCount(sections, questionCount);
+    const briefSections = sections.map((section, index) => index === 0 ? { ...section, description: contentBrief } : section);
+    const distributedSections = distributeQuestionCount(briefSections, questionCount);
     onComplete({
       brandKit, location, template, customAgent, sourceUrl,
-      additionalContext, questionCount, signalSources, attachments, sections: distributedSections,
+      additionalContext, questionCount, signalSources, attachments, contentBrief, sections: distributedSections,
     });
   }, [
     additionalContext,
     attachments,
     brandKit,
+    contentBrief,
     customAgent,
     location,
     onComplete,
@@ -551,6 +479,7 @@ export function FAQInlineCreationFlow({ onComplete, onCancel, controlRef, onNavS
         advance:  () => setStep(s => Math.min(s + 1, TOTAL_STEPS - 1)),
         back:     () => { if (step === 0) onCancel(); else setStep(s => s - 1); },
         generate: handleGenerate,
+        goTo:     (nextStep: number) => setStep(Math.max(0, Math.min(nextStep, TOTAL_STEPS - 1))),
       };
     }
   });
@@ -561,7 +490,7 @@ export function FAQInlineCreationFlow({ onComplete, onCancel, controlRef, onNavS
   }, [canAdvance, onNavStateChange, step]);
 
   return (
-    <div className="flex flex-col h-full bg-[var(--color-canvas,#F7F8FA)]">
+    <div className="flex flex-col h-full bg-background">
       {!hideProgress && (
         <div className="flex-none px-8 py-4 border-b border-border bg-background flex justify-center">
           <StepIndicator current={step} />
@@ -569,8 +498,9 @@ export function FAQInlineCreationFlow({ onComplete, onCancel, controlRef, onNavS
       )}
 
       {/* Scrollable content */}
-      <div className="flex-1 min-h-0 overflow-y-auto">
-        <div className="max-w-[560px] mx-auto px-8 py-8">
+      <div className="flex-1 min-h-0 overflow-hidden py-4 pl-4 pr-6">
+        <div className="h-full overflow-y-auto rounded-lg border border-border bg-background px-[30px] pb-[30px] pt-[30px]">
+          <div className="w-1/2 min-w-[520px] max-w-[720px]">
 
           {step === 0 && (
             <Step1BrandKit
@@ -594,11 +524,12 @@ export function FAQInlineCreationFlow({ onComplete, onCancel, controlRef, onNavS
           )}
 
           {step === 2 && (
-            <Step3Sections
-              sections={sections}
-              onChange={setSections}
+            <Step3ContentBrief
+              value={contentBrief}
+              onChange={setContentBrief}
             />
           )}
+          </div>
         </div>
       </div>
 

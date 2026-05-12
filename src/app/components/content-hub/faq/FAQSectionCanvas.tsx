@@ -12,39 +12,31 @@
  *  └──────────────────────┴──────────────────────────────────────┴─────────┘
  */
 
-import React, { useState, useCallback, useRef, useEffect } from 'react';
+import React, { useState, useCallback, useRef, useEffect, useLayoutEffect } from 'react';
 import {
-  GripVertical, ChevronDown, ChevronRight, Trash2, Plus,
+  GripVertical, GripHorizontal, ChevronDown, ChevronRight, Trash2, Plus,
   AlertTriangle, XCircle, CheckCircle2,
-  ArrowUp, ArrowDown, Sparkles, MessageSquare, Layers,
-  Undo2, Redo2, ZoomIn, ZoomOut,
-  CheckCircle, CircleDashed,
-  CalendarDays, UserCircle2,
-  Activity, History, MessageCircle,
-  Bookmark, BookmarkCheck, Layers2,
+  ArrowUp, ArrowDown, Sparkles, Layers,
+  Bookmark, BookmarkX, MessageSquare,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { AiCopilot } from '../AiCopilot';
 import { SegmentedToggle } from '@/app/components/ui/segmented-toggle.v1';
 import { EditorScorePanel } from '../editor/EditorScorePanel';
 import { EDITOR_CONFIGS } from '../editor/editorConfig';
-import { scoreColor } from '../shared/scoreColors';
+import { EditorChromeToolbar, type EditorToolbarPosition } from '../shared/EditorChromeToolbar';
+import { CanvasEditorTopBar } from '../shared/CanvasEditorTopBar';
+import { ContentActivityDrawer } from '../shared/ContentActivityDrawer';
 import type { FAQSection } from './FAQInlineCreationFlow';
 import { FAQPublishModal } from './FAQPublishModal';
 import { SaveToSavedModal } from './SaveToSavedModal';
-import { addSavedBlock } from '../shared/savedBlocksStore';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-} from '@/app/components/ui/dropdown-menu';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/app/components/ui/tooltip';
+  addSavedBlock,
+  getSavedBlocks,
+  removeSavedBlock,
+  subscribeSavedBlocks,
+  type SavedBlock,
+} from '../shared/savedBlocksStore';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -64,6 +56,7 @@ export interface FAQSectionData {
   title: string;
   questions: FAQQuestion[];
   collapsed: boolean;
+  standalone?: boolean;
 }
 
 export interface FAQSectionCanvasProps {
@@ -170,6 +163,17 @@ function getQAPool(sectionTitle: string): typeof MOCK_QA['default'] {
 let qIdCounter = 1000;
 function makeQId() { return `q${qIdCounter++}`; }
 
+function createNewFAQQuestion(): FAQQuestion {
+  return {
+    id: makeQId(),
+    question: 'New question',
+    answer: 'Write your answer here.',
+    expanded: true,
+    status: 'warning',
+    warningText: 'This question needs a proper answer.',
+  };
+}
+
 function generateMockFAQs(sections: FAQSection[]): FAQSectionData[] {
   return sections.map(section => {
     const pool = getQAPool(section.title);
@@ -199,89 +203,369 @@ const LEFT_TAB_ITEMS = [
   {
     value: 'ai' as const,
     label: 'AI',
-    icon: <Sparkles size={11} strokeWidth={1.6} absoluteStrokeWidth className="text-[#7c3aed]" />,
+    icon: <Sparkles size={11} strokeWidth={1.2} absoluteStrokeWidth className="text-[#7c3aed]" />,
   },
   { value: 'manual' as const, label: 'Manual' },
 ];
 
-// ── Score bar (matches EditorContentCard) ─────────────────────────────────────
+// ── FAQ Manual panel ──────────────────────────────────────────────────────────
 
-function ScoreBar({ score, active, onClick }: { score: number; active: boolean; onClick: () => void }) {
-  const { bg, text } = scoreColor(score);
+type FAQManualTab = 'basic' | 'prebuilt' | 'saved';
+
+const FAQ_PREBUILT_SECTIONS = [
+  {
+    id: 'faq-prebuilt-emergency',
+    title: 'Emergency service FAQ',
+    description: 'Response time, same-day service, and urgent requests',
+    questions: [
+      {
+        question: 'How quickly can you respond to an emergency?',
+        answer: 'Our team is available 24/7 and prioritizes urgent requests. Most emergency calls receive a response within 30-60 minutes depending on location and technician availability.',
+      },
+      {
+        question: 'Do you offer same-day service?',
+        answer: 'Yes, same-day service is available for many requests submitted before 2 PM local time. Availability may vary by service area and appointment volume.',
+      },
+    ],
+  },
+  {
+    id: 'faq-prebuilt-pricing',
+    title: 'Pricing and appointments',
+    description: 'Booking, estimates, payment, and service fees',
+    questions: [
+      {
+        question: 'How do I book an appointment?',
+        answer: 'You can book online, call our team, or request a callback. We confirm appointment windows and service details before dispatching a technician.',
+      },
+      {
+        question: 'Do you provide estimates before work begins?',
+        answer: 'Yes. We review the issue, explain the recommended service, and provide an estimate before any billable work begins.',
+      },
+    ],
+  },
+  {
+    id: 'faq-prebuilt-local',
+    title: 'Local coverage FAQ',
+    description: 'Service areas, nearby locations, and availability',
+    questions: [
+      {
+        question: 'What areas do you serve?',
+        answer: 'We serve the primary metro area and nearby communities. Contact us with your address to confirm availability for your specific location.',
+      },
+      {
+        question: 'Can I choose a nearby location?',
+        answer: 'Yes. If multiple locations serve your area, we can route your request to the location with the best availability.',
+      },
+    ],
+  },
+];
+
+function ManualSubTabs({
+  value,
+  onChange,
+}: {
+  value: FAQManualTab;
+  onChange: (value: FAQManualTab) => void;
+}) {
+  const tabs: { value: FAQManualTab; label: string }[] = [
+    { value: 'basic', label: 'Basic' },
+    { value: 'prebuilt', label: 'Pre-built' },
+    { value: 'saved', label: 'Saved' },
+  ];
+
+  return (
+    <div className="flex rounded-lg border border-border bg-background p-1">
+      {tabs.map(tab => (
+        <button
+          key={tab.value}
+          type="button"
+          onClick={() => onChange(tab.value)}
+          className={cn(
+            'h-8 flex-1 rounded-md text-[12px] font-medium transition-colors',
+            value === tab.value
+              ? 'bg-muted text-foreground'
+              : 'text-muted-foreground hover:text-foreground',
+          )}
+        >
+          {tab.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function FAQManualActionCard({
+  label,
+  icon,
+  onClick,
+}: {
+  label: string;
+  icon: React.ReactNode;
+  onClick: () => void;
+}) {
   return (
     <button
       type="button"
       onClick={onClick}
-      aria-label={`Content score: ${score}. Click to ${active ? 'close' : 'open'} score panel.`}
-      className={cn(
-        'flex items-center gap-2 h-7 px-2.5 rounded-lg border transition-colors flex-none',
-        active
-          ? 'border-border bg-muted'
-          : 'border-transparent hover:border-border hover:bg-muted/50',
-      )}
+      className="flex min-h-[120px] flex-col items-center justify-center gap-2 rounded-xl border border-border bg-background p-4 text-center transition-colors hover:border-primary/40 hover:bg-primary/[0.03]"
     >
-      <span className="text-[11px] text-muted-foreground font-medium select-none">Score</span>
-      <div className="w-16 h-1.5 bg-border/70 rounded-full overflow-hidden">
-        <div
-          className="h-full rounded-full transition-all duration-500"
-          style={{ width: `${score}%`, backgroundColor: text }}
-        />
+      <GripHorizontal size={15} strokeWidth={1.6} absoluteStrokeWidth className="text-muted-foreground/50" />
+      <div className="flex size-9 items-center justify-center rounded-xl bg-muted text-muted-foreground">
+        {icon}
       </div>
-      <span
-        className="inline-flex items-center justify-center h-5 min-w-[26px] px-1.5 rounded text-[12px] font-bold tabular-nums leading-none"
-        style={{ backgroundColor: bg, color: text }}
-      >
-        {score}
-      </span>
+      <p className="text-[12px] font-medium text-foreground">{label}</p>
     </button>
   );
 }
 
-// ── FAQ Manual panel ──────────────────────────────────────────────────────────
+function FAQTemplatePreview({
+  title,
+  questions,
+  score = 95,
+}: {
+  title: string;
+  questions: string[];
+  score?: number;
+}) {
+  return (
+    <div className="flex h-full w-full flex-col overflow-hidden rounded-lg border border-border bg-background">
+      <div className="flex items-center gap-2 border-b border-border px-2 py-1">
+        <div className="flex size-5 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
+          <MessageSquare size={11} strokeWidth={1.6} absoluteStrokeWidth />
+        </div>
+        <span className="min-w-0 flex-1 truncate text-[8px] font-medium text-foreground">FAQ page</span>
+        <div className="h-1 w-8 overflow-hidden rounded-full bg-muted">
+          <div className="h-full w-4/5 rounded-full bg-[#1D9E75]" />
+        </div>
+        <span className="rounded bg-[#1D9E75]/10 px-1 text-[7px] font-medium text-[#1D9E75]">{score}</span>
+      </div>
+      <div className="flex flex-1 flex-col gap-2 px-2 py-2">
+        <p className="truncate text-[8px] font-medium text-foreground">{title}</p>
+        {questions.slice(0, 4).map((question, index) => (
+          <div key={`${question}-${index}`} className="space-y-1">
+            <p className="truncate text-[7px] text-foreground/70">{question}</p>
+            <div className="h-1 w-11/12 rounded-full bg-muted" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function FAQSuggestedStyleCard({
+  label,
+  title,
+  description,
+  questions,
+  onClick,
+  onRemove,
+}: {
+  label: string;
+  title: string;
+  description: string;
+  questions: string[];
+  onClick: () => void;
+  onRemove?: () => void;
+}) {
+  return (
+    <div className="overflow-hidden rounded-[10px] border border-border bg-background transition-colors hover:border-primary/30">
+      <button type="button" onClick={onClick} className="block w-full text-left">
+        <div className="border-b border-border bg-muted/60 p-4">
+          <div className="h-[116px]">
+            <FAQTemplatePreview title={title} questions={questions} />
+          </div>
+        </div>
+        <div className="space-y-2 p-4">
+          <span className="inline-flex rounded bg-primary/8 px-2 py-1 text-[10px] font-medium text-primary">
+            {label}
+          </span>
+          <p className="text-[13px] font-medium leading-snug text-foreground">{title}</p>
+          <p className="line-clamp-2 text-[11px] leading-relaxed text-muted-foreground">{description}</p>
+        </div>
+      </button>
+      {onRemove && (
+        <div className="border-t border-border px-4 py-2">
+          <button
+            type="button"
+            onClick={onRemove}
+            className="text-[11px] font-medium text-muted-foreground transition-colors hover:text-destructive"
+          >
+            Remove saved block
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
 
 function FAQManualContent({
   onAddQuestion,
   onAddSection,
+  onAddPrebuiltSection,
+  onInsertSavedBlock,
 }: {
   onAddQuestion: () => void;
   onAddSection: () => void;
+  onAddPrebuiltSection: (template: typeof FAQ_PREBUILT_SECTIONS[number]) => void;
+  onInsertSavedBlock: (block: SavedBlock) => void;
 }) {
+  const [manualTab, setManualTab] = useState<FAQManualTab>('basic');
+  const [savedBlocks, setSavedBlocks] = useState<SavedBlock[]>(() => getSavedBlocks());
+
+  useEffect(() => subscribeSavedBlocks(setSavedBlocks), []);
+
   return (
-    <div className="px-4 py-4 flex flex-col gap-3">
-      <p className="text-[12px] text-muted-foreground leading-relaxed">
-        Add content directly to your FAQ canvas.
-      </p>
-      <div className="grid grid-cols-2 gap-2">
-        <button
-          type="button"
-          onClick={onAddQuestion}
-          className="flex flex-col items-center gap-2.5 py-6 px-3 rounded-xl border border-border hover:border-primary/40 hover:bg-primary/[0.03] transition-all group"
-        >
-          <div className="size-9 rounded-xl bg-muted flex items-center justify-center group-hover:bg-primary/10 transition-colors">
-            <Plus size={18} strokeWidth={1.6} absoluteStrokeWidth className="text-muted-foreground group-hover:text-primary transition-colors" />
+    <div className="flex h-full flex-col overflow-hidden">
+      <div className="flex-none p-4">
+        <ManualSubTabs value={manualTab} onChange={setManualTab} />
+      </div>
+
+      <div className="flex-1 overflow-y-auto px-4 pb-4">
+        {manualTab === 'basic' && (
+          <div className="grid grid-cols-2 gap-2">
+            <FAQManualActionCard
+              label="Question"
+              icon={<Plus size={18} strokeWidth={1.6} absoluteStrokeWidth />}
+              onClick={onAddQuestion}
+            />
+            <FAQManualActionCard
+              label="Section"
+              icon={<Layers size={18} strokeWidth={1.6} absoluteStrokeWidth />}
+              onClick={onAddSection}
+            />
           </div>
-          <span className="text-[12px] font-medium text-foreground text-center group-hover:text-primary transition-colors leading-tight">
-            Add question
-          </span>
-        </button>
-        <button
-          type="button"
-          onClick={onAddSection}
-          className="flex flex-col items-center gap-2.5 py-6 px-3 rounded-xl border border-border hover:border-primary/40 hover:bg-primary/[0.03] transition-all group"
-        >
-          <div className="size-9 rounded-xl bg-muted flex items-center justify-center group-hover:bg-primary/10 transition-colors">
-            <Layers size={18} strokeWidth={1.6} absoluteStrokeWidth className="text-muted-foreground group-hover:text-primary transition-colors" />
+        )}
+
+        {manualTab === 'prebuilt' && (
+          <div className="flex flex-col gap-2">
+            {FAQ_PREBUILT_SECTIONS.map(template => (
+              <FAQSuggestedStyleCard
+                key={template.id}
+                label="FAQ suggestion"
+                title={template.title}
+                description={template.description}
+                questions={template.questions.map(item => item.question)}
+                onClick={() => onAddPrebuiltSection(template)}
+              />
+            ))}
           </div>
-          <span className="text-[12px] font-medium text-foreground text-center group-hover:text-primary transition-colors leading-tight">
-            Add section
-          </span>
-        </button>
+        )}
+
+        {manualTab === 'saved' && (
+          savedBlocks.length === 0 ? (
+            <div className="flex min-h-[220px] flex-col items-center justify-center gap-2 text-center">
+              <div className="flex size-10 items-center justify-center rounded-xl bg-muted">
+                <BookmarkX size={18} strokeWidth={1.6} absoluteStrokeWidth className="text-muted-foreground" />
+              </div>
+              <div className="space-y-1">
+                <p className="text-[13px] font-medium text-foreground">No saved blocks yet</p>
+                <p className="text-[12px] leading-relaxed text-muted-foreground">
+                  Save FAQ sections from the canvas and reuse them here.
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-2">
+              {savedBlocks.map(block => (
+                <FAQSuggestedStyleCard
+                  key={block.id}
+                  label="Saved block"
+                  title={block.name}
+                  description={`${block.preview.snippets.length} saved questions from ${block.preview.title}.`}
+                  questions={block.preview.snippets}
+                  onClick={() => onInsertSavedBlock(block)}
+                  onRemove={() => removeSavedBlock(block.id)}
+                />
+              ))}
+            </div>
+          )
+        )}
       </div>
     </div>
   );
 }
 
 // ── Question row ──────────────────────────────────────────────────────────────
+
+function shouldCloseTextEditor(event: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) {
+  return event.currentTarget.dataset.hasRichStyle !== 'true';
+}
+
+function EditableFAQField({
+  value,
+  onChange,
+  editing,
+  onEditingChange,
+  variant,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  editing: boolean;
+  onEditingChange: (editing: boolean) => void;
+  variant: 'question' | 'answer';
+}) {
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const placedCaretRef = useRef(false);
+  const isQuestion = variant === 'question';
+  const textClass = isQuestion
+    ? 'text-[13px] font-medium text-foreground'
+    : 'text-[13px] leading-relaxed text-muted-foreground';
+  const sharedClass = cn(
+    'w-full border-b bg-transparent px-0 py-0.5 text-left transition-colors',
+    textClass,
+  );
+
+  useLayoutEffect(() => {
+    const node = textareaRef.current;
+    if (!editing) {
+      placedCaretRef.current = false;
+      return;
+    }
+    if (!node) return;
+    node.style.height = 'auto';
+    node.style.height = `${node.scrollHeight}px`;
+    if (!placedCaretRef.current) {
+      node.focus();
+      node.setSelectionRange(value.length, value.length);
+      placedCaretRef.current = true;
+    }
+  }, [editing, value]);
+
+  if (editing) {
+    return (
+      <textarea
+        ref={textareaRef}
+        rows={1}
+        className={cn(
+          sharedClass,
+          'overflow-hidden border-primary outline-none resize-none',
+        )}
+        value={value}
+        onChange={event => onChange(event.target.value)}
+        onBlur={event => { if (shouldCloseTextEditor(event)) onEditingChange(false); }}
+        onKeyDown={event => {
+          if (event.key === 'Escape' || (isQuestion && event.key === 'Enter' && !event.shiftKey)) {
+            event.preventDefault();
+            onEditingChange(false);
+          }
+        }}
+      />
+    );
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={() => onEditingChange(true)}
+      className={cn(
+        sharedClass,
+        'border-transparent hover:border-border/60 focus-visible:border-primary focus-visible:outline-none',
+      )}
+    >
+      {value}
+    </button>
+  );
+}
 
 interface QuestionRowProps {
   question: FAQQuestion;
@@ -340,25 +624,14 @@ function QuestionRow({ question, index, totalInSection, onUpdate, onDelete, onMo
         </span>
 
         {/* Content */}
-        <div className="flex-1 min-w-0 space-y-1.5">
-          {/* Question text */}
-          {editingQ ? (
-            <input
-              autoFocus
-              className="w-full text-[13px] font-medium text-foreground bg-transparent border-b border-primary outline-none pb-0.5"
-              value={question.question}
-              onChange={e => onUpdate({ question: e.target.value })}
-              onBlur={() => setEditingQ(false)}
-              onKeyDown={e => { if (e.key === 'Enter' || e.key === 'Escape') setEditingQ(false); }}
-            />
-          ) : (
-            <p
-              className="text-[13px] font-medium text-foreground cursor-text hover:text-primary transition-colors"
-              onClick={() => setEditingQ(true)}
-            >
-              {question.question}
-            </p>
-          )}
+        <div className="flex-1 min-w-0 space-y-2">
+          <EditableFAQField
+            value={question.question}
+            onChange={value => onUpdate({ question: value })}
+            editing={editingQ}
+            onEditingChange={setEditingQ}
+            variant="question"
+          />
 
           {/* Answer — shimmer while fixing, editable otherwise */}
           <div>
@@ -368,22 +641,14 @@ function QuestionRow({ question, index, totalInSection, onUpdate, onDelete, onMo
                 <div className="h-2.5 w-5/6 rounded-full bg-muted" />
                 <div className="h-2.5 w-4/5 rounded-full bg-muted" />
               </div>
-            ) : editingA ? (
-              <textarea
-                autoFocus
-                className="w-full text-[13px] text-muted-foreground bg-transparent border border-border rounded-lg p-2 outline-none resize-none focus:border-primary"
-                rows={4}
-                value={question.answer}
-                onChange={e => onUpdate({ answer: e.target.value })}
-                onBlur={() => setEditingA(false)}
-              />
             ) : (
-              <p
-                className="text-[13px] text-muted-foreground cursor-text hover:text-foreground transition-colors leading-relaxed"
-                onClick={() => setEditingA(true)}
-              >
-                {question.answer}
-              </p>
+              <EditableFAQField
+                value={question.answer}
+                onChange={value => onUpdate({ answer: value })}
+                editing={editingA}
+                onEditingChange={setEditingA}
+                variant="answer"
+              />
             )}
           </div>
 
@@ -500,7 +765,7 @@ function SectionBlock({
   }, [section.questions, onUpdate]);
 
   return (
-    <div className="rounded-xl border border-border bg-background overflow-hidden shadow-sm">
+    <div className="rounded-xl border border-border/60 bg-background overflow-hidden">
       {/* Section header */}
       <div className="flex items-center gap-2 px-4 py-2.5 bg-muted/30 border-b border-border">
         <GripVertical
@@ -517,7 +782,7 @@ function SectionBlock({
             className="flex-1 min-w-0 text-[13px] font-semibold text-foreground bg-transparent border-b border-primary outline-none"
             value={section.title}
             onChange={e => onUpdate({ title: e.target.value })}
-            onBlur={() => setEditingTitle(false)}
+            onBlur={e => { if (shouldCloseTextEditor(e)) setEditingTitle(false); }}
             onKeyDown={e => { if (e.key === 'Enter' || e.key === 'Escape') setEditingTitle(false); }}
           />
         ) : (
@@ -615,7 +880,7 @@ function SectionBlock({
           <button
             type="button"
             onClick={onAddQuestion}
-            className="w-full flex items-center gap-2 px-6 py-2.5 text-[12.5px] text-muted-foreground hover:text-primary hover:bg-muted/30 transition-colors border-t border-border"
+            className="w-full flex items-center gap-2 px-6 py-2.5 text-[12.5px] text-muted-foreground hover:text-primary hover:bg-muted/30 transition-colors"
           >
             <Plus size={13} strokeWidth={1.6} absoluteStrokeWidth />
             Add question
@@ -628,7 +893,7 @@ function SectionBlock({
 
 // ── Main component ────────────────────────────────────────────────────────────
 
-export function FAQSectionCanvas({ sections, generationLabel, onEditSettings }: FAQSectionCanvasProps) {
+export function FAQSectionCanvas({ sections, generationLabel }: FAQSectionCanvasProps) {
   const [sectionData, setSectionData] = useState<FAQSectionData[]>(() =>
     generateMockFAQs(sections)
   );
@@ -637,12 +902,14 @@ export function FAQSectionCanvas({ sections, generationLabel, onEditSettings }: 
   const [scorePanelOpen, setScorePanelOpen] = useState(true);
   const [fixingAll, setFixingAll] = useState(false);
   const [panelBump, setPanelBump] = useState(0);
+  const [activityOpen, setActivityOpen] = useState(false);
+  const [richTextVisible, setRichTextVisible] = useState(false);
+  const [canvasToolbarPosition, setCanvasToolbarPosition] = useState<EditorToolbarPosition>({ top: 96, left: 640 });
+  const [richTextPosition, setRichTextPosition] = useState<EditorToolbarPosition | undefined>();
   const canvasRef = useRef<HTMLDivElement>(null);
+  const activeTextTargetRef = useRef<HTMLElement | null>(null);
 
   // Card metadata state
-  const [approvalStatus, setApprovalStatus] = useState<string | null>(null);
-  const [assignee, setAssignee] = useState<string | null>(null);
-  const [scheduleDate, setScheduleDate] = useState<string | null>(null);
   const [publishModalOpen, setPublishModalOpen] = useState(false);
 
   // Save to Saved — null = closed, 'all' = save full FAQ, FAQSectionData = save one section
@@ -663,6 +930,83 @@ export function FAQSectionCanvas({ sections, generationLabel, onEditSettings }: 
     el.addEventListener('wheel', handler, { passive: false });
     return () => el.removeEventListener('wheel', handler);
   }, []);
+
+  const updateCanvasToolbarPosition = useCallback(() => {
+    const el = canvasRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    setCanvasToolbarPosition({
+      top: Math.max(64, rect.top + 16),
+      left: rect.left + rect.width / 2,
+    });
+  }, []);
+
+  const updateRichTextPosition = useCallback((target?: HTMLElement | null) => {
+    const activeTarget = target ?? activeTextTargetRef.current;
+    if (!activeTarget) return;
+    const selection = window.getSelection();
+    const selectionRect = selection && selection.rangeCount > 0 && !selection.isCollapsed
+      ? selection.getRangeAt(0).getBoundingClientRect()
+      : null;
+    const rect = selectionRect && selectionRect.width > 0
+      ? selectionRect
+      : activeTarget.getBoundingClientRect();
+    setRichTextPosition({
+      top: Math.max(64, rect.top - 56),
+      left: rect.left + rect.width / 2,
+    });
+  }, []);
+
+  useEffect(() => {
+    const el = canvasRef.current;
+    if (!el) return;
+
+    function isTextEditor(target: EventTarget | null) {
+      if (!(target instanceof HTMLElement)) return false;
+      return Boolean(target.closest('input, textarea, [contenteditable="true"]'));
+    }
+
+    function handleFocusIn(event: FocusEvent) {
+      if (!isTextEditor(event.target)) return;
+      activeTextTargetRef.current = event.target as HTMLElement;
+      updateRichTextPosition(event.target as HTMLElement);
+      setRichTextVisible(true);
+    }
+
+    function handleFocusOut() {
+      window.setTimeout(() => {
+        if (isTextEditor(document.activeElement)) return;
+        activeTextTargetRef.current = null;
+        setRichTextVisible(false);
+      }, 0);
+    }
+
+    function handleSelectionChange() {
+      if (!isTextEditor(document.activeElement)) return;
+      updateRichTextPosition(document.activeElement as HTMLElement);
+    }
+
+    function handleScrollOrResize() {
+      updateCanvasToolbarPosition();
+      if (isTextEditor(document.activeElement)) {
+        updateRichTextPosition(document.activeElement as HTMLElement);
+      }
+    }
+
+    updateCanvasToolbarPosition();
+    el.addEventListener('focusin', handleFocusIn);
+    el.addEventListener('focusout', handleFocusOut);
+    el.addEventListener('scroll', handleScrollOrResize);
+    window.addEventListener('resize', handleScrollOrResize);
+    document.addEventListener('selectionchange', handleSelectionChange);
+    return () => {
+      el.removeEventListener('focusin', handleFocusIn);
+      el.removeEventListener('focusout', handleFocusOut);
+      el.removeEventListener('scroll', handleScrollOrResize);
+      window.removeEventListener('resize', handleScrollOrResize);
+      document.removeEventListener('selectionchange', handleSelectionChange);
+    };
+  }, [updateCanvasToolbarPosition, updateRichTextPosition]);
 
   // ── Undo / redo history ────────────────────────────────────────────────────
   const historyRef    = useRef<FAQSectionData[][]>([]);
@@ -708,9 +1052,41 @@ export function FAQSectionCanvas({ sections, generationLabel, onEditSettings }: 
   const setScore     = Math.min(100, canvasScore + panelBump);
 
   const faqConfig = EDITOR_CONFIGS['faq'];
+  const visibleSections = sectionData.filter(section => !section.standalone);
 
   const updateSection = useCallback((sId: string, patch: Partial<FAQSectionData>) => {
     setData(prev => prev.map(s => s.id === sId ? { ...s, ...patch } : s));
+  }, [setData]);
+
+  const updateQuestionInSection = useCallback((sId: string, qId: string, patch: Partial<FAQQuestion>) => {
+    setData(prev => prev.map(section =>
+      section.id === sId
+        ? { ...section, questions: section.questions.map(q => q.id === qId ? { ...q, ...patch } : q) }
+        : section,
+    ));
+  }, [setData]);
+
+  const deleteQuestionFromSection = useCallback((sId: string, qId: string) => {
+    setData(prev => prev
+      .map(section =>
+        section.id === sId
+          ? { ...section, questions: section.questions.filter(q => q.id !== qId) }
+          : section,
+      )
+      .filter(section => !section.standalone || section.questions.length > 0));
+  }, [setData]);
+
+  const moveQuestionInSection = useCallback((sId: string, qId: string, dir: 'up' | 'down') => {
+    setData(prev => prev.map(section => {
+      if (section.id !== sId) return section;
+      const idx = section.questions.findIndex(q => q.id === qId);
+      if (dir === 'up' && idx === 0) return section;
+      if (dir === 'down' && idx === section.questions.length - 1) return section;
+      const next = [...section.questions];
+      const swap = dir === 'up' ? idx - 1 : idx + 1;
+      [next[idx], next[swap]] = [next[swap], next[idx]];
+      return { ...section, questions: next };
+    }));
   }, [setData]);
 
   const deleteSection = useCallback((sId: string) => {
@@ -737,15 +1113,8 @@ export function FAQSectionCanvas({ sections, generationLabel, onEditSettings }: 
     ]);
   }, [setData]);
 
-  const addQuestion = useCallback((sId: string) => {
-    const newQ: FAQQuestion = {
-      id: makeQId(),
-      question: 'New question',
-      answer: 'Write your answer here.',
-      expanded: true,
-      status: 'warning',
-      warningText: 'This question needs a proper answer.',
-    };
+  const addQuestionToSection = useCallback((sId: string) => {
+    const newQ = createNewFAQQuestion();
     setData(prev => prev.map(s =>
       s.id === sId ? { ...s, questions: [...s.questions, newQ] } : s
     ));
@@ -770,30 +1139,74 @@ export function FAQSectionCanvas({ sections, generationLabel, onEditSettings }: 
     }, 1800);
   }, [setData]);
 
-  // Manual panel callbacks — add to last section, or create one first
+  // Manual panel callback — standalone Q&As are not forced into a section.
   const handleManualAddQuestion = useCallback(() => {
-    if (sectionData.length === 0) {
-      const id = `sec-${Date.now()}`;
-      const newQ: FAQQuestion = {
-        id: makeQId(),
-        question: 'New question',
-        answer: 'Write your answer here.',
-        expanded: true,
-        status: 'warning',
-        warningText: 'This question needs a proper answer.',
-      };
-      setData([{ id, title: 'New section', questions: [newQ], collapsed: false }]);
-    } else {
-      addQuestion(sectionData[sectionData.length - 1].id);
-    }
-  }, [sectionData, addQuestion, setData]);
+    const newQ = createNewFAQQuestion();
+    setData(prev => {
+      const standaloneIndex = prev.findIndex(section => section.standalone);
+      if (standaloneIndex >= 0) {
+        return prev.map((section, index) =>
+          index === standaloneIndex
+            ? { ...section, questions: [...section.questions, newQ] }
+            : section,
+        );
+      }
+      return [
+        {
+          id: `standalone-${Date.now()}`,
+          title: 'Standalone questions',
+          questions: [newQ],
+          collapsed: false,
+          standalone: true,
+        },
+        ...prev,
+      ];
+    });
+  }, [setData]);
+
+  const handleAddPrebuiltSection = useCallback((template: typeof FAQ_PREBUILT_SECTIONS[number]) => {
+    setData(prev => [
+      ...prev,
+      {
+        id: `${template.id}-${Date.now()}`,
+        title: template.title,
+        collapsed: false,
+        questions: template.questions.map(item => ({
+          id: makeQId(),
+          question: item.question,
+          answer: item.answer,
+          expanded: true,
+          status: 'ready' as QuestionStatus,
+        })),
+      },
+    ]);
+  }, [setData]);
+
+  const handleInsertSavedBlock = useCallback((block: SavedBlock) => {
+    setData(prev => [
+      ...prev,
+      {
+        id: `${block.id}-${Date.now()}`,
+        title: block.preview.title || block.name,
+        collapsed: false,
+        questions: block.preview.snippets.map((question, index) => ({
+          id: makeQId(),
+          question,
+          answer: 'Review and update this saved answer for the current page.',
+          expanded: true,
+          status: index === 0 ? 'warning' as QuestionStatus : 'ready' as QuestionStatus,
+          warningText: index === 0 ? 'Saved block inserted — review answer for this page.' : undefined,
+        })),
+      },
+    ]);
+  }, [setData]);
 
   return (
-    <div className="flex flex-1 min-h-0">
+    <div className="flex flex-1 min-h-0 gap-2 bg-[var(--color-canvas,#F7F8FA)] p-2 animate-in fade-in duration-500">
       {/* ── Left panel ───────────────────────────────────────────────── */}
       <div
-        className="flex-shrink-0 flex flex-col overflow-hidden border-r border-border"
-        style={{ width: 280 }}
+        className="flex-shrink-0 flex flex-col overflow-hidden rounded-xl border border-border/60 bg-background"
+        style={{ width: 300 }}
       >
         <div className="flex-none px-4 py-3 border-b border-border">
           <SegmentedToggle
@@ -813,288 +1226,88 @@ export function FAQSectionCanvas({ sections, generationLabel, onEditSettings }: 
             <FAQManualContent
               onAddQuestion={handleManualAddQuestion}
               onAddSection={addSection}
+              onAddPrebuiltSection={handleAddPrebuiltSection}
+              onInsertSavedBlock={handleInsertSavedBlock}
             />
           )}
         </div>
       </div>
 
       {/* ── Center canvas ─────────────────────────────────────────────── */}
-      <div className="flex flex-1 min-w-0 flex-col overflow-hidden bg-[var(--color-canvas,#F7F8FA)]">
-        <div ref={canvasRef} className="flex-1 min-h-0 overflow-y-auto relative">
+      <div className="flex flex-1 min-w-0 flex-col gap-2 overflow-hidden">
+        {richTextVisible && (
+          <EditorChromeToolbar
+            canUndo={canUndo}
+            canRedo={canRedo}
+            onUndo={handleUndo}
+            onRedo={handleRedo}
+            zoom={zoom}
+            onZoomOut={() => setZoom(z => Math.max(0.5, +(z - 0.1).toFixed(2)))}
+            onZoomIn={() => setZoom(z => Math.min(2, +(z + 0.1).toFixed(2)))}
+            richTextVisible={richTextVisible}
+            canvasPosition={canvasToolbarPosition}
+            richTextPosition={richTextPosition}
+          />
+        )}
+        <CanvasEditorTopBar
+          score={setScore}
+          scoreLabel="Content score"
+          scorePanelOpen={scorePanelOpen}
+          onScoreClick={() => setScorePanelOpen(v => !v)}
+          canUndo={canUndo}
+          canRedo={canRedo}
+          onUndo={handleUndo}
+          onRedo={handleRedo}
+          zoom={zoom}
+          onZoomOut={() => setZoom(z => Math.max(0.5, +(z - 0.1).toFixed(2)))}
+          onZoomIn={() => setZoom(z => Math.min(2, +(z + 0.1).toFixed(2)))}
+          onActivity={() => setActivityOpen(true)}
+          onSave={() => setSavingTarget('all')}
+        />
 
-          {/* Floating toolbar — undo/redo + zoom */}
-          <div className="sticky top-4 z-20 flex justify-center pointer-events-none">
-            <div className="bg-background rounded-lg shadow-sm border border-border pointer-events-auto">
-              <div className="flex items-center px-4 py-2 gap-3">
-                <button
-                  type="button"
-                  onClick={handleUndo}
-                  disabled={!canUndo}
-                  title="Undo"
-                  className="p-1.5 hover:bg-muted rounded-md transition-colors disabled:opacity-30"
-                >
-                  <Undo2 size={15} strokeWidth={1.6} absoluteStrokeWidth className="text-foreground" />
-                </button>
-                <button
-                  type="button"
-                  onClick={handleRedo}
-                  disabled={!canRedo}
-                  title="Redo"
-                  className="p-1.5 hover:bg-muted rounded-md transition-colors disabled:opacity-30"
-                >
-                  <Redo2 size={15} strokeWidth={1.6} absoluteStrokeWidth className="text-foreground" />
-                </button>
-
-                <div className="w-px h-4 bg-border" />
-
-                <button
-                  type="button"
-                  onClick={() => setZoom(z => Math.max(0.5, +(z - 0.1).toFixed(2)))}
-                  className="p-1 hover:bg-muted rounded-md transition-colors"
-                >
-                  <ZoomOut size={15} strokeWidth={1.6} absoluteStrokeWidth className="text-foreground" />
-                </button>
-                <span className="text-[13px] text-muted-foreground text-nowrap min-w-[40px] text-center">
-                  {Math.round(zoom * 100)}%
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setZoom(z => Math.min(2, +(z + 0.1).toFixed(2)))}
-                  className="p-1 hover:bg-muted rounded-md transition-colors"
-                >
-                  <ZoomIn size={15} strokeWidth={1.6} absoluteStrokeWidth className="text-foreground" />
-                </button>
-              </div>
-            </div>
-          </div>
+        <div ref={canvasRef} className="relative min-h-0 flex-1 overflow-y-auto rounded-xl bg-transparent">
 
           {/* FAQ card container — padding stays fixed, only the card scales */}
           <div className="px-8 py-6 pb-10">
             <div style={{ zoom }}>
-            <div className={cn(
-              'rounded-xl border bg-background transition-shadow',
-              scorePanelOpen ? 'border-primary/30' : 'border-border hover:border-primary/30',
-            )}>
-
-              {/* Card header */}
-              <div className="flex items-center gap-2 px-4 h-12 border-b border-border">
-
-                {/* LEFT: icon + name + score */}
-                <div className="flex items-center gap-2 flex-1 min-w-0">
-                  <div className="size-6 rounded-md bg-primary/[0.07] flex items-center justify-center flex-none">
-                    <MessageSquare size={13} strokeWidth={1.6} absoluteStrokeWidth className="text-foreground/70" />
-                  </div>
-                  <span className="text-[13px] font-medium text-foreground truncate">
-                    FAQ page
-                  </span>
-                  <ScoreBar
-                    score={setScore}
-                    active={scorePanelOpen}
-                    onClick={() => setScorePanelOpen(v => !v)}
-                  />
-                </div>
-
-                {/* RIGHT: metadata dropdowns + action icons */}
-                <div className="flex items-center gap-1 flex-none">
-
-                  {/* Assign dropdown */}
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <button
-                        type="button"
-                        className={cn(
-                          'flex items-center gap-1 h-7 px-2 rounded-md text-[12px] transition-colors',
-                          assignee
-                            ? 'text-primary bg-primary/[0.07] hover:bg-primary/[0.11]'
-                            : 'text-muted-foreground hover:bg-muted hover:text-foreground',
-                        )}
-                      >
-                        <UserCircle2 size={13} strokeWidth={1.6} absoluteStrokeWidth />
-                        <span className="max-w-[72px] truncate">{assignee ?? 'Assign'}</span>
-                        <ChevronDown size={10} strokeWidth={1.6} absoluteStrokeWidth className="opacity-60" />
-                      </button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-44">
-                      {['Haresh R.', 'Priya K.', 'Arjun M.', 'Balaji K.'].map(name => (
-                        <DropdownMenuItem key={name} onSelect={() => setAssignee(name)}>
-                          <UserCircle2 size={13} strokeWidth={1.6} absoluteStrokeWidth className="mr-2 text-muted-foreground flex-none" />
-                          {name}
-                          {assignee === name && (
-                            <CheckCircle2 size={12} strokeWidth={1.6} absoluteStrokeWidth className="ml-auto text-primary flex-none" />
-                          )}
-                        </DropdownMenuItem>
-                      ))}
-                      {assignee && (
-                        <>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem onSelect={() => setAssignee(null)} className="text-muted-foreground">
-                            Unassign
-                          </DropdownMenuItem>
-                        </>
-                      )}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-
-                  {/* Approval dropdown */}
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <button
-                        type="button"
-                        className={cn(
-                          'flex items-center gap-1 h-7 px-2 rounded-md text-[12px] transition-colors',
-                          approvalStatus === 'Approved'
-                            ? 'text-[#1D9E75] bg-[#1D9E75]/[0.07] hover:bg-[#1D9E75]/[0.12]'
-                            : approvalStatus === 'Needs review' || approvalStatus === 'Pending'
-                            ? 'text-amber-600 bg-amber-50 hover:bg-amber-100'
-                            : approvalStatus === 'Rejected'
-                            ? 'text-destructive bg-destructive/[0.07] hover:bg-destructive/[0.12]'
-                            : 'text-muted-foreground hover:bg-muted hover:text-foreground',
-                        )}
-                      >
-                        {approvalStatus === 'Approved'
-                          ? <CheckCircle size={13} strokeWidth={1.6} absoluteStrokeWidth />
-                          : approvalStatus === 'Rejected'
-                          ? <XCircle size={13} strokeWidth={1.6} absoluteStrokeWidth />
-                          : <CircleDashed size={13} strokeWidth={1.6} absoluteStrokeWidth />
-                        }
-                        <span className="max-w-[72px] truncate">{approvalStatus ?? 'Approval'}</span>
-                        <ChevronDown size={10} strokeWidth={1.6} absoluteStrokeWidth className="opacity-60" />
-                      </button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-40">
-                      {['Approved', 'Needs review', 'Pending', 'Rejected'].map(status => (
-                        <DropdownMenuItem key={status} onSelect={() => setApprovalStatus(status)}>
-                          {status}
-                          {approvalStatus === status && (
-                            <CheckCircle2 size={12} strokeWidth={1.6} absoluteStrokeWidth className="ml-auto text-primary flex-none" />
-                          )}
-                        </DropdownMenuItem>
-                      ))}
-                      {approvalStatus && (
-                        <>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem onSelect={() => setApprovalStatus(null)} className="text-muted-foreground">
-                            Clear
-                          </DropdownMenuItem>
-                        </>
-                      )}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-
-                  {/* Schedule dropdown */}
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <button
-                        type="button"
-                        className={cn(
-                          'flex items-center gap-1 h-7 px-2 rounded-md text-[12px] transition-colors',
-                          scheduleDate
-                            ? 'text-primary bg-primary/[0.07] hover:bg-primary/[0.11]'
-                            : 'text-muted-foreground hover:bg-muted hover:text-foreground',
-                        )}
-                      >
-                        <CalendarDays size={13} strokeWidth={1.6} absoluteStrokeWidth />
-                        <span className="max-w-[72px] truncate">{scheduleDate ?? 'Schedule'}</span>
-                        <ChevronDown size={10} strokeWidth={1.6} absoluteStrokeWidth className="opacity-60" />
-                      </button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-44">
-                      {['Today', 'Tomorrow', 'This Friday', 'May 15', 'May 22'].map(date => (
-                        <DropdownMenuItem key={date} onSelect={() => setScheduleDate(date)}>
-                          {date}
-                          {scheduleDate === date && (
-                            <CheckCircle2 size={12} strokeWidth={1.6} absoluteStrokeWidth className="ml-auto text-primary flex-none" />
-                          )}
-                        </DropdownMenuItem>
-                      ))}
-                      {scheduleDate && (
-                        <>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem onSelect={() => setScheduleDate(null)} className="text-muted-foreground">
-                            Clear
-                          </DropdownMenuItem>
-                        </>
-                      )}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-
-                  <div className="w-px h-4 bg-border mx-0.5" />
-
-                  {/* Activity */}
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <button
-                        type="button"
-                        className="flex items-center justify-center w-7 h-7 rounded text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-                      >
-                        <Activity size={14} strokeWidth={1.6} absoluteStrokeWidth />
-                      </button>
-                    </TooltipTrigger>
-                    <TooltipContent>Activity</TooltipContent>
-                  </Tooltip>
-
-                  {/* Version history */}
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <button
-                        type="button"
-                        className="flex items-center justify-center w-7 h-7 rounded text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-                      >
-                        <History size={14} strokeWidth={1.6} absoluteStrokeWidth />
-                      </button>
-                    </TooltipTrigger>
-                    <TooltipContent>Version history</TooltipContent>
-                  </Tooltip>
-
-                  {/* Add comment */}
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <button
-                        type="button"
-                        className="flex items-center justify-center w-7 h-7 rounded text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-                      >
-                        <MessageCircle size={14} strokeWidth={1.6} absoluteStrokeWidth />
-                      </button>
-                    </TooltipTrigger>
-                    <TooltipContent>Add comment</TooltipContent>
-                  </Tooltip>
-
-                  <div className="w-px h-4 bg-border mx-0.5" />
-
-                  {/* Save to Saved — full FAQ */}
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <button
-                        type="button"
-                        onClick={() => setSavingTarget('all')}
-                        className="flex items-center justify-center w-7 h-7 rounded text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-                      >
-                        <BookmarkCheck size={14} strokeWidth={1.6} absoluteStrokeWidth />
-                      </button>
-                    </TooltipTrigger>
-                    <TooltipContent>Save entire FAQ to reuse in blogs and landing pages</TooltipContent>
-                  </Tooltip>
-
-                </div>
-              </div>
+            <div className="rounded-xl border border-border/60 bg-background">
 
               {/* Section sub-cards with visual separation */}
               <div className="p-4 flex flex-col gap-3">
-                {sectionData.map((section, idx) => (
-                  <SectionBlock
-                    key={section.id}
-                    section={section}
-                    sectionIndex={idx}
-                    totalSections={sectionData.length}
-                    onUpdate={patch => updateSection(section.id, patch)}
-                    onDelete={() => deleteSection(section.id)}
-                    onMoveUp={() => moveSection(section.id, 'up')}
-                    onMoveDown={() => moveSection(section.id, 'down')}
-                    onAddQuestion={() => addQuestion(section.id)}
-                    onSaveToSaved={() => setSavingTarget(section)}
-                    fixingAll={fixingAll}
-                  />
-                ))}
+                {sectionData.map(section => {
+                  if (section.standalone) {
+                    return section.questions.map((question, qi) => (
+                      <QuestionRow
+                        key={question.id}
+                        question={question}
+                        index={qi}
+                        totalInSection={section.questions.length}
+                        onUpdate={patch => updateQuestionInSection(section.id, question.id, patch)}
+                        onDelete={() => deleteQuestionFromSection(section.id, question.id)}
+                        onMoveUp={() => moveQuestionInSection(section.id, question.id, 'up')}
+                        onMoveDown={() => moveQuestionInSection(section.id, question.id, 'down')}
+                        fixingAll={fixingAll}
+                      />
+                    ));
+                  }
+
+                  const sectionIndex = visibleSections.findIndex(visible => visible.id === section.id);
+                  return (
+                    <SectionBlock
+                      key={section.id}
+                      section={section}
+                      sectionIndex={sectionIndex}
+                      totalSections={visibleSections.length}
+                      onUpdate={patch => updateSection(section.id, patch)}
+                      onDelete={() => deleteSection(section.id)}
+                      onMoveUp={() => moveSection(section.id, 'up')}
+                      onMoveDown={() => moveSection(section.id, 'down')}
+                      onAddQuestion={() => addQuestionToSection(section.id)}
+                      onSaveToSaved={() => setSavingTarget(section)}
+                      fixingAll={fixingAll}
+                    />
+                  );
+                })}
 
                 {/* Add section */}
                 <button
@@ -1171,6 +1384,11 @@ export function FAQSectionCanvas({ sections, generationLabel, onEditSettings }: 
           }))
         )}
         overallScore={setScore}
+      />
+      <ContentActivityDrawer
+        open={activityOpen}
+        onClose={() => setActivityOpen(false)}
+        contentType="faq"
       />
     </div>
   );

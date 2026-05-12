@@ -9,7 +9,7 @@ export function useFAQPrerequisiteCheck(): FAQPrerequisiteCheckResult {
   return {
     hasBrandKit: true,
     hasLocation: true,
-    brandKitName: 'LushGreen Brand Kit',
+    brandKitName: 'LushGreen corporate',
     locationName: '10 locations',
   };
 }

@@ -9,6 +9,7 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
 import type { WizardMode } from './wizardTypes';
+import { ContentFlowSelect, ContentFlowTextarea } from '../shared/ContentFlowControls';
 
 const TONES = ['Professional', 'Friendly', 'Authoritative', 'Conversational', 'Empathetic'];
 
@@ -120,26 +121,23 @@ export function BlogWizardStep3({ mode, step1Data: _s1, data, onChange }: BlogWi
       {/* Target audience */}
       <div className="flex flex-col gap-2">
         <label className="text-[13px] font-medium text-foreground">Target audience</label>
-        <textarea
+        <ContentFlowTextarea
           rows={2}
           value={audience}
           onChange={e => onChange({ ...data, audience: e.target.value })}
           placeholder="Describe who this content is for..."
-          className="w-full border border-border rounded-md px-3 py-2 text-[13px] bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring resize-none"
         />
-        <p className="text-[12px] text-muted-foreground">From your brand kit · edit freely</p>
+        <p className="text-[12px] text-muted-foreground">From your brand identity · edit freely</p>
       </div>
 
       {/* Tone */}
       <div className="flex flex-col gap-2">
         <label className="text-[13px] font-medium text-foreground">Tone of voice</label>
-        <select
+        <ContentFlowSelect
           value={tone}
-          onChange={e => onChange({ ...data, tone: e.target.value })}
-          className="w-full border border-border rounded-md px-3 py-2 text-[13px] bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-        >
-          {TONES.map(t => <option key={t} value={t}>{t}</option>)}
-        </select>
+          onChange={value => onChange({ ...data, tone: value })}
+          options={TONES.map(toneOption => ({ value: toneOption, label: toneOption }))}
+        />
       </div>
 
       {/* Length */}

@@ -17,6 +17,13 @@ import {
 import { cn } from '@/app/components/ui/utils';
 import { SegmentedToggle } from '@/app/components/ui/segmented-toggle.v1';
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/app/components/ui/select';
+import {
   type ContentMode,
   type ContentItemType,
   type CopilotQuestion,
@@ -43,7 +50,7 @@ const ITEM_ICON: Record<ContentItemType, React.ElementType> = {
 // ── Mode toggle items ─────────────────────────────────────────────────────────
 
 const MODE_ITEMS = [
-  { value: 'ai'     as const, label: 'AI',     icon: <Sparkles size={11} strokeWidth={1.6} absoluteStrokeWidth className="text-[#7c3aed]" /> },
+  { value: 'ai'     as const, label: 'AI',     icon: <Sparkles size={11} strokeWidth={1.2} absoluteStrokeWidth className="text-[#7c3aed]" /> },
   { value: 'manual' as const, label: 'Manual' },
 ];
 
@@ -437,16 +444,19 @@ function ManualPanel({
                 className="w-full rounded-lg border border-border bg-background px-3 py-2 text-[12.5px] text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary resize-none"
               />
             ) : field.type === 'select' && field.options ? (
-              <select
+              <Select
                 value={values[field.id] ?? ''}
-                onChange={e => set(field.id, e.target.value)}
-                className="w-full h-8 rounded-lg border border-border bg-background px-3 text-[12.5px] text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                onValueChange={value => set(field.id, value)}
               >
-                <option value="">Select…</option>
-                {field.options.map(opt => (
-                  <option key={opt} value={opt}>{opt}</option>
-                ))}
-              </select>
+                <SelectTrigger size="sm" className="h-8 rounded-lg border-border bg-background text-[12.5px]">
+                  <SelectValue placeholder="Select..." />
+                </SelectTrigger>
+                <SelectContent align="start">
+                  {field.options.map(opt => (
+                    <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             ) : (
               <input
                 type="text"

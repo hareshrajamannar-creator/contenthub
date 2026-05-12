@@ -28,14 +28,14 @@ export const Default: Story = {
 };
 
 export const Open: Story = {
-  name: 'Modal open — Birdeye tab',
+  name: 'Modal open',
   render: () => (
     <FAQPublishModal open onClose={() => {}} faqs={FAQS} overallScore={95} />
   ),
 };
 
 export const LowScore: Story = {
-  name: 'Low AEO score warning',
+  name: 'Low score',
   render: () => (
     <FAQPublishModal open onClose={() => {}} faqs={FAQS} overallScore={58} />
   ),

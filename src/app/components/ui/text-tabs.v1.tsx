@@ -17,6 +17,7 @@ export interface TextTabsRowProps<T extends string> {
   onChange: (id: T) => void;
   /** Optional `aria-label` for the tablist row. */
   ariaLabel?: string;
+  variant?: "underline" | "plain";
   className?: string;
 }
 
@@ -30,13 +31,20 @@ export function TextTabsRow<T extends string>({
   value,
   onChange,
   ariaLabel,
+  variant = "underline",
   className,
 }: TextTabsRowProps<T>) {
+  const isPlain = variant === "plain";
+
   return (
     <div
       role="tablist"
       aria-label={ariaLabel}
-      className={cn("flex flex-wrap items-end gap-x-2 gap-y-2 border-b border-border", className)}
+      className={cn(
+        "flex flex-wrap items-end gap-x-2 gap-y-2",
+        !isPlain && "border-b border-border",
+        className,
+      )}
     >
       {items.map((item) => {
         const isActive = value === item.id;
@@ -49,10 +57,17 @@ export function TextTabsRow<T extends string>({
             disabled={item.disabled}
             onClick={() => !item.disabled && onChange(item.id)}
             className={cn(
-              "-mb-px inline-flex items-center gap-2 px-2 pb-2 pt-1 text-sm font-medium transition-colors",
+              "inline-flex items-center gap-2 px-2 pb-2 pt-1 text-sm font-medium transition-colors",
+              !isPlain && "-mb-px",
+              "border-b-2",
               isActive
-                ? "border-b-2 border-primary text-primary hover:text-primary"
-                : "border-b-2 border-transparent text-muted-foreground hover:border-border hover:text-foreground",
+                ? isPlain
+                  ? "border-primary text-foreground hover:text-foreground"
+                  : "border-primary text-primary hover:text-primary"
+                : cn(
+                    "border-transparent text-muted-foreground hover:text-foreground",
+                    !isPlain && "hover:border-border",
+                  ),
               item.disabled && "pointer-events-none opacity-50",
             )}
           >

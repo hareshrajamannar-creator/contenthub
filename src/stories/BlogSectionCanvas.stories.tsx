@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react";
+import { userEvent, within } from "@storybook/test";
 import { BlogSectionCanvas } from "@/app/components/content-hub/blog/BlogSectionCanvas";
 import type { BlogSection } from "@/app/components/content-hub/blog/BlogInlineCreationFlow";
 
@@ -58,7 +59,7 @@ type Story = StoryObj<typeof BlogSectionCanvas>;
 export const Default: Story = {
   args: {
     sections: DEFAULT_SECTIONS,
-    generationLabel: "Customer experience guide — Olive Garden brand kit",
+    generationLabel: "Customer experience guide — Olive Garden brand identity",
   },
 };
 
@@ -82,5 +83,30 @@ export const No_generation_label: Story = {
   name: "No generation label",
   args: {
     sections: DEFAULT_SECTIONS,
+  },
+};
+
+export const Text_editing_toolbar: Story = {
+  name: "Text editing toolbar",
+  args: {
+    sections: DEFAULT_SECTIONS,
+    generationLabel: "Customer experience guide — Olive Garden brand identity",
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await userEvent.click(canvas.getByText("The Complete Guide to Building Exceptional Customer Experiences"));
+  },
+};
+
+export const Manual_block_tabs: Story = {
+  name: "Manual block tabs",
+  args: {
+    sections: DEFAULT_SECTIONS,
+    generationLabel: "Customer experience guide — Olive Garden brand identity",
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await userEvent.click(canvas.getByRole("button", { name: "Manual" }));
+    await userEvent.click(canvas.getByRole("button", { name: "Pre-built" }));
   },
 };

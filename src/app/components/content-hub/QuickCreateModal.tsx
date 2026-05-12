@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/app/components/ui/utils';
 import { MODAL_OVERLAY_VISUAL_CLASS } from '@/app/components/ui/modalOverlayClasses';
+import { ContentFlowTextarea, ContentFlowTextInput } from './shared/ContentFlowControls';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -19,7 +20,7 @@ export interface QuickCreateModalProps {
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
-const BRAND_KIT = { name: 'LushGreen Brand Kit', locations: 10 };
+const BRAND_KIT = { name: 'LushGreen corporate', locations: 10 };
 
 const FAQ_Q_OPTIONS  = [5, 10, 15, 20];
 const BLOG_CT_OPTIONS = [1, 2, 3, 5];
@@ -42,9 +43,9 @@ const TITLE: Record<QuickCreateMode, string> = {
 };
 
 const STEP_LABELS: Record<QuickCreateMode, string[]> = {
-  faq:     ['Brand kit & details', 'Review content idea'],
-  blog:    ['Brand kit & details', 'Review content ideas'],
-  project: ['Brand kit & details', 'Select content types', 'Review content ideas'],
+  faq:     ['Brand identity & details', 'Review content idea'],
+  blog:    ['Brand identity & details', 'Review content ideas'],
+  project: ['Brand identity & details', 'Select content types', 'Review content ideas'],
 };
 
 // ── Project content types ─────────────────────────────────────────────────────
@@ -159,11 +160,11 @@ function IdeaBox({ label, value, onChange, rows = 2 }: { label?: string; value: 
   return (
     <div className="flex flex-col gap-1">
       {label && <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">{label}</p>}
-      <textarea
+      <ContentFlowTextarea
         value={value}
         onChange={e => onChange(e.target.value)}
         rows={rows}
-        className="w-full rounded-lg border border-border bg-muted/20 px-3 py-2 text-[13px] text-foreground leading-relaxed resize-none focus:outline-none focus:ring-1 focus:ring-primary/30 transition-shadow"
+        className="leading-relaxed"
       />
     </div>
   );
@@ -251,17 +252,16 @@ export function QuickCreateModal({ mode, onClose, onGenerate }: QuickCreateModal
     return (
       <div className="flex flex-col gap-6">
         <div className="flex flex-col gap-1.5">
-          <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Brand kit</p>
+          <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Brand identity</p>
           <BrandKitCard />
         </div>
         <div className="flex flex-col gap-1.5">
           <label className="text-[13px] font-medium text-foreground">What should the FAQ cover?</label>
-          <textarea
+          <ContentFlowTextarea
             value={faqTopic}
             onChange={e => setFaqTopic(e.target.value)}
             placeholder="e.g. Property appraisals for homeowners in Dubbo"
             rows={3}
-            className="w-full rounded-lg border border-border bg-muted/20 px-3 py-2 text-[13px] text-foreground placeholder:text-muted-foreground/60 resize-none focus:outline-none focus:ring-1 focus:ring-primary/30 transition-shadow"
           />
         </div>
         <div className="flex flex-col gap-2">
@@ -287,28 +287,26 @@ export function QuickCreateModal({ mode, onClose, onGenerate }: QuickCreateModal
     return (
       <div className="flex flex-col gap-6">
         <div className="flex flex-col gap-1.5">
-          <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Brand kit</p>
+          <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Brand identity</p>
           <BrandKitCard />
         </div>
         <div className="flex flex-col gap-1.5">
           <label className="text-[13px] font-medium text-foreground">What should this blog be about?</label>
-          <textarea
+          <ContentFlowTextarea
             value={blogTopic}
             onChange={e => setBlogTopic(e.target.value)}
             placeholder="e.g. Property appraisal guide for Dubbo homeowners"
             rows={2}
-            className="w-full rounded-lg border border-border bg-muted/20 px-3 py-2 text-[13px] text-foreground placeholder:text-muted-foreground/60 resize-none focus:outline-none focus:ring-1 focus:ring-primary/30 transition-shadow"
           />
         </div>
         <div className="flex flex-col gap-1.5">
           <label className="text-[13px] font-medium text-foreground">
             Target keywords <span className="font-normal text-muted-foreground">(optional)</span>
           </label>
-          <input
+          <ContentFlowTextInput
             value={blogKeywords}
             onChange={e => setBlogKeywords(e.target.value)}
             placeholder="e.g. property appraisal, Dubbo real estate"
-            className="w-full rounded-lg border border-border bg-muted/20 px-3 py-2 text-[13px] text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-1 focus:ring-primary/30 transition-shadow"
           />
           <p className="text-[11px] text-muted-foreground">Separate multiple keywords with commas.</p>
         </div>
@@ -345,27 +343,25 @@ export function QuickCreateModal({ mode, onClose, onGenerate }: QuickCreateModal
     return (
       <div className="flex flex-col gap-6">
         <div className="flex flex-col gap-1.5">
-          <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Brand kit</p>
+          <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Brand identity</p>
           <BrandKitCard />
         </div>
         <div className="flex flex-col gap-1.5">
           <label className="text-[13px] font-medium text-foreground">Project name</label>
-          <input
+          <ContentFlowTextInput
             value={projectName}
             onChange={e => setProjectName(e.target.value)}
-            className="w-full rounded-lg border border-border bg-muted/20 px-3 py-2 text-[13px] text-foreground focus:outline-none focus:ring-1 focus:ring-primary/30 transition-shadow"
           />
         </div>
         <div className="flex flex-col gap-1.5">
           <label className="text-[13px] font-medium text-foreground">
             What is this project about? <span className="font-normal text-muted-foreground">(optional)</span>
           </label>
-          <textarea
+          <ContentFlowTextarea
             value={projectContext}
             onChange={e => setProjectContext(e.target.value)}
             placeholder="e.g. Spring season campaign to promote garden cleanup services"
             rows={3}
-            className="w-full rounded-lg border border-border bg-muted/20 px-3 py-2 text-[13px] text-foreground placeholder:text-muted-foreground/60 resize-none focus:outline-none focus:ring-1 focus:ring-primary/30 transition-shadow"
           />
         </div>
       </div>

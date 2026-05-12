@@ -77,7 +77,7 @@ export const BrandKitSetup = ({ open, onOpenChange, onSave, initialKit }: BrandK
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="right" inset="floating" floatingSize="md" className="flex flex-col p-0 gap-0">
         <SheetHeader className="px-6 pt-6 pb-4 border-b border-border flex-shrink-0">
-          <SheetTitle>Brand kit</SheetTitle>
+          <SheetTitle>Brand identity</SheetTitle>
           <SheetDescription>
             Set once. Applied to every content type automatically.
           </SheetDescription>
@@ -211,7 +211,7 @@ export const BrandKitSetup = ({ open, onOpenChange, onSave, initialKit }: BrandK
             Cancel
           </Button>
           <Button variant="default" size="sm" onClick={handleSave}>
-            Save brand kit
+            Save brand identity
           </Button>
         </SheetFooter>
       </SheetContent>

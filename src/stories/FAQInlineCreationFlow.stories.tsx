@@ -8,7 +8,7 @@ const meta: Meta<typeof FAQInlineCreationFlow> = {
     layout: 'fullscreen',
     docs: {
       description: {
-        component: 'Inline FAQ setup flow opened from Content Hub Home. Uses flat native selectors and stable parent navigation sync.',
+        component: 'Inline FAQ setup flow with a fixed-height scroll container and one detailed FAQ content brief.',
       },
     },
   },

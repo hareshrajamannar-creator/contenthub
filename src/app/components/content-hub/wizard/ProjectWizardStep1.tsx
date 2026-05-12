@@ -7,6 +7,7 @@
 
 import React from 'react';
 import { cn } from '@/lib/utils';
+import { ContentFlowSelect } from '../shared/ContentFlowControls';
 
 interface ProjectType {
   id: string;
@@ -66,14 +67,14 @@ export function ProjectWizardStep1({ data, onChange }: ProjectWizardStep1Props) 
 
   return (
     <div className="flex flex-col gap-6 p-6">
-      {/* Brand kit context */}
+      {/* Brand identity context */}
       <div className="bg-muted border border-border rounded-lg px-4 py-3 flex items-center gap-3">
         <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="shrink-0 text-muted-foreground">
           <rect x="3" y="6" width="8" height="7" rx="1.5" stroke="currentColor" strokeWidth="1.4" />
           <path d="M5 6V4.5a2 2 0 014 0V6" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
         </svg>
         <span className="text-[12px] text-muted-foreground">
-          <span className="font-medium text-foreground">LushGreen Brand Kit</span>
+          <span className="font-medium text-foreground">LushGreen corporate</span>
           <span className="mx-2">·</span>
           <span className="font-medium text-foreground">10 locations</span>
         </span>
@@ -123,15 +124,11 @@ export function ProjectWizardStep1({ data, onChange }: ProjectWizardStep1Props) 
       {/* Agent picker */}
       <div className="flex flex-col gap-2">
         <label className="text-[13px] font-medium text-foreground">Generation agent</label>
-        <select
+        <ContentFlowSelect
           value={selectedAgent}
-          onChange={e => onChange({ ...data, agent: e.target.value })}
-          className="w-full border border-border rounded-md px-3 py-2 text-[13px] bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-        >
-          {AGENT_OPTIONS.map(a => (
-            <option key={a.value} value={a.value}>{a.label}</option>
-          ))}
-        </select>
+          onChange={value => onChange({ ...data, agent: value })}
+          options={AGENT_OPTIONS}
+        />
         <p className="text-[12px] text-muted-foreground">{agentDesc}</p>
       </div>
     </div>

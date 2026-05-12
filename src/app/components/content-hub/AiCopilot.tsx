@@ -9,7 +9,7 @@ function CopilotAvatar() {
   return (
     <div className="relative shrink-0 size-[20px]">
       <div className="absolute inset-0 rounded-full bg-[#E2D6F4] flex items-center justify-center">
-        <Sparkles size={10} className="text-[#6834B7]" strokeWidth={1.6} absoluteStrokeWidth />
+        <Sparkles size={10} className="text-[#6834B7]" strokeWidth={1.2} absoluteStrokeWidth />
       </div>
     </div>
   );
@@ -74,6 +74,20 @@ interface ChatMessage {
   chips?: string[];
   multiSelect?: boolean;
   isSummary?: boolean;
+  isLoading?: boolean;
+}
+
+function WorkingText({ text }: { text: string }) {
+  return (
+    <span className="inline-flex items-center gap-1 text-muted-foreground">
+      <span>{text}</span>
+      <span className="flex items-center gap-0.5" aria-hidden>
+        <span className="size-1 rounded-full bg-current animate-bounce [animation-delay:-0.2s]" />
+        <span className="size-1 rounded-full bg-current animate-bounce [animation-delay:-0.1s]" />
+        <span className="size-1 rounded-full bg-current animate-bounce" />
+      </span>
+    </span>
+  );
 }
 
 // ── Question scripts ───────────────────────────────────────────────────────────
@@ -254,9 +268,12 @@ function EditorCopilot({ mode = 'faq' }: { mode?: EditorMode }) {
   }, [messages]);
 
   function handleChip(chip: string) {
+    const userId = Date.now().toString();
+    const loadingId = `${userId}-working`;
     setMessages(prev => [
-      ...prev,
-      { id: Date.now().toString(), role: 'user', text: chip },
+      ...prev.map(message => ({ ...message, chips: undefined, multiSelect: undefined })),
+      { id: userId, role: 'user', text: chip },
+      { id: loadingId, role: 'ai', text: 'Working on it', isLoading: true },
     ]);
     const replyDef = repliesMap[chip];
     const fallbackChips = mode === 'blog'
@@ -264,21 +281,25 @@ function EditorCopilot({ mode = 'faq' }: { mode?: EditorMode }) {
       : ['Strengthen answers', 'Add missing questions', 'Improve SEO structure'];
     const reply: ChatMessage = replyDef
       ? {
-          id: (Date.now() + 1).toString(),
+          id: loadingId,
           role: 'ai',
           text: replyDef.text,
           chips: replyDef.chips,
           multiSelect: replyDef.multiSelect,
         }
       : {
-          id: (Date.now() + 1).toString(),
+          id: loadingId,
           role: 'ai',
           text: "Tell me more about what you'd like to change and I'll help refine it.",
           chips: fallbackChips,
         };
     setTimeout(() => {
-      setMessages(prev => [...prev, reply]);
-    }, 600);
+      setMessages(prev => prev.map(message => (
+        message.id === loadingId
+          ? reply
+          : message
+      )));
+    }, 900);
   }
 
   function handleSend(text: string) {
@@ -309,7 +330,7 @@ function EditorCopilot({ mode = 'faq' }: { mode?: EditorMode }) {
               </div>
               <div className="flex-1 flex flex-col gap-2 min-w-0">
                 <p className="text-[13px] text-foreground leading-relaxed whitespace-pre-line">
-                  {msg.text}
+                  {msg.isLoading ? <WorkingText text={msg.text} /> : msg.text}
                 </p>
                 {msg.chips && (
                   <div className="flex flex-wrap gap-2 mt-1">

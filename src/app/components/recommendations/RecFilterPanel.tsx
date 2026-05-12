@@ -15,6 +15,11 @@ const ALL_CATEGORIES: RecCategory[] = [
   'Technical SEO',
 ]
 
+const CATEGORY_DISPLAY_LABEL: Partial<Record<RecCategory, string>> = {
+  Content: 'Blog',
+  FAQ: 'FAQs',
+}
+
 const EFFORT_OPTIONS = ['Quick win', 'Medium', 'Bigger lift']
 
 interface RecFilterPanelProps {
@@ -107,7 +112,7 @@ export function RecFilterPanel({
         {ALL_CATEGORIES.map(cat => (
           <CheckboxRow
             key={cat}
-            label={cat}
+            label={CATEGORY_DISPLAY_LABEL[cat] ?? cat}
             checked={filterTypes.includes(cat)}
             onChange={() => toggleType(cat)}
           />

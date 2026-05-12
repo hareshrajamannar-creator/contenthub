@@ -1,16 +1,15 @@
 /**
  * FAQGenerationProgress
  *
- * Animated 4-step generation loading card shown between the inline flow
- * and the final FAQ canvas. Matches the design: purple-bordered outer card,
- * FAQ badge, progress bar, inner white card with step rows.
+ * Animated 4-step generation loading surface shown between the inline flow
+ * and the final FAQ canvas.
  *
  * Steps animate: pending → active (spinner) → done (green check), 1.5 s apart.
  * After all steps complete + 600 ms grace period, calls onComplete().
  */
 
 import React, { useState, useEffect } from 'react';
-import { Check, Loader2 } from 'lucide-react';
+import { Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { FAQSection } from './FAQInlineCreationFlow';
 
@@ -28,7 +27,6 @@ type StepStatus = 'pending' | 'active' | 'done';
 interface GenStep {
   id: string;
   label: string;
-  sublabel: string;
 }
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -37,57 +35,69 @@ const STEP_DURATION_MS = 1500;
 const DONE_GRACE_MS = 600;
 
 const GEN_STEPS: GenStep[] = [
-  { id: 'profile',   label: 'Analyzing your business profile',   sublabel: 'Reading brand kit, location data, and signals' },
-  { id: 'questions', label: 'Generating FAQ questions',           sublabel: 'Identifying top queries from customers and search data' },
-  { id: 'answers',   label: 'Writing optimized answers',          sublabel: 'Crafting concise, AEO-ready answer copy' },
-  { id: 'scoring',   label: 'Scoring for AEO impact',             sublabel: 'Evaluating schema readiness and answer completeness' },
+  { id: 'profile',   label: 'Analyzing your business profile' },
+  { id: 'questions', label: 'Generating FAQ questions' },
+  { id: 'answers',   label: 'Writing optimized answers' },
+  { id: 'scoring',   label: 'Scoring for AEO impact' },
+];
+
+const PREVIEW_QA = [
+  {
+    question: 'How quickly can you respond to an emergency?',
+    answer: 'Our team is available 24/7 and typically responds to emergency calls within 30-60 minutes. We prioritize urgent situations to minimize disruption and ensure your safety.',
+  },
+  {
+    question: 'Do you offer same-day service?',
+    answer: 'Yes, we offer same-day service for most requests submitted before 2 PM local time. Availability may vary during peak periods or holidays.',
+  },
+  {
+    question: 'Are you licensed and insured?',
+    answer: 'We are fully licensed, bonded, and insured. Our technicians carry all required certifications and our work is backed by a 1-year service guarantee.',
+  },
 ];
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
 function StepRow({ step, status }: { step: GenStep; status: StepStatus }) {
   return (
-    <div className="flex items-start gap-3 py-3">
-      {/* Status icon */}
+    <div className="flex items-center gap-2 py-1">
       <div className={cn(
-        'w-7 h-7 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5 transition-all duration-300',
+        'flex size-5 flex-shrink-0 items-center justify-center rounded-full transition-all duration-300',
         status === 'pending' && 'border-border bg-background',
-        status === 'active'  && 'border-[#534AB7] bg-background',
+        status === 'pending' && 'border-2',
         status === 'done'    && 'border-[#1D9E75] bg-[#1D9E75]',
       )}>
         {status === 'active' && (
-          <Loader2
-            size={14}
-            strokeWidth={1.6}
-            absoluteStrokeWidth
-            className="text-[#534AB7] animate-spin"
-          />
+          <span className="size-5 rounded-full border-2 border-[#534AB7]/20 border-t-[#534AB7] animate-spin" />
         )}
         {status === 'done' && (
-          <Check size={13} strokeWidth={2.4} className="text-white" />
+          <Check size={12} strokeWidth={1.6} absoluteStrokeWidth className="text-white" />
         )}
       </div>
+      <p className="text-[15px] text-foreground">{step.label}</p>
+    </div>
+  );
+}
 
-      {/* Text */}
-      <div className="flex-1 min-w-0">
-        <p className={cn(
-          'text-[13px] font-medium transition-colors',
-          status === 'pending' ? 'text-muted-foreground' : 'text-foreground',
-        )}>
-          {step.label}
-        </p>
-        <p className={cn(
-          'text-[12px] mt-0.5 transition-colors',
-          status === 'pending' ? 'text-muted-foreground/60' : 'text-muted-foreground',
-        )}>
-          {step.sublabel}
-        </p>
-      </div>
+function PreviewQuestion({ question, answer }: { question: string; answer: string }) {
+  return (
+    <div className="animate-in fade-in duration-500 space-y-2">
+      <p className="text-[15px] font-medium text-foreground">{question}</p>
+      <p className="text-[14px] leading-7 text-muted-foreground">{answer}</p>
+    </div>
+  );
+}
 
-      {/* Done badge */}
-      {status === 'done' && (
-        <span className="flex-shrink-0 text-[11px] text-[#1D9E75] font-medium mt-0.5">Done</span>
-      )}
+function ShimmerLines() {
+  return (
+    <div className="space-y-4 pt-2" aria-hidden>
+      <div className="h-4 w-full animate-pulse rounded-full bg-muted" />
+      <div className="h-4 w-full animate-pulse rounded-full bg-muted" />
+      <div className="h-4 w-5/12 animate-pulse rounded-full bg-muted" />
+      <div className="h-4 w-full animate-pulse rounded-full bg-muted" />
+      <div className="h-4 w-3/12 animate-pulse rounded-full bg-muted" />
+      <div className="h-4 w-full animate-pulse rounded-full bg-muted" />
+      <div className="h-4 w-5/12 animate-pulse rounded-full bg-muted" />
     </div>
   );
 }
@@ -100,8 +110,7 @@ export function FAQGenerationProgress({
   onComplete,
 }: FAQGenerationProgressProps) {
   const [currentStep, setCurrentStep] = useState(0);
-  const totalQuestions = sections.reduce((sum, s) => sum + s.count, 0);
-
+  const totalQuestions = sections.reduce((sum, section) => sum + section.count, 0);
   useEffect(() => {
     // Advance one step every STEP_DURATION_MS
     const timers: ReturnType<typeof setTimeout>[] = [];
@@ -125,6 +134,7 @@ export function FAQGenerationProgress({
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const progressPercent = Math.round((currentStep / GEN_STEPS.length) * 100);
+  const visiblePreviewCount = Math.min(PREVIEW_QA.length, Math.max(0, currentStep - 1));
 
   const getStatus = (idx: number): StepStatus => {
     if (idx < currentStep) return 'done';
@@ -133,52 +143,46 @@ export function FAQGenerationProgress({
   };
 
   return (
-    <div className="flex flex-col h-full items-center justify-center bg-[var(--color-canvas,#F7F8FA)] px-6 py-12">
-      <div className={cn(
-        'w-full max-w-[520px] rounded-2xl border-[1.5px] border-[#AFA9EC] bg-background',
-        'shadow-[0_4px_32px_rgba(83,74,183,0.10)]',
-      )}>
-        {/* Card header */}
-        <div className="px-6 pt-5 pb-4 border-b border-border">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <div className="px-2.5 py-0.5 rounded-full bg-[#F0EFFE] border border-[#C4BFFB]">
-                <span className="text-[11px] font-semibold text-[#534AB7] tracking-wide">FAQ</span>
+    <div className="relative min-h-0 flex-1 overflow-y-auto rounded-xl bg-transparent">
+      <div className="px-8 py-6 pb-10">
+        <div className="rounded-xl border border-border/60 bg-background">
+          <div className="p-8">
+            <div className="space-y-4">
+              <div className="space-y-1">
+                <h2 className="text-[18px] font-medium text-foreground">Generating your FAQ set</h2>
+                <p className="text-[13px] text-muted-foreground">{totalQuestions} questions · {sections.length} sections</p>
               </div>
-              <span className="text-[13px] font-medium text-foreground">Generating your FAQ set</span>
+              <div className="h-1.5 overflow-hidden rounded-full bg-muted">
+                <div
+                  className="h-full rounded-full bg-[#534AB7] transition-all duration-700 ease-out"
+                  style={{ width: `${progressPercent}%` }}
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-[14px] text-muted-foreground">
+                  {brandKit ? `Brand identity: ${brandKit}` : 'Processing...'}
+                </span>
+                <span className="text-[14px] font-medium text-[#534AB7]">{progressPercent}%</span>
+              </div>
             </div>
-            <span className="text-[12px] text-muted-foreground">
-              {totalQuestions} questions · {sections.length} sections
-            </span>
-          </div>
 
-          {/* Progress bar */}
-          <div className="h-1.5 rounded-full bg-muted overflow-hidden">
-            <div
-              className="h-full rounded-full bg-[#534AB7] transition-all duration-700 ease-out"
-              style={{ width: `${progressPercent}%` }}
-            />
-          </div>
-          <div className="flex justify-between mt-1.5">
-            <span className="text-[11px] text-muted-foreground">
-              {brandKit ? `Brand kit: ${brandKit}` : 'Processing...'}
-            </span>
-            <span className="text-[11px] text-[#534AB7] font-medium">{progressPercent}%</span>
-          </div>
-        </div>
+            <div className="mt-6 space-y-2">
+              {GEN_STEPS.map((step, idx) => (
+                <StepRow key={step.id} step={step} status={getStatus(idx)} />
+              ))}
+            </div>
 
-        {/* Steps list */}
-        <div className="px-6 divide-y divide-border">
-          {GEN_STEPS.map((step, idx) => (
-            <StepRow key={step.id} step={step} status={getStatus(idx)} />
-          ))}
-        </div>
+            <p className="mt-4 text-[14px] text-muted-foreground">
+              This usually takes 10-15 seconds. Results will appear automatically.
+            </p>
 
-        {/* Footer note */}
-        <div className="px-6 py-4 border-t border-border">
-          <p className="text-[12px] text-muted-foreground text-center">
-            This usually takes 10–15 seconds. Results will appear automatically.
-          </p>
+            <div className="mt-8 space-y-8">
+              {PREVIEW_QA.slice(0, visiblePreviewCount).map(item => (
+                <PreviewQuestion key={item.question} question={item.question} answer={item.answer} />
+              ))}
+              {currentStep < GEN_STEPS.length && <ShimmerLines />}
+            </div>
+          </div>
         </div>
       </div>
     </div>

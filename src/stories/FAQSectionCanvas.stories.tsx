@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react';
+import { userEvent, within } from '@storybook/test';
 import { FAQSectionCanvas } from '@/app/components/content-hub/faq/FAQSectionCanvas';
 
 const THREE_SECTIONS = [
@@ -55,5 +56,46 @@ export const LargeSet: Story = {
     ],
     generationLabel: 'AEO optimized · 24 FAQs · 5 sections',
     onEditSettings: () => console.log('Edit settings'),
+  },
+};
+
+export const TextEditingToolbar: Story = {
+  name: 'Text editing toolbar',
+  args: {
+    sections: THREE_SECTIONS,
+    generationLabel: 'AEO optimized · 14 FAQs · 3 sections',
+    onEditSettings: () => console.log('Edit settings'),
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await userEvent.click(canvas.getByText('How quickly can you respond to an emergency?'));
+  },
+};
+
+export const ManualBlockTabs: Story = {
+  name: 'Manual block tabs',
+  args: {
+    sections: THREE_SECTIONS,
+    generationLabel: 'AEO optimized · 14 FAQs · 3 sections',
+    onEditSettings: () => console.log('Edit settings'),
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await userEvent.click(canvas.getByRole('button', { name: 'Manual' }));
+    await userEvent.click(canvas.getByRole('button', { name: 'Pre-built' }));
+  },
+};
+
+export const ManualStandaloneQuestion: Story = {
+  name: 'Manual standalone question',
+  args: {
+    sections: [],
+    generationLabel: 'Manual FAQ draft',
+    onEditSettings: () => console.log('Edit settings'),
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await userEvent.click(canvas.getByRole('button', { name: 'Manual' }));
+    await userEvent.click(canvas.getByRole('button', { name: 'Question' }));
   },
 };

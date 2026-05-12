@@ -9,6 +9,7 @@ import React, { useState } from 'react';
 import { Sparkles, X, Plus } from 'lucide-react';
 import { Button } from '@/app/components/ui/button';
 import { cn } from '@/lib/utils';
+import { ContentFlowTextarea, ContentFlowTextInput } from '../shared/ContentFlowControls';
 
 interface ProjectWizardStep2Props {
   step1Data: Record<string, unknown>;
@@ -55,7 +56,7 @@ export function ProjectWizardStep2({ step1Data: _s1, data, onChange }: ProjectWi
         <Sparkles size={15} strokeWidth={1.6} absoluteStrokeWidth className="text-primary shrink-0" />
         <div className="flex-1 min-w-0">
           <p className="text-[13px] font-medium text-foreground">Use your project context</p>
-          <p className="text-[12px] text-muted-foreground">We found recent campaign data from your brand kit</p>
+          <p className="text-[12px] text-muted-foreground">We found recent campaign data from your brand identity</p>
         </div>
         <Button variant="outline" size="sm" onClick={handleAutoFill}>
           Use this
@@ -65,12 +66,11 @@ export function ProjectWizardStep2({ step1Data: _s1, data, onChange }: ProjectWi
       {/* Campaign brief */}
       <div className="flex flex-col gap-2">
         <label className="text-[13px] font-medium text-foreground">Campaign brief</label>
-        <textarea
+        <ContentFlowTextarea
           rows={4}
           value={brief}
           onChange={e => onChange({ ...data, brief: e.target.value })}
           placeholder="Describe what this project is about — the goal, audience, key messages, and any important context..."
-          className="w-full border border-border rounded-md px-3 py-2 text-[13px] bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring resize-none"
         />
       </div>
 
@@ -81,13 +81,13 @@ export function ProjectWizardStep2({ step1Data: _s1, data, onChange }: ProjectWi
           <span className="ml-2 text-[11px] font-normal text-muted-foreground">optional</span>
         </label>
         <div className="flex items-center gap-2">
-          <input
+          <ContentFlowTextInput
             type="text"
             value={urlInput}
             onChange={e => setUrlInput(e.target.value)}
             onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addUrl(); } }}
             placeholder="https://example.com/page"
-            className="flex-1 border border-border rounded-md px-3 py-2 text-[13px] bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+            className="flex-1"
           />
           <Button variant="outline" size="sm" onClick={addUrl} disabled={!urlInput.trim()}>
             <Plus size={14} strokeWidth={1.6} absoluteStrokeWidth />

@@ -1,5 +1,12 @@
 import React from 'react';
 import { type BlockComponentProps } from '../blockTypes';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/app/components/ui/select';
 
 interface CodeContent { language: string; code: string }
 
@@ -12,15 +19,19 @@ export function CodeBlock({ content, focused, onChange }: BlockComponentProps<Co
     <div className="w-full rounded-lg overflow-hidden border border-border bg-zinc-950">
       {/* Toolbar */}
       <div className="flex items-center justify-between px-4 py-2 bg-zinc-900 border-b border-zinc-800">
-        <select
+        <Select
           value={language}
-          onChange={e => onChange({ language: e.target.value })}
-          className="text-[11px] text-zinc-400 bg-transparent outline-none border-0 cursor-pointer capitalize"
+          onValueChange={value => onChange({ language: value })}
         >
-          {LANGUAGES.map(l => (
-            <option key={l} value={l}>{l}</option>
-          ))}
-        </select>
+          <SelectTrigger size="sm" className="h-8 w-[140px] border-zinc-700 bg-zinc-900 text-[11px] capitalize text-zinc-400">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent align="start">
+            {LANGUAGES.map(l => (
+              <SelectItem key={l} value={l}>{l}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
         <div className="flex gap-1.5">
           <div className="size-2.5 rounded-full bg-zinc-700" />
           <div className="size-2.5 rounded-full bg-zinc-700" />

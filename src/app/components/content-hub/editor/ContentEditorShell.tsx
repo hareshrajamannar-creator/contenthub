@@ -31,7 +31,6 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-  DropdownMenuSeparator,
 } from '@/app/components/ui/dropdown-menu';
 import {
   Dialog,
@@ -57,6 +56,7 @@ import type { GenerationInfo } from '../wizard/wizardTypes';
 import { FAQInlineCreationFlow } from '../faq/FAQInlineCreationFlow';
 import type { FAQFlowData, FlowNavControls, FlowNavState } from '../faq/FAQInlineCreationFlow';
 import { Button } from '@/app/components/ui/button';
+import { Badge } from '@/app/components/ui/badge';
 import { FAQGenerationProgress } from '../faq/FAQGenerationProgress';
 import { FAQSectionCanvas } from '../faq/FAQSectionCanvas';
 import { FAQPublishModal } from '../faq/FAQPublishModal';
@@ -66,6 +66,9 @@ import { BlogGenerationProgress } from '../blog/BlogGenerationProgress';
 import { BlogSectionCanvas } from '../blog/BlogSectionCanvas';
 import { ProjectGenerationProgress } from '../ProjectGenerationProgress';
 import { ContentFlowStepper, type ContentFlowStep } from '../shared/ContentFlowControls';
+import { CanvasEditorTopBar } from '../shared/CanvasEditorTopBar';
+import { ContentShareModal } from '../shared/ContentShareModal';
+import { ContentActivityDrawer } from '../shared/ContentActivityDrawer';
 // Note: FAQCanvas is kept for the project review canvas path (UnifiedReviewCanvas)
 import {
   type ContentMode,
@@ -78,6 +81,12 @@ import {
 
 /** Modes that use the block-based WYSIWYG canvas */
 const BLOCK_MODES = new Set<ContentMode>(['blog', 'landing', 'faq']);
+
+const BRAND_KIT_LABELS: Record<string, string> = {
+  'olive-garden':  'Olive Garden corporate',
+  'birdeye-demo':  'Birdeye demo brand',
+  'local-seo':     'Local SEO identity',
+};
 const CARD_CANVAS_GAP = 100;
 const CARD_CANVAS_PADDING = 120;
 const DEFAULT_CARD_WIDTH = 520;
@@ -155,25 +164,25 @@ const ICON_MAP: Record<string, React.ElementType> = {
 
 const SETUP_STEPS_BY_MODE: Record<ContentMode, ContentFlowStep[]> = {
   project: [
-    { id: 'brand-kit', label: 'Brand kit' },
+    { id: 'brand-kit', label: 'Brand identity' },
     { id: 'setup', label: 'Project setup' },
-    { id: 'review-topics', label: 'Review topics' },
+    { id: 'content-brief', label: 'Content brief' },
   ],
   faq: [
-    { id: 'brand-kit', label: 'Brand kit' },
+    { id: 'brand-kit', label: 'Brand identity' },
     { id: 'setup', label: 'Content setup' },
-    { id: 'review-topics', label: 'Review topics' },
+    { id: 'content-brief', label: 'Content brief' },
   ],
   blog: [
-    { id: 'brand-kit', label: 'Brand kit' },
+    { id: 'brand-kit', label: 'Brand identity' },
     { id: 'setup', label: 'Blog setup' },
-    { id: 'review-topics', label: 'Review topics' },
+    { id: 'content-brief', label: 'Content brief' },
   ],
   landing: [
     { id: 'goal', label: 'Goal' },
     { id: 'template', label: 'Template' },
     { id: 'fine-tune', label: 'Fine-tune' },
-    { id: 'review-topics', label: 'Review topics' },
+    { id: 'content-brief', label: 'Content brief' },
   ],
   social: [],
   email: [],
@@ -186,7 +195,7 @@ const LEFT_TAB_ITEMS = [
   {
     value: 'ai'     as const,
     label: 'AI',
-    icon:  <Sparkles size={11} strokeWidth={1.6} absoluteStrokeWidth className="text-[#7c3aed]" />,
+    icon:  <Sparkles size={11} strokeWidth={1.2} absoluteStrokeWidth className="text-[#7c3aed]" />,
   },
   { value: 'manual' as const, label: 'Manual' },
 ];
@@ -281,7 +290,7 @@ function seedSingleCard(mode: ContentMode): ContentCardData[] {
 
 function LeftPanelSkeleton() {
   return (
-    <div className="flex flex-col h-full" style={{ width: 300, borderRight: '1px solid #e5e9f0' }}>
+    <div className="flex h-full flex-col overflow-hidden rounded-xl border border-border/60 bg-background" style={{ width: 300 }}>
       {/* Tab bar skeleton */}
       <div className="flex-none px-4 py-3 border-b border-border">
         <div className="flex gap-1 bg-muted rounded-lg p-1 animate-pulse">
@@ -329,7 +338,7 @@ function LeftPanelSkeleton() {
 
       {/* Prompt input skeleton */}
       <div className="flex-none px-4 py-3 border-t border-border animate-pulse">
-        <div className="rounded-xl border border-border bg-background p-3 flex flex-col gap-2">
+        <div className="rounded-xl border border-border bg-background p-4 flex flex-col gap-2">
           <div className="h-3 w-3/4 rounded-full bg-muted" />
           <div className="h-3 w-2/5 rounded-full bg-muted/60" />
           <div className="flex items-center justify-between mt-1">
@@ -339,6 +348,55 @@ function LeftPanelSkeleton() {
               <div className="size-6 rounded-md bg-muted" />
             </div>
             <div className="size-6 rounded-md bg-muted" />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ScorePanelSkeleton() {
+  return (
+    <div className="flex h-full flex-none flex-col overflow-hidden rounded-xl border border-border/60 bg-background animate-pulse" style={{ width: 300 }}>
+      <div className="flex-none border-b border-border px-4 py-4">
+        <div className="h-4 w-32 rounded-full bg-muted" />
+      </div>
+      <div className="flex-1 overflow-hidden px-4 py-6">
+        <div className="space-y-6">
+          <div className="space-y-3">
+            <div className="h-14 w-28 rounded-lg bg-muted" />
+            <div className="h-3 w-36 rounded-full bg-muted" />
+            <div className="h-2 w-full rounded-full bg-muted" />
+          </div>
+
+          <div className="space-y-4">
+            {Array.from({ length: 4 }).map((_, idx) => (
+              <div key={idx} className="border-t border-border pt-4">
+                <div className="flex items-center justify-between gap-4">
+                  <div className="h-4 w-28 rounded-full bg-muted" />
+                  <div className="h-4 w-12 rounded-full bg-muted" />
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="space-y-4 border-t border-border pt-5">
+            <div className="flex items-center justify-between">
+              <div className="h-4 w-32 rounded-full bg-muted" />
+              <div className="h-4 w-10 rounded-full bg-muted" />
+            </div>
+            {Array.from({ length: 3 }).map((_, idx) => (
+              <div key={idx} className="rounded-xl border border-border p-4">
+                <div className="mb-3 flex items-center justify-between gap-4">
+                  <div className="h-4 w-36 rounded-full bg-muted" />
+                  <div className="h-4 w-10 rounded-full bg-muted" />
+                </div>
+                <div className="space-y-2">
+                  <div className="h-3 w-full rounded-full bg-muted" />
+                  <div className="h-3 w-4/5 rounded-full bg-muted" />
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>
@@ -628,10 +686,18 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
     canAdvance: true,
   });
 
+  // Derive brand identity display label from whichever flow produced the content
+  const activeBrandKitId = faqFlowData?.brandKit ?? blogFlowData?.brandKit ?? flowData?.brandKit;
+  const brandKitLabel = activeBrandKitId
+    ? (BRAND_KIT_LABELS[activeBrandKitId] ?? activeBrandKitId)
+    : 'Olive Garden corporate';
+
   // True when the user clicks "Edit settings" on an already-generated canvas
   const isEditingSettings = generationInfo !== null && setupPhase === 'setup';
   const [regenConfirmOpen, setRegenConfirmOpen] = useState(false);
   const [exportOpen, setExportOpen] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
+  const [activityOpen, setActivityOpen] = useState(false);
   const setupHeaderTitle =
     mode === 'project' ? 'Create project'
     : mode === 'faq' ? "Create FAQ's"
@@ -1028,7 +1094,12 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
     <div className="flex flex-col h-full bg-background">
 
       {/* ── Header — shared by setup, generation, and editor states ── */}
-      <div className="w-full bg-background border-b border-border h-[52px] flex items-center justify-between px-6 flex-shrink-0 sticky top-0 z-40">
+      <div
+        className={cn(
+          'w-full bg-background h-[52px] flex items-center justify-between px-6 flex-shrink-0 sticky top-0 z-40',
+          setupPhase !== 'setup' && 'border-b border-border',
+        )}
+      >
 
           {/* Left cluster: back + title */}
           <div className="flex items-center gap-4">
@@ -1075,15 +1146,16 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
                         <Edit2 size={14} strokeWidth={1.6} absoluteStrokeWidth />
                       </button>
                     )}
-                    {/* Static Draft pill */}
-                    <div className="bg-muted px-2 py-0.5 rounded-md">
-                      <span className="text-xs text-muted-foreground">Draft</span>
-                    </div>
+                    <Badge variant="secondary">Draft</Badge>
                   </div>
-                  {/* Subtitle row */}
-                  <span className="text-xs text-primary">
-                    Olive garden corporate · 10 locations
-                  </span>
+                  {/* Subtitle row — clickable to reopen edit settings */}
+                  <button
+                    type="button"
+                    onClick={handleEditSettings}
+                    className="text-xs text-primary hover:underline text-left"
+                  >
+                    {brandKitLabel} · 10 locations
+                  </button>
                 </>
               )}
             </div>
@@ -1100,6 +1172,14 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
                   className="text-muted-foreground hover:text-foreground"
                 >
                   Cancel
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => flowNavRef.current?.back()}
+                  disabled={wizardNavState.step === 0}
+                >
+                  Back
                 </Button>
                 {isEditingSettings && wizardNavState.step === wizardNavState.totalSteps - 1 ? (
                   <Button
@@ -1128,9 +1208,9 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => setExportOpen(true)}
+                  onClick={() => setShareOpen(true)}
                 >
-                  Export
+                  Share
                 </Button>
 
                 <DropdownMenu>
@@ -1138,13 +1218,14 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
                     <Button
                       type="button"
                       className="rounded-r-none"
+                      onClick={() => setExportOpen(true)}
                     >
-                      Save
+                      Publish
                     </Button>
                     <DropdownMenuTrigger asChild>
                       <Button
                         type="button"
-                        aria-label="Save options"
+                        aria-label="Publish options"
                         className="rounded-l-none border-l border-primary-foreground/20 px-2"
                       >
                         <ChevronDown size={13} strokeWidth={1.6} absoluteStrokeWidth />
@@ -1152,44 +1233,29 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
                     </DropdownMenuTrigger>
                   </div>
                   <DropdownMenuContent align="end" className="w-44">
-                    <DropdownMenuItem className="gap-2">Save</DropdownMenuItem>
+                    <DropdownMenuItem className="gap-2" onSelect={() => setExportOpen(true)}>Publish</DropdownMenuItem>
                     <DropdownMenuItem className="gap-2">Add to library</DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
+
               </>
             )}
           </div>
         </div>
 
-      {/* ── Generation info bar — hidden while in setup/edit-settings phase ── */}
-      {generationInfo && setupPhase !== 'setup' && (
-        <div className="flex items-center justify-between px-6 h-9 bg-muted border-b border-border flex-shrink-0">
-          <span className="text-[12px] text-muted-foreground">
-            Generated with&nbsp;
-            <span className="font-medium text-foreground">{generationInfo.label}</span>
-          </span>
-          <button
-            type="button"
-            onClick={handleEditSettings}
-            className="text-[12px] text-primary hover:underline"
-          >
-            Edit settings
-          </button>
-        </div>
-      )}
-
       {/* ── Inline creation flow — same shell as the editor, with stepper in the left pane ─────────── */}
       {setupPhase === 'setup' && (
         <div className="flex-1 min-h-0 flex">
-          <aside className="flex-shrink-0 bg-background" style={{ width: 300, borderRight: '1px solid #e5e9f0' }}>
+          <aside className="flex-shrink-0 bg-background" style={{ width: 300 }}>
             <div className="px-4 py-4">
               <ContentFlowStepper
                 steps={SETUP_STEPS_BY_MODE[mode]}
                 currentStep={wizardNavState.step}
+                onStepChange={nextStep => flowNavRef.current?.goTo?.(nextStep)}
               />
             </div>
           </aside>
-          <div className="flex-1 min-w-0 min-h-0 bg-[var(--color-canvas,#F7F8FA)]">
+          <div className="flex-1 min-w-0 min-h-0 bg-background">
             {mode === 'faq' ? (
               <FAQInlineCreationFlow
                 onComplete={handleFAQFlowComplete}
@@ -1222,9 +1288,9 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
 
       {/* ── Generating: FAQ progress card or generic shimmer ────────────── */}
       {setupPhase === 'generating' && mode === 'faq' && faqFlowData && (
-        <div className="flex-1 min-h-0 flex">
+        <div className="flex flex-1 min-h-0 gap-2 bg-[var(--color-canvas,#F7F8FA)] p-2">
           <LeftPanelSkeleton />
-          <div className="flex-1 min-w-0 min-h-0">
+          <div className="flex flex-1 min-w-0 flex-col overflow-hidden">
             <FAQGenerationProgress
               sections={faqFlowData.sections}
               brandKit={faqFlowData.brandKit}
@@ -1232,12 +1298,13 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
               onComplete={handleFAQGenerationComplete}
             />
           </div>
+          <ScorePanelSkeleton />
         </div>
       )}
       {setupPhase === 'generating' && mode === 'blog' && blogFlowData && (
-        <div className="flex-1 min-h-0 flex">
+        <div className="flex flex-1 min-h-0 gap-2 bg-[var(--color-canvas,#F7F8FA)] p-2">
           <LeftPanelSkeleton />
-          <div className="flex-1 min-w-0 min-h-0">
+          <div className="flex flex-1 min-w-0 flex-col overflow-hidden">
             <BlogGenerationProgress
               sections={blogFlowData.sections}
               brandKit={blogFlowData.brandKit}
@@ -1245,6 +1312,7 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
               onComplete={handleBlogGenerationComplete}
             />
           </div>
+          <ScorePanelSkeleton />
         </div>
       )}
       {setupPhase === 'generating' && mode === 'project' && flowData && (
@@ -1286,9 +1354,9 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
       {setupPhase === 'done' && mode !== 'faq' && mode !== 'blog' && (BLOCK_MODES.has(mode) ? (
         /* ── Block editor — wraps all 3 panels in a shared store context ── */
         <BlockEditorProvider>
-          <div className="flex flex-1 min-h-0">
+          <div className="flex flex-1 min-h-0 gap-2 bg-[var(--color-canvas,#F7F8FA)] p-2">
             {/* Left panel */}
-            <div className="flex-shrink-0 flex flex-col overflow-hidden" style={{ width: 300, borderRight: '1px solid #e5e9f0' }}>
+            <div className="flex-shrink-0 flex flex-col overflow-hidden rounded-xl border border-border/60 bg-background" style={{ width: 300 }}>
               <div className="flex-none px-4 py-3 border-b border-border">
                 <SegmentedToggle ariaLabel="Create mode" items={LEFT_TAB_ITEMS} value={leftTab} onChange={setLeftTab} />
               </div>
@@ -1305,60 +1373,26 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
             </div>
 
             {/* Center — block canvas with zoom toolbar */}
-            <div className="flex flex-1 min-w-0 overflow-hidden relative">
-              {/* Floating toolbar — zoom + undo/redo */}
-              <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 pointer-events-none">
-                <div className="bg-background rounded-lg shadow-sm border border-border pointer-events-auto">
-                  <div className="flex items-center px-4 py-2 gap-3">
-                    {/* Undo / redo */}
-                    <button
-                      type="button"
-                      onClick={handleUndo}
-                      disabled={!canUndo}
-                      title="Undo"
-                      className="p-1.5 hover:bg-muted rounded-md transition-colors disabled:opacity-30"
-                    >
-                      <Undo2 size={15} strokeWidth={1.6} absoluteStrokeWidth className="text-foreground" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleRedo}
-                      disabled={!canRedo}
-                      title="Redo"
-                      className="p-1.5 hover:bg-muted rounded-md transition-colors disabled:opacity-30"
-                    >
-                      <Redo2 size={15} strokeWidth={1.6} absoluteStrokeWidth className="text-foreground" />
-                    </button>
-
-                    <div className="w-px h-4 bg-border" />
-
-                    {/* Zoom */}
-                    <button
-                      type="button"
-                      onClick={() => setZoom(z => Math.max(0.25, +(z - 0.1).toFixed(2)))}
-                      className="p-1 hover:bg-muted rounded-md transition-colors"
-                    >
-                      <ZoomOut size={15} strokeWidth={1.6} absoluteStrokeWidth className="text-foreground" />
-                    </button>
-                    <span className="text-[13px] text-muted-foreground text-nowrap min-w-[40px] text-center">
-                      {Math.round(zoom * 100)}%
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => setZoom(z => Math.min(3, +(z + 0.1).toFixed(2)))}
-                      className="p-1 hover:bg-muted rounded-md transition-colors"
-                    >
-                      <ZoomIn size={15} strokeWidth={1.6} absoluteStrokeWidth className="text-foreground" />
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              <BlockCanvas
-                mode={mode as 'blog' | 'landing' | 'faq'}
+            <div className="flex flex-1 min-w-0 flex-col gap-2 overflow-hidden">
+              <CanvasEditorTopBar
+                score={cards[0]?.score ?? 40}
+                scoreLabel="Content score"
+                canUndo={canUndo}
+                canRedo={canRedo}
+                onUndo={handleUndo}
+                onRedo={handleRedo}
                 zoom={zoom}
-                onZoomChange={setZoom}
+                onZoomOut={() => setZoom(z => Math.max(0.25, +(z - 0.1).toFixed(2)))}
+                onZoomIn={() => setZoom(z => Math.min(3, +(z + 0.1).toFixed(2)))}
+                onActivity={() => setActivityOpen(true)}
               />
+              <div className="min-h-0 flex-1 overflow-hidden rounded-xl">
+                <BlockCanvas
+                  mode={mode as 'blog' | 'landing' | 'faq'}
+                  zoom={zoom}
+                  onZoomChange={setZoom}
+                />
+              </div>
             </div>
 
             {/* Right — block settings panel (slides in when a block is selected) */}
@@ -1652,6 +1686,16 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
         onClose={() => setExportOpen(false)}
         faqs={[]}
         overallScore={72}
+      />
+      <ContentShareModal
+        open={shareOpen}
+        onClose={() => setShareOpen(false)}
+        contentTitle={title}
+      />
+      <ContentActivityDrawer
+        open={activityOpen}
+        onClose={() => setActivityOpen(false)}
+        contentType={mode === 'blog' ? 'blog' : 'faq'}
       />
     </div>
   );

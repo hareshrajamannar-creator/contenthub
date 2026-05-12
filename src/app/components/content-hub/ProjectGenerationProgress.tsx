@@ -34,7 +34,7 @@ const STEP_DURATION_MS = 1400;
 const DONE_GRACE_MS = 500;
 
 const GEN_STEPS: GenStep[] = [
-  { id: 'brand',    label: 'Analyzing brand kit',        sublabel: 'Reading tone settings, audience signals, and location data' },
+  { id: 'brand',    label: 'Analyzing brand identity',   sublabel: 'Reading tone settings, audience signals, and location data' },
   { id: 'brief',    label: 'Processing project brief',   sublabel: 'Mapping goals, objectives, and content requirements' },
   { id: 'content',  label: 'Generating content pieces',  sublabel: 'Drafting blog posts, social copy, email campaigns, and FAQs' },
   { id: 'finalize', label: 'Applying brand voice',       sublabel: 'Reviewing consistency, scoring each piece, and finalizing output' },
@@ -91,7 +91,7 @@ export function ProjectGenerationProgress({ flowData, onComplete }: ProjectGener
     ?? 4;
   const brandKitLabel = flowData.brandKit
     ? flowData.brandKit.charAt(0).toUpperCase() + flowData.brandKit.slice(1)
-    : 'Brand kit';
+    : 'Brand identity';
 
   useEffect(() => {
     const timers: ReturnType<typeof setTimeout>[] = [];
@@ -135,7 +135,7 @@ export function ProjectGenerationProgress({ flowData, onComplete }: ProjectGener
             />
           </div>
           <div className="flex justify-between mt-1.5">
-            <span className="text-[11px] text-muted-foreground">Brand kit: {brandKitLabel}</span>
+            <span className="text-[11px] text-muted-foreground">Brand identity: {brandKitLabel}</span>
             <span className="text-[11px] text-primary font-medium">{progressPercent}%</span>
           </div>
         </div>

@@ -10,7 +10,7 @@ const meta: Meta<typeof InlineSelectField> = {
     docs: {
       description: {
         component:
-          "App-shell custom selects (Agents / Schedule builders, schedule modal). The list uses the same floating panel shell as the L1 profile menu and is **portaled** to `document.body` with `position: fixed` so options stay readable inside `overflow-hidden` rails (e.g. 340px agent config column).",
+          "App-shell custom selects (Agents / Schedule builders, schedule modal). Uses the standard 20px dropdown chevron and the same floating panel shell as the L1 profile menu. The list is **portaled** to `document.body` with `position: fixed` so options stay readable inside `overflow-hidden` rails (e.g. 340px agent config column).",
       },
     },
   },

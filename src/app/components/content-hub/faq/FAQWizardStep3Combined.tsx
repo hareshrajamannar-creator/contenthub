@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { STATUS_COLORS } from '../shared/scoreColors';
+import { ContentFlowSelect, ContentFlowTextarea } from '../shared/ContentFlowControls';
 
 interface GoalData {
   objective: string;
@@ -127,26 +128,23 @@ export const FAQWizardStep3Combined = ({
         {/* Audience persona */}
         <div className="flex flex-col gap-1.5">
           <label className="text-[13px] font-medium text-foreground">Target audience</label>
-          <textarea
+          <ContentFlowTextarea
             rows={2}
             value={goalData.persona}
             onChange={(e) => updateGoal({ persona: e.target.value })}
-            className="w-full border border-border rounded-md px-3 py-2 text-[13px] bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring resize-none"
           />
-          <p className="text-[12px] text-muted-foreground">From your brand kit · edit freely</p>
+          <p className="text-[12px] text-muted-foreground">From your brand identity · edit freely</p>
         </div>
 
         {/* Tone + Reading level inline */}
         <div className="flex items-start gap-4">
           <div className="flex flex-col gap-1.5 flex-1">
             <label className="text-[13px] font-medium text-foreground">Tone of voice</label>
-            <select
+            <ContentFlowSelect
               value={goalData.tone}
-              onChange={(e) => updateGoal({ tone: e.target.value })}
-              className="w-full border border-border rounded-md px-3 py-2 text-[13px] bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-            >
-              {TONES.map(t => <option key={t} value={t}>{t}</option>)}
-            </select>
+              onChange={value => updateGoal({ tone: value })}
+              options={TONES.map(tone => ({ value: tone, label: tone }))}
+            />
           </div>
           <div className="flex flex-col gap-1.5">
             <label className="text-[13px] font-medium text-foreground">Reading level</label>

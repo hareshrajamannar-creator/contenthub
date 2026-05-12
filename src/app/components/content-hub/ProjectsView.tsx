@@ -57,8 +57,8 @@ function getTemplateCreator(templateId: string) {
 type TabId = 'saved' | 'library';
 
 const TABS: TextTabItem<TabId>[] = [
-  { id: 'saved',   label: 'Saved',   suffix: <Badge variant="secondary" className="font-normal">50</Badge> },
-  { id: 'library', label: 'Library', suffix: <Badge variant="secondary" className="font-normal">40</Badge> },
+  { id: 'saved',   label: 'Saved',   suffix: <Badge variant="secondary" className="bg-muted text-muted-foreground font-normal">50</Badge> },
+  { id: 'library', label: 'Library', suffix: <Badge variant="secondary" className="bg-muted text-muted-foreground font-normal">40</Badge> },
 ];
 
 // ── Template type colours + icons ─────────────────────────────────────────────
@@ -442,6 +442,7 @@ export const ProjectsView = ({
         value={activeTab}
         onChange={setActiveTab}
         ariaLabel="Projects tabs"
+        variant="plain"
         className="px-6"
       />
 

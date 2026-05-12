@@ -15,6 +15,13 @@ import {
   ChevronDown,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/app/components/ui/select';
 import { type Block, type BlockType } from './blockTypes';
 import { useBlockEditorContext } from './BlockEditorContext';
 
@@ -422,15 +429,19 @@ function BlockTypeSettings({ block, onUpdate }: { block: Block; onUpdate: (p: Re
     case 'code':
       return (
         <SettingsGroup label="Language">
-          <select
+          <Select
             value={String(c.language ?? 'javascript')}
-            onChange={e => onUpdate({ language: e.target.value })}
-            className="w-full text-[12px] border border-border rounded-lg px-3 py-2 outline-none focus:border-primary transition-colors bg-background text-foreground"
+            onValueChange={value => onUpdate({ language: value })}
           >
-            {['javascript','typescript','python','html','css','json','bash','sql'].map(l => (
-              <option key={l} value={l}>{l}</option>
-            ))}
-          </select>
+            <SelectTrigger size="sm" className="h-8 rounded-lg border-border bg-background text-[12px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent align="start">
+              {['javascript','typescript','python','html','css','json','bash','sql'].map(l => (
+                <SelectItem key={l} value={l}>{l}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </SettingsGroup>
       );
 
@@ -477,7 +488,7 @@ export function BlockSettingsPanel() {
   return (
     <div
       className={cn(
-        'flex-none flex flex-col border-l border-border transition-all duration-200 overflow-hidden bg-background',
+        'flex-none flex flex-col transition-all duration-200 overflow-hidden rounded-xl bg-background shadow-sm',
         isOpen ? 'w-[300px]' : 'w-0',
       )}
       aria-hidden={!isOpen}

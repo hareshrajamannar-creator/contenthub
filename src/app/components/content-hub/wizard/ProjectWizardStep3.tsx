@@ -8,6 +8,7 @@
 import React from 'react';
 import { Plus, Minus } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { ContentFlowSelect, ContentFlowTextarea } from '../shared/ContentFlowControls';
 
 // ── Content mix defaults per project type ─────────────────────────────────────
 
@@ -134,26 +135,23 @@ export function ProjectWizardStep3({ step1Data, data, onChange }: ProjectWizardS
       {/* Audience */}
       <div className="flex flex-col gap-2">
         <label className="text-[13px] font-medium text-foreground">Target audience</label>
-        <textarea
+        <ContentFlowTextarea
           rows={2}
           value={audience}
           onChange={e => onChange({ ...data, audience: e.target.value })}
           placeholder="Describe who this project is for..."
-          className="w-full border border-border rounded-md px-3 py-2 text-[13px] bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring resize-none"
         />
-        <p className="text-[12px] text-muted-foreground">From your brand kit · edit freely</p>
+        <p className="text-[12px] text-muted-foreground">From your brand identity · edit freely</p>
       </div>
 
       {/* Tone */}
       <div className="flex flex-col gap-2">
         <label className="text-[13px] font-medium text-foreground">Tone of voice</label>
-        <select
+        <ContentFlowSelect
           value={tone}
-          onChange={e => onChange({ ...data, tone: e.target.value })}
-          className="w-full border border-border rounded-md px-3 py-2 text-[13px] bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-        >
-          {TONES.map(t => <option key={t} value={t}>{t}</option>)}
-        </select>
+          onChange={value => onChange({ ...data, tone: value })}
+          options={TONES.map(toneOption => ({ value: toneOption, label: toneOption }))}
+        />
       </div>
 
       {/* Content mix */}

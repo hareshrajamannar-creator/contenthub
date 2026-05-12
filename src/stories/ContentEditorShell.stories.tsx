@@ -35,6 +35,26 @@ export const CreateBlogPost: Story = {
   },
 };
 
+export const GeneratingFAQ: Story = {
+  name: 'Generating FAQ',
+  args: {
+    mode: 'faq',
+    skipSetupPhase: true,
+    initialTitle: 'Add FAQ schema for "property appraisals"',
+    onBack: () => console.log('back from generating FAQ'),
+  },
+};
+
+export const GeneratingBlogPost: Story = {
+  name: 'Generating Blog post',
+  args: {
+    mode: 'blog',
+    skipSetupPhase: true,
+    initialTitle: 'How local visibility drives bookings',
+    onBack: () => console.log('back from generating blog post'),
+  },
+};
+
 export const CreateProject: Story = {
   name: 'Create project',
   args: {

@@ -3,7 +3,7 @@
  *
  * Used for both 'blog' and 'landing' modes.
  * Collects the source material the AI will draw from:
- * - Brand kit auto-suggest
+ * - Brand identity auto-suggest
  * - Topic / keyword input
  * - Optional reference URL
  * - Optional file attachment (brief / notes)
@@ -14,6 +14,7 @@ import { Sparkles, X } from 'lucide-react';
 import { Button } from '@/app/components/ui/button';
 import { cn } from '@/lib/utils';
 import { STATUS_COLORS } from '../shared/scoreColors';
+import { ContentFlowTextarea, ContentFlowTextInput } from '../shared/ContentFlowControls';
 import type { WizardMode } from './wizardTypes';
 
 interface BlogWizardStep2Props {
@@ -57,7 +58,7 @@ export function BlogWizardStep2({ mode, step1Data: _step1Data, data, onChange }:
         <Sparkles size={15} strokeWidth={1.6} absoluteStrokeWidth className="text-primary shrink-0" />
         <div className="flex-1 min-w-0">
           <p className="text-[13px] font-medium text-foreground">Use your project context</p>
-          <p className="text-[12px] text-muted-foreground">We found lushgreen.com/services from your brand kit</p>
+          <p className="text-[12px] text-muted-foreground">We found lushgreen.com/services from your brand identity</p>
         </div>
         <Button variant="outline" size="sm" onClick={handleAutoFill}>
           Use this
@@ -67,12 +68,11 @@ export function BlogWizardStep2({ mode, step1Data: _step1Data, data, onChange }:
       {/* Topic input */}
       <div className="flex flex-col gap-2">
         <label className="text-[13px] font-medium text-foreground">{topicLabel}</label>
-        <textarea
+        <ContentFlowTextarea
           rows={2}
           value={topic}
           onChange={e => onChange({ ...data, topic: e.target.value })}
           placeholder={topicPlaceholder}
-          className="w-full border border-border rounded-md px-3 py-2 text-[13px] bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring resize-none"
         />
       </div>
 
@@ -83,12 +83,11 @@ export function BlogWizardStep2({ mode, step1Data: _step1Data, data, onChange }:
             Target keywords
             <span className="ml-2 text-[11px] font-normal text-muted-foreground">optional</span>
           </label>
-          <input
+          <ContentFlowTextInput
             type="text"
             value={keywords}
             onChange={e => onChange({ ...data, keywords: e.target.value })}
             placeholder="e.g. lawn care tips, landscaping services near me"
-            className="w-full border border-border rounded-md px-3 py-2 text-[13px] bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
           />
           <p className="text-[12px] text-muted-foreground">Separate multiple keywords with commas</p>
         </div>
@@ -109,12 +108,12 @@ export function BlogWizardStep2({ mode, step1Data: _step1Data, data, onChange }:
           )}
         </div>
         <div className="flex items-center gap-2">
-          <input
+          <ContentFlowTextInput
             type="text"
             value={refUrl}
             onChange={e => onChange({ ...data, refUrl: e.target.value, urlScraped: false })}
             placeholder="https://example.com/page"
-            className="flex-1 border border-border rounded-md px-3 py-2 text-[13px] bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+            className="flex-1"
           />
           <Button
             variant="outline"

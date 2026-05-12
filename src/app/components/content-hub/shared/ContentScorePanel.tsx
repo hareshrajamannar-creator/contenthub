@@ -225,8 +225,6 @@ export function ContentScorePanel({
           />
         </div>
 
-        <div className="border-t border-border" />
-
         {/* Dimension rows */}
         <div className="flex flex-col">
           {dimensions.map((dim, i) => (
@@ -251,8 +249,7 @@ export function ContentScorePanel({
         {/* Ways to improve — single unified section, hidden when all done */}
         {pendingItems.length > 0 && (
           <>
-            <div className="border-t border-border" />
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-3 mt-4">
               <div className="flex items-center justify-between">
                 <span className="text-[13px] font-semibold text-foreground">Ways to improve</span>
                 <button

@@ -8,7 +8,7 @@ const meta: Meta<typeof BlogInlineCreationFlow> = {
     layout: 'fullscreen',
     docs: {
       description: {
-        component: 'Inline blog setup flow opened from Content Hub Home. Uses flat native selectors and stable parent navigation sync.',
+        component: 'Inline blog setup flow with a fixed-height scroll container and per-blog content brief summaries.',
       },
     },
   },

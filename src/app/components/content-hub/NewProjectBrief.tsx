@@ -2,6 +2,13 @@ import React, { useState } from 'react';
 import { ArrowLeft, Loader2, MapPin, FileText, MessageSquare, Mail, Share2, Star, Newspaper, Link2 } from 'lucide-react';
 import { Button } from '@/app/components/ui/button';
 import { Badge } from '@/app/components/ui/badge';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/app/components/ui/select';
 import { cn } from '@/lib/utils';
 
 // ── Types ──────────────────────────────────────────────────────────────────────
@@ -161,31 +168,22 @@ export const NewProjectBrief = ({ onBack, onComplete, embedded = false, linkedCa
                 <label className="block text-[12px] font-medium text-muted-foreground mb-1">
                   Link to campaign <span className="font-normal">(optional)</span>
                 </label>
-                <div className="relative">
-                  <Link2
-                    size={14}
-                    strokeWidth={1.6}
-                    absoluteStrokeWidth
-                    className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"
-                  />
-                  <select
-                    value={campaignId}
-                    onChange={(e) => setCampaignId(e.target.value)}
-                    className="w-full border border-input rounded-md h-9 pl-8 pr-3 text-[13px] bg-background focus:outline-none focus:ring-2 focus:ring-primary/30 appearance-none cursor-pointer text-foreground"
-                  >
-                    <option value="">No campaign linked</option>
-                    {MOCK_CAMPAIGNS.map((c) => (
-                      <option key={c.id} value={c.id} disabled={c.status === 'completed'}>
+                <Select value={campaignId || 'none'} onValueChange={value => setCampaignId(value === 'none' ? '' : value)}>
+                  <SelectTrigger className="h-9 rounded-md border-input bg-background text-[13px]">
+                    <span className="flex min-w-0 items-center gap-2">
+                      <Link2 size={14} strokeWidth={1.6} absoluteStrokeWidth className="text-muted-foreground" />
+                      <SelectValue />
+                    </span>
+                  </SelectTrigger>
+                  <SelectContent align="start">
+                    <SelectItem value="none">No campaign linked</SelectItem>
+                    {MOCK_CAMPAIGNS.map(c => (
+                      <SelectItem key={c.id} value={c.id} disabled={c.status === 'completed'}>
                         {c.name}{c.status === 'completed' ? ' (completed)' : c.status === 'draft' ? ' · Draft' : ''}
-                      </option>
+                      </SelectItem>
                     ))}
-                  </select>
-                  <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M2.5 4.5L6 8L9.5 4.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  </div>
-                </div>
+                  </SelectContent>
+                </Select>
                 {campaignId && (
                   <p className="mt-1 text-[11px] text-muted-foreground">
                     Published content will be added to this campaign's content list.

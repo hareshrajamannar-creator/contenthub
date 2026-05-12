@@ -4,21 +4,22 @@
  * 3-step inline creation flow for blog post generation inside ContentEditorShell.
  *
  * Steps:
- *  1. brand-kit — Select brand kit + business location
+ *  1. brand-kit — Select brand identity + business location
  *  2. setup     — Topic, keywords, tone, blog count
- *  3. topics    — Review / edit one card per blog post
+ *  3. brief     — Review / edit the content brief
  */
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Check, Paperclip, X, FileText as FileIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Input } from '@/app/components/ui/input';
 import {
-  CONTENT_FLOW_FIELD_CLASS,
   CONTENT_FLOW_STEP_TITLE_CLASS,
   ContentFlowBrandKitSummary,
   ContentFlowChip,
   ContentFlowCountStepper,
+  ContentFlowSelect,
+  ContentFlowTextarea,
+  ContentFlowTextInput,
 } from '../shared/ContentFlowControls';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -41,6 +42,7 @@ export interface BlogFlowData {
   publishTo: string[];
   attachments: string[];
   blogCount: number;
+  contentBrief?: string;
   sections: BlogSection[];
 }
 
@@ -48,6 +50,7 @@ export interface FlowNavControls {
   advance: () => void;
   back: () => void;
   generate: () => void;
+  goTo?: (step: number) => void;
 }
 
 export interface FlowNavState {
@@ -69,7 +72,7 @@ export interface BlogInlineCreationFlowProps {
 const BRAND_KITS = [
   { id: 'olive-garden', label: 'Olive Garden corporate' },
   { id: 'birdeye-demo', label: 'Birdeye demo brand' },
-  { id: 'local-seo', label: 'Local SEO brand kit' },
+  { id: 'local-seo', label: 'Local SEO identity' },
 ];
 
 const LOCATIONS = [
@@ -125,7 +128,7 @@ function makeSection(idx: number): BlogSection {
 
 // ── Step indicator ────────────────────────────────────────────────────────────
 
-const STEP_LABELS = ['Brand kit', 'Blog setup', 'Review topics'];
+const STEP_LABELS = ['Brand identity', 'Blog setup', 'Content brief'];
 
 function StepIndicator({ current }: { current: number }) {
   return (
@@ -162,7 +165,7 @@ function StepIndicator({ current }: { current: number }) {
   );
 }
 
-// ── Step 1: Brand kit + location ──────────────────────────────────────────────
+// ── Step 1: Brand identity + location ──────────────────────────────────────────────
 
 interface Step1Props {
   brandKit: string;
@@ -174,7 +177,7 @@ function Step1BrandKit({ brandKit, location, onChange }: Step1Props) {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className={CONTENT_FLOW_STEP_TITLE_CLASS}>Select brand kit and location</h2>
+        <h2 className={CONTENT_FLOW_STEP_TITLE_CLASS}>Select brand identity and location</h2>
         <p className="text-[13px] text-muted-foreground">
           Content will be created from the selected brand identity and location context.
         </p>
@@ -182,29 +185,21 @@ function Step1BrandKit({ brandKit, location, onChange }: Step1Props) {
 
       <div className="space-y-4">
         <div className="space-y-1.5">
-          <label className="text-[13px] font-medium text-foreground">Brand kit</label>
-          <select
+          <label className="text-[13px] font-medium text-foreground">Brand identity</label>
+          <ContentFlowSelect
             value={brandKit}
-            onChange={e => onChange(e.target.value, location)}
-            className="h-10 w-full rounded-xl border border-border bg-background px-3 text-[13px] text-foreground outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/15"
-          >
-            {BRAND_KITS.map(bk => (
-              <option key={bk.id} value={bk.id}>{bk.label}</option>
-            ))}
-          </select>
+            onChange={value => onChange(value, location)}
+            options={BRAND_KITS.map(bk => ({ value: bk.id, label: bk.label }))}
+          />
         </div>
 
         <div className="space-y-1.5">
           <label className="text-[13px] font-medium text-foreground">Location</label>
-          <select
+          <ContentFlowSelect
             value={location}
-            onChange={e => onChange(brandKit, e.target.value)}
-            className="h-10 w-full rounded-xl border border-border bg-background px-3 text-[13px] text-foreground outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/15"
-          >
-            {LOCATIONS.map(loc => (
-              <option key={loc.id} value={loc.id}>{loc.label}</option>
-            ))}
-          </select>
+            onChange={value => onChange(brandKit, value)}
+            options={LOCATIONS.map(loc => ({ value: loc.id, label: loc.label }))}
+          />
         </div>
       </div>
 
@@ -250,11 +245,10 @@ function Step2Setup({ topic, keywords, tone, wordTarget, attachments, blogCount,
       {/* Topic */}
       <div className="space-y-1.5">
         <label className="text-[13px] font-medium text-foreground">What should the blog posts be about?</label>
-        <Input
+        <ContentFlowTextInput
           value={topic}
           onChange={e => onChange({ topic: e.target.value })}
           placeholder="e.g. How to improve customer experience at your restaurant"
-          className={CONTENT_FLOW_FIELD_CLASS}
         />
       </div>
 
@@ -263,11 +257,10 @@ function Step2Setup({ topic, keywords, tone, wordTarget, attachments, blogCount,
         <label className="text-[13px] font-medium text-foreground">
           Target keywords <span className="text-muted-foreground font-normal">(optional)</span>
         </label>
-        <Input
+        <ContentFlowTextInput
           value={keywords}
           onChange={e => onChange({ keywords: e.target.value })}
           placeholder="e.g. customer experience, restaurant reviews, local dining"
-          className={CONTENT_FLOW_FIELD_CLASS}
         />
         <p className="text-[12px] text-muted-foreground">Separate multiple keywords with commas.</p>
       </div>
@@ -348,64 +341,34 @@ function Step2Setup({ topic, keywords, tone, wordTarget, attachments, blogCount,
   );
 }
 
-// ── Step 3: Topic review ──────────────────────────────────────────────────────
+// ── Step 3: Content brief ─────────────────────────────────────────────────────
 
 interface Step3Props {
   sections: BlogSection[];
   onChange: (sections: BlogSection[]) => void;
 }
 
-function BlogDescriptionCard({
+function BlogSummaryCard({
   section,
   onDescriptionChange,
 }: {
   section: BlogSection;
   onDescriptionChange: (id: string, description: string) => void;
 }) {
-  const [editing, setEditing] = useState(false);
-  const [localDesc, setLocalDesc] = useState(section.description);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-
-  useEffect(() => {
-    if (editing && textareaRef.current) {
-      textareaRef.current.focus();
-      textareaRef.current.select();
-    }
-  }, [editing]);
-
-  const commit = () => {
-    setEditing(false);
-    onDescriptionChange(section.id, localDesc);
-  };
-
   return (
-    <div
-      className={cn(
-        'px-4 py-3 rounded-xl border bg-background cursor-text transition-colors',
-        editing ? 'border-primary/50 ring-1 ring-primary/20' : 'border-border hover:border-border/80',
-      )}
-      onClick={() => !editing && setEditing(true)}
-    >
-      {editing ? (
-        <textarea
-          ref={textareaRef}
-          value={localDesc}
-          onChange={e => setLocalDesc(e.target.value)}
-          onBlur={commit}
-          onKeyDown={e => { if (e.key === 'Escape') commit(); }}
-          rows={3}
-          className="w-full resize-none bg-transparent outline-none text-[13px] text-foreground leading-relaxed"
-        />
-      ) : (
-        <p className="text-[13px] text-muted-foreground leading-relaxed line-clamp-3">
-          {localDesc}
-        </p>
-      )}
+    <div className="space-y-2">
+      <p className="text-[12px] font-medium text-muted-foreground">{section.heading}</p>
+      <ContentFlowTextarea
+        value={section.description}
+        onChange={event => onDescriptionChange(section.id, event.target.value)}
+        rows={3}
+        className="text-[14px] leading-6"
+      />
     </div>
   );
 }
 
-function BlogTopicSkeleton({ index = 0 }: { index?: number }) {
+function BlogSummarySkeleton({ index = 0 }: { index?: number }) {
   return (
     <div
       className="px-4 py-3 rounded-xl border border-border bg-background animate-pulse"
@@ -420,7 +383,7 @@ function BlogTopicSkeleton({ index = 0 }: { index?: number }) {
   );
 }
 
-function Step3Topics({ sections, onChange }: Step3Props) {
+function Step3ContentBrief({ sections, onChange }: Step3Props) {
   const [generating, setGenerating] = useState(true);
 
   useEffect(() => {
@@ -429,40 +392,30 @@ function Step3Topics({ sections, onChange }: Step3Props) {
   }, []);
 
   const updateDescription = (id: string, description: string) => {
-    onChange(sections.map(s => s.id === id ? { ...s, description } : s));
+    onChange(sections.map(section => section.id === id ? { ...section, description } : section));
   };
 
   return (
     <div className="space-y-6">
       <div>
-        <h2 className={CONTENT_FLOW_STEP_TITLE_CLASS}>Review topics</h2>
+        <h2 className={CONTENT_FLOW_STEP_TITLE_CLASS}>Content brief</h2>
         <p className="text-[13px] text-muted-foreground">
-          Click any topic to edit it before generating.
+          Review the detailed brief for what these blog posts will generate.
         </p>
       </div>
 
       {generating ? (
         <div className="space-y-4">
-          {sections.map((_, i) => (
-            <div key={i} className="space-y-2">
-              <div
-                className="h-2.5 w-20 rounded-full bg-muted animate-pulse"
-                style={{ animationDelay: `${i * 120}ms` }}
-              />
-              <BlogTopicSkeleton index={i} />
-            </div>
-          ))}
+          {sections.map((_, index) => <BlogSummarySkeleton key={index} index={index} />)}
         </div>
       ) : (
         <div className="space-y-4 animate-in fade-in duration-500">
           {sections.map(section => (
-            <div key={section.id} className="space-y-2">
-              <p className="text-[12px] font-medium text-muted-foreground">{section.heading}</p>
-              <BlogDescriptionCard
-                section={section}
-                onDescriptionChange={updateDescription}
-              />
-            </div>
+            <BlogSummaryCard
+              key={section.id}
+              section={section}
+              onDescriptionChange={updateDescription}
+            />
           ))}
         </div>
       )}
@@ -515,14 +468,17 @@ export function BlogInlineCreationFlow({ onComplete, onCancel, controlRef, onNav
   const canAdvance = [
     brandKit !== '' && location !== '',
     topic.trim() !== '' && tone !== '',
-    sections.length > 0,
+    sections.length > 0 && sections.every(section => section.description.trim() !== ''),
   ][step];
 
   const handleGenerate = useCallback(() => {
     onComplete({
       brandKit, location, topic, keywords,
-      tone, audience: 'Brand kit target customers', wordTarget, publishTo: ['library'],
-      attachments, blogCount, sections,
+      tone, audience: 'Target customers', wordTarget, publishTo: ['library'],
+      attachments,
+      blogCount,
+      contentBrief: sections.map(section => `${section.heading}: ${section.description}`).join('\n\n'),
+      sections,
     });
   }, [attachments, blogCount, brandKit, keywords, location, onComplete, sections, tone, topic, wordTarget]);
 
@@ -532,6 +488,7 @@ export function BlogInlineCreationFlow({ onComplete, onCancel, controlRef, onNav
         advance:  () => setStep(s => Math.min(s + 1, TOTAL_STEPS - 1)),
         back:     () => { if (step === 0) onCancel(); else setStep(s => s - 1); },
         generate: handleGenerate,
+        goTo:     (nextStep: number) => setStep(Math.max(0, Math.min(nextStep, TOTAL_STEPS - 1))),
       };
     }
   });
@@ -541,7 +498,7 @@ export function BlogInlineCreationFlow({ onComplete, onCancel, controlRef, onNav
   }, [canAdvance, onNavStateChange, step]);
 
   return (
-    <div className="flex flex-col h-full bg-[var(--color-canvas,#F7F8FA)]">
+    <div className="flex flex-col h-full bg-background">
       {!hideProgress && (
         <div className="flex-none px-8 py-4 border-b border-border bg-background flex justify-center">
           <StepIndicator current={step} />
@@ -549,8 +506,9 @@ export function BlogInlineCreationFlow({ onComplete, onCancel, controlRef, onNav
       )}
 
       {/* Scrollable content */}
-      <div className="flex-1 min-h-0 overflow-y-auto">
-        <div className="max-w-[560px] mx-auto px-8 py-8">
+      <div className="flex-1 min-h-0 overflow-hidden py-4 pl-4 pr-6">
+        <div className="h-full overflow-y-auto rounded-lg border border-border bg-background px-[30px] pb-[30px] pt-[30px]">
+          <div className="w-1/2 min-w-[520px] max-w-[720px]">
 
           {step === 0 && (
             <Step1BrandKit
@@ -573,11 +531,12 @@ export function BlogInlineCreationFlow({ onComplete, onCancel, controlRef, onNav
           )}
 
           {step === 2 && (
-            <Step3Topics
+            <Step3ContentBrief
               sections={sections}
               onChange={setSections}
             />
           )}
+          </div>
         </div>
       </div>
     </div>

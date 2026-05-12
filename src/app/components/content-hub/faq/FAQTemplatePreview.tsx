@@ -61,7 +61,7 @@ const PREVIEWS: Record<string, TemplatePreviewData> = {
     badge: '~10 FAQs · ~40 sec',
     pairs: [
       { q: 'Your question 1 will appear here', a: 'Your custom-generated answer will be tailored to the context, tone, and audience you define in the next steps.' },
-      { q: 'Your question 2 will appear here', a: 'The AI will generate answers based on your source material, brand kit, and goal settings.' },
+      { q: 'Your question 2 will appear here', a: 'The AI will generate answers based on your source material, brand identity, and goal settings.' },
     ],
     estimatedCount: 10,
     estimatedTime: '40 sec',

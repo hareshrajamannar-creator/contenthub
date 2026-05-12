@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
+import { ContentFlowSelect } from '../shared/ContentFlowControls';
 
 interface Template {
   id: string;
@@ -117,7 +118,7 @@ export const FAQWizardStep1 = ({
             <path d="M5 6V4.5a2 2 0 014 0V6" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
           </svg>
           <span className="text-[12px] text-muted-foreground">
-            <span className="font-medium text-foreground">LushGreen Brand Kit</span>
+            <span className="font-medium text-foreground">LushGreen corporate</span>
             <span className="mx-2">·</span>
             <span className="font-medium text-foreground">10 locations</span>
           </span>
@@ -165,15 +166,11 @@ export const FAQWizardStep1 = ({
         {/* Agent picker */}
         <div className="flex flex-col gap-2 flex-shrink-0">
           <label className="text-[13px] font-medium text-foreground">Generation agent</label>
-          <select
+          <ContentFlowSelect
             value={selectedAgent}
-            onChange={(e) => onAgentChange(e.target.value)}
-            className="w-full border border-border rounded-md px-3 py-2 text-[13px] bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-          >
-            {AGENT_OPTIONS.map(a => (
-              <option key={a.value} value={a.value}>{a.label}</option>
-            ))}
-          </select>
+            onChange={onAgentChange}
+            options={AGENT_OPTIONS}
+          />
           <p className="text-[12px] text-muted-foreground">{selectedAgent_.description}</p>
         </div>
     </div>

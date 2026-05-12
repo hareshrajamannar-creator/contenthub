@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react';
 import { BrandKitSetup } from '@/app/components/content-hub/BrandKitSetup';
 
 const meta: Meta<typeof BrandKitSetup> = {
-  title: 'App/BrandKitSetup',
+  title: 'App/BrandIdentitySetup',
   component: BrandKitSetup,
   parameters: { layout: 'fullscreen' },
   args: {

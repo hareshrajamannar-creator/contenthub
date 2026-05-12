@@ -151,10 +151,13 @@ export function InlineSelectField({
         >
           <span className="min-w-0 truncate text-left">{value}</span>
           <ChevronDown
+            size={20}
+            strokeWidth={1.6}
+            absoluteStrokeWidth
             className={cn(
-              "h-3.5 w-3.5 shrink-0 text-[#888] transition-transform dark:text-[#6b7280]",
+              "size-5 shrink-0 text-[#888] transition-transform dark:text-[#6b7280]",
               open && "rotate-180",
-              isMd && "h-3 w-3 text-[#999]",
+              isMd && "text-[#888]",
             )}
           />
         </button>

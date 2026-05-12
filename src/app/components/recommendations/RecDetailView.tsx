@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { createPortal } from 'react-dom'
 import { cn } from '@/lib/utils'
-import { ArrowLeft, Sparkles, X, Copy, Check, ChevronDown, CheckCircle2 } from 'lucide-react'
+import { ArrowLeft, Sparkles, X, Copy, Check, ChevronDown, ChevronUp, CheckCircle2, Info, MoreVertical } from 'lucide-react'
 import { Button } from '@/app/components/ui/button'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/app/components/ui/dropdown-menu'
 import { toast } from 'sonner'
 import type { Recommendation, BusinessMetrics, AeoSubScore } from './recTypes'
 
@@ -1001,6 +1002,412 @@ function GenericDetail({ rec, metrics }: GenericDetailProps) {
   )
 }
 
+// ── Evidence tab ─────────────────────────────────────────────────────────────
+
+const LLM_EVIDENCE_PLATFORMS = ['ChatGPT', 'Gemini', 'Perplexity', 'Google AI Mode', 'Google AI Overviews'] as const
+type EvidencePlatform = (typeof LLM_EVIDENCE_PLATFORMS)[number]
+
+interface LLMResponseRow {
+  date: string
+  location: string
+  mentioned: boolean
+  position: number | null
+  positionDelta: number | null
+  mentions: { initial: string; color: string }[]
+  mentionsOverflow: number
+  citations: { initial: string; color: string }[]
+  response: string
+}
+
+const EVIDENCE_AVATAR_COLORS: Record<string, string> = {
+  Z: '#1a73e8', R: '#e53935', T: '#43a047', H: '#fb8c00',
+  L: '#3949ab', C: '#00acc1', B: '#8e24aa', M: '#00897b',
+}
+function avatarColor(initial: string): string {
+  return EVIDENCE_AVATAR_COLORS[initial.toUpperCase()]
+    ?? `hsl(${(initial.toUpperCase().charCodeAt(0) * 47) % 360},55%,45%)`
+}
+
+const MOCK_LLM_ROWS: LLMResponseRow[] = [
+  {
+    date: 'Jan 10, 2026', location: 'Dubbo, NSW', mentioned: true,
+    position: 1, positionDelta: 1,
+    mentions: [{ initial: 'Z', color: avatarColor('Z') }, { initial: 'R', color: avatarColor('R') }, { initial: 'T', color: avatarColor('T') }],
+    mentionsOverflow: 17,
+    citations: [{ initial: 'T', color: avatarColor('T') }, { initial: 'H', color: avatarColor('H') }, { initial: 'L', color: avatarColor('L') }],
+    response: 'Here are the top-rated real estate agencies in Dubbo that consistently appear in AI-generated recommendati...',
+  },
+  {
+    date: 'Jan 10, 2026', location: 'Orange, NSW', mentioned: false,
+    position: null, positionDelta: null,
+    mentions: [], mentionsOverflow: 0,
+    citations: [{ initial: 'H', color: avatarColor('H') }, { initial: 'L', color: avatarColor('L') }],
+    response: 'The leading property agencies in Orange NSW include several highly regarded firms offering residential sale...',
+  },
+  {
+    date: 'Jan 9, 2026', location: 'Bathurst, NSW', mentioned: true,
+    position: 2, positionDelta: 3,
+    mentions: [{ initial: 'T', color: avatarColor('T') }, { initial: 'H', color: avatarColor('H') }, { initial: 'L', color: avatarColor('L') }],
+    mentionsOverflow: 15,
+    citations: [{ initial: 'L', color: avatarColor('L') }, { initial: 'C', color: avatarColor('C') }, { initial: 'Z', color: avatarColor('Z') }],
+    response: 'Top real estate agents in Bathurst are active across multiple suburbs, with many offering complimentary pro...',
+  },
+  {
+    date: 'Jan 8, 2026', location: 'Parkes, NSW', mentioned: true,
+    position: 1, positionDelta: 2,
+    mentions: [{ initial: 'H', color: avatarColor('H') }, { initial: 'L', color: avatarColor('L') }, { initial: 'C', color: avatarColor('C') }],
+    mentionsOverflow: 17,
+    citations: [{ initial: 'C', color: avatarColor('C') }, { initial: 'Z', color: avatarColor('Z') }],
+    response: 'Looking for a property appraisal in Parkes? Several well-reviewed agencies offer no-obligation valuations wit...',
+  },
+]
+
+function getBadgeStyle(initial: string): { bg: string; color: string } {
+  const PALETTES = [
+    { bg: '#fef3c7', color: '#92400e' },
+    { bg: '#dbeafe', color: '#1e3a8a' },
+    { bg: '#dcfce7', color: '#166534' },
+    { bg: '#fce7f3', color: '#9d174d' },
+    { bg: '#ede9fe', color: '#5b21b6' },
+    { bg: '#f1f5f9', color: '#334155' },
+    { bg: '#fef2f2', color: '#991b1b' },
+    { bg: '#ecfdf5', color: '#065f46' },
+  ]
+  return PALETTES[initial.toUpperCase().charCodeAt(0) % PALETTES.length]
+}
+
+function AvatarStack({ items, overflow }: { items: { initial: string; color: string }[]; overflow: number }) {
+  return (
+    <div className="flex items-center gap-1.5">
+      <div className="flex -space-x-1.5">
+        {items.map((a, i) => (
+          <div
+            key={i}
+            className="w-6 h-6 rounded-full border-2 border-background flex items-center justify-center text-[10px] font-semibold text-white flex-shrink-0"
+            style={{ backgroundColor: a.color }}
+          >
+            {a.initial}
+          </div>
+        ))}
+      </div>
+      {overflow > 0 && (
+        <span className="text-[12px] text-muted-foreground">+{overflow}</span>
+      )}
+    </div>
+  )
+}
+
+// ── Competitor citations card ──────────────────────────────────────────────────
+
+const MOCK_EVIDENCE_COMPETITORS: Recommendation['competitors'] = [
+  {
+    id: 'bowery', name: 'Bowery',
+    pageUrl: '#',
+    llmSnippet: 'Bowery maintains dedicated suburb service pages for key Dubbo areas including Dubbo South, Delroy Park, and Whylandra, consistently appearing in AI answers for suburb-specific real estate searches.',
+    citedBy: [], totalCitations: 120, citationRank: 1, sourceGaps: [], whyTheyWin: '',
+  },
+  {
+    id: 'ray-white', name: 'Ray White Dubbo',
+    pageUrl: '#',
+    llmSnippet: "Ray White Dubbo's suburb profile pages include median sale prices, days-on-market data, and local agent bios — making them the primary source Perplexity and Gemini cite for suburb-level property queries in Dubbo.",
+    citedBy: [], totalCitations: 98, citationRank: 2, sourceGaps: [], whyTheyWin: '',
+  },
+  {
+    id: 'mcgrath', name: 'McGrath Dubbo',
+    pageUrl: '#',
+    llmSnippet: 'McGrath Dubbo has suburb-specific pages targeting rural and lifestyle property seekers in surrounding areas like Narromine and Trangie, frequently cited by ChatGPT for rural Dubbo suburb searches.',
+    citedBy: [], totalCitations: 87, citationRank: 3, sourceGaps: [], whyTheyWin: '',
+  },
+]
+
+function CompetitorCitationsCard({ rec }: { rec: Recommendation }) {
+  const [compareOpen, setCompareOpen] = useState(false)
+  const [subScoresOpen, setSubScoresOpen] = useState(true)
+  const rawCompetitors = rec.competitors.length > 0 ? rec.competitors : MOCK_EVIDENCE_COMPETITORS
+  const competitors = rawCompetitors.slice(0, 3)
+  const aeoCompScore = rec.aeoScore?.competitor ?? 79
+  const aeoYourScore = rec.aeoScore?.you ?? 92
+  const subScores = rec.aeoScore?.subScores ?? DEFAULT_BLOG_SUBSCORES
+
+  const query = rec.promptsTriggeringThis[0]
+    ?? 'Find real estate agencies near me specializing in residential property sales.'
+
+  return (
+    <div className="bg-background border border-border rounded-xl overflow-hidden">
+      <div className="p-4">
+        <p className="text-[14px] font-semibold text-foreground leading-[22px]">
+          Which top competitor blogs are cited by AI for &lsquo;{query}&rsquo;
+        </p>
+        <p className="text-[12px] text-muted-foreground mt-0.5">
+          Analyze why competitors blog is getting cited instead of you
+        </p>
+      </div>
+
+      {/* Competitor rows */}
+      <div className="p-4 pt-0 space-y-4">
+        {competitors.map(comp => {
+          const initial = comp.name.charAt(0).toUpperCase()
+          const badge = getBadgeStyle(initial)
+          return (
+            <div key={comp.id} className="rounded-lg bg-[var(--s-bg-secondary)] p-4">
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex flex-col gap-1 flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span
+                      className="w-6 h-6 rounded flex items-center justify-center text-[11px] font-bold flex-shrink-0"
+                      style={{ backgroundColor: badge.bg, color: badge.color }}
+                    >
+                      {initial}
+                    </span>
+                    <span className="text-[13px] text-foreground font-medium leading-none">{comp.name}</span>
+                  </div>
+                  {comp.pageUrl && (
+                    <a
+                      href={comp.pageUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[13px] text-primary hover:underline leading-[20px] truncate"
+                    >
+                      {comp.name} | Leading agency in Dubbo
+                    </a>
+                  )}
+                  <p className="text-[13px] text-foreground leading-[20px]">{comp.llmSnippet}</p>
+                </div>
+                <AeoScoreBox score={aeoCompScore} />
+              </div>
+            </div>
+          )
+        })}
+
+        {/* Compare AEO score collapsible */}
+        <div className="rounded-lg bg-[var(--s-bg-secondary)] overflow-hidden">
+          <button
+            type="button"
+            onClick={() => setCompareOpen(v => !v)}
+            className="w-full flex items-start justify-between p-4 hover:bg-[var(--s-bg-secondary)] transition-colors text-left"
+          >
+            <div>
+              <p className="text-[13px] font-medium text-foreground leading-[20px]">
+                Compare AEO content score for Search AI generated blog vs competitor&apos;s blog
+              </p>
+              <p className="text-[12px] text-muted-foreground leading-[18px]">
+                AEO content score predicts how well your page is likely to perform in answers generated by AI
+              </p>
+            </div>
+            {compareOpen
+              ? <ChevronUp size={15} strokeWidth={1.6} absoluteStrokeWidth className="text-muted-foreground flex-shrink-0 mt-0.5" />
+              : <ChevronDown size={15} strokeWidth={1.6} absoluteStrokeWidth className="text-muted-foreground flex-shrink-0 mt-0.5" />
+            }
+          </button>
+
+          {compareOpen && (
+            <div className="overflow-x-auto">
+              {/* Column header row */}
+              <div className="flex items-center px-5 py-3 border-t border-border">
+                <div className="w-[38%] flex-shrink-0">
+                  <span className="text-[12px] text-muted-foreground">Score</span>
+                </div>
+                <div className="flex-1 min-w-0 flex items-center gap-1.5">
+                  <span className="text-[12px] bg-primary text-primary-foreground px-2.5 py-0.5 rounded-full font-medium leading-none">You</span>
+                  <Info size={13} strokeWidth={1.6} absoluteStrokeWidth className="text-muted-foreground flex-shrink-0" />
+                </div>
+                {competitors.map(comp => (
+                  <div key={comp.id} className="flex-1 min-w-0 flex items-center gap-1.5">
+                    <span className="text-[12px] text-foreground leading-none">{comp.name}</span>
+                    <Info size={13} strokeWidth={1.6} absoluteStrokeWidth className="text-muted-foreground flex-shrink-0" />
+                  </div>
+                ))}
+              </div>
+
+              {/* AEO content score row — toggles sub-scores */}
+              <div className="border-t border-border">
+                <button
+                  type="button"
+                  onClick={() => setSubScoresOpen(v => !v)}
+                  className="w-full flex items-center px-5 py-4 hover:bg-muted/20 transition-colors text-left"
+                >
+                  <div className="w-[38%] flex-shrink-0 flex items-center gap-2">
+                    <ChevronDown
+                      size={14}
+                      strokeWidth={1.6}
+                      absoluteStrokeWidth
+                      className={cn('text-foreground flex-shrink-0 transition-transform duration-150', !subScoresOpen && '-rotate-90')}
+                    />
+                    <span className="text-[13px] text-foreground font-medium">AEO content score</span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <span className="text-[13px] text-foreground">{aeoYourScore}%</span>
+                  </div>
+                  {competitors.map(comp => (
+                    <div key={comp.id} className="flex-1 min-w-0">
+                      <span className="text-[13px] text-foreground">{aeoCompScore}%</span>
+                    </div>
+                  ))}
+                </button>
+
+                {/* Sub-score rows */}
+                {subScoresOpen && subScores.map(sub => (
+                  <div key={sub.name} className="flex items-center px-5 py-3.5 border-t border-border">
+                    <div className="w-[38%] flex-shrink-0 pl-6">
+                      <p className="text-[13px] text-foreground leading-[18px]">{sub.name}</p>
+                      <p className="text-[11px] text-muted-foreground leading-[16px]">
+                        Weights: {typeof sub.weight === 'number' && sub.weight < 1
+                          ? (sub.weight * 100).toFixed(1)
+                          : sub.weight}
+                      </p>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <span className="text-[13px] text-foreground">{sub.you}%</span>
+                    </div>
+                    {competitors.map(comp => (
+                      <div key={comp.id} className="flex-1 min-w-0">
+                        <span className="text-[13px] text-foreground">{sub.competitor}%</span>
+                      </div>
+                    ))}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── LLM responses card ─────────────────────────────────────────────────────────
+
+function LLMResponsesCard({ rec }: { rec: Recommendation }) {
+  const [activePlatform, setActivePlatform] = useState<EvidencePlatform>('ChatGPT')
+
+  const query = rec.promptsTriggeringThis[0]
+    ?? 'Find real estate agencies near me specializing in residential property sales.'
+
+  return (
+    <div className="bg-background border border-border rounded-xl overflow-hidden">
+      <div className="px-5 py-4">
+        <p className="text-[14px] font-semibold text-foreground leading-[22px]">
+          How did AI sites respond to{' '}
+          <span className="text-primary">{query}</span>
+        </p>
+        <p className="text-[12px] text-muted-foreground mt-0.5">
+          To generate this recommendation, we ran these prompts across LLMs. Here are the responses each AI site returned.
+        </p>
+      </div>
+
+      {/* Platform tabs */}
+      <div className="flex border-b border-border px-2">
+        {LLM_EVIDENCE_PLATFORMS.map(platform => (
+          <button
+            key={platform}
+            type="button"
+            onClick={() => setActivePlatform(platform)}
+            className={cn(
+              'px-3 py-3 text-[13px] leading-none relative whitespace-nowrap',
+              activePlatform === platform
+                ? 'text-foreground font-medium after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:bg-primary after:rounded-t'
+                : 'text-muted-foreground hover:text-foreground',
+            )}
+          >
+            {platform}
+          </button>
+        ))}
+      </div>
+
+      {/* Table */}
+      <div className="overflow-x-auto mt-2">
+        {/* Header row */}
+        <div className="flex items-center px-5 py-3 border-b border-border">
+          <span className="text-[12px] text-muted-foreground font-medium w-[110px] flex-shrink-0">Date</span>
+          <span className="text-[12px] text-muted-foreground font-medium w-[130px] flex-shrink-0">Location</span>
+          <span className="text-[12px] text-muted-foreground font-medium w-[90px] flex-shrink-0 flex items-center gap-1">
+            Mention
+            <span className="w-3.5 h-3.5 rounded-full border border-muted-foreground/50 flex items-center justify-center text-[9px] text-muted-foreground flex-shrink-0">i</span>
+          </span>
+          <span className="text-[12px] text-muted-foreground font-medium w-[100px] flex-shrink-0">Position</span>
+          <span className="text-[12px] text-muted-foreground font-medium w-[140px] flex-shrink-0">All mentions</span>
+          <span className="text-[12px] text-muted-foreground font-medium w-[110px] flex-shrink-0">Citations</span>
+          <span className="text-[12px] text-muted-foreground font-medium flex-1 min-w-0">Response</span>
+        </div>
+
+        {MOCK_LLM_ROWS.map((row, i) => (
+          <div
+            key={i}
+            className={cn('flex items-center px-5 py-5', i > 0 && 'border-t border-border')}
+          >
+            {/* Date */}
+            <span className="text-[13px] text-foreground w-[110px] flex-shrink-0">{row.date}</span>
+
+            {/* Location */}
+            <span className="text-[13px] text-foreground w-[130px] flex-shrink-0">{row.location}</span>
+
+            {/* Mention */}
+            <div className="w-[90px] flex-shrink-0">
+              {row.mentioned
+                ? (
+                  <div className="w-6 h-6 rounded-full bg-[#e8f5e9] flex items-center justify-center">
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                      <path d="M2.5 6L5 8.5L9.5 3.5" stroke="#43a047" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </div>
+                ) : (
+                  <div className="w-6 h-6 rounded-full bg-[#fce8e6] flex items-center justify-center">
+                    <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                      <path d="M2.5 2.5L7.5 7.5M7.5 2.5L2.5 7.5" stroke="#e53935" strokeWidth="1.5" strokeLinecap="round" />
+                    </svg>
+                  </div>
+                )
+              }
+            </div>
+
+            {/* Position */}
+            <div className="w-[100px] flex-shrink-0">
+              {row.position !== null
+                ? (
+                  <div className="flex items-center gap-1">
+                    <span className="text-[13px] text-foreground">{row.position}</span>
+                    {row.positionDelta !== null && row.positionDelta > 0 && (
+                      <span className="text-[12px] text-[#43a047] font-medium">+{row.positionDelta}</span>
+                    )}
+                  </div>
+                )
+                : <span className="text-[13px] text-muted-foreground">—</span>
+              }
+            </div>
+
+            {/* All mentions */}
+            <div className="w-[140px] flex-shrink-0">
+              {row.mentions.length > 0
+                ? <AvatarStack items={row.mentions} overflow={row.mentionsOverflow} />
+                : <span className="text-[12px] text-muted-foreground">No mention</span>
+              }
+            </div>
+
+            {/* Citations */}
+            <div className="w-[110px] flex-shrink-0">
+              <AvatarStack items={row.citations} overflow={0} />
+            </div>
+
+            {/* Response */}
+            <span className="text-[13px] text-foreground flex-1 min-w-0 truncate">{row.response}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+// ── Evidence tab wrapper ───────────────────────────────────────────────────────
+
+function EvidenceTab({ rec }: { rec: Recommendation }) {
+  return (
+    <div className="flex flex-col gap-4">
+      <CompetitorCitationsCard rec={rec} />
+      <LLMResponsesCard rec={rec} />
+    </div>
+  )
+}
+
 // ── Main export ───────────────────────────────────────────────────────────────
 
 interface RecDetailViewProps {
@@ -1016,43 +1423,72 @@ interface RecDetailViewProps {
 }
 
 export function RecDetailView({ rec, metrics, onBack, onAccept, onReject, onNavigateToContentHub, onNavigateToBlogCanvas, onCompleteRec: _onCompleteRec }: RecDetailViewProps) {
+  const hasTabs = rec.category === 'FAQ' || (rec.category === 'Content' && !!rec.aeoScore)
+  const [activeTab, setActiveTab] = useState<'recommendation' | 'evidence'>('recommendation')
+
   return (
     <div className="flex-1 overflow-y-auto bg-background">
       {/* Header */}
-      <div className="px-6 py-4 flex items-center justify-between gap-4 border-b border-border">
+      <div className="px-6 py-4 flex items-center justify-between gap-4">
         <div className="flex items-center gap-2 min-w-0">
           <button
             onClick={onBack}
             className="flex items-center justify-center w-8 h-8 rounded hover:bg-muted/60 text-muted-foreground hover:text-foreground transition-colors flex-shrink-0"
           >
-            <ArrowLeft size={16} strokeWidth={1.6} />
+            <ArrowLeft size={16} strokeWidth={1.6} absoluteStrokeWidth />
           </button>
           <p className="text-[15px] text-foreground truncate">{rec.title}</p>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
           {onReject && (
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-8 text-[13px]"
-              onClick={() => onReject(rec.id)}
-            >
+            <Button variant="outline" size="sm" onClick={() => onReject(rec.id)}>
               Reject
             </Button>
           )}
-          <Button
-            size="sm"
-            className="h-8 text-[13px]"
-            onClick={() => onAccept(rec.id)}
-          >
+          <Button size="sm" onClick={() => onAccept(rec.id)}>
             Accept
           </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="icon">
+                <MoreVertical size={16} strokeWidth={1.6} absoluteStrokeWidth />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem>Download</DropdownMenuItem>
+              <DropdownMenuItem>Email recommendation</DropdownMenuItem>
+              <DropdownMenuItem>Revert to pending</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
+      {/* Tab bar — only for Blog and FAQ */}
+      {hasTabs && (
+        <div className="flex border-b border-border px-6 flex-shrink-0">
+          {(['recommendation', 'evidence'] as const).map(tab => (
+            <button
+              key={tab}
+              type="button"
+              onClick={() => setActiveTab(tab)}
+              className={cn(
+                'px-1 py-3 mr-6 text-[13px] leading-none relative',
+                activeTab === tab
+                  ? 'text-foreground font-medium after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:bg-primary after:rounded-t'
+                  : 'text-muted-foreground hover:text-foreground transition-colors',
+              )}
+            >
+              {tab.charAt(0).toUpperCase() + tab.slice(1)}
+            </button>
+          ))}
+        </div>
+      )}
+
       {/* Body */}
       <div className="px-6 py-4 flex flex-col gap-4">
-        {rec.category === 'FAQ' ? (
+        {hasTabs && activeTab === 'evidence' ? (
+          <EvidenceTab rec={rec} />
+        ) : rec.category === 'FAQ' ? (
           <FAQDetail rec={rec} metrics={metrics} onNavigateToContentHub={onNavigateToContentHub} />
         ) : rec.category === 'Content' && rec.aeoScore ? (
           <ContentDetail rec={rec} metrics={metrics} onAccept={() => onAccept(rec.id)} onNavigateToBlogCanvas={onNavigateToBlogCanvas} />

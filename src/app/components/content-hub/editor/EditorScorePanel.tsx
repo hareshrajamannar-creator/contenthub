@@ -50,13 +50,13 @@ export function EditorScorePanel({
   return (
     <div
       className={cn(
-        'flex-none flex flex-col h-full border-l border-border transition-all duration-200 overflow-hidden',
+        'flex-none flex flex-col h-full transition-all duration-200 overflow-hidden',
         open ? 'w-[300px]' : 'w-0',
       )}
       aria-hidden={!open}
     >
       {/* Inner wrapper — fixed width so content doesn't squish during slide transition */}
-      <div className="w-[300px] flex flex-col flex-1 min-h-0">
+      <div className="w-[300px] flex flex-col flex-1 min-h-0 rounded-xl border border-border/60 bg-background overflow-hidden">
         <ContentScorePanel
           score={score}
           scoreLabel={config.label + ' score'}

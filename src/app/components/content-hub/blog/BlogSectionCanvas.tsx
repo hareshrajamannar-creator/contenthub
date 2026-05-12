@@ -14,35 +14,29 @@
 
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import {
-  GripVertical, ChevronDown, Trash2, Plus,
+  GripVertical, GripHorizontal, ChevronDown, Trash2, Plus,
   AlertTriangle, XCircle, CheckCircle2,
   ArrowUp, ArrowDown, Sparkles, Layers,
-  Undo2, Redo2, ZoomIn, ZoomOut,
-  CheckCircle, CircleDashed,
-  CalendarDays, UserCircle2,
-  Activity, History, MessageCircle,
-  BookmarkCheck, FileText,
+  FileText,
   AlignLeft, Type, List, Image as ImageIcon, Lightbulb, Quote,
+  BookmarkX, HelpCircle, MousePointerClick, Minus, Star, Code2,
+  Share2, PanelBottom, SquarePlay,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { AiCopilot } from '../AiCopilot';
 import { SegmentedToggle } from '@/app/components/ui/segmented-toggle.v1';
 import { EditorScorePanel } from '../editor/EditorScorePanel';
 import { EDITOR_CONFIGS } from '../editor/editorConfig';
-import { scoreColor } from '../shared/scoreColors';
+import { EditorChromeToolbar, type EditorToolbarPosition } from '../shared/EditorChromeToolbar';
+import { CanvasEditorTopBar } from '../shared/CanvasEditorTopBar';
+import { ContentActivityDrawer } from '../shared/ContentActivityDrawer';
+import {
+  getSavedBlocks,
+  removeSavedBlock,
+  subscribeSavedBlocks,
+  type SavedBlock,
+} from '../shared/savedBlocksStore';
 import type { BlogSection } from './BlogInlineCreationFlow';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-} from '@/app/components/ui/dropdown-menu';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/app/components/ui/tooltip';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -261,53 +255,58 @@ const LEFT_TAB_ITEMS = [
   {
     value: 'ai' as const,
     label: 'AI',
-    icon: <Sparkles size={11} strokeWidth={1.6} absoluteStrokeWidth className="text-[#7c3aed]" />,
+    icon: <Sparkles size={11} strokeWidth={1.2} absoluteStrokeWidth className="text-[#7c3aed]" />,
   },
   { value: 'manual' as const, label: 'Manual' },
 ];
 
-// ── Score bar ─────────────────────────────────────────────────────────────────
-
-function ScoreBar({ score, active, onClick }: { score: number; active: boolean; onClick: () => void }) {
-  const { bg, text } = scoreColor(score);
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-label={`Content score: ${score}. Click to ${active ? 'close' : 'open'} score panel.`}
-      className={cn(
-        'flex items-center gap-2 h-7 px-2.5 rounded-lg border transition-colors flex-none',
-        active
-          ? 'border-border bg-muted'
-          : 'border-transparent hover:border-border hover:bg-muted/50',
-      )}
-    >
-      <span className="text-[11px] text-muted-foreground font-medium select-none">Score</span>
-      <div className="w-16 h-1.5 bg-[#e5e7eb] rounded-full overflow-hidden">
-        <div
-          className="h-full rounded-full transition-all duration-500"
-          style={{ width: `${score}%`, backgroundColor: text }}
-        />
-      </div>
-      <span
-        className="inline-flex items-center justify-center h-5 min-w-[26px] px-1.5 rounded text-[12px] font-bold tabular-nums leading-none"
-        style={{ backgroundColor: bg, color: text }}
-      >
-        {score}
-      </span>
-    </button>
-  );
-}
-
 // ── Manual panel (blog-specific) ──────────────────────────────────────────────
 
+type BlogManualTab = 'basic' | 'prebuilt' | 'saved';
+
 const BLOCK_PALETTE = [
-  { type: 'paragraph' as BlockType, label: 'Paragraph', Icon: AlignLeft },
-  { type: 'heading'   as BlockType, label: 'Heading',   Icon: Type       },
-  { type: 'bullets'   as BlockType, label: 'Bullet list',Icon: List      },
-  { type: 'image'     as BlockType, label: 'Image',      Icon: ImageIcon  },
-  { type: 'callout'   as BlockType, label: 'Callout',    Icon: Lightbulb  },
-  { type: 'quote'     as BlockType, label: 'Quote',      Icon: Quote      },
+  { type: 'hero' as BlockType, label: 'Header', Icon: PanelBottom },
+  { type: 'heading' as BlockType, label: 'Title', Icon: Type },
+  { type: 'paragraph' as BlockType, label: 'Text', Icon: AlignLeft },
+  { type: 'callout' as BlockType, label: 'Button', Icon: MousePointerClick },
+  { type: 'image' as BlockType, label: 'Image', Icon: ImageIcon },
+  { type: 'image' as BlockType, label: 'Video', Icon: SquarePlay },
+  { type: 'bullets' as BlockType, label: 'Bullet list', Icon: List },
+  { type: 'paragraph' as BlockType, label: 'Divider', Icon: Minus },
+  { type: 'paragraph' as BlockType, label: 'Spacer', Icon: Minus },
+  { type: 'faq-section' as BlockType, label: 'FAQ', Icon: HelpCircle },
+  { type: 'quote' as BlockType, label: 'Review', Icon: Star },
+  { type: 'callout' as BlockType, label: 'Callout', Icon: Lightbulb },
+  { type: 'callout' as BlockType, label: 'Footer', Icon: PanelBottom },
+  { type: 'paragraph' as BlockType, label: 'HTML', Icon: Code2 },
+  { type: 'callout' as BlockType, label: 'Social links', Icon: Share2 },
+];
+
+const BLOG_PREBUILT_TEMPLATES = [
+  {
+    id: 'blog-template-how-to',
+    title: 'How-to article',
+    description: 'Intro, steps, proof point, and closing CTA',
+    types: ['heading', 'paragraph', 'bullets', 'callout'] as BlockType[],
+  },
+  {
+    id: 'blog-template-local-seo',
+    title: 'Local SEO post',
+    description: 'Location intro, services, FAQs, and internal links',
+    types: ['heading', 'paragraph', 'bullets', 'faq-section'] as BlockType[],
+  },
+  {
+    id: 'blog-template-thought-leadership',
+    title: 'Thought leadership',
+    description: 'Strong POV, customer proof, quote, and takeaway list',
+    types: ['heading', 'paragraph', 'quote', 'bullets'] as BlockType[],
+  },
+  {
+    id: 'blog-template-media-story',
+    title: 'Image-led story',
+    description: 'Hero image, section heading, supporting copy, and CTA',
+    types: ['image', 'heading', 'paragraph', 'callout'] as BlockType[],
+  },
 ];
 
 const LIBRARY_FAQ_SECTIONS: FaqSectionData[] = [
@@ -342,58 +341,138 @@ const LIBRARY_FAQ_SECTIONS: FaqSectionData[] = [
 interface BlogManualContentProps {
   onAddBlock: (type: BlockType) => void;
   onDropFaqSection: (section: FaqSectionData) => void;
+  onInsertSavedBlock: (block: SavedBlock) => void;
 }
 
-function BlogManualContent({ onAddBlock, onDropFaqSection }: BlogManualContentProps) {
-  const [manualTab, setManualTab] = useState<'blocks' | 'saved'>('blocks');
+function BlogTemplatePreview({
+  label,
+  title,
+  score = 92,
+}: {
+  label: string;
+  title: string;
+  score?: number;
+}) {
+  return (
+    <div className="flex h-full w-full flex-col overflow-hidden rounded-lg border border-border bg-background">
+      <div className="flex items-center gap-2 border-b border-border px-2 py-1">
+        <div className="flex size-5 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
+          <FileText size={11} strokeWidth={1.6} absoluteStrokeWidth />
+        </div>
+        <span className="min-w-0 flex-1 truncate text-[8px] font-medium text-foreground">{label}</span>
+        <div className="h-1 w-8 overflow-hidden rounded-full bg-muted">
+          <div className="h-full w-4/5 rounded-full bg-[#1D9E75]" />
+        </div>
+        <span className="rounded bg-[#1D9E75]/10 px-1 text-[7px] font-medium text-[#1D9E75]">{score}</span>
+      </div>
+      <div className="flex flex-1 flex-col gap-2 px-2 py-2">
+        <p className="truncate text-[8px] font-medium text-foreground">{title}</p>
+        <div className="h-1 w-full rounded-full bg-muted" />
+        <div className="h-1 w-10/12 rounded-full bg-muted" />
+        <div className="h-1 w-8/12 rounded-full bg-muted" />
+        <div className="mt-1 h-1 w-11/12 rounded-full bg-muted" />
+        <div className="h-1 w-7/12 rounded-full bg-muted" />
+      </div>
+    </div>
+  );
+}
+
+function SuggestedStyleCard({
+  label,
+  title,
+  description,
+  onClick,
+  onRemove,
+  previewTitle,
+}: {
+  label: string;
+  title: string;
+  description: string;
+  onClick: () => void;
+  onRemove?: () => void;
+  previewTitle?: string;
+}) {
+  return (
+    <div className="overflow-hidden rounded-[10px] border border-border bg-background transition-colors hover:border-primary/30">
+      <button type="button" onClick={onClick} className="block w-full text-left">
+        <div className="border-b border-border bg-muted/60 p-4">
+          <div className="h-[116px]">
+            <BlogTemplatePreview label={label} title={previewTitle ?? title} />
+          </div>
+        </div>
+        <div className="space-y-2 p-4">
+          <span className="inline-flex rounded bg-primary/8 px-2 py-1 text-[10px] font-medium text-primary">
+            {label}
+          </span>
+          <p className="text-[13px] font-medium leading-snug text-foreground">{title}</p>
+          <p className="line-clamp-2 text-[11px] leading-relaxed text-muted-foreground">{description}</p>
+        </div>
+      </button>
+      {onRemove && (
+        <div className="border-t border-border px-4 py-2">
+          <button
+            type="button"
+            onClick={onRemove}
+            className="text-[11px] font-medium text-muted-foreground transition-colors hover:text-destructive"
+          >
+            Remove saved block
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function BlogManualContent({ onAddBlock, onDropFaqSection, onInsertSavedBlock }: BlogManualContentProps) {
+  const [manualTab, setManualTab] = useState<BlogManualTab>('basic');
+  const [savedBlocks, setSavedBlocks] = useState<SavedBlock[]>(() => getSavedBlocks());
+
+  useEffect(() => subscribeSavedBlocks(setSavedBlocks), []);
+
+  const manualTabs: { value: BlogManualTab; label: string }[] = [
+    { value: 'basic', label: 'Basic' },
+    { value: 'prebuilt', label: 'Pre-built' },
+    { value: 'saved', label: 'Saved' },
+  ];
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
       {/* Sub-tabs */}
-      <div className="flex-none flex items-center gap-1 px-4 pt-3 pb-2 border-b border-border">
-        <button
-          type="button"
-          onClick={() => setManualTab('blocks')}
-          className={cn(
-            'h-7 px-3 rounded-md text-[12px] font-medium transition-colors',
-            manualTab === 'blocks'
-              ? 'bg-muted text-foreground'
-              : 'text-muted-foreground hover:text-foreground hover:bg-muted/60',
-          )}
-        >
-          Content blocks
-        </button>
-        <button
-          type="button"
-          onClick={() => setManualTab('saved')}
-          className={cn(
-            'h-7 px-3 rounded-md text-[12px] font-medium transition-colors',
-            manualTab === 'saved'
-              ? 'bg-muted text-foreground'
-              : 'text-muted-foreground hover:text-foreground hover:bg-muted/60',
-          )}
-        >
-          Saved blocks
-        </button>
+      <div className="flex-none p-4">
+        <div className="flex rounded-lg border border-border bg-background p-1">
+          {manualTabs.map(tab => (
+            <button
+              key={tab.value}
+              type="button"
+              onClick={() => setManualTab(tab.value)}
+              className={cn(
+                'h-8 flex-1 rounded-md text-[12px] font-medium transition-colors',
+                manualTab === tab.value
+                  ? 'bg-muted text-foreground'
+                  : 'text-muted-foreground hover:text-foreground',
+              )}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
       </div>
 
-      {manualTab === 'blocks' && (
-        <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-3">
-          <p className="text-[12px] text-muted-foreground leading-relaxed">
-            Add content blocks directly to your blog canvas.
-          </p>
+      {manualTab === 'basic' && (
+        <div className="flex-1 overflow-y-auto px-4 pb-4">
           <div className="grid grid-cols-2 gap-2">
             {BLOCK_PALETTE.map(({ type, label, Icon }) => (
               <button
-                key={type}
+                key={label}
                 type="button"
                 onClick={() => onAddBlock(type)}
-                className="flex flex-col items-center gap-2.5 py-5 px-3 rounded-xl border border-border hover:border-primary/40 hover:bg-primary/[0.03] transition-all group"
+                className="flex min-h-[120px] flex-col items-center justify-center gap-2 rounded-xl border border-border bg-background p-4 text-center transition-colors hover:border-primary/40 hover:bg-primary/[0.03] group"
               >
-                <div className="size-9 rounded-xl bg-muted flex items-center justify-center group-hover:bg-primary/10 transition-colors">
-                  <Icon size={18} strokeWidth={1.6} absoluteStrokeWidth className="text-muted-foreground group-hover:text-primary transition-colors" />
+                <GripHorizontal size={15} strokeWidth={1.6} absoluteStrokeWidth className="text-muted-foreground/50" />
+                <div className="flex size-9 items-center justify-center rounded-xl bg-muted">
+                  <Icon size={18} strokeWidth={1.6} absoluteStrokeWidth className="text-muted-foreground transition-colors group-hover:text-primary" />
                 </div>
-                <span className="text-[12px] font-medium text-foreground text-center group-hover:text-primary transition-colors leading-tight">
+                <span className="text-[12px] font-medium leading-tight text-foreground transition-colors group-hover:text-primary">
                   {label}
                 </span>
               </button>
@@ -402,83 +481,67 @@ function BlogManualContent({ onAddBlock, onDropFaqSection }: BlogManualContentPr
         </div>
       )}
 
-      {manualTab === 'saved' && (
-        <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-3">
-          <p className="text-[12px] text-muted-foreground leading-relaxed">
-            FAQ sections saved from your FAQ canvas. Drop them directly into this blog post.
-          </p>
-          {LIBRARY_FAQ_SECTIONS.map(section => (
-            <SavedFaqCard
-              key={section.id}
-              section={section}
-              onDrop={() => onDropFaqSection(section)}
+      {manualTab === 'prebuilt' && (
+        <div className="flex-1 overflow-y-auto px-4 pb-4 flex flex-col gap-2">
+          {BLOG_PREBUILT_TEMPLATES.map(template => (
+            <SuggestedStyleCard
+              key={template.id}
+              label="Blog template"
+              title={template.title}
+              description={template.description}
+              previewTitle={template.types.map(type => type.replace('-', ' ')).join(' + ')}
+              onClick={() => template.types.forEach(type => {
+                if (type === 'faq-section') {
+                  onDropFaqSection(LIBRARY_FAQ_SECTIONS[0]);
+                  return;
+                }
+                onAddBlock(type);
+              })}
             />
           ))}
         </div>
       )}
-    </div>
-  );
-}
 
-function SavedFaqCard({ section, onDrop }: { section: FaqSectionData; onDrop: () => void }) {
-  const [collapsed, setCollapsed] = useState(false);
-  return (
-    <div className="rounded-xl border border-border bg-background overflow-hidden shadow-sm">
-      {/* Section header — matches FAQSectionCanvas section style */}
-      <div className="flex items-center gap-2 px-3 py-2.5 bg-muted/30 border-b border-border">
-        <Layers size={12} strokeWidth={1.6} absoluteStrokeWidth className="text-muted-foreground flex-none" />
-        <span className="flex-1 min-w-0 text-[12px] font-semibold text-foreground truncate">
-          {section.title}
-        </span>
-        <span className="text-[11px] text-muted-foreground flex-none">
-          {section.questions.length} Qs
-        </span>
-        <button
-          type="button"
-          onClick={() => setCollapsed(v => !v)}
-          className="p-0.5 rounded text-muted-foreground hover:bg-muted transition-colors flex-none"
-        >
-          <ChevronDown
-            size={12}
-            strokeWidth={1.6}
-            absoluteStrokeWidth
-            className={cn('transition-transform', collapsed && '-rotate-90')}
-          />
-        </button>
-      </div>
-
-      {/* Questions list */}
-      {!collapsed && (
-        <div className="divide-y divide-border">
-          {section.questions.map((q, qi) => (
-            <div key={q.id} className="px-3 py-2.5">
-              <p className="text-[11px] font-medium text-foreground leading-snug mb-1">
-                {qi + 1}. {q.question}
-              </p>
-              <p className="text-[11px] text-muted-foreground leading-relaxed line-clamp-2">
-                {q.answer}
-              </p>
+      {manualTab === 'saved' && (
+        <div className="flex-1 overflow-y-auto px-4 pb-4">
+          {savedBlocks.length === 0 ? (
+            <div className="flex min-h-[220px] flex-col items-center justify-center gap-2 text-center">
+              <div className="flex size-10 items-center justify-center rounded-xl bg-muted">
+                <BookmarkX size={18} strokeWidth={1.6} absoluteStrokeWidth className="text-muted-foreground" />
+              </div>
+              <div className="space-y-1">
+                <p className="text-[13px] font-medium text-foreground">No saved blocks yet</p>
+                <p className="text-[12px] leading-relaxed text-muted-foreground">
+                  Save FAQ sections and reuse them inside this blog.
+                </p>
+              </div>
             </div>
-          ))}
+          ) : (
+            <div className="flex flex-col gap-2">
+              {savedBlocks.map(block => (
+                <SuggestedStyleCard
+                  key={block.id}
+                  label="Saved block"
+                  title={block.name}
+                  description={`${block.preview.snippets.length} saved questions from ${block.preview.title}.`}
+                  previewTitle={block.preview.title}
+                  onClick={() => onInsertSavedBlock(block)}
+                  onRemove={() => removeSavedBlock(block.id)}
+                />
+              ))}
+            </div>
+          )}
         </div>
       )}
-
-      {/* Drop in CTA */}
-      <div className="px-3 py-2 border-t border-border bg-muted/20">
-        <button
-          type="button"
-          onClick={onDrop}
-          className="w-full flex items-center justify-center gap-1.5 h-7 rounded-md text-[12px] font-medium text-primary bg-primary/[0.06] hover:bg-primary/[0.11] transition-colors"
-        >
-          <Plus size={12} strokeWidth={1.6} absoluteStrokeWidth />
-          Drop into blog
-        </button>
-      </div>
     </div>
   );
 }
 
 // ── Individual block renderers ────────────────────────────────────────────────
+
+function shouldCloseTextEditor(event: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) {
+  return event.currentTarget.dataset.hasRichStyle !== 'true';
+}
 
 interface BlockRowProps {
   block: BlogBlock;
@@ -722,7 +785,7 @@ function HeroBlock({ block, onUpdate }: { block: BlogBlock; onUpdate: (p: Partia
             className="w-full text-[22px] font-bold text-foreground bg-transparent border-b border-primary outline-none pb-1 mb-3"
             value={block.heroTitle ?? ''}
             onChange={e => onUpdate({ heroTitle: e.target.value })}
-            onBlur={() => setEditingTitle(false)}
+            onBlur={e => { if (shouldCloseTextEditor(e)) setEditingTitle(false); }}
             onKeyDown={e => { if (e.key === 'Enter' || e.key === 'Escape') setEditingTitle(false); }}
           />
         ) : (
@@ -742,7 +805,7 @@ function HeroBlock({ block, onUpdate }: { block: BlogBlock; onUpdate: (p: Partia
             className="w-full text-sm text-muted-foreground bg-transparent border border-primary/40 rounded-lg p-2 outline-none resize-none"
             value={block.heroSubtitle ?? ''}
             onChange={e => onUpdate({ heroSubtitle: e.target.value })}
-            onBlur={() => setEditingSubtitle(false)}
+            onBlur={e => { if (shouldCloseTextEditor(e)) setEditingSubtitle(false); }}
           />
         ) : (
           <p
@@ -782,7 +845,7 @@ function HeadingBlock({ block, onUpdate }: { block: BlogBlock; onUpdate: (p: Par
             )}
             value={block.headingText ?? ''}
             onChange={e => onUpdate({ headingText: e.target.value })}
-            onBlur={() => setEditing(false)}
+            onBlur={e => { if (shouldCloseTextEditor(e)) setEditing(false); }}
             onKeyDown={e => { if (e.key === 'Enter' || e.key === 'Escape') setEditing(false); }}
           />
         ) : (
@@ -815,7 +878,7 @@ function ParagraphBlock({ block, onUpdate }: { block: BlogBlock; onUpdate: (p: P
           className="w-full text-[14px] leading-relaxed text-foreground bg-transparent border border-border rounded-lg p-2 outline-none resize-none focus:border-primary"
           value={block.body ?? ''}
           onChange={e => onUpdate({ body: e.target.value })}
-          onBlur={() => setEditing(false)}
+          onBlur={e => { if (shouldCloseTextEditor(e)) setEditing(false); }}
         />
       ) : (
         <p
@@ -898,7 +961,7 @@ function ImageBlock({ block, onUpdate }: { block: BlogBlock; onUpdate: (p: Parti
           className="w-full text-[12px] text-muted-foreground text-center bg-transparent border-b border-primary outline-none"
           value={block.caption ?? ''}
           onChange={e => onUpdate({ caption: e.target.value })}
-          onBlur={() => setEditingCaption(false)}
+          onBlur={e => { if (shouldCloseTextEditor(e)) setEditingCaption(false); }}
           onKeyDown={e => { if (e.key === 'Enter' || e.key === 'Escape') setEditingCaption(false); }}
         />
       ) : (
@@ -938,7 +1001,7 @@ function CalloutBlock({ block, onUpdate }: { block: BlogBlock; onUpdate: (p: Par
           className="w-full text-[13px] bg-transparent outline-none resize-none"
           value={block.calloutText ?? ''}
           onChange={e => onUpdate({ calloutText: e.target.value })}
-          onBlur={() => setEditingText(false)}
+          onBlur={e => { if (shouldCloseTextEditor(e)) setEditingText(false); }}
         />
       ) : (
         <p
@@ -967,7 +1030,7 @@ function QuoteBlock({ block, onUpdate }: { block: BlogBlock; onUpdate: (p: Parti
           className="w-full text-[14px] italic text-foreground/80 bg-transparent border border-border rounded-lg p-2 outline-none resize-none focus:border-primary"
           value={block.quoteText ?? ''}
           onChange={e => onUpdate({ quoteText: e.target.value })}
-          onBlur={() => setEditingQuote(false)}
+          onBlur={e => { if (shouldCloseTextEditor(e)) setEditingQuote(false); }}
         />
       ) : (
         <p
@@ -983,7 +1046,7 @@ function QuoteBlock({ block, onUpdate }: { block: BlogBlock; onUpdate: (p: Parti
           className="text-[12px] text-muted-foreground bg-transparent border-b border-primary outline-none"
           value={block.quoteAuthor ?? ''}
           onChange={e => onUpdate({ quoteAuthor: e.target.value })}
-          onBlur={() => setEditingAuthor(false)}
+          onBlur={e => { if (shouldCloseTextEditor(e)) setEditingAuthor(false); }}
           onKeyDown={e => { if (e.key === 'Enter' || e.key === 'Escape') setEditingAuthor(false); }}
         />
       ) : (
@@ -1000,19 +1063,19 @@ function QuoteBlock({ block, onUpdate }: { block: BlogBlock; onUpdate: (p: Parti
 
 // ── Main component ────────────────────────────────────────────────────────────
 
-export function BlogSectionCanvas({ sections, generationLabel, onEditSettings }: BlogSectionCanvasProps) {
+export function BlogSectionCanvas({ sections, generationLabel }: BlogSectionCanvasProps) {
   const [blocks, setBlocksState] = useState<BlogBlock[]>(() => generateBlogBlocks(sections));
   const [leftTab, setLeftTab] = useState<'ai' | 'manual'>('ai');
   const [zoom, setZoom] = useState(1);
   const [scorePanelOpen, setScorePanelOpen] = useState(true);
   const [fixingAll, setFixingAll] = useState(false);
   const [panelBump, setPanelBump] = useState(0);
+  const [activityOpen, setActivityOpen] = useState(false);
+  const [richTextVisible, setRichTextVisible] = useState(false);
+  const [canvasToolbarPosition, setCanvasToolbarPosition] = useState<EditorToolbarPosition>({ top: 96, left: 640 });
+  const [richTextPosition, setRichTextPosition] = useState<EditorToolbarPosition | undefined>();
   const canvasRef = useRef<HTMLDivElement>(null);
-
-  // Card metadata state
-  const [approvalStatus, setApprovalStatus] = useState<string | null>(null);
-  const [assignee, setAssignee] = useState<string | null>(null);
-  const [scheduleDate, setScheduleDate] = useState<string | null>(null);
+  const activeTextTargetRef = useRef<HTMLElement | null>(null);
 
   // Pinch-to-zoom via trackpad (ctrl+wheel)
   useEffect(() => {
@@ -1029,6 +1092,83 @@ export function BlogSectionCanvas({ sections, generationLabel, onEditSettings }:
     el.addEventListener('wheel', handler, { passive: false });
     return () => el.removeEventListener('wheel', handler);
   }, []);
+
+  const updateCanvasToolbarPosition = useCallback(() => {
+    const el = canvasRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    setCanvasToolbarPosition({
+      top: Math.max(64, rect.top + 16),
+      left: rect.left + rect.width / 2,
+    });
+  }, []);
+
+  const updateRichTextPosition = useCallback((target?: HTMLElement | null) => {
+    const activeTarget = target ?? activeTextTargetRef.current;
+    if (!activeTarget) return;
+    const selection = window.getSelection();
+    const selectionRect = selection && selection.rangeCount > 0 && !selection.isCollapsed
+      ? selection.getRangeAt(0).getBoundingClientRect()
+      : null;
+    const rect = selectionRect && selectionRect.width > 0
+      ? selectionRect
+      : activeTarget.getBoundingClientRect();
+    setRichTextPosition({
+      top: Math.max(64, rect.top - 56),
+      left: rect.left + rect.width / 2,
+    });
+  }, []);
+
+  useEffect(() => {
+    const el = canvasRef.current;
+    if (!el) return;
+
+    function isTextEditor(target: EventTarget | null) {
+      if (!(target instanceof HTMLElement)) return false;
+      return Boolean(target.closest('input, textarea, [contenteditable="true"]'));
+    }
+
+    function handleFocusIn(event: FocusEvent) {
+      if (!isTextEditor(event.target)) return;
+      activeTextTargetRef.current = event.target as HTMLElement;
+      updateRichTextPosition(event.target as HTMLElement);
+      setRichTextVisible(true);
+    }
+
+    function handleFocusOut() {
+      window.setTimeout(() => {
+        if (isTextEditor(document.activeElement)) return;
+        activeTextTargetRef.current = null;
+        setRichTextVisible(false);
+      }, 0);
+    }
+
+    function handleSelectionChange() {
+      if (!isTextEditor(document.activeElement)) return;
+      updateRichTextPosition(document.activeElement as HTMLElement);
+    }
+
+    function handleScrollOrResize() {
+      updateCanvasToolbarPosition();
+      if (isTextEditor(document.activeElement)) {
+        updateRichTextPosition(document.activeElement as HTMLElement);
+      }
+    }
+
+    updateCanvasToolbarPosition();
+    el.addEventListener('focusin', handleFocusIn);
+    el.addEventListener('focusout', handleFocusOut);
+    el.addEventListener('scroll', handleScrollOrResize);
+    window.addEventListener('resize', handleScrollOrResize);
+    document.addEventListener('selectionchange', handleSelectionChange);
+    return () => {
+      el.removeEventListener('focusin', handleFocusIn);
+      el.removeEventListener('focusout', handleFocusOut);
+      el.removeEventListener('scroll', handleScrollOrResize);
+      window.removeEventListener('resize', handleScrollOrResize);
+      document.removeEventListener('selectionchange', handleSelectionChange);
+    };
+  }, [updateCanvasToolbarPosition, updateRichTextPosition]);
 
   // ── Undo / redo history ────────────────────────────────────────────────────
   const historyRef    = useRef<BlogBlock[][]>([]);
@@ -1098,12 +1238,14 @@ export function BlogSectionCanvas({ sections, generationLabel, onEditSettings }:
   const addBlock = useCallback((type: BlockType) => {
     const base: BlogBlock = { id: makeBlockId(), type, status: 'warning', warningText: 'New block added — review and edit content.' };
     switch (type) {
+      case 'hero':       Object.assign(base, { heroTag: 'Blog post', heroTitle: 'New blog header', heroSubtitle: 'Add a clear summary for this article.' }); break;
       case 'heading':    Object.assign(base, { level: 2, headingText: 'New section heading' }); break;
       case 'paragraph':  Object.assign(base, { body: 'Write your paragraph content here.' }); break;
       case 'bullets':    Object.assign(base, { items: ['First point', 'Second point', 'Third point'] }); break;
       case 'image':      Object.assign(base, { alt: 'Image', caption: 'Add a caption for this image' }); break;
       case 'callout':    Object.assign(base, { calloutVariant: 'info', calloutTitle: 'Key point', calloutText: 'Add your callout content here.' }); break;
       case 'quote':      Object.assign(base, { quoteText: 'Add a compelling quote here.', quoteAuthor: 'Source' }); break;
+      case 'faq-section': Object.assign(base, { faqSection: LIBRARY_FAQ_SECTIONS[0], status: 'ready', warningText: undefined }); break;
       default: break;
     }
     setBlocks(prev => [...prev, base]);
@@ -1118,6 +1260,19 @@ export function BlogSectionCanvas({ sections, generationLabel, onEditSettings }:
     };
     setBlocks(prev => [...prev, block]);
   }, [setBlocks]);
+
+  const insertSavedBlock = useCallback((block: SavedBlock) => {
+    const section: FaqSectionData = {
+      id: `${block.id}-${Date.now()}`,
+      title: block.preview.title || block.name,
+      questions: block.preview.snippets.map((question, index) => ({
+        id: `saved-q-${Date.now()}-${index}`,
+        question,
+        answer: 'Review and update this saved answer for the current blog post.',
+      })),
+    };
+    addFaqSection(section);
+  }, [addFaqSection]);
 
   const handleItemFixed = useCallback((bump: number) => {
     setPanelBump(p => p + bump);
@@ -1136,11 +1291,11 @@ export function BlogSectionCanvas({ sections, generationLabel, onEditSettings }:
   }, [setBlocks]);
 
   return (
-    <div className="flex flex-1 min-h-0">
+    <div className="flex flex-1 min-h-0 gap-2 bg-[var(--color-canvas,#F7F8FA)] p-2 animate-in fade-in duration-500">
       {/* ── Left panel ───────────────────────────────────────────────── */}
       <div
-        className="flex-shrink-0 flex flex-col overflow-hidden border-r border-border"
-        style={{ width: 280 }}
+        className="flex-shrink-0 flex flex-col overflow-hidden rounded-xl border border-border/60 bg-background"
+        style={{ width: 300 }}
       >
         <div className="flex-none px-4 py-3 border-b border-border">
           <SegmentedToggle
@@ -1160,268 +1315,49 @@ export function BlogSectionCanvas({ sections, generationLabel, onEditSettings }:
             <BlogManualContent
               onAddBlock={addBlock}
               onDropFaqSection={addFaqSection}
+              onInsertSavedBlock={insertSavedBlock}
             />
           )}
         </div>
       </div>
 
       {/* ── Center canvas ─────────────────────────────────────────────── */}
-      <div className="flex flex-1 min-w-0 flex-col overflow-hidden bg-[var(--color-canvas,#F7F8FA)]">
-        <div ref={canvasRef} className="flex-1 min-h-0 overflow-y-auto relative">
+      <div className="flex flex-1 min-w-0 flex-col gap-2 overflow-hidden">
+        {richTextVisible && (
+          <EditorChromeToolbar
+            canUndo={canUndo}
+            canRedo={canRedo}
+            onUndo={handleUndo}
+            onRedo={handleRedo}
+            zoom={zoom}
+            onZoomOut={() => setZoom(z => Math.max(0.5, +(z - 0.1).toFixed(2)))}
+            onZoomIn={() => setZoom(z => Math.min(2, +(z + 0.1).toFixed(2)))}
+            richTextVisible={richTextVisible}
+            canvasPosition={canvasToolbarPosition}
+            richTextPosition={richTextPosition}
+          />
+        )}
+        <CanvasEditorTopBar
+          score={finalScore}
+          scoreLabel="Content score"
+          scorePanelOpen={scorePanelOpen}
+          onScoreClick={() => setScorePanelOpen(v => !v)}
+          canUndo={canUndo}
+          canRedo={canRedo}
+          onUndo={handleUndo}
+          onRedo={handleRedo}
+          zoom={zoom}
+          onZoomOut={() => setZoom(z => Math.max(0.5, +(z - 0.1).toFixed(2)))}
+          onZoomIn={() => setZoom(z => Math.min(2, +(z + 0.1).toFixed(2)))}
+          onActivity={() => setActivityOpen(true)}
+        />
 
-          {/* Floating toolbar — undo/redo + zoom */}
-          <div className="sticky top-4 z-20 flex justify-center pointer-events-none">
-            <div className="bg-background rounded-lg shadow-sm border border-border pointer-events-auto">
-              <div className="flex items-center px-4 py-2 gap-3">
-                <button
-                  type="button"
-                  onClick={handleUndo}
-                  disabled={!canUndo}
-                  title="Undo"
-                  className="p-1.5 hover:bg-muted rounded-md transition-colors disabled:opacity-30"
-                >
-                  <Undo2 size={15} strokeWidth={1.6} absoluteStrokeWidth className="text-foreground" />
-                </button>
-                <button
-                  type="button"
-                  onClick={handleRedo}
-                  disabled={!canRedo}
-                  title="Redo"
-                  className="p-1.5 hover:bg-muted rounded-md transition-colors disabled:opacity-30"
-                >
-                  <Redo2 size={15} strokeWidth={1.6} absoluteStrokeWidth className="text-foreground" />
-                </button>
-
-                <div className="w-px h-4 bg-border" />
-
-                <button
-                  type="button"
-                  onClick={() => setZoom(z => Math.max(0.5, +(z - 0.1).toFixed(2)))}
-                  className="p-1 hover:bg-muted rounded-md transition-colors"
-                >
-                  <ZoomOut size={15} strokeWidth={1.6} absoluteStrokeWidth className="text-foreground" />
-                </button>
-                <span className="text-[13px] text-muted-foreground text-nowrap min-w-[40px] text-center">
-                  {Math.round(zoom * 100)}%
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setZoom(z => Math.min(2, +(z + 0.1).toFixed(2)))}
-                  className="p-1 hover:bg-muted rounded-md transition-colors"
-                >
-                  <ZoomIn size={15} strokeWidth={1.6} absoluteStrokeWidth className="text-foreground" />
-                </button>
-              </div>
-            </div>
-          </div>
+        <div ref={canvasRef} className="relative min-h-0 flex-1 overflow-y-auto rounded-xl bg-transparent">
 
           {/* Blog card container — padding stays fixed, only the card scales */}
           <div className="px-8 py-6 pb-10">
             <div style={{ zoom }}>
-              <div className={cn(
-                'rounded-xl border bg-background transition-shadow',
-                scorePanelOpen ? 'border-primary/30' : 'border-border hover:border-primary/30',
-              )}>
-
-                {/* Card header */}
-                <div className="flex items-center gap-2 px-4 h-12 border-b border-border">
-
-                  {/* LEFT: icon + name + score */}
-                  <div className="flex items-center gap-2 flex-1 min-w-0">
-                    <div className="size-6 rounded-md bg-primary/[0.07] flex items-center justify-center flex-none">
-                      <FileText size={13} strokeWidth={1.6} absoluteStrokeWidth className="text-foreground/70" />
-                    </div>
-                    <span className="text-[13px] font-medium text-foreground truncate">
-                      Blog post
-                    </span>
-                    <ScoreBar
-                      score={finalScore}
-                      active={scorePanelOpen}
-                      onClick={() => setScorePanelOpen(v => !v)}
-                    />
-                  </div>
-
-                  {/* RIGHT: metadata dropdowns + action icons */}
-                  <div className="flex items-center gap-1 flex-none">
-
-                    {/* Assign dropdown */}
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <button
-                          type="button"
-                          className={cn(
-                            'flex items-center gap-1 h-7 px-2 rounded-md text-[12px] transition-colors',
-                            assignee
-                              ? 'text-primary bg-primary/[0.07] hover:bg-primary/[0.11]'
-                              : 'text-muted-foreground hover:bg-muted hover:text-foreground',
-                          )}
-                        >
-                          <UserCircle2 size={13} strokeWidth={1.6} absoluteStrokeWidth />
-                          <span className="max-w-[72px] truncate">{assignee ?? 'Assign'}</span>
-                          <ChevronDown size={10} strokeWidth={1.6} absoluteStrokeWidth className="opacity-60" />
-                        </button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-44">
-                        {['Haresh R.', 'Priya K.', 'Arjun M.', 'Balaji K.'].map(name => (
-                          <DropdownMenuItem key={name} onSelect={() => setAssignee(name)}>
-                            <UserCircle2 size={13} strokeWidth={1.6} absoluteStrokeWidth className="mr-2 text-muted-foreground flex-none" />
-                            {name}
-                            {assignee === name && (
-                              <CheckCircle2 size={12} strokeWidth={1.6} absoluteStrokeWidth className="ml-auto text-primary flex-none" />
-                            )}
-                          </DropdownMenuItem>
-                        ))}
-                        {assignee && (
-                          <>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem onSelect={() => setAssignee(null)} className="text-muted-foreground">
-                              Unassign
-                            </DropdownMenuItem>
-                          </>
-                        )}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-
-                    {/* Approval dropdown */}
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <button
-                          type="button"
-                          className={cn(
-                            'flex items-center gap-1 h-7 px-2 rounded-md text-[12px] transition-colors',
-                            approvalStatus === 'Approved'
-                              ? 'text-[#1D9E75] bg-[#1D9E75]/[0.07] hover:bg-[#1D9E75]/[0.12]'
-                              : approvalStatus === 'Needs review' || approvalStatus === 'Pending'
-                              ? 'text-amber-600 bg-amber-50 hover:bg-amber-100'
-                              : approvalStatus === 'Rejected'
-                              ? 'text-destructive bg-destructive/[0.07] hover:bg-destructive/[0.12]'
-                              : 'text-muted-foreground hover:bg-muted hover:text-foreground',
-                          )}
-                        >
-                          {approvalStatus === 'Approved'
-                            ? <CheckCircle size={13} strokeWidth={1.6} absoluteStrokeWidth />
-                            : approvalStatus === 'Rejected'
-                            ? <XCircle size={13} strokeWidth={1.6} absoluteStrokeWidth />
-                            : <CircleDashed size={13} strokeWidth={1.6} absoluteStrokeWidth />
-                          }
-                          <span className="max-w-[72px] truncate">{approvalStatus ?? 'Approval'}</span>
-                          <ChevronDown size={10} strokeWidth={1.6} absoluteStrokeWidth className="opacity-60" />
-                        </button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-40">
-                        {['Approved', 'Needs review', 'Pending', 'Rejected'].map(status => (
-                          <DropdownMenuItem key={status} onSelect={() => setApprovalStatus(status)}>
-                            {status}
-                            {approvalStatus === status && (
-                              <CheckCircle2 size={12} strokeWidth={1.6} absoluteStrokeWidth className="ml-auto text-primary flex-none" />
-                            )}
-                          </DropdownMenuItem>
-                        ))}
-                        {approvalStatus && (
-                          <>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem onSelect={() => setApprovalStatus(null)} className="text-muted-foreground">
-                              Clear
-                            </DropdownMenuItem>
-                          </>
-                        )}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-
-                    {/* Schedule dropdown */}
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <button
-                          type="button"
-                          className={cn(
-                            'flex items-center gap-1 h-7 px-2 rounded-md text-[12px] transition-colors',
-                            scheduleDate
-                              ? 'text-primary bg-primary/[0.07] hover:bg-primary/[0.11]'
-                              : 'text-muted-foreground hover:bg-muted hover:text-foreground',
-                          )}
-                        >
-                          <CalendarDays size={13} strokeWidth={1.6} absoluteStrokeWidth />
-                          <span className="max-w-[72px] truncate">{scheduleDate ?? 'Schedule'}</span>
-                          <ChevronDown size={10} strokeWidth={1.6} absoluteStrokeWidth className="opacity-60" />
-                        </button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-44">
-                        {['Today', 'Tomorrow', 'This Friday', 'May 15', 'May 22'].map(date => (
-                          <DropdownMenuItem key={date} onSelect={() => setScheduleDate(date)}>
-                            {date}
-                            {scheduleDate === date && (
-                              <CheckCircle2 size={12} strokeWidth={1.6} absoluteStrokeWidth className="ml-auto text-primary flex-none" />
-                            )}
-                          </DropdownMenuItem>
-                        ))}
-                        {scheduleDate && (
-                          <>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem onSelect={() => setScheduleDate(null)} className="text-muted-foreground">
-                              Clear
-                            </DropdownMenuItem>
-                          </>
-                        )}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-
-                    <div className="w-px h-4 bg-border mx-0.5" />
-
-                    {/* Activity */}
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <button
-                          type="button"
-                          className="flex items-center justify-center w-7 h-7 rounded text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-                        >
-                          <Activity size={14} strokeWidth={1.6} absoluteStrokeWidth />
-                        </button>
-                      </TooltipTrigger>
-                      <TooltipContent>Activity</TooltipContent>
-                    </Tooltip>
-
-                    {/* Version history */}
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <button
-                          type="button"
-                          className="flex items-center justify-center w-7 h-7 rounded text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-                        >
-                          <History size={14} strokeWidth={1.6} absoluteStrokeWidth />
-                        </button>
-                      </TooltipTrigger>
-                      <TooltipContent>Version history</TooltipContent>
-                    </Tooltip>
-
-                    {/* Add comment */}
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <button
-                          type="button"
-                          className="flex items-center justify-center w-7 h-7 rounded text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-                        >
-                          <MessageCircle size={14} strokeWidth={1.6} absoluteStrokeWidth />
-                        </button>
-                      </TooltipTrigger>
-                      <TooltipContent>Add comment</TooltipContent>
-                    </Tooltip>
-
-                    <div className="w-px h-4 bg-border mx-0.5" />
-
-                    {/* Save */}
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <button
-                          type="button"
-                          className="flex items-center justify-center w-7 h-7 rounded text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-                        >
-                          <BookmarkCheck size={14} strokeWidth={1.6} absoluteStrokeWidth />
-                        </button>
-                      </TooltipTrigger>
-                      <TooltipContent>Save blog post to content library</TooltipContent>
-                    </Tooltip>
-                  </div>
-                </div>
+              <div className="rounded-xl border border-border/60 bg-background">
 
                 {/* Block list */}
                 <div className="divide-y divide-border/40">
@@ -1465,6 +1401,11 @@ export function BlogSectionCanvas({ sections, generationLabel, onEditSettings }:
         score={finalScore}
         onItemFixed={handleItemFixed}
         onFixAll={handleFixAll}
+      />
+      <ContentActivityDrawer
+        open={activityOpen}
+        onClose={() => setActivityOpen(false)}
+        contentType="blog"
       />
     </div>
   );
