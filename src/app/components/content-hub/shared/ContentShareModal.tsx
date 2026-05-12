@@ -149,7 +149,7 @@ export function ContentShareModal({
 
   return (
     <Dialog open={open} onOpenChange={isOpen => !isOpen && onClose()}>
-      <DialogContent className="!w-[960px] !max-w-[calc(100vw-32px)] flex flex-col gap-0 overflow-hidden p-0 max-h-[680px]">
+      <DialogContent className="!w-[960px] !max-w-[calc(100vw-32px)] flex flex-col gap-0 overflow-hidden p-0 h-[680px]">
         {/* Header — fixed */}
         <DialogHeader className="shrink-0 border-b border-border px-6 py-4">
           <DialogTitle className="text-[15px] font-semibold">Share content</DialogTitle>
