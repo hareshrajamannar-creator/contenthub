@@ -1,7 +1,7 @@
 /**
  * ProjectGenerationProgress
  *
- * Animated 4-step generation loading card shown between the project inline
+ * Animated 4-step generation loading surface shown between the project inline
  * flow and the final canvas. Matches the FAQ/Blog equivalent design.
  *
  * Steps animate: pending -> active (spinner) -> done (green check), 1.4 s apart.
@@ -9,7 +9,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { Check, Loader2 } from 'lucide-react';
+import { Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { InlineFlowData } from './inline/InlineCreationFlow';
 
@@ -18,6 +18,7 @@ import type { InlineFlowData } from './inline/InlineCreationFlow';
 export interface ProjectGenerationProgressProps {
   flowData: InlineFlowData;
   onComplete: () => void;
+  isExiting?: boolean;
 }
 
 type StepStatus = 'pending' | 'active' | 'done';
@@ -25,7 +26,6 @@ type StepStatus = 'pending' | 'active' | 'done';
 interface GenStep {
   id: string;
   label: string;
-  sublabel: string;
 }
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -34,56 +34,80 @@ const STEP_DURATION_MS = 1400;
 const DONE_GRACE_MS = 500;
 
 const GEN_STEPS: GenStep[] = [
-  { id: 'brand',    label: 'Analyzing brand identity',   sublabel: 'Reading tone settings, audience signals, and location data' },
-  { id: 'brief',    label: 'Processing project brief',   sublabel: 'Mapping goals, objectives, and content requirements' },
-  { id: 'content',  label: 'Generating content pieces',  sublabel: 'Drafting blog posts, social copy, email campaigns, and FAQs' },
-  { id: 'finalize', label: 'Applying brand voice',       sublabel: 'Reviewing consistency, scoring each piece, and finalizing output' },
+  { id: 'brand',    label: 'Analyzing brand identity' },
+  { id: 'brief',    label: 'Processing project brief' },
+  { id: 'content',  label: 'Generating content pieces' },
+  { id: 'finalize', label: 'Applying brand voice' },
+];
+
+const PREVIEW_BLOCKS = [
+  {
+    heading: 'Spring garden cleanup',
+    body: 'Drafting a coordinated content set with FAQ answers, blog guidance, social copy, and email messaging for local customers.',
+  },
+  {
+    heading: 'Channel plan',
+    body: 'Mapping each piece to the right publishing channel while keeping the brand voice consistent across the campaign.',
+  },
+  {
+    heading: 'Review-ready output',
+    body: 'Preparing content cards with scores, captions, summaries, and next steps so the project can move into review.',
+  },
 ];
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
 function StepRow({ step, status }: { step: GenStep; status: StepStatus }) {
   return (
-    <div className="flex items-start gap-3 py-3">
+    <div className="flex items-center gap-2 py-1">
       <div className={cn(
-        'w-7 h-7 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5 transition-all duration-300',
+        'flex size-5 flex-shrink-0 items-center justify-center rounded-full transition-all duration-300',
         status === 'pending' && 'border-border bg-background',
-        status === 'active'  && 'border-primary bg-background',
+        status === 'pending' && 'border-2',
         status === 'done'    && 'border-[#1D9E75] bg-[#1D9E75]',
       )}>
         {status === 'active' && (
-          <Loader2 size={14} strokeWidth={1.6} absoluteStrokeWidth className="text-primary animate-spin" />
+          <span className="size-5 rounded-full border-2 border-[#1E5BE5]/20 border-t-[#1E5BE5] animate-spin" />
         )}
         {status === 'done' && (
-          <Check size={13} strokeWidth={2.4} className="text-white" />
+          <Check size={12} strokeWidth={1.6} absoluteStrokeWidth className="text-white" />
         )}
       </div>
+      <p className="text-[15px] text-foreground">{step.label}</p>
+    </div>
+  );
+}
 
-      <div className="flex-1 min-w-0">
-        <p className={cn(
-          'text-[13px] font-medium transition-colors',
-          status === 'pending' ? 'text-muted-foreground' : 'text-foreground',
-        )}>
-          {step.label}
-        </p>
-        <p className={cn(
-          'text-[12px] mt-0.5 transition-colors',
-          status === 'pending' ? 'text-muted-foreground/60' : 'text-muted-foreground',
-        )}>
-          {step.sublabel}
-        </p>
-      </div>
+function PreviewBlock({ heading, body }: { heading: string; body: string }) {
+  return (
+    <div className="animate-in fade-in duration-500 space-y-2">
+      <p className="text-[15px] font-medium text-foreground">{heading}</p>
+      <p className="text-[14px] leading-7 text-muted-foreground">{body}</p>
+    </div>
+  );
+}
 
-      {status === 'done' && (
-        <span className="flex-shrink-0 text-[11px] text-[#1D9E75] font-medium mt-0.5">Done</span>
-      )}
+function ShimmerLines() {
+  return (
+    <div className="space-y-4 pt-2" aria-hidden>
+      <div className="h-4 w-full animate-pulse rounded-full bg-muted" />
+      <div className="h-4 w-full animate-pulse rounded-full bg-muted" />
+      <div className="h-4 w-5/12 animate-pulse rounded-full bg-muted" />
+      <div className="h-4 w-full animate-pulse rounded-full bg-muted" />
+      <div className="h-4 w-3/12 animate-pulse rounded-full bg-muted" />
+      <div className="h-4 w-full animate-pulse rounded-full bg-muted" />
+      <div className="h-4 w-5/12 animate-pulse rounded-full bg-muted" />
     </div>
   );
 }
 
 // ── Main component ────────────────────────────────────────────────────────────
 
-export function ProjectGenerationProgress({ flowData, onComplete }: ProjectGenerationProgressProps) {
+export function ProjectGenerationProgress({
+  flowData,
+  onComplete,
+  isExiting = false,
+}: ProjectGenerationProgressProps) {
   const [currentStep, setCurrentStep] = useState(0);
 
   const totalItems = flowData.ideas?.length
@@ -103,6 +127,7 @@ export function ProjectGenerationProgress({ flowData, onComplete }: ProjectGener
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const progressPercent = Math.round((currentStep / GEN_STEPS.length) * 100);
+  const visiblePreviewCount = Math.min(PREVIEW_BLOCKS.length, Math.max(0, currentStep - 1));
   const getStatus = (idx: number): StepStatus => {
     if (idx < currentStep) return 'done';
     if (idx === currentStep) return 'active';
@@ -110,48 +135,49 @@ export function ProjectGenerationProgress({ flowData, onComplete }: ProjectGener
   };
 
   return (
-    <div className="flex flex-col h-full items-center justify-center bg-[var(--color-canvas,#F7F8FA)] px-6 py-12">
-      <div className="w-full max-w-[520px] rounded-2xl border border-border bg-background shadow-[0_4px_24px_rgba(0,0,0,0.07)]">
-
-        {/* Card header */}
-        <div className="px-6 pt-5 pb-4 border-b border-border">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <div className="px-2.5 py-0.5 rounded-full bg-primary/[0.08] border border-primary/20">
-                <span className="text-[11px] font-semibold text-primary tracking-wide">PROJECT</span>
+    <div className={cn(
+      'relative min-h-0 flex-1 overflow-y-auto rounded-xl bg-transparent',
+      isExiting && 'animate-out fade-out slide-out-to-top-4 fill-mode-forwards duration-[320ms]',
+    )}>
+      <div className="px-8 py-6 pb-10">
+        <div className="rounded-xl border border-border/60 bg-background">
+          <div className="p-8">
+            <div className="space-y-4">
+              <div className="space-y-1">
+                <h2 className="text-[18px] font-medium text-foreground">Generating your project</h2>
+                <p className="text-[13px] text-muted-foreground">
+                  {totalItems} piece{totalItems !== 1 ? 's' : ''} · {flowData.objective || flowData.goal || 'Content campaign'}
+                </p>
               </div>
-              <span className="text-[13px] font-medium text-foreground">Generating your project</span>
+              <div className="h-1.5 overflow-hidden rounded-full bg-muted">
+                <div
+                  className="h-full rounded-full bg-[#1E5BE5] transition-all duration-700 ease-out"
+                  style={{ width: `${progressPercent}%` }}
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-[14px] text-muted-foreground">Brand identity: {brandKitLabel}</span>
+                <span className="text-[14px] font-medium text-[#1E5BE5]">{progressPercent}%</span>
+              </div>
             </div>
-            <span className="text-[12px] text-muted-foreground">
-              {totalItems} piece{totalItems !== 1 ? 's' : ''}
-            </span>
-          </div>
 
-          {/* Progress bar */}
-          <div className="h-1.5 rounded-full bg-muted overflow-hidden">
-            <div
-              className="h-full rounded-full bg-primary transition-all duration-700 ease-out"
-              style={{ width: `${progressPercent}%` }}
-            />
-          </div>
-          <div className="flex justify-between mt-1.5">
-            <span className="text-[11px] text-muted-foreground">Brand identity: {brandKitLabel}</span>
-            <span className="text-[11px] text-primary font-medium">{progressPercent}%</span>
-          </div>
-        </div>
+            <div className="mt-6 space-y-2">
+              {GEN_STEPS.map((step, idx) => (
+                <StepRow key={step.id} step={step} status={getStatus(idx)} />
+              ))}
+            </div>
 
-        {/* Steps list */}
-        <div className="px-6 divide-y divide-border">
-          {GEN_STEPS.map((step, idx) => (
-            <StepRow key={step.id} step={step} status={getStatus(idx)} />
-          ))}
-        </div>
+            <p className="mt-4 text-[14px] text-muted-foreground">
+              This usually takes 15-20 seconds. Results will appear automatically.
+            </p>
 
-        {/* Footer */}
-        <div className="px-6 py-4 border-t border-border">
-          <p className="text-[12px] text-muted-foreground text-center">
-            This usually takes 15–20 seconds. Your content will appear automatically.
-          </p>
+            <div className="mt-8 space-y-8">
+              {PREVIEW_BLOCKS.slice(0, visiblePreviewCount).map(item => (
+                <PreviewBlock key={item.heading} heading={item.heading} body={item.body} />
+              ))}
+              {currentStep < GEN_STEPS.length && <ShimmerLines />}
+            </div>
+          </div>
         </div>
       </div>
     </div>

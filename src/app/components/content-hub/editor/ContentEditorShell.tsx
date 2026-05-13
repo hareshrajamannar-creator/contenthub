@@ -815,6 +815,16 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
     }, 360);
   }
 
+  const [projectGenerationExiting, setProjectGenerationExiting] = useState(false);
+
+  function handleProjectGenerationCompleteWithExit() {
+    setProjectGenerationExiting(true);
+    window.setTimeout(() => {
+      handleProjectGenerationComplete();
+      setProjectGenerationExiting(false);
+    }, 360);
+  }
+
   function handleEditSettings() {
     setSetupPhase('setup');
   }
@@ -1341,14 +1351,16 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
         </div>
       )}
       {setupPhase === 'generating' && mode === 'project' && flowData && (
-        <div className="flex-1 min-h-0 flex">
+        <div className="flex flex-1 min-h-0 gap-2 bg-[var(--color-canvas,#F7F8FA)] p-2">
           <LeftPanelSkeleton />
-          <div className="flex-1 min-w-0 min-h-0">
+          <div className="flex flex-1 min-w-0 flex-col overflow-hidden">
             <ProjectGenerationProgress
               flowData={flowData}
-              onComplete={handleProjectGenerationComplete}
+              onComplete={handleProjectGenerationCompleteWithExit}
+              isExiting={projectGenerationExiting}
             />
           </div>
+          <ScorePanelSkeleton />
         </div>
       )}
       {setupPhase === 'generating' && mode !== 'faq' && mode !== 'blog' && mode !== 'project' && (
