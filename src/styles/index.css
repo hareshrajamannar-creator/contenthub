@@ -1,3 +1,23 @@
 @import './fonts.css';
 @import './tailwind.css';
 @import './theme.css';
+
+/* Move Sonner close button to the right side, vertically centred */
+[data-sonner-toast] [data-close-button] {
+  left: auto !important;
+  right: 8px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+[data-sonner-toast] [data-close-button]:hover {
+  background: var(--muted, #f1f5f9) !important;
+}
+
+/* Add right padding so toast text doesn't run under the close button */
+[data-sonner-toast] > div:last-child {
+  padding-right: 28px !important;
+}
