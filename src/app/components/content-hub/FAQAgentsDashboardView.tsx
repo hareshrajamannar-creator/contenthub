@@ -54,10 +54,8 @@ const INITIAL_AGENTS: AgentRow[] = [
 ];
 
 const DEFAULT_TEMPLATES = [
-  { id: 't1', title: 'Search AI metric enhancer FAQ agent',   description: 'Automatically generates and updates FAQs targeting AI search metrics and People Also Ask questions.', source: 'default' },
-  { id: 't2', title: 'Competitor FAQ gap analysis agent',     description: 'Scans competitor sites for FAQ content and identifies gaps in your own FAQ coverage.',                 source: 'default' },
-  { id: 't3', title: 'Local SEO FAQ generation agent',        description: 'Generates location-specific FAQs based on local search queries and business listings data.',           source: 'default' },
-  { id: 't4', title: 'Review-based FAQ extraction agent',     description: 'Extracts common questions from customer reviews and converts them into structured FAQ entries.',        source: 'default' },
+  { id: 't1', title: 'AEO-optimized FAQ',                    description: 'Generate AEO-optimized FAQs using your website and Search AI score.',                                  source: 'default' },
+  { id: 't2', title: 'On demand FAQ generation agent',        description: 'Instantly generate structured FAQs on any topic by entering a prompt or URL — no schedule required.',  source: 'default' },
 ];
 
 // ── Status badge ──────────────────────────────────────────────────────────────
@@ -431,9 +429,7 @@ export function FAQAgentsDashboardView({ onOpenAgent, onCreateAgent }: FAQAgents
             <TemplateLibrary
               templates={filteredTemplates}
               variant={libraryView}
-              onCreateTemplate={handleCreateTemplate}
-              onDeleteTemplate={handleDeleteTemplate}
-              onSaveTemplate={handleSaveTemplate}
+              viewOnly
               onUseTemplate={handleUseTemplate}
             />
           </div>

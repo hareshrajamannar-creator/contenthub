@@ -154,7 +154,7 @@ function makeSection(idx: number): BlogSection {
 
 // ── Step indicator ────────────────────────────────────────────────────────────
 
-const STEP_LABELS = ['Brand identity', 'Blog setup', 'Content brief'];
+const STEP_LABELS = ['Brand identity', 'Blog setup'];
 
 function StepIndicator({ current }: { current: number }) {
   return (
@@ -469,7 +469,7 @@ function Step3ContentBrief({ sections, onChange }: Step3Props) {
 // ── Main component ────────────────────────────────────────────────────────────
 
 export function BlogInlineCreationFlow({ onComplete, onCancel, controlRef, onNavStateChange, hideProgress = false }: BlogInlineCreationFlowProps) {
-  const TOTAL_STEPS = 3;
+  const TOTAL_STEPS = 2;
   const [step, setStep] = useState(0);
 
   // Step 1 state
@@ -514,7 +514,6 @@ export function BlogInlineCreationFlow({ onComplete, onCancel, controlRef, onNav
   const canAdvance = [
     contentName.trim() !== '' && brandKit !== '' && locations.length > 0,
     topic.trim() !== '',
-    sections.length > 0 && sections.every(section => section.description.trim() !== ''),
   ][step];
 
   const handleGenerate = useCallback(() => {
@@ -574,13 +573,6 @@ export function BlogInlineCreationFlow({ onComplete, onCancel, controlRef, onNav
               attachments={attachments}
               blogCount={blogCount}
               onChange={handleStep2Change}
-            />
-          )}
-
-          {step === 2 && (
-            <Step3ContentBrief
-              sections={sections}
-              onChange={setSections}
             />
           )}
           </div>

@@ -11,7 +11,7 @@
  */
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Check } from 'lucide-react';
+import { ArrowUpRight, Check, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   CONTENT_FLOW_STEP_TITLE_CLASS,
@@ -21,6 +21,11 @@ import {
   ContentFlowTextarea,
   ContentFlowTextInput,
 } from '../shared/ContentFlowControls';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/app/components/ui/popover';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -108,11 +113,12 @@ const TEMPLATES = [
 ];
 
 const CUSTOM_AGENTS = [
+  { id: 'on-demand',   label: 'On demand FAQ generation agent' },
   { id: 'faq-pro',     label: 'FAQ Pro — deep Q&A structuring' },
-  { id: 'local-seo',  label: 'Local SEO Agent — geo-targeted FAQs' },
-  { id: 'support-ai', label: 'Support AI — ticket-driven FAQs' },
-  { id: 'voice-opt',  label: 'Voice Optimizer — voice-search phrasing' },
-  { id: 'brand-gpt',  label: 'Brand GPT — on-voice, on-brand answers' },
+  { id: 'local-seo',   label: 'Local SEO Agent — geo-targeted FAQs' },
+  { id: 'support-ai',  label: 'Support AI — ticket-driven FAQs' },
+  { id: 'voice-opt',   label: 'Voice Optimizer — voice-search phrasing' },
+  { id: 'brand-gpt',   label: 'Brand GPT — on-voice, on-brand answers' },
 ];
 
 const SIGNAL_SOURCES = [
@@ -141,7 +147,7 @@ function distributeQuestionCount(sections: FAQSection[], total: number): FAQSect
 
 // ── Step indicator ────────────────────────────────────────────────────────────
 
-const STEP_LABELS = ['Brand identity', 'Content setup', 'Content brief'];
+const STEP_LABELS = ['Brand identity', 'Content setup'];
 
 function StepIndicator({ current }: { current: number }) {
   return (
@@ -227,6 +233,54 @@ function Step1BrandKit({ contentName, brandKit, locations, onChange }: Step1Prop
   );
 }
 
+// ── Agent select with "Manage FAQ agents" footer ──────────────────────────────
+
+function AgentSelect({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const selected = CUSTOM_AGENTS.find(a => a.id === value);
+  const displayLabel = selected?.label ?? 'Choose an agent...';
+
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          className="flex w-full items-center justify-between rounded-lg border border-[#e5e9f0] bg-white px-3 py-2 text-[13px] text-[#212121] transition-colors hover:border-[#c0c6d4] dark:border-[#333a47] dark:bg-[#262b35] dark:text-[#e4e4e4] dark:hover:border-[#4d5568]"
+        >
+          <span className="truncate">{displayLabel}</span>
+          <ChevronDown size={20} strokeWidth={1.6} absoluteStrokeWidth className="size-5 shrink-0 text-[#888] dark:text-[#6b7280]" />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent align="start" className="w-[var(--radix-popover-trigger-width)] p-1">
+        <div className="flex flex-col">
+          {CUSTOM_AGENTS.map(agent => (
+            <button
+              key={agent.id}
+              type="button"
+              onClick={() => onChange(agent.id)}
+              className={cn(
+                'flex w-full items-center rounded-md px-3 py-2 text-[13px] text-left transition-colors',
+                value === agent.id
+                  ? 'bg-[#e8effe] text-[#2552ED] dark:bg-[#1e2d5e] dark:text-[#6b9bff]'
+                  : 'text-foreground hover:bg-muted',
+              )}
+            >
+              {agent.label}
+            </button>
+          ))}
+          <div className="my-1 h-px bg-border" />
+          <button
+            type="button"
+            className="flex h-8 w-full items-center gap-1.5 rounded-md px-3 text-[13px] text-primary transition-colors hover:bg-muted"
+          >
+            <span>Manage FAQ agents</span>
+            <ArrowUpRight size={13} strokeWidth={1.6} absoluteStrokeWidth className="shrink-0" />
+          </button>
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
 // ── Step 2: Content setup ─────────────────────────────────────────────────────
 
 interface Step2Props {
@@ -264,11 +318,9 @@ function Step2Setup({ customAgent, sourceUrl, additionalContext, onChange }: Ste
         <ContentFlowInfoLabel tooltip="Each agent is optimized for a different FAQ style and goal.">
           Agent
         </ContentFlowInfoLabel>
-        <ContentFlowSelect
+        <AgentSelect
           value={customAgent}
           onChange={value => onChange({ customAgent: value })}
-          placeholder="Choose an agent..."
-          options={CUSTOM_AGENTS.map(a => ({ value: a.id, label: a.label }))}
         />
       </div>
 
@@ -332,7 +384,7 @@ function Step3ContentBrief({ value, onChange }: Step3Props) {
 // ── Main component ────────────────────────────────────────────────────────────
 
 export function FAQInlineCreationFlow({ onComplete, onCancel, controlRef, onNavStateChange, hideProgress = false }: FAQInlineCreationFlowProps) {
-  const TOTAL_STEPS = 3;
+  const TOTAL_STEPS = 2;
   const [step, setStep] = useState(0);
 
   // Step 1 state
@@ -342,7 +394,7 @@ export function FAQInlineCreationFlow({ onComplete, onCancel, controlRef, onNavS
 
   // Step 2 state
   const [template, setTemplate]           = useState('aeo');
-  const [customAgent, setCustomAgent]     = useState('');
+  const [customAgent, setCustomAgent]     = useState('on-demand');
   const [sourceUrl, setSourceUrl]         = useState('');
   const [additionalContext, setContext]   = useState('');
   const [questionCount, setQuestionCount] = useState(14);
@@ -362,7 +414,6 @@ export function FAQInlineCreationFlow({ onComplete, onCancel, controlRef, onNavS
   const canAdvance = [
     contentName.trim() !== '' && brandKit !== '' && locations.length > 0,
     sourceUrl.trim() !== '',
-    contentBrief.trim() !== '',
   ][step];
 
   const handleGenerate = useCallback(() => {
@@ -433,13 +484,6 @@ export function FAQInlineCreationFlow({ onComplete, onCancel, controlRef, onNavS
               sourceUrl={sourceUrl}
               additionalContext={additionalContext}
               onChange={handleStep2Change}
-            />
-          )}
-
-          {step === 2 && (
-            <Step3ContentBrief
-              value={contentBrief}
-              onChange={setContentBrief}
             />
           )}
           </div>
