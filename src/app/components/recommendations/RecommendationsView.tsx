@@ -2,33 +2,37 @@ import { useState, useRef, useMemo } from 'react'
 import { createPortal } from 'react-dom'
 import { cn } from '@/lib/utils'
 import {
-  Clock, CheckCircle2, Check, XCircle,
-  Search, MoreVertical, MapPin, CircleCheck, CircleX,
+  MoreVertical, CircleCheck, CircleX,
   ChevronDown,
 } from 'lucide-react'
 import { createColumnHelper } from '@tanstack/react-table'
 import { APP_MAIN_CONTENT_SHELL_CLASS } from '@/app/components/layout/appShellClasses'
 import { Button } from '@/app/components/ui/button'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/app/components/ui/dropdown-menu'
 import { AppDataTable } from '@/app/components/ui/AppDataTable'
-import { AppDataTableColumnSettingsTrigger } from '@/app/components/ui/AppDataTableColumnSettingsTrigger'
 import { useRecStore } from './useRecStore'
-import { RecDetailView } from './RecDetailView'
+import { RecDetailView, RejectConfirmDialog } from './RecDetailView'
 import { FilterPane, FilterPaneTriggerButton } from '@/app/components/FilterPane'
 import type { FilterItem } from '@/app/components/FilterPanel.v1'
 import type { RecStatus, Recommendation, RecCategory } from './recTypes'
 import type { BusinessMetrics } from './recTypes'
+
+// ── Asset base path — handles both local dev (/) and GitHub Pages (/contenthub/) ─
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const B: string = (import.meta as any).env?.BASE_URL ?? '/'  // '/' locally, '/contenthub/' on GH Pages
 
 // ── Status tile config ────────────────────────────────────────────────────────
 
 const TILE_CONFIG: {
   tab: RecStatus
   label: string
-  Icon: React.ElementType
+  iconSrc: string
 }[] = [
-  { tab: 'pending',   label: 'Pending',   Icon: Clock        },
-  { tab: 'accepted',  label: 'Accepted',  Icon: CheckCircle2 },
-  { tab: 'completed', label: 'Completed', Icon: Check        },
-  { tab: 'rejected',  label: 'Rejected',  Icon: XCircle      },
+  { tab: 'pending',   label: 'Pending',   iconSrc: `${B}assets/rec/pending-icon.svg`      },
+  { tab: 'accepted',  label: 'Accepted',  iconSrc: `${B}assets/rec/check_circle.svg`      },
+  { tab: 'completed', label: 'Completed', iconSrc: `${B}assets/rec/Component 75-1.svg`    },
+  { tab: 'rejected',  label: 'Rejected',  iconSrc: `${B}assets/rec/Component 75-2.svg`    },
 ]
 
 // ── Effort sort order ─────────────────────────────────────────────────────────
@@ -54,42 +58,6 @@ const CATEGORY_METRIC: Partial<Record<RecCategory, { label: string; key: keyof B
   'Reviews':             { label: 'Sentiment score',  key: 'sentiment' },
 }
 
-// ── Performance bar (single track, blue + salmon) ─────────────────────────────
-
-function PerformanceBar({ rec, metrics }: { rec: Recommendation; metrics: BusinessMetrics }) {
-  const meta    = CATEGORY_METRIC[rec.category]
-  const current = rec.youScore !== undefined ? rec.youScore : (meta ? (metrics[meta.key] as number) : 0)
-  const compPct = rec.compScore !== undefined
-    ? rec.compScore
-    : (() => {
-        const compTotal    = rec.competitors.reduce((s, c) => s + c.totalCitations, 0)
-        const avgCitations = rec.competitors.length > 0 ? compTotal / rec.competitors.length : 0
-        const maxCitations = rec.competitors[0]?.totalCitations ?? 1
-        return Math.min((avgCitations / maxCitations) * (current * 1.1), 100)
-      })()
-  const label = meta?.label ?? 'Score'
-  const yourW  = Math.min(current, 100)
-  const compW  = Math.min(compPct, 100)
-
-  return (
-    <div className="flex flex-col gap-1.5 min-w-0">
-      <div className="relative h-3 bg-[#eaeaea] dark:bg-muted rounded-[4px] mt-2 overflow-hidden flex">
-        <div className="h-full bg-primary" style={{ width: `${yourW}%` }} />
-        {compW > yourW && (
-          <div className="h-full bg-[#ff9e80]" style={{ width: `${compW - yourW}%` }} />
-        )}
-      </div>
-      <div className="flex flex-col mt-0.5">
-        <span className="text-[12px] text-foreground leading-[20px] whitespace-nowrap font-normal">
-          Your {label} : {current === 0 ? '0%' : `${current.toFixed(1)}%`}
-        </span>
-        <span className="text-[12px] text-muted-foreground leading-[18px] whitespace-nowrap font-normal">
-          Industry average : {compPct.toFixed(0)}%
-        </span>
-      </div>
-    </div>
-  )
-}
 
 // ── Props ─────────────────────────────────────────────────────────────────────
 
@@ -104,10 +72,10 @@ interface RecommendationsViewProps {
 // ── Filter config ─────────────────────────────────────────────────────────────
 
 const REC_FILTER_ITEMS: FilterItem[] = [
+  { id: 'location', label: 'Location', options: ['Dubbo NSW', 'Sydney NSW', 'Melbourne VIC', 'Brisbane QLD', 'Perth WA', 'Adelaide SA', 'Gold Coast QLD', 'Canberra ACT'] },
   { id: 'type',     label: 'Type',     options: ['Local SEO', 'Blog', 'FAQs', 'Conversion', 'Website content', 'Website improvement', 'Reviews', 'Social', 'Trust & Reputation', 'Technical SEO'] },
-  { id: 'impact',   label: 'Impact',   options: ['Quick win', 'Medium', 'Bigger lift'] },
-  { id: 'theme',    label: 'Theme',    options: ['Visibility', 'Citations', 'Sentiment', 'Engagement'] },
-  { id: 'location', label: 'Location', options: ['All locations', '1 location', '2-5 locations', '5+ locations'] },
+  { id: 'theme',    label: 'Themes',   options: ['Visibility', 'Citations', 'Sentiment', 'Engagement', 'Local Presence'] },
+  { id: 'team',     label: 'Team',     options: ['Unassigned', 'My team', 'External agency'] },
 ]
 
 const TYPE_DISPLAY_TO_CATEGORY: Record<string, RecCategory> = {
@@ -121,15 +89,13 @@ export function RecommendationsView({ onNavigateToContentHub, onNavigateToBlogCa
   const store = useRecStore()
   const {
     recommendations, metrics, activeTab, setActiveTab,
-    rejectRec, acceptRec, completeRec,
+    rejectRec, acceptRec, completeRec, revertToPending,
   } = store
 
-  const [selectedRecId,      setSelectedRecId]      = useState<string | null>(initialRecId ?? null)
-  const [searchQuery,        setSearchQuery]        = useState('')
-  const [showSearch,         setShowSearch]         = useState(false)
-  const [columnSheetOpen,    setColumnSheetOpen]    = useState(false)
-  const [filterPanelOpen,    setFilterPanelOpen]    = useState(false)
-  const [filterItems,        setFilterItems]        = useState<FilterItem[]>(REC_FILTER_ITEMS)
+  const [selectedRecId,   setSelectedRecId]   = useState<string | null>(initialRecId ?? null)
+  const [filterPanelOpen, setFilterPanelOpen] = useState(false)
+  const [filterItems,     setFilterItems]     = useState<FilterItem[]>(REC_FILTER_ITEMS)
+  const [rejectingRecId,  setRejectingRecId]  = useState<string | null>(null)
 
   // Location popover
   const [showLocPopover,  setShowLocPopover]  = useState(false)
@@ -154,12 +120,6 @@ export function RecommendationsView({ onNavigateToContentHub, onNavigateToBlogCa
       const cat = (TYPE_DISPLAY_TO_CATEGORY[typeFilter] ?? typeFilter) as RecCategory
       if (r.category !== cat) return false
     }
-    const impactFilter = filterItems.find(f => f.id === 'impact')?.value
-    if (impactFilter && r.effort !== impactFilter) return false
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase()
-      if (!r.title.toLowerCase().includes(q) && !r.description.toLowerCase().includes(q)) return false
-    }
     return true
   })
 
@@ -180,7 +140,7 @@ export function RecommendationsView({ onNavigateToContentHub, onNavigateToBlogCa
       id: 'recommendation',
       header: 'Recommendations',
       meta: { settingsLabel: 'Recommendations' },
-      size: 280,
+      size: 25,
       sortingFn: 'alphanumeric',
       cell: ({ row }) => (
         <p className="text-[14px] text-foreground leading-[22px] font-normal group-hover/table-row:text-primary transition-colors pr-4 whitespace-normal">
@@ -192,7 +152,7 @@ export function RecommendationsView({ onNavigateToContentHub, onNavigateToBlogCa
       id: 'type',
       header: 'Type',
       meta: { settingsLabel: 'Type' },
-      size: 140,
+      size: 10,
       sortingFn: 'alphanumeric',
       cell: ({ row }) => {
         const CATEGORY_DISPLAY: Partial<Record<string, string>> = {
@@ -201,7 +161,7 @@ export function RecommendationsView({ onNavigateToContentHub, onNavigateToBlogCa
         };
         const label = CATEGORY_DISPLAY[row.original.category] ?? row.original.category;
         return (
-          <span className="inline-flex items-center px-2 py-0.5 rounded border border-border bg-background text-[12px] text-muted-foreground leading-[18px] font-normal whitespace-nowrap">
+          <span className="text-[14px] text-foreground font-normal whitespace-nowrap">
             {label}
           </span>
         );
@@ -211,34 +171,63 @@ export function RecommendationsView({ onNavigateToContentHub, onNavigateToBlogCa
       id: 'impact',
       header: 'Impact',
       meta: { settingsLabel: 'Impact' },
-      size: 360,
+      size: 45,
       sortingFn: 'basic',
       cell: ({ row }) => (
-        <p className="text-[14px] text-foreground leading-[22px] font-normal line-clamp-3 whitespace-normal pr-4">
-          {row.original.description}
-        </p>
+        <div className="flex items-start gap-2 pr-4">
+          {/* Always reserve 16px for icon so text aligns regardless of effort level */}
+          <div className="w-4 h-4 flex-shrink-0 mt-0.5">
+            {row.original.effort === 'Quick win' && (
+              <img src={`${B}assets/rec/electric_bolt.svg`} alt="" className="w-4 h-4" />
+            )}
+            {row.original.effort === 'Bigger lift' && (
+              <img src={`${B}assets/rec/lead.svg`} alt="" className="w-4 h-4" />
+            )}
+          </div>
+          <p className="text-[14px] text-foreground leading-[22px] font-normal line-clamp-3 whitespace-normal">
+            {row.original.description}
+          </p>
+        </div>
       ),
     }),
     recColumnHelper.accessor(row => {
       const meta = CATEGORY_METRIC[row.category]
       return row.youScore !== undefined ? row.youScore : (meta ? (metrics[meta.key] as number) : 0)
     }, {
-      id: 'currentPerformance',
-      header: 'Current performance',
-      meta: { settingsLabel: 'Current performance' },
-      size: 220,
+      id: 'youVsCompetitor',
+      header: 'You vs competitor',
+      meta: { settingsLabel: 'You vs competitor' },
+      size: 10,
       sortingFn: 'basic',
-      cell: ({ row }) => (
-        <div className="pr-4">
-          <PerformanceBar rec={row.original} metrics={metrics} />
-        </div>
-      ),
+      cell: ({ row }) => {
+        const rec = row.original
+        const meta = CATEGORY_METRIC[rec.category]
+        const metricLabel = meta?.label ?? 'Score'
+        const youScore = rec.youScore !== undefined ? rec.youScore : (meta ? (metrics[meta.key] as number) : 0)
+        const compScore = rec.compScore ?? 0
+        return (
+          <div className="flex flex-col gap-0.5 min-w-0 pr-4">
+            <div className="flex items-center gap-1">
+              <span className="text-[14px] text-foreground font-normal leading-[20px] whitespace-nowrap">
+                {youScore.toFixed(1)}%
+              </span>
+              <span className="text-[14px] text-muted-foreground font-normal leading-[20px]">|</span>
+              <span className="text-[14px] text-foreground font-normal leading-[20px] whitespace-nowrap">
+                {compScore.toFixed(1)}%
+              </span>
+            </div>
+            <span className="text-[12px] text-muted-foreground font-normal leading-[16px]">
+              {metricLabel}
+            </span>
+          </div>
+        )
+      },
     }),
     recColumnHelper.accessor(row => row.locations ?? 1, {
       id: 'locations',
       header: 'Locations',
       meta: { settingsLabel: 'Locations' },
-      size: 140,
+      size: 10,
       enableResizing: false,
       sortingFn: 'basic',
       cell: ({ row }) => {
@@ -246,15 +235,12 @@ export function RecommendationsView({ onNavigateToContentHub, onNavigateToBlogCa
         const locationCount = rec.locations ?? 1
         return (
           <div
-            className="flex items-center gap-1.5 h-[32px]"
+            className="flex items-center justify-between h-full w-full"
             onClick={e => e.stopPropagation()}
           >
-            <div className="w-6 flex-shrink-0">
-              <span className="text-[14px] text-foreground leading-[22px]">
-                {locationCount}
-              </span>
-            </div>
-            <div className="flex items-center gap-0.5 opacity-0 group-hover/table-row:opacity-100 transition-opacity duration-150 pointer-events-none group-hover/table-row:pointer-events-auto">
+            {/* Count + chevron */}
+            <div className="flex items-center gap-1">
+              <span className="text-[14px] text-foreground leading-[22px]">{locationCount}</span>
               <button
                 ref={el => { chevronRefs.current[rec.id] = el }}
                 className="flex items-center justify-center w-8 h-8 hover:bg-muted rounded transition-colors"
@@ -264,16 +250,19 @@ export function RecommendationsView({ onNavigateToContentHub, onNavigateToBlogCa
               >
                 <ChevronDown size={14} strokeWidth={2} className="text-foreground" />
               </button>
+            </div>
+            {/* CTA buttons — right-aligned, 40px from column right edge, 8px gap, 36×36px */}
+            <div className="flex items-center gap-2 pr-10 opacity-0 group-hover/table-row:opacity-100 transition-opacity duration-150 pointer-events-none group-hover/table-row:pointer-events-auto flex-shrink-0">
               <button
                 title="Reject"
-                className="flex items-center justify-center w-8 h-8 hover:bg-muted rounded border border-border text-muted-foreground hover:text-foreground transition-colors"
-                onClick={e => { e.stopPropagation(); rejectRec(rec.id) }}
+                className="flex items-center justify-center w-9 h-9 hover:bg-muted rounded border border-border text-muted-foreground hover:text-foreground transition-colors"
+                onClick={e => { e.stopPropagation(); setRejectingRecId(rec.id) }}
               >
                 <CircleX size={18} strokeWidth={1.6} absoluteStrokeWidth />
               </button>
               <button
                 title="Accept"
-                className="flex items-center justify-center w-8 h-8 hover:bg-muted rounded border border-border text-muted-foreground hover:text-foreground transition-colors"
+                className="flex items-center justify-center w-9 h-9 hover:bg-muted rounded border border-border text-muted-foreground hover:text-foreground transition-colors"
                 onClick={e => { e.stopPropagation(); acceptRec(rec.id, 'self') }}
               >
                 <CircleCheck size={18} strokeWidth={1.6} absoluteStrokeWidth />
@@ -298,16 +287,14 @@ export function RecommendationsView({ onNavigateToContentHub, onNavigateToBlogCa
           onBack={() => setSelectedRecId(null)}
           onAccept={(id) => {
             acceptRec(id, 'self')
-            setSelectedRecId(null)
           }}
           onReject={(id) => {
             rejectRec(id)
-            setSelectedRecId(null)
           }}
           onNavigateToContentHub={
             onNavigateToContentHub
               ? (questions) => {
-                  acceptRec(selectedRec.id, 'self')
+                  if (selectedRec.status === 'pending') acceptRec(selectedRec.id, 'self')
                   const aeoScore = selectedRec.aeoScore?.you ?? 92
                   onNavigateToContentHub(selectedRec.id, selectedRec.title, aeoScore, questions)
                 }
@@ -316,12 +303,13 @@ export function RecommendationsView({ onNavigateToContentHub, onNavigateToBlogCa
           onNavigateToBlogCanvas={
             onNavigateToBlogCanvas
               ? () => {
-                  acceptRec(selectedRec.id, 'self')
+                  if (selectedRec.status === 'pending') acceptRec(selectedRec.id, 'self')
                   onNavigateToBlogCanvas(selectedRec.id, selectedRec.title)
                 }
               : undefined
           }
           onCompleteRec={(id) => completeRec(id)}
+          onRevertToPending={(id) => revertToPending(id)}
         />
       </div>
     )
@@ -343,45 +331,17 @@ export function RecommendationsView({ onNavigateToContentHub, onNavigateToBlogCa
             </div>
 
             <div className="flex items-center gap-1 flex-shrink-0">
-              {showSearch && (
-                <div className="flex items-center gap-1.5 bg-muted/50 border border-border rounded px-2.5 py-1.5 mr-1">
-                  <Search size={13} strokeWidth={1.6} absoluteStrokeWidth className="text-muted-foreground flex-shrink-0" />
-                  <input
-                    autoFocus
-                    type="text"
-                    placeholder="Search recommendations…"
-                    value={searchQuery}
-                    onChange={e => setSearchQuery(e.target.value)}
-                    onBlur={() => { if (!searchQuery) setShowSearch(false) }}
-                    className="w-[200px] bg-transparent text-[13px] text-foreground placeholder:text-muted-foreground outline-none leading-[20px]"
-                  />
-                </div>
-              )}
-
-              <Button
-                type="button"
-                variant="outline"
-                size="icon"
-                aria-label="Search recommendations"
-                onClick={() => setShowSearch(s => !s)}
-                className={cn((showSearch || searchQuery) && 'bg-primary/10 text-primary border-primary/30 hover:bg-primary/15 hover:text-primary')}
-              >
-                <Search className="size-4" strokeWidth={1.6} absoluteStrokeWidth aria-hidden />
-              </Button>
-
-              <Button
-                type="button"
-                variant="outline"
-                size="icon"
-                aria-label="More options"
-              >
-                <MoreVertical className="size-4" strokeWidth={1.6} absoluteStrokeWidth aria-hidden />
-              </Button>
-
-              <AppDataTableColumnSettingsTrigger
-                sheetTitle="Recommendation columns"
-                onClick={() => setColumnSheetOpen(true)}
-              />
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button type="button" variant="outline" size="icon" aria-label="More options">
+                    <MoreVertical className="size-4" strokeWidth={1.6} absoluteStrokeWidth aria-hidden />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem>Download</DropdownMenuItem>
+                  <DropdownMenuItem>Email</DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
 
               <FilterPaneTriggerButton open={filterPanelOpen} onOpenChange={setFilterPanelOpen} />
             </div>
@@ -399,7 +359,7 @@ export function RecommendationsView({ onNavigateToContentHub, onNavigateToBlogCa
                     onClick={() => setActiveTab(tile.tab)}
                     className={cn(
                       'flex-1 flex flex-col items-start px-4 pt-4 pb-4 text-left transition-colors',
-                      isSelected ? 'bg-primary/[0.06] border-b-2 border-primary' : 'border-b-2 border-transparent',
+                      isSelected ? 'bg-primary/[0.06]' : 'hover:bg-muted/30',
                     )}
                   >
                     <span className={cn(
@@ -409,12 +369,7 @@ export function RecommendationsView({ onNavigateToContentHub, onNavigateToBlogCa
                       {n}
                     </span>
                     <div className="flex items-center gap-2 mt-0.5">
-                      <tile.Icon
-                        size={16}
-                        strokeWidth={1.6}
-                        absoluteStrokeWidth
-                        className={isSelected ? 'text-primary' : 'text-muted-foreground'}
-                      />
+                      <img src={tile.iconSrc} alt="" className="w-4 h-4 flex-shrink-0" />
                       <span className="text-[14px] text-foreground leading-[20px] tracking-[-0.28px] font-normal">
                         {tile.label}
                       </span>
@@ -440,12 +395,10 @@ export function RecommendationsView({ onNavigateToContentHub, onNavigateToBlogCa
                   initialSorting={[{ id: 'impact', desc: false }]}
                   getRowId={r => r.id}
                   onRowClick={rec => setSelectedRecId(rec.id)}
-                  columnSheetTitle="Recommendation columns"
-                  hideColumnsButton
-                  columnSheetOpen={columnSheetOpen}
-                  onColumnSheetOpenChange={setColumnSheetOpen}
                   scrollableBody={false}
                   rowDensity="default"
+                  stickyFirstColumn={false}
+                  fillWidth={true}
                 />
               </div>
             )}
@@ -476,14 +429,24 @@ export function RecommendationsView({ onNavigateToContentHub, onNavigateToBlogCa
           </p>
           <ul className="max-h-52 overflow-y-auto">
             {popoverLocs.map(loc => (
-              <li key={loc} className="flex items-center gap-2 px-3 py-1.5 hover:bg-muted/50">
-                <MapPin size={12} strokeWidth={1.6} absoluteStrokeWidth className="text-muted-foreground flex-shrink-0" />
+              <li key={loc} className="px-3 py-1.5 hover:bg-muted/50">
                 <span className="text-[13px] text-foreground leading-[18px]">{loc}</span>
               </li>
             ))}
           </ul>
         </div>,
         document.body,
+      )}
+
+      {/* Reject confirmation dialog — same dialog as detail view */}
+      {rejectingRecId && (
+        <RejectConfirmDialog
+          onCancel={() => setRejectingRecId(null)}
+          onConfirm={() => {
+            rejectRec(rejectingRecId)
+            setRejectingRecId(null)
+          }}
+        />
       )}
     </div>
   )
