@@ -96,6 +96,8 @@ export interface BlogSectionCanvasProps {
   generationLabel?: string;
   onEditSettings?: () => void;
   onVersionHistory?: () => void;
+  /** AEO score from the recommendation — used as the starting content score */
+  initialScore?: number;
 }
 
 // ── Block generation ──────────────────────────────────────────────────────────
@@ -1175,7 +1177,7 @@ function CtaBannerBlock({ block, onUpdate }: { block: BlogBlock; onUpdate: (p: P
 
 // ── Main component ────────────────────────────────────────────────────────────
 
-export function BlogSectionCanvas({ sections, generationLabel, onVersionHistory }: BlogSectionCanvasProps) {
+export function BlogSectionCanvas({ sections, generationLabel, onVersionHistory, initialScore }: BlogSectionCanvasProps) {
   const [blocks, setBlocksState] = useState<BlogBlock[]>(() => generateBlogBlocks(sections));
   const [leftTab, setLeftTab] = useState<'ai' | 'manual'>('ai');
   const [zoom, setZoom] = useState(1);
@@ -1323,7 +1325,7 @@ export function BlogSectionCanvas({ sections, generationLabel, onVersionHistory 
   const totalBlocks  = blocks.length;
   const readyBlocks  = blocks.filter(b => b.status === 'ready').length;
   const canvasScore  = Math.round((readyBlocks / Math.max(1, totalBlocks)) * 78);
-  const finalScore   = Math.min(100, canvasScore + panelBump);
+  const finalScore   = Math.min(100, (initialScore !== undefined ? initialScore : canvasScore) + panelBump);
 
   const blogConfig = EDITOR_CONFIGS['blog'];
 

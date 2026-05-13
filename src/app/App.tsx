@@ -719,6 +719,8 @@ export default function App() {
                   mode="faq"
                   skipSetupPhase
                   initialTitle={createViewRecTitle ?? undefined}
+                  preloadedFAQs={createViewPreloadedQuestions}
+                  recAeoScore={createViewRecAeoScore}
                   onBack={() => {
                     setCreateViewInitialMode(undefined);
                     setCreateViewStartAtFAQCanvas(false);
@@ -733,8 +735,13 @@ export default function App() {
                 <ContentEditorShell
                   mode="blog"
                   skipSetupPhase
+                  initialTitle={createViewRecTitle ?? undefined}
+                  recAeoScore={createViewRecAeoScore}
                   onBack={() => {
                     setCreateViewStartAtBlogCanvas(false);
+                    setCreateViewRecId(undefined);
+                    setCreateViewRecTitle(undefined);
+                    setCreateViewRecAeoScore(undefined);
                     setCurrentView("content-hub-home");
                   }}
                 />
@@ -773,11 +780,12 @@ export default function App() {
                   setCreateViewPreloadedQuestions(preloadedQuestions);
                   setCurrentView("content-hub-create");
                 }}
-                onNavigateToBlogCanvas={(recId, recTitle) => {
+                onNavigateToBlogCanvas={(recId, recTitle, aeoScore) => {
                   setCreateViewInitialMode('blog');
                   setCreateViewStartAtBlogCanvas(true);
                   setCreateViewRecId(recId);
                   setCreateViewRecTitle(recTitle);
+                  setCreateViewRecAeoScore(aeoScore);
                   setCurrentView("content-hub-create");
                 }}
               />

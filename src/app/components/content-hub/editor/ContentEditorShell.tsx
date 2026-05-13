@@ -109,6 +109,10 @@ export interface ContentEditorShellProps {
   skipSetupPhase?: boolean;
   /** Override the default title shown in the editor header */
   initialTitle?: string;
+  /** Pre-loaded FAQ Q&As from a recommendation — populates the FAQ canvas directly */
+  preloadedFAQs?: { question: string; answer: string }[];
+  /** AEO score from the recommendation — seeds the content score in the editor */
+  recAeoScore?: number;
 }
 
 interface CanvasCardLayout {
@@ -646,7 +650,7 @@ function AddContentButton({ mode, onAdd }: { mode: ContentMode; onAdd: (t: Conte
 
 // ── Main shell ────────────────────────────────────────────────────────────────
 
-export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupPhase = false, initialTitle }: ContentEditorShellProps) {
+export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupPhase = false, initialTitle, preloadedFAQs, recAeoScore }: ContentEditorShellProps) {
   const config = EDITOR_CONFIGS[mode];
 
   // ── Header state
@@ -1358,6 +1362,8 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
           generationLabel={generationInfo?.label}
           onEditSettings={handleEditSettings}
           onVersionHistory={() => setVersionHistoryOpen(true)}
+          initialQuestions={preloadedFAQs}
+          initialScore={recAeoScore}
         />
       )}
 
@@ -1368,6 +1374,7 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
           generationLabel={generationInfo?.label}
           onEditSettings={handleEditSettings}
           onVersionHistory={() => setVersionHistoryOpen(true)}
+          initialScore={recAeoScore}
         />
       )}
 

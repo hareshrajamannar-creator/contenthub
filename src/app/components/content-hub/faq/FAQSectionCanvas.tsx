@@ -65,6 +65,27 @@ export interface FAQSectionCanvasProps {
   generationLabel?: string;
   onEditSettings?: () => void;
   onVersionHistory?: () => void;
+  /** Pre-loaded Q&As from a recommendation — bypasses mock generation */
+  initialQuestions?: { question: string; answer: string }[];
+  /** AEO score from the recommendation — used as the starting content score */
+  initialScore?: number;
+}
+
+// ── Build section data from preloaded questions ───────────────────────────────
+
+function buildSectionDataFromQuestions(questions: { question: string; answer: string }[]): FAQSectionData[] {
+  return [{
+    id: 'sec-preloaded-1',
+    title: 'AI-generated FAQs',
+    collapsed: false,
+    questions: questions.map((q, i) => ({
+      id: makeQId(),
+      question: q.question,
+      answer: q.answer,
+      expanded: i === 0,
+      status: 'ready' as QuestionStatus,
+    })),
+  }];
 }
 
 // ── Mock FAQ generation ───────────────────────────────────────────────────────
@@ -1092,9 +1113,11 @@ function SectionBlock({
 
 // ── Main component ────────────────────────────────────────────────────────────
 
-export function FAQSectionCanvas({ sections, generationLabel, onVersionHistory }: FAQSectionCanvasProps) {
+export function FAQSectionCanvas({ sections, generationLabel, onVersionHistory, initialQuestions, initialScore }: FAQSectionCanvasProps) {
   const [sectionData, setSectionData] = useState<FAQSectionData[]>(() =>
-    generateMockFAQs(sections)
+    initialQuestions && initialQuestions.length > 0
+      ? buildSectionDataFromQuestions(initialQuestions)
+      : generateMockFAQs(sections)
   );
   const [leftTab, setLeftTab] = useState<'ai' | 'manual'>('ai');
   const [zoom, setZoom] = useState(1);
@@ -1102,6 +1125,7 @@ export function FAQSectionCanvas({ sections, generationLabel, onVersionHistory }
   const [commentsOpen, setCommentsOpen] = useState(false);
   const [fixingAll, setFixingAll] = useState(false);
   const [panelBump, setPanelBump] = useState(0);
+  const baseScore = initialScore;
   const [isGeneratingFromCopilot, setIsGeneratingFromCopilot] = useState(false);
   const [activityOpen, setActivityOpen] = useState(false);
   const [richTextVisible, setRichTextVisible] = useState(false);
@@ -1248,9 +1272,9 @@ export function FAQSectionCanvas({ sections, generationLabel, onVersionHistory }
   // Derived stats
   const totalQuestions = sectionData.reduce((s, sec) => s + sec.questions.length, 0);
   const readyCount     = sectionData.flatMap(s => s.questions).filter(q => q.status === 'ready').length;
-  // Canvas health contributes up to 78 pts; panel improvements add the remaining 22 to reach 100
+  // When a rec score is provided, use it as the base; otherwise derive from Q&A health
   const canvasScore  = Math.round((readyCount / Math.max(1, totalQuestions)) * 78);
-  const setScore     = Math.min(100, canvasScore + panelBump);
+  const setScore     = Math.min(100, (baseScore !== undefined ? baseScore : canvasScore) + panelBump);
 
   const faqConfig = EDITOR_CONFIGS['faq'];
   const visibleSections = sectionData.filter(section => !section.standalone);
