@@ -60,6 +60,7 @@ import { Badge } from '@/app/components/ui/badge';
 import { FAQGenerationProgress } from '../faq/FAQGenerationProgress';
 import { FAQSectionCanvas } from '../faq/FAQSectionCanvas';
 import { FAQPublishModal } from '../faq/FAQPublishModal';
+import { BlogPublishModal } from '../blog/BlogPublishModal';
 import { BlogInlineCreationFlow } from '../blog/BlogInlineCreationFlow';
 import type { BlogFlowData } from '../blog/BlogInlineCreationFlow';
 import { BlogGenerationProgress } from '../blog/BlogGenerationProgress';
@@ -1738,13 +1739,20 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
         </DialogContent>
       </Dialog>
 
-      {/* Export modal */}
-      <FAQPublishModal
-        open={exportOpen}
-        onClose={() => setExportOpen(false)}
-        faqs={[]}
-        overallScore={72}
-      />
+      {/* Export / publish modal */}
+      {mode === 'blog' ? (
+        <BlogPublishModal
+          open={exportOpen}
+          onClose={() => setExportOpen(false)}
+        />
+      ) : (
+        <FAQPublishModal
+          open={exportOpen}
+          onClose={() => setExportOpen(false)}
+          faqs={[]}
+          overallScore={72}
+        />
+      )}
       <ContentShareModal
         open={shareOpen}
         onClose={() => setShareOpen(false)}
