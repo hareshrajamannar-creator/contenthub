@@ -29,6 +29,13 @@ export const Grid: Story = {
   args: {
     initialViewMode: 'grid',
   },
+  parameters: {
+    docs: {
+      description: {
+        story: 'Saved contents grid with minimal white document thumbnails, channel icons on the left, and status on the right.',
+      },
+    },
+  },
 };
 
 export const Calendar: Story = {

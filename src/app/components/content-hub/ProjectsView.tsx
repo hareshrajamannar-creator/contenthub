@@ -227,6 +227,13 @@ function SavedContentGridCard({ project, onOpen }: { project: ProjectRow; onOpen
   const type = getProjectContentType(project);
   const thumb = TYPE_THUMB[type];
   const { Icon } = thumb;
+  const previewQuestions = [
+    project.name,
+    'Audience and channel plan',
+    'Review checklist',
+    'Publishing notes',
+    'Performance goal',
+  ];
 
   return (
     <div
@@ -238,36 +245,39 @@ function SavedContentGridCard({ project, onOpen }: { project: ProjectRow; onOpen
     >
       <div className="relative h-[160px] overflow-hidden border-b border-border bg-zinc-100">
         <div className="absolute inset-0 p-6">
-          <div className="flex h-full w-full flex-col overflow-hidden rounded-lg border border-zinc-200 bg-white">
-            <div className="flex items-center gap-2 border-b border-zinc-100 px-2 py-1">
-              <div className={cn('flex size-[18px] shrink-0 items-center justify-center rounded-[4px] border', thumb.iconBg)}>
-                <Icon size={9} strokeWidth={1.6} absoluteStrokeWidth className={thumb.iconColor} />
+          <div className="flex h-full w-full flex-col overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-sm">
+            <div className="flex h-8 items-center gap-2 border-b border-zinc-100 px-2">
+              <div className={cn('flex size-[18px] shrink-0 items-center justify-center rounded-[4px]', thumb.iconBg)}>
+                <Icon size={10} strokeWidth={1.6} absoluteStrokeWidth className={thumb.iconColor} />
               </div>
               <span className="flex-1 text-[6px] font-semibold text-zinc-700">{TYPE_LABEL[type]}</span>
-              <div className="h-[3px] w-8 overflow-hidden rounded-full bg-zinc-100">
-                <div className="h-full w-4/5 rounded-full bg-emerald-600" />
+              <div className="flex items-center gap-1">
+                <div className="h-[3px] w-8 overflow-hidden rounded-full bg-zinc-100">
+                  <div className="h-full w-4/5 rounded-full bg-emerald-600" />
+                </div>
+                <span className="rounded-[2px] bg-emerald-50 px-1 text-[5px] font-bold text-emerald-700">78</span>
               </div>
             </div>
-            <div className="relative h-[44px] shrink-0 overflow-hidden border-b border-zinc-100">
-              <div className="absolute inset-0" style={{ background: `linear-gradient(135deg, hsl(${project.hue} 82% 88%), hsl(${(project.hue + 58) % 360} 72% 68%))` }} />
-              <div className="absolute inset-x-0 bottom-0 h-4 bg-white/45" />
-              <div className="absolute bottom-3 left-4 h-6 w-8 rounded-t-full bg-white/40" />
-              <div className="absolute bottom-2 right-6 h-8 w-5 rounded-t-full bg-white/50" />
+            <div className="border-b border-zinc-100 bg-zinc-50 px-2 py-2">
+              <span className="text-[6px] font-normal text-zinc-600">
+                {type === 'faq' ? 'General questions' : `${TYPE_LABEL[type]} brief`}
+              </span>
             </div>
-            <div className="flex flex-1 flex-col gap-1 overflow-hidden px-2 py-2">
-              <div className="flex gap-1">
-                <span className={cn('rounded-[2px] px-1 py-0.5 text-[5px] font-semibold', TYPE_BADGE[type])}>
-                  {TYPE_LABEL[type]}
-                </span>
-                <span className="rounded-[2px] bg-zinc-100 px-1 py-0.5 text-[5px] font-semibold text-zinc-600">
-                  {project.status}
-                </span>
-              </div>
-              <span className="text-[6px] font-bold leading-tight text-zinc-800">{project.name}</span>
-              <div className="mt-0.5 flex flex-col gap-0.5">
-                <div className="h-[2px] w-full rounded-full bg-zinc-200" />
-                <div className="h-[2px] w-10/12 rounded-full bg-zinc-200" />
-                <div className="h-[2px] w-7/12 rounded-full bg-zinc-100" />
+            <div className="flex flex-1 flex-col overflow-hidden px-2 py-1">
+              {previewQuestions.map((line, index) => (
+                <div key={line} className="border-b border-zinc-50 py-0.5 last:border-b-0">
+                  <span className="block truncate text-[6px] font-medium text-zinc-700">
+                    {line}
+                  </span>
+                  <div
+                    className="mt-0.5 h-[2px] rounded-full bg-zinc-100"
+                    style={{ width: `${index % 2 === 0 ? 82 : 66}%` }}
+                  />
+                </div>
+              ))}
+              <div className="mt-1 flex flex-col gap-0.5">
+                <div className="h-[2px] w-11/12 rounded-full bg-zinc-100" />
+                <div className="h-[2px] w-7/12 rounded-full bg-zinc-50" />
               </div>
             </div>
           </div>
@@ -276,10 +286,10 @@ function SavedContentGridCard({ project, onOpen }: { project: ProjectRow; onOpen
 
       <div className="flex flex-1 flex-col gap-2 p-4">
         <div className="flex items-center justify-between gap-2">
+          <ChannelCell channels={project.channels} />
           <span className={cn('self-start rounded px-2 py-0.5 text-[10px] font-medium', SAVED_STATUS_CLASS[project.status])}>
             {project.status}
           </span>
-          <ChannelCell channels={project.channels} />
         </div>
         <p className="text-[12px] text-foreground font-medium leading-snug line-clamp-2">{project.name}</p>
         <p className="text-[10px] text-muted-foreground leading-relaxed line-clamp-2">
