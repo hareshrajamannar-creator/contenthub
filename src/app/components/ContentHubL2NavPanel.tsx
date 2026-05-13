@@ -60,14 +60,15 @@ const CREATE_ITEMS: {
   label: string;
   icon: React.ElementType;
   accent?: boolean;
+  enabled?: boolean;
 }[] = [
-  { mode: 'project', label: 'Project',        icon: FolderPlus },
-  { mode: 'blog',    label: 'Blog post',       icon: FileText       },
-  { mode: 'social',  label: 'Social post',     icon: Share2         },
-  { mode: 'email',   label: 'Email campaign',  icon: Mail           },
-  { mode: 'faq',     label: 'FAQ page',        icon: MessageSquare  },
-  { mode: 'brief',   label: 'Landing page',    icon: Monitor        },
-  { mode: 'brief',   label: 'Video post',      icon: Video          },
+  { mode: 'project', label: 'Project',        icon: FolderPlus,    enabled: true },
+  { mode: 'blog',    label: 'Blog post',       icon: FileText,      enabled: true },
+  { mode: 'faq',     label: 'FAQ page',        icon: MessageSquare, enabled: true },
+  { mode: 'social',  label: 'Social post',     icon: Share2 },
+  { mode: 'email',   label: 'Email campaign',  icon: Mail },
+  { mode: 'brief',   label: 'Landing page',    icon: Monitor },
+  { mode: 'brief',   label: 'Video post',      icon: Video },
 ];
 
 // ── Component ─────────────────────────────────────────────────────────────────
@@ -125,7 +126,13 @@ export function ContentHubL2NavPanel({
         {CREATE_ITEMS.map((opt) => (
           <DropdownMenuItem
             key={opt.label}
-            onClick={() => handleCreate(opt.mode)}
+            onClick={(event) => {
+              if (!opt.enabled) {
+                event.preventDefault();
+                return;
+              }
+              handleCreate(opt.mode);
+            }}
             className="flex items-center gap-3 px-2 py-2 rounded-lg cursor-pointer"
           >
             {/* Icon container — matches reference: ~36px, soft primary tint bg */}
