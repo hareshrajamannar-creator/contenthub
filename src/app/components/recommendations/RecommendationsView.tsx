@@ -10,6 +10,7 @@ import { APP_MAIN_CONTENT_SHELL_CLASS } from '@/app/components/layout/appShellCl
 import { Button } from '@/app/components/ui/button'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/app/components/ui/dropdown-menu'
 import { AppDataTable } from '@/app/components/ui/AppDataTable'
+import { AppDataTableColumnSettingsTrigger } from '@/app/components/ui/AppDataTableColumnSettingsTrigger'
 import { useRecStore } from './useRecStore'
 import { RecDetailView, RejectConfirmDialog } from './RecDetailView'
 import { FilterPane, FilterPaneTriggerButton } from '@/app/components/FilterPane'
@@ -92,10 +93,11 @@ export function RecommendationsView({ onNavigateToContentHub, onNavigateToBlogCa
     rejectRec, acceptRec, completeRec, revertToPending,
   } = store
 
-  const [selectedRecId,   setSelectedRecId]   = useState<string | null>(initialRecId ?? null)
-  const [filterPanelOpen, setFilterPanelOpen] = useState(false)
-  const [filterItems,     setFilterItems]     = useState<FilterItem[]>(REC_FILTER_ITEMS)
-  const [rejectingRecId,  setRejectingRecId]  = useState<string | null>(null)
+  const [selectedRecId,    setSelectedRecId]    = useState<string | null>(initialRecId ?? null)
+  const [filterPanelOpen,  setFilterPanelOpen]  = useState(false)
+  const [filterItems,      setFilterItems]      = useState<FilterItem[]>(REC_FILTER_ITEMS)
+  const [rejectingRecId,   setRejectingRecId]   = useState<string | null>(null)
+  const [columnSheetOpen,  setColumnSheetOpen]  = useState(false)
 
   // Location popover
   const [showLocPopover,  setShowLocPopover]  = useState(false)
@@ -331,6 +333,11 @@ export function RecommendationsView({ onNavigateToContentHub, onNavigateToBlogCa
             </div>
 
             <div className="flex items-center gap-1 flex-shrink-0">
+              <AppDataTableColumnSettingsTrigger
+                sheetTitle="Columns"
+                onClick={() => setColumnSheetOpen(true)}
+              />
+
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button type="button" variant="outline" size="icon" aria-label="More options">
@@ -398,7 +405,9 @@ export function RecommendationsView({ onNavigateToContentHub, onNavigateToBlogCa
                   scrollableBody={false}
                   rowDensity="default"
                   stickyFirstColumn={false}
-                  fillWidth={true}
+                  hideColumnsButton
+                  columnSheetOpen={columnSheetOpen}
+                  onColumnSheetOpenChange={setColumnSheetOpen}
                 />
               </div>
             )}
