@@ -111,6 +111,8 @@ export interface ContentEditorShellProps {
   initialTitle?: string;
   /** Pre-loaded FAQ Q&As from a recommendation — populates the FAQ canvas directly */
   preloadedFAQs?: { question: string; answer: string }[];
+  /** Pre-loaded blog sections from the recommendation preview — populates the blog canvas directly */
+  preloadedBlogSections?: { heading?: string; body?: string; listItems?: string[]; image?: string; imageAlt?: string }[];
   /** AEO score from the recommendation — seeds the content score in the editor */
   recAeoScore?: number;
 }
@@ -650,7 +652,7 @@ function AddContentButton({ mode, onAdd }: { mode: ContentMode; onAdd: (t: Conte
 
 // ── Main shell ────────────────────────────────────────────────────────────────
 
-export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupPhase = false, initialTitle, preloadedFAQs, recAeoScore }: ContentEditorShellProps) {
+export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupPhase = false, initialTitle, preloadedFAQs, preloadedBlogSections, recAeoScore }: ContentEditorShellProps) {
   const config = EDITOR_CONFIGS[mode];
 
   // ── Header state
@@ -1375,6 +1377,8 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
           onEditSettings={handleEditSettings}
           onVersionHistory={() => setVersionHistoryOpen(true)}
           initialScore={recAeoScore}
+          preloadedBlogSections={preloadedBlogSections}
+          title={initialTitle}
         />
       )}
 

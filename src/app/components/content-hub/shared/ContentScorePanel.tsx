@@ -12,6 +12,7 @@ import React, { useState } from 'react';
 import { X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { scoreColor, scoreStrokeColor } from './scoreColors';
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/app/components/ui/tooltip';
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -189,9 +190,16 @@ export function ContentScorePanel({
         {/* Label + info icon */}
         <div className="flex items-center gap-1.5 -mt-2">
           <span className="text-[14px] text-muted-foreground font-normal leading-[20px]">{scoreLabel}</span>
-          <div className="w-4 h-4 rounded-full border border-muted-foreground/40 flex items-center justify-center flex-shrink-0">
-            <span className="text-[10px] text-muted-foreground leading-none">?</span>
-          </div>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="w-4 h-4 rounded-full border border-muted-foreground/40 flex items-center justify-center flex-shrink-0 cursor-default select-none">
+                <span className="text-[10px] text-muted-foreground leading-none italic font-serif">i</span>
+              </div>
+            </TooltipTrigger>
+            <TooltipContent side="top" sideOffset={6} className="max-w-[220px] text-center">
+              Score reflects how well this content is optimised for AEO (AI search visibility), brand consistency, and SEO performance.
+            </TooltipContent>
+          </Tooltip>
           {isRecalculating && (
             <span className="text-[11px] animate-pulse ml-1" style={{ color }}>Recalculating…</span>
           )}

@@ -260,6 +260,7 @@ export default function App() {
   const [createViewRecTitle, setCreateViewRecTitle] = useState<string | undefined>(undefined);
   const [createViewRecAeoScore, setCreateViewRecAeoScore] = useState<number | undefined>(undefined);
   const [createViewPreloadedQuestions, setCreateViewPreloadedQuestions] = useState<{ question: string; answer: string }[] | undefined>(undefined);
+  const [createViewPreloadedBlogSections, setCreateViewPreloadedBlogSections] = useState<{ heading?: string; body?: string; listItems?: string[]; image?: string; imageAlt?: string }[] | undefined>(undefined);
   // When the L1 Content Hub icon sets currentView = "content-hub", redirect
   // immediately to the FAQ agents page so ContentHome is never shown.
   useEffect(() => {
@@ -737,11 +738,13 @@ export default function App() {
                   skipSetupPhase
                   initialTitle={createViewRecTitle ?? undefined}
                   recAeoScore={createViewRecAeoScore}
+                  preloadedBlogSections={createViewPreloadedBlogSections}
                   onBack={() => {
                     setCreateViewStartAtBlogCanvas(false);
                     setCreateViewRecId(undefined);
                     setCreateViewRecTitle(undefined);
                     setCreateViewRecAeoScore(undefined);
+                    setCreateViewPreloadedBlogSections(undefined);
                     setCurrentView("content-hub-home");
                   }}
                 />
@@ -780,12 +783,13 @@ export default function App() {
                   setCreateViewPreloadedQuestions(preloadedQuestions);
                   setCurrentView("content-hub-create");
                 }}
-                onNavigateToBlogCanvas={(recId, recTitle, aeoScore) => {
+                onNavigateToBlogCanvas={(recId, recTitle, aeoScore, preloadedBlogSections) => {
                   setCreateViewInitialMode('blog');
                   setCreateViewStartAtBlogCanvas(true);
                   setCreateViewRecId(recId);
                   setCreateViewRecTitle(recTitle);
                   setCreateViewRecAeoScore(aeoScore);
+                  setCreateViewPreloadedBlogSections(preloadedBlogSections);
                   setCurrentView("content-hub-create");
                 }}
               />

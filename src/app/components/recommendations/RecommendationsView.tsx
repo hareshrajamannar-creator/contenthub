@@ -64,7 +64,7 @@ const CATEGORY_METRIC: Partial<Record<RecCategory, { label: string; key: keyof B
 
 interface RecommendationsViewProps {
   onNavigateToContentHub?: (recId: string, recTitle: string, recAeoScore: number, preloadedQuestions?: { question: string; answer: string }[]) => void
-  onNavigateToBlogCanvas?: (recId: string, recTitle: string, aeoScore: number) => void
+  onNavigateToBlogCanvas?: (recId: string, recTitle: string, aeoScore: number, preloadedBlogSections?: { heading?: string; body?: string; listItems?: string[]; image?: string; imageAlt?: string }[]) => void
   initialRecId?: string
 }
 
@@ -306,7 +306,9 @@ export function RecommendationsView({ onNavigateToContentHub, onNavigateToBlogCa
             onNavigateToBlogCanvas
               ? () => {
                   if (selectedRec.status === 'pending') acceptRec(selectedRec.id, 'self')
-                  onNavigateToBlogCanvas(selectedRec.id, selectedRec.title, selectedRec.aeoScore?.you ?? 92)
+                  let dynSections: { heading?: string; body?: string; listItems?: string[]; image?: string; imageAlt?: string }[] | undefined
+                  try { dynSections = selectedRec.generatedAsset?.fullContent ? JSON.parse(selectedRec.generatedAsset.fullContent) : undefined } catch { dynSections = undefined }
+                  onNavigateToBlogCanvas(selectedRec.id, selectedRec.title, selectedRec.aeoScore?.you ?? 92, dynSections)
                 }
               : undefined
           }

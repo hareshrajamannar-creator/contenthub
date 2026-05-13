@@ -1603,6 +1603,9 @@ export function FAQSectionCanvas({ sections, generationLabel, onVersionHistory, 
         open={scorePanelOpen && sectionData.length > 0 && !isGeneratingFromCopilot}
         onClose={() => setScorePanelOpen(false)}
         config={faqConfig}
+        dimensions={faqConfig.scoreDimensions.map(d =>
+          d.label === 'AEO score' ? { ...d, score: baseScore ?? d.score } : d
+        )}
         score={setScore}
         onItemFixed={handleItemFixed}
         onFixAll={handleFixAll}

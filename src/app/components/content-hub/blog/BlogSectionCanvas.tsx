@@ -91,6 +91,14 @@ export interface BlogBlock {
   warningText?: string;
 }
 
+type PreloadedSection = {
+  heading?: string;
+  body?: string;
+  listItems?: string[];
+  image?: string;
+  imageAlt?: string;
+};
+
 export interface BlogSectionCanvasProps {
   sections: BlogSection[];
   generationLabel?: string;
@@ -98,12 +106,31 @@ export interface BlogSectionCanvasProps {
   onVersionHistory?: () => void;
   /** AEO score from the recommendation — used as the starting content score */
   initialScore?: number;
+  /** Pre-loaded blog sections from the recommendation preview — bypasses mock generation */
+  preloadedBlogSections?: PreloadedSection[];
+  /** Recommendation title — used as the hero heading */
+  title?: string;
 }
 
 // ── Block generation ──────────────────────────────────────────────────────────
 
 let blockIdCounter = 2000;
 function makeBlockId() { return `blk${blockIdCounter++}`; }
+
+function buildBlogBlocksFromSections(heroTitle: string, sections: PreloadedSection[]): BlogBlock[] {
+  const blocks: BlogBlock[] = [];
+  blocks.push({
+    id: makeBlockId(), type: 'hero',
+    heroTag: 'Blog post', heroTitle, heroSubtitle: '', status: 'ready',
+  });
+  for (const s of sections) {
+    if (s.heading) blocks.push({ id: makeBlockId(), type: 'heading', level: 2, headingText: s.heading, status: 'ready' });
+    if (s.body)    blocks.push({ id: makeBlockId(), type: 'paragraph', body: s.body, status: 'ready' });
+    if (s.listItems && s.listItems.length > 0) blocks.push({ id: makeBlockId(), type: 'bullets', items: s.listItems, status: 'ready' });
+    if (s.image)   blocks.push({ id: makeBlockId(), type: 'image', alt: s.imageAlt ?? s.heading ?? '', status: 'ready' });
+  }
+  return blocks;
+}
 
 function generateBlogBlocks(sections: BlogSection[]): BlogBlock[] {
   const blocks: BlogBlock[] = [];
@@ -1177,8 +1204,18 @@ function CtaBannerBlock({ block, onUpdate }: { block: BlogBlock; onUpdate: (p: P
 
 // ── Main component ────────────────────────────────────────────────────────────
 
-export function BlogSectionCanvas({ sections, generationLabel, onVersionHistory, initialScore }: BlogSectionCanvasProps) {
-  const [blocks, setBlocksState] = useState<BlogBlock[]>(() => generateBlogBlocks(sections));
+export function BlogSectionCanvas({ sections, generationLabel, onVersionHistory, initialScore, preloadedBlogSections, title }: BlogSectionCanvasProps) {
+  const [blocks, setBlocksState] = useState<BlogBlock[]>(() => {
+    if (preloadedBlogSections && preloadedBlogSections.length > 0) {
+      return buildBlogBlocksFromSections(title ?? 'Blog post', preloadedBlogSections);
+    }
+    const generated = generateBlogBlocks(sections);
+    if (title) {
+      const heroIdx = generated.findIndex(b => b.type === 'hero');
+      if (heroIdx >= 0) generated[heroIdx] = { ...generated[heroIdx], heroTitle: title };
+    }
+    return generated;
+  });
   const [leftTab, setLeftTab] = useState<'ai' | 'manual'>('ai');
   const [zoom, setZoom] = useState(1);
   const [scorePanelOpen, setScorePanelOpen] = useState(true);
@@ -1528,6 +1565,9 @@ export function BlogSectionCanvas({ sections, generationLabel, onVersionHistory,
         open={scorePanelOpen}
         onClose={() => setScorePanelOpen(false)}
         config={blogConfig}
+        dimensions={blogConfig.scoreDimensions.map(d =>
+          d.label === 'AEO score' ? { ...d, score: initialScore ?? d.score } : d
+        )}
         score={finalScore}
         onItemFixed={handleItemFixed}
         onFixAll={handleFixAll}

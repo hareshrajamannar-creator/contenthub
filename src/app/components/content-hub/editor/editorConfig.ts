@@ -192,6 +192,7 @@ export const EDITOR_CONFIGS: Record<ContentMode, EditorConfig> = {
       { label: 'Factual accuracy', score: 85, color: 'green'  },
       { label: 'SEO optimization', score: 82, color: 'orange' },
       { label: 'Content depth',    score: 88, color: 'green'  },
+      { label: 'AEO score',        score: 75, color: 'orange' },
     ],
     quickWins: [
       { label: 'Add internal links',  description: 'Add 2+ internal links to boost SEO authority.', action: 'Add links' },
