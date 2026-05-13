@@ -21,7 +21,7 @@
 
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import {
-  ArrowLeft, ChevronDown, ChevronRight, Sparkles, Edit2,
+  ArrowLeft, ChevronDown, Sparkles, Edit2,
   FileText, Share2, Mail, MessageSquare, Monitor, Video, FolderPlus,
   Plus, ChevronUp, Grid, List, Calendar, ZoomIn, ZoomOut,
   Undo2, Redo2, ArrowDown, ArrowRight,
@@ -70,6 +70,7 @@ import { CanvasEditorTopBar } from '../shared/CanvasEditorTopBar';
 import { ContentShareModal } from '../shared/ContentShareModal';
 import { ContentActivityDrawer } from '../shared/ContentActivityDrawer';
 import { ContentVersionHistory } from '../shared/ContentVersionHistory';
+import { CommentPanel } from './CommentPanel';
 // Note: FAQCanvas is kept for the project review canvas path (UnifiedReviewCanvas)
 import {
   type ContentMode,
@@ -122,8 +123,9 @@ type ResizeEdge = 'top' | 'right' | 'bottom' | 'left';
 // ── Default FAQ flow data used when skipping the setup wizard ────────────────
 
 const DEFAULT_REC_FAQ_FLOW_DATA: FAQFlowData = {
+  contentName: '',
   brandKit: 'olive-garden',
-  location: 'all',
+  locations: ['loc-1001', 'loc-1002', 'loc-1003', 'loc-1004', 'loc-1005', 'loc-1006', 'loc-1007', 'loc-1008', 'loc-1009', 'loc-1010', 'loc-1011', 'loc-1012', 'loc-1013', 'loc-1014', 'loc-1015', 'loc-1016', 'loc-1017', 'loc-1018', 'loc-1019', 'loc-1020'],
   template: 'general',
   sourceUrl: '',
   additionalContext: '',
@@ -139,8 +141,9 @@ const DEFAULT_REC_FAQ_FLOW_DATA: FAQFlowData = {
 };
 
 const DEFAULT_REC_BLOG_FLOW_DATA: BlogFlowData = {
+  contentName: '',
   brandKit: 'olive-garden',
-  location: 'all',
+  locations: ['loc-1001', 'loc-1002', 'loc-1003', 'loc-1004', 'loc-1005', 'loc-1006', 'loc-1007', 'loc-1008', 'loc-1009', 'loc-1010', 'loc-1011', 'loc-1012', 'loc-1013', 'loc-1014', 'loc-1015', 'loc-1016', 'loc-1017', 'loc-1018', 'loc-1019', 'loc-1020'],
   topic: 'Dubbo property appraisal guide 2025',
   keywords: 'property appraisal Dubbo, house valuation, real estate Dubbo',
   tone: 'professional',
@@ -698,6 +701,7 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
   const [regenConfirmOpen, setRegenConfirmOpen] = useState(false);
   const [exportOpen, setExportOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
+  const [commentsOpen, setCommentsOpen] = useState(false);
   const [activityOpen, setActivityOpen] = useState(false);
   const [versionHistoryOpen, setVersionHistoryOpen] = useState(false);
   const setupHeaderTitle =
@@ -989,6 +993,7 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
 
   const handleScoreClick = useCallback((cardId: string) => {
     setActiveScoreCardId(prev => prev === cardId ? null : cardId);
+    setCommentsOpen(false);
   }, []);
 
   const handleEdit = useCallback((_cardId: string) => {
@@ -1110,7 +1115,7 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
       {/* ── Header — shared by setup, generation, and editor states ── */}
       <div
         className={cn(
-          'w-full bg-background h-[52px] flex items-center justify-between px-6 flex-shrink-0 sticky top-0 z-40',
+          'w-full bg-background flex items-center justify-between px-6 py-[9px] flex-shrink-0 sticky top-0 z-40',
           setupPhase !== 'setup' && 'border-b border-border',
         )}
       >
@@ -1128,7 +1133,7 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
 
             <div className="flex flex-col">
               {setupPhase === 'setup' ? (
-                <span className="text-[14px] font-semibold text-foreground leading-tight truncate max-w-[240px]">
+                <span className="text-[16px] font-semibold text-foreground leading-tight truncate max-w-[240px]">
                   {setupHeaderTitle}
                 </span>
               ) : (
@@ -1143,10 +1148,10 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
                         onChange={e => setTitle(e.target.value)}
                         onBlur={() => setIsEditingTitle(false)}
                         onKeyDown={e => { if (e.key === 'Enter' || e.key === 'Escape') setIsEditingTitle(false); }}
-                        className="text-[14px] font-semibold text-foreground bg-transparent border-b border-primary outline-none leading-tight min-w-[120px] max-w-[260px]"
+                        className="text-[16px] font-semibold text-foreground bg-transparent border-b border-primary outline-none leading-tight min-w-[120px] max-w-[260px]"
                       />
                     ) : (
-                      <span className="text-[14px] font-semibold text-foreground leading-tight truncate max-w-[240px]">
+                      <span className="text-[16px] font-semibold text-foreground leading-tight truncate max-w-[240px]">
                         {title}
                       </span>
                     )}
@@ -1201,7 +1206,6 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
                     disabled={!wizardNavState.canAdvance}
                   >
                     Regenerate
-                    <ChevronRight size={14} strokeWidth={1.6} absoluteStrokeWidth />
                   </Button>
                 ) : (
                   <Button
@@ -1213,7 +1217,6 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
                     disabled={!wizardNavState.canAdvance}
                   >
                     {wizardNavState.step === wizardNavState.totalSteps - 1 ? 'Generate' : 'Continue'}
-                    <ChevronRight size={14} strokeWidth={1.6} absoluteStrokeWidth />
                   </Button>
                 )}
               </>
@@ -1260,7 +1263,7 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
       {/* ── Inline creation flow — same shell as the editor, with stepper in the left pane ─────────── */}
       {setupPhase === 'setup' && (
         <div className="flex-1 min-h-0 flex">
-          <aside className="flex-shrink-0 bg-background" style={{ width: 300 }}>
+          <aside className="flex-shrink-0 bg-background" style={{ width: 250 }}>
             <div className="px-4 py-4">
               <ContentFlowStepper
                 steps={SETUP_STEPS_BY_MODE[mode]}
@@ -1402,7 +1405,8 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
                 zoom={zoom}
                 onZoomOut={() => setZoom(z => Math.max(0.25, +(z - 0.1).toFixed(2)))}
                 onZoomIn={() => setZoom(z => Math.min(3, +(z + 0.1).toFixed(2)))}
-                onActivity={() => setActivityOpen(true)}
+                onActivity={() => { setActivityOpen(v => !v); setCommentsOpen(false); setActiveScoreCardId(null); }}
+                onChat={() => { setCommentsOpen(v => !v); setActivityOpen(false); setActiveScoreCardId(null); }}
               />
               <div className="min-h-0 flex-1 overflow-hidden rounded-xl">
                 <BlockCanvas
@@ -1415,6 +1419,13 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
 
             {/* Right — block settings panel (slides in when a block is selected) */}
             <BlockSettingsPanel />
+
+            {/* Activity panel */}
+            <ContentActivityDrawer
+              open={activityOpen}
+              onClose={() => setActivityOpen(false)}
+              contentType={mode === 'blog' ? 'blog' : 'faq'}
+            />
           </div>
         </BlockEditorProvider>
       ) : (
@@ -1666,6 +1677,12 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
               config={scorePanelConfig}
               score={activeCard?.score ?? 87}
             />
+
+            {/* Comment panel — slides in from right when comments toggle is active */}
+            <CommentPanel
+              open={commentsOpen}
+              onClose={() => setCommentsOpen(false)}
+            />
           </div>
       ))}
 
@@ -1710,12 +1727,6 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
         onClose={() => setShareOpen(false)}
         contentTitle={title}
       />
-      <ContentActivityDrawer
-        open={activityOpen}
-        onClose={() => setActivityOpen(false)}
-        contentType={mode === 'blog' ? 'blog' : 'faq'}
-      />
-
       {/* Version history — full-screen overlay covering the entire editor */}
       {versionHistoryOpen && (
         <div className="absolute inset-0 z-50">

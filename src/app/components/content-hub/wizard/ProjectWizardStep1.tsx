@@ -1,135 +1,105 @@
 /**
- * ProjectWizardStep1 — Project type
+ * ProjectWizardStep1 — Brand identity & location
  *
- * The user picks the type of project they want to create
- * and selects the generation agent.
+ * Collects the project name, brand identity, and target locations.
  */
 
 import React from 'react';
-import { cn } from '@/lib/utils';
-import { ContentFlowSelect } from '../shared/ContentFlowControls';
+import {
+  CONTENT_FLOW_STEP_TITLE_CLASS,
+  ContentFlowLocationFlatList,
+  ContentFlowSelect,
+  ContentFlowTextInput,
+} from '../shared/ContentFlowControls';
 
-interface ProjectType {
-  id: string;
-  label: string;
-  description: string;
-  contentHint: string;
-}
+// ── Constants ─────────────────────────────────────────────────────────────────
 
-const PROJECT_TYPES: ProjectType[] = [
-  {
-    id: 'campaign',
-    label: 'Campaign pack',
-    description: 'Blog post, social posts, and email for a single campaign',
-    contentHint: 'Blog · Social · Email',
-  },
-  {
-    id: 'location',
-    label: 'Location rollout',
-    description: 'Content tailored per location across your network',
-    contentHint: 'FAQ · Social · Local pages',
-  },
-  {
-    id: 'launch',
-    label: 'Product launch',
-    description: 'Landing page, blog post, and FAQ for a new offering',
-    contentHint: 'Landing · Blog · FAQ',
-  },
-  {
-    id: 'reviews',
-    label: 'Review response series',
-    description: 'AI drafts on-brand responses based on recent review themes',
-    contentHint: 'Review responses',
-  },
-  {
-    id: 'custom',
-    label: 'Custom',
-    description: 'You choose the content mix and sources',
-    contentHint: 'You decide',
-  },
+const BRAND_KITS = [
+  { value: 'olive-garden', label: 'Olive Garden corporate' },
+  { value: 'birdeye-demo', label: 'Birdeye demo brand' },
+  { value: 'local-seo',    label: 'Local SEO identity' },
 ];
 
-const AGENT_OPTIONS = [
-  { value: 'balanced', label: 'Balanced (recommended)', description: 'Best mix of speed and quality' },
-  { value: 'speed',    label: 'Speed',                  description: 'Faster generation, fewer sources' },
-  { value: 'deep',     label: 'Deep research',           description: 'Slower but more thorough and cited' },
+const LOCATIONS = [
+  { id: 'loc-1001', label: '1001 - Mountain View, CA' },
+  { id: 'loc-1002', label: '1002 - Seattle, WA' },
+  { id: 'loc-1003', label: '1003 - Dallas, TX' },
+  { id: 'loc-1004', label: '1004 - Chicago, IL' },
+  { id: 'loc-1005', label: '1005 - Los Angeles, CA' },
+  { id: 'loc-1006', label: '1006 - Las Vegas, NV' },
+  { id: 'loc-1007', label: '1007 - Austin, TX' },
+  { id: 'loc-1008', label: '1008 - Houston, TX' },
+  { id: 'loc-1009', label: '1009 - Phoenix, AZ' },
+  { id: 'loc-1010', label: '1010 - Denver, CO' },
+  { id: 'loc-1011', label: '1011 - New York, NY' },
+  { id: 'loc-1012', label: '1012 - Miami, FL' },
+  { id: 'loc-1013', label: '1013 - Atlanta, GA' },
+  { id: 'loc-1014', label: '1014 - Boston, MA' },
+  { id: 'loc-1015', label: '1015 - Portland, OR' },
+  { id: 'loc-1016', label: '1016 - San Diego, CA' },
+  { id: 'loc-1017', label: '1017 - Nashville, TN' },
+  { id: 'loc-1018', label: '1018 - San Antonio, TX' },
+  { id: 'loc-1019', label: '1019 - Minneapolis, MN' },
+  { id: 'loc-1020', label: '1020 - Charlotte, NC' },
 ];
+
+const ALL_LOCATION_IDS = LOCATIONS.map(l => l.id);
+
+// ── Props ─────────────────────────────────────────────────────────────────────
 
 interface ProjectWizardStep1Props {
   data: Record<string, unknown>;
   onChange: (data: Record<string, unknown>) => void;
 }
 
+// ── Component ─────────────────────────────────────────────────────────────────
+
 export function ProjectWizardStep1({ data, onChange }: ProjectWizardStep1Props) {
-  const selectedType  = (data.projectType as string) ?? 'campaign';
-  const selectedAgent = (data.agent       as string) ?? 'balanced';
-  const agentDesc = AGENT_OPTIONS.find(a => a.value === selectedAgent)?.description ?? '';
+  const projectName = (data.projectName as string) ?? '';
+  const brandKit    = (data.brandKit    as string) ?? 'olive-garden';
+  const locations   = (data.locations   as string[]) ?? ALL_LOCATION_IDS;
 
   return (
     <div className="flex flex-col gap-6 p-6">
-      {/* Brand identity context */}
-      <div className="bg-muted border border-border rounded-lg px-4 py-3 flex items-center gap-3">
-        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="shrink-0 text-muted-foreground">
-          <rect x="3" y="6" width="8" height="7" rx="1.5" stroke="currentColor" strokeWidth="1.4" />
-          <path d="M5 6V4.5a2 2 0 014 0V6" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
-        </svg>
-        <span className="text-[12px] text-muted-foreground">
-          <span className="font-medium text-foreground">LushGreen corporate</span>
-          <span className="mx-2">·</span>
-          <span className="font-medium text-foreground">10 locations</span>
-        </span>
+      <div>
+        <h2 className={CONTENT_FLOW_STEP_TITLE_CLASS}>Select brand identity and location</h2>
+        <p className="text-[13px] text-muted-foreground">
+          Content will be created from the selected brand identity and location context.
+        </p>
       </div>
 
-      {/* Project type list */}
-      <div className="flex flex-col gap-2">
-        <p className="text-[13px] font-medium text-foreground">Choose a project type</p>
-        {PROJECT_TYPES.map(pt => {
-          const selected = selectedType === pt.id;
-          return (
-            <button
-              key={pt.id}
-              type="button"
-              onClick={() => onChange({ ...data, projectType: pt.id })}
-              className={cn(
-                'relative flex items-center gap-4 text-left bg-background rounded-lg p-4 transition-all w-full',
-                selected
-                  ? 'border-2 border-primary bg-primary/5'
-                  : 'border border-border hover:border-primary/40 hover:bg-muted/50',
-              )}
-            >
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <p className="text-[13px] font-medium text-foreground leading-snug">{pt.label}</p>
-                  <span className="text-[10px] bg-muted text-muted-foreground px-2 py-0.5 rounded-full">
-                    {pt.contentHint}
-                  </span>
-                </div>
-                <p className="text-[11px] text-muted-foreground leading-relaxed mt-0.5">{pt.description}</p>
-              </div>
-              <div className={cn(
-                'size-4 rounded-full border-2 flex-shrink-0 flex items-center justify-center transition-colors',
-                selected ? 'bg-primary border-primary' : 'border-border',
-              )}>
-                {selected && (
-                  <svg width="8" height="8" viewBox="0 0 8 8" fill="none">
-                    <path d="M1.5 4L3 5.5L6.5 2" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                )}
-              </div>
-            </button>
-          );
-        })}
-      </div>
+      <div className="space-y-6">
+        <div className="space-y-1.5">
+          <label className="text-[13px] font-medium text-foreground">
+            Project name <span className="text-destructive">*</span>
+          </label>
+          <ContentFlowTextInput
+            value={projectName}
+            onChange={e => onChange({ ...data, projectName: e.target.value })}
+            placeholder="e.g. LushGreen spring campaign 2025"
+          />
+        </div>
 
-      {/* Agent picker */}
-      <div className="flex flex-col gap-2">
-        <label className="text-[13px] font-medium text-foreground">Generation agent</label>
-        <ContentFlowSelect
-          value={selectedAgent}
-          onChange={value => onChange({ ...data, agent: value })}
-          options={AGENT_OPTIONS}
-        />
-        <p className="text-[12px] text-muted-foreground">{agentDesc}</p>
+        <div className="space-y-1.5">
+          <label className="text-[13px] font-medium text-foreground">
+            Brand identity <span className="text-destructive">*</span>
+          </label>
+          <ContentFlowSelect
+            value={brandKit}
+            onChange={value => onChange({ ...data, brandKit: value })}
+            options={BRAND_KITS}
+          />
+        </div>
+
+        <div className="space-y-1.5">
+          <label className="text-[13px] font-medium text-foreground">Locations <span className="text-destructive">*</span></label>
+          <ContentFlowLocationFlatList
+            values={locations}
+            options={LOCATIONS.map(loc => ({ value: loc.id, label: loc.label }))}
+            onChange={locs => onChange({ ...data, locations: locs })}
+            description="Choose the locations this project will apply to."
+          />
+        </div>
       </div>
     </div>
   );

@@ -14,9 +14,10 @@ import { Check, Paperclip, X, FileText as FileIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   CONTENT_FLOW_STEP_TITLE_CLASS,
-  ContentFlowBrandKitSummary,
-  ContentFlowChip,
   ContentFlowCountStepper,
+  ContentFlowLocationFlatList,
+  ContentFlowMultiSelect,
+  ContentFlowRadioCard,
   ContentFlowSelect,
   ContentFlowTextarea,
   ContentFlowTextInput,
@@ -32,13 +33,14 @@ export interface BlogSection {
 }
 
 export interface BlogFlowData {
+  contentName: string;
   brandKit: string;
-  location: string;
+  locations: string[];
+  blogType: string;
   topic: string;
   keywords: string;
-  tone: string;
-  audience: string;
   wordTarget: number;
+  signalSources: string[];
   publishTo: string[];
   attachments: string[];
   blogCount: number;
@@ -76,26 +78,51 @@ const BRAND_KITS = [
 ];
 
 const LOCATIONS = [
-  { id: 'all', label: 'All locations (10)' },
-  { id: 'dallas', label: 'Dallas, TX' },
-  { id: 'austin', label: 'Austin, TX' },
-  { id: 'houston', label: 'Houston, TX' },
-  { id: 'chicago', label: 'Chicago, IL' },
+  { id: 'loc-1001', label: '1001 - Mountain View, CA' },
+  { id: 'loc-1002', label: '1002 - Seattle, WA' },
+  { id: 'loc-1003', label: '1003 - Dallas, TX' },
+  { id: 'loc-1004', label: '1004 - Chicago, IL' },
+  { id: 'loc-1005', label: '1005 - Los Angeles, CA' },
+  { id: 'loc-1006', label: '1006 - Las Vegas, NV' },
+  { id: 'loc-1007', label: '1007 - Austin, TX' },
+  { id: 'loc-1008', label: '1008 - Houston, TX' },
+  { id: 'loc-1009', label: '1009 - Phoenix, AZ' },
+  { id: 'loc-1010', label: '1010 - Denver, CO' },
+  { id: 'loc-1011', label: '1011 - New York, NY' },
+  { id: 'loc-1012', label: '1012 - Miami, FL' },
+  { id: 'loc-1013', label: '1013 - Atlanta, GA' },
+  { id: 'loc-1014', label: '1014 - Boston, MA' },
+  { id: 'loc-1015', label: '1015 - Portland, OR' },
+  { id: 'loc-1016', label: '1016 - San Diego, CA' },
+  { id: 'loc-1017', label: '1017 - Nashville, TN' },
+  { id: 'loc-1018', label: '1018 - San Antonio, TX' },
+  { id: 'loc-1019', label: '1019 - Minneapolis, MN' },
+  { id: 'loc-1020', label: '1020 - Charlotte, NC' },
 ];
 
-const TONE_OPTIONS = [
-  'Conversational & friendly',
-  'Expert & authoritative',
-  'Educational & clear',
-  'Storytelling-focused',
-  'News & informative',
+const BLOG_TEMPLATES = [
+  { id: 'seo',       label: 'SEO blog post',             description: 'Optimized for search rankings with targeted keywords and structure' },
+  { id: 'howto',     label: 'How-to guide',               description: 'Step-by-step instructions that help customers take action' },
+  { id: 'listicle',  label: 'Listicle',                   description: 'Scannable numbered or bulleted list of tips, tools, or ideas' },
+  { id: 'casestudy', label: 'Case study / success story', description: 'Real-world results and outcomes that build trust and credibility' },
+  { id: 'spotlight', label: 'Product / service spotlight', description: 'Deep-dive into a specific offer, feature, or service you provide' },
+  { id: 'custom',    label: 'Custom',                     description: 'Configure the blog post type manually with your own parameters' },
 ];
 
-const WORD_COUNT_CHIPS: { label: string; value: number }[] = [
-  { label: 'Short (~600 words)',    value: 600 },
-  { label: 'Medium (~1,200 words)', value: 1200 },
-  { label: 'Long (~2,000 words)',   value: 2000 },
+const WORD_COUNT_OPTIONS: { label: string; value: number }[] = [
+  { label: 'Short (~600 words)',      value: 600 },
+  { label: 'Medium (~1,200 words)',   value: 1200 },
+  { label: 'Long (~2,000 words)',     value: 2000 },
   { label: 'In-depth (~3,500 words)', value: 3500 },
+];
+
+const SIGNAL_SOURCES = [
+  { id: 'reviews',    label: 'Reviews data' },
+  { id: 'website',    label: 'Website content' },
+  { id: 'tickets',    label: 'Ticketing data' },
+  { id: 'helpcenter', label: 'Help center articles' },
+  { id: 'social',     label: 'Social media posts' },
+  { id: 'keywords',   label: 'Keyword research' },
 ];
 
 const PUBLISH_DESTINATIONS = [
@@ -115,8 +142,6 @@ const BLOG_DESCRIPTIONS = [
 
 const DEFAULT_SECTIONS: BlogSection[] = [
   { id: 'b1', heading: 'Blog post 1', description: BLOG_DESCRIPTIONS[0], wordCount: 1200 },
-  { id: 'b2', heading: 'Blog post 2', description: BLOG_DESCRIPTIONS[1], wordCount: 1200 },
-  { id: 'b3', heading: 'Blog post 3', description: BLOG_DESCRIPTIONS[2], wordCount: 1200 },
 ];
 
 let sectionCounter = 4;
@@ -168,12 +193,13 @@ function StepIndicator({ current }: { current: number }) {
 // ── Step 1: Brand identity + location ──────────────────────────────────────────────
 
 interface Step1Props {
+  contentName: string;
   brandKit: string;
-  location: string;
-  onChange: (brandKit: string, location: string) => void;
+  locations: string[];
+  onChange: (contentName: string, brandKit: string, locations: string[]) => void;
 }
 
-function Step1BrandKit({ brandKit, location, onChange }: Step1Props) {
+function Step1BrandKit({ contentName, brandKit, locations, onChange }: Step1Props) {
   return (
     <div className="space-y-6">
       <div>
@@ -183,27 +209,35 @@ function Step1BrandKit({ brandKit, location, onChange }: Step1Props) {
         </p>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-6">
         <div className="space-y-1.5">
-          <label className="text-[13px] font-medium text-foreground">Brand identity</label>
+          <label className="text-[13px] font-medium text-foreground">Blog name <span className="text-destructive">*</span></label>
+          <ContentFlowTextInput
+            value={contentName}
+            onChange={e => onChange(e.target.value, brandKit, locations)}
+            placeholder="e.g. Restaurant dining guide series"
+          />
+        </div>
+
+        <div className="space-y-1.5">
+          <label className="text-[13px] font-medium text-foreground">Brand identity <span className="text-destructive">*</span></label>
           <ContentFlowSelect
             value={brandKit}
-            onChange={value => onChange(value, location)}
+            onChange={value => onChange(contentName, value, locations)}
             options={BRAND_KITS.map(bk => ({ value: bk.id, label: bk.label }))}
           />
         </div>
 
         <div className="space-y-1.5">
-          <label className="text-[13px] font-medium text-foreground">Location</label>
-          <ContentFlowSelect
-            value={location}
-            onChange={value => onChange(brandKit, value)}
+          <label className="text-[13px] font-medium text-foreground">Locations <span className="text-destructive">*</span></label>
+          <ContentFlowLocationFlatList
+            values={locations}
             options={LOCATIONS.map(loc => ({ value: loc.id, label: loc.label }))}
+            onChange={locs => onChange(contentName, brandKit, locs)}
+            description="Choose the locations this content will apply to."
           />
         </div>
       </div>
-
-      {brandKit && <ContentFlowBrandKitSummary contentLabel="Blog content" />}
     </div>
   );
 }
@@ -211,16 +245,17 @@ function Step1BrandKit({ brandKit, location, onChange }: Step1Props) {
 // ── Step 2: Blog setup ────────────────────────────────────────────────────────
 
 interface Step2Props {
+  blogType: string;
   topic: string;
   keywords: string;
-  tone: string;
   wordTarget: number;
+  signalSources: string[];
   attachments: string[];
   blogCount: number;
-  onChange: (patch: Partial<Pick<BlogFlowData, 'topic' | 'keywords' | 'tone' | 'wordTarget' | 'attachments' | 'blogCount'>>) => void;
+  onChange: (patch: Partial<Pick<BlogFlowData, 'blogType' | 'topic' | 'keywords' | 'wordTarget' | 'signalSources' | 'attachments' | 'blogCount'>>) => void;
 }
 
-function Step2Setup({ topic, keywords, tone, wordTarget, attachments, blogCount, onChange }: Step2Props) {
+function Step2Setup({ blogType, topic, keywords, wordTarget, signalSources, attachments, blogCount, onChange }: Step2Props) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFiles = (files: FileList | null) => {
@@ -233,22 +268,41 @@ function Step2Setup({ topic, keywords, tone, wordTarget, attachments, blogCount,
     onChange({ attachments: attachments.filter(a => a !== name) });
   };
 
+  const selectedWordCount = WORD_COUNT_OPTIONS.find(o => o.value === wordTarget);
+
   return (
     <div className="space-y-6">
       <div>
         <h2 className={CONTENT_FLOW_STEP_TITLE_CLASS}>Blog setup</h2>
         <p className="text-[13px] text-muted-foreground">
-          Configure the topic, tone, length, and supporting material for your blog posts.
+          Configure the blog type, topic, length, and supporting signals.
         </p>
+      </div>
+
+      {/* Blog type */}
+      <div className="space-y-2">
+        <label className="text-[13px] font-medium text-foreground">What kind of blog post are you creating?</label>
+        <div className="flex flex-col gap-2">
+          {BLOG_TEMPLATES.map(t => (
+            <ContentFlowRadioCard
+              key={t.id}
+              selected={blogType === t.id}
+              onClick={() => onChange({ blogType: t.id })}
+              title={t.label}
+              description={t.description}
+            />
+          ))}
+        </div>
       </div>
 
       {/* Topic */}
       <div className="space-y-1.5">
-        <label className="text-[13px] font-medium text-foreground">What should the blog posts be about?</label>
-        <ContentFlowTextInput
+        <label className="text-[13px] font-medium text-foreground">What should the blog posts be about? <span className="text-destructive">*</span></label>
+        <ContentFlowTextarea
           value={topic}
           onChange={e => onChange({ topic: e.target.value })}
           placeholder="e.g. How to improve customer experience at your restaurant"
+          rows={3}
         />
       </div>
 
@@ -266,8 +320,11 @@ function Step2Setup({ topic, keywords, tone, wordTarget, attachments, blogCount,
       </div>
 
       {/* Blog count */}
-      <div className="space-y-2">
-        <label className="text-[13px] font-medium text-foreground">How many blog posts do you want?</label>
+      <div className="flex items-center justify-between gap-4 rounded-[8px] border border-border bg-background px-4 py-3">
+        <div>
+          <label className="text-[13px] font-medium text-foreground">How many blog posts do you want?</label>
+          <p className="mt-0.5 text-[12px] text-muted-foreground">Each post will be generated as a separate piece of content.</p>
+        </div>
         <ContentFlowCountStepper
           value={blogCount}
           min={1}
@@ -278,33 +335,25 @@ function Step2Setup({ topic, keywords, tone, wordTarget, attachments, blogCount,
       </div>
 
       {/* Word count target */}
-      <div className="space-y-2">
+      <div className="space-y-1.5">
         <label className="text-[13px] font-medium text-foreground">Word count target</label>
-        <div className="flex flex-wrap gap-2">
-          {WORD_COUNT_CHIPS.map(chip => (
-            <ContentFlowChip
-              key={chip.value}
-              label={chip.label}
-              selected={wordTarget === chip.value}
-              onClick={() => onChange({ wordTarget: chip.value })}
-            />
-          ))}
-        </div>
+        <ContentFlowSelect
+          value={selectedWordCount?.value.toString() ?? ''}
+          options={WORD_COUNT_OPTIONS.map(o => ({ value: o.value.toString(), label: o.label }))}
+          onChange={val => onChange({ wordTarget: Number(val) })}
+          placeholder="Select word count"
+        />
       </div>
 
-      {/* Tone */}
+      {/* Pull signals from */}
       <div className="space-y-2">
-        <label className="text-[13px] font-medium text-foreground">Tone</label>
-        <div className="flex flex-wrap gap-2">
-          {TONE_OPTIONS.map(option => (
-            <ContentFlowChip
-              key={option}
-              label={option}
-              selected={tone === option}
-              onClick={() => onChange({ tone: option })}
-            />
-          ))}
-        </div>
+        <label className="text-[13px] font-medium text-foreground">Pull signals from</label>
+        <ContentFlowMultiSelect
+          values={signalSources}
+          onChange={values => onChange({ signalSources: values })}
+          options={SIGNAL_SOURCES.map(src => ({ value: src.id, label: src.label }))}
+          placeholder="Select signal sources"
+        />
       </div>
 
       {/* Attachments */}
@@ -316,7 +365,7 @@ function Step2Setup({ topic, keywords, tone, wordTarget, attachments, blogCount,
           onClick={() => fileInputRef.current?.click()}
           onDragOver={e => e.preventDefault()}
           onDrop={e => { e.preventDefault(); handleFiles(e.dataTransfer.files); }}
-          className="flex w-full flex-col items-center gap-2 rounded-xl border border-dashed border-border bg-background px-4 py-5 text-center transition-colors hover:border-primary/50 hover:bg-muted/25"
+          className="flex w-full flex-col items-center gap-2 rounded-[8px] border border-dashed border-border bg-background px-4 py-5 text-center transition-colors hover:border-primary/50 hover:bg-muted/25"
         >
           <Paperclip size={18} strokeWidth={1.6} absoluteStrokeWidth className="text-muted-foreground" />
           <span className="text-[13px] text-muted-foreground">Attach PDFs for more context</span>
@@ -325,7 +374,7 @@ function Step2Setup({ topic, keywords, tone, wordTarget, attachments, blogCount,
         {attachments.length > 0 && (
           <div className="space-y-1.5">
             {attachments.map(name => (
-              <div key={name} className="flex items-center gap-2 rounded-lg border border-border bg-background px-3 py-2">
+              <div key={name} className="flex items-center gap-2 rounded-[8px] border border-border bg-background px-3 py-2">
                 <FileIcon size={14} strokeWidth={1.6} absoluteStrokeWidth className="text-muted-foreground shrink-0" />
                 <span className="text-[13px] text-foreground flex-1 truncate">{name}</span>
                 <button type="button" onClick={() => removeAttachment(name)} className="text-muted-foreground hover:text-foreground transition-colors shrink-0">
@@ -430,16 +479,18 @@ export function BlogInlineCreationFlow({ onComplete, onCancel, controlRef, onNav
   const [step, setStep] = useState(0);
 
   // Step 1 state
-  const [brandKit, setBrandKit] = useState('olive-garden');
-  const [location, setLocation] = useState('all');
+  const [contentName, setContentName] = useState('');
+  const [brandKit, setBrandKit]       = useState('olive-garden');
+  const [locations, setLocations]     = useState<string[]>(LOCATIONS.map(l => l.id));
 
   // Step 2 state
-  const [topic, setTopic]           = useState('');
-  const [keywords, setKeywords]     = useState('');
-  const [tone, setTone]             = useState('');
+  const [blogType, setBlogType]       = useState('');
+  const [topic, setTopic]             = useState('');
+  const [keywords, setKeywords]       = useState('');
   const [wordTarget, setWordTarget]   = useState(1200);
+  const [signalSources, setSignalSources] = useState<string[]>([]);
   const [attachments, setAttachments] = useState<string[]>([]);
-  const [blogCount, setBlogCount]   = useState(3);
+  const [blogCount, setBlogCount]     = useState(1);
 
   // Step 3 state — synced to blogCount
   const [sections, setSections] = useState<BlogSection[]>(DEFAULT_SECTIONS);
@@ -456,31 +507,31 @@ export function BlogInlineCreationFlow({ onComplete, onCancel, controlRef, onNav
     });
   }, [blogCount]);
 
-  const handleStep2Change = (patch: Partial<Pick<BlogFlowData, 'topic' | 'keywords' | 'tone' | 'wordTarget' | 'attachments' | 'blogCount'>>) => {
+  const handleStep2Change = (patch: Partial<Pick<BlogFlowData, 'blogType' | 'topic' | 'keywords' | 'wordTarget' | 'signalSources' | 'attachments' | 'blogCount'>>) => {
+    if (patch.blogType !== undefined) setBlogType(patch.blogType);
     if (patch.topic !== undefined) setTopic(patch.topic);
     if (patch.keywords !== undefined) setKeywords(patch.keywords);
-    if (patch.tone !== undefined) setTone(patch.tone);
     if (patch.wordTarget !== undefined) setWordTarget(patch.wordTarget);
+    if (patch.signalSources !== undefined) setSignalSources(patch.signalSources);
     if (patch.attachments !== undefined) setAttachments(patch.attachments);
     if (patch.blogCount !== undefined) setBlogCount(patch.blogCount);
   };
 
   const canAdvance = [
-    brandKit !== '' && location !== '',
-    topic.trim() !== '' && tone !== '',
+    contentName.trim() !== '' && brandKit !== '' && locations.length > 0,
+    topic.trim() !== '',
     sections.length > 0 && sections.every(section => section.description.trim() !== ''),
   ][step];
 
   const handleGenerate = useCallback(() => {
     onComplete({
-      brandKit, location, topic, keywords,
-      tone, audience: 'Target customers', wordTarget, publishTo: ['library'],
-      attachments,
-      blogCount,
+      contentName, brandKit, locations, blogType, topic, keywords,
+      wordTarget, signalSources, publishTo: ['library'],
+      attachments, blogCount,
       contentBrief: sections.map(section => `${section.heading}: ${section.description}`).join('\n\n'),
       sections,
     });
-  }, [attachments, blogCount, brandKit, keywords, location, onComplete, sections, tone, topic, wordTarget]);
+  }, [attachments, blogCount, blogType, brandKit, contentName, keywords, locations, onComplete, sections, signalSources, topic, wordTarget]);
 
   useEffect(() => {
     if (controlRef) {
@@ -512,18 +563,20 @@ export function BlogInlineCreationFlow({ onComplete, onCancel, controlRef, onNav
 
           {step === 0 && (
             <Step1BrandKit
+              contentName={contentName}
               brandKit={brandKit}
-              location={location}
-              onChange={(bk, loc) => { setBrandKit(bk); setLocation(loc); }}
+              locations={locations}
+              onChange={(name, bk, locs) => { setContentName(name); setBrandKit(bk); setLocations(locs); }}
             />
           )}
 
           {step === 1 && (
             <Step2Setup
+              blogType={blogType}
               topic={topic}
               keywords={keywords}
-              tone={tone}
               wordTarget={wordTarget}
+              signalSources={signalSources}
               attachments={attachments}
               blogCount={blogCount}
               onChange={handleStep2Change}

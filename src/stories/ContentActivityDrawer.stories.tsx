@@ -12,37 +12,35 @@ const meta: Meta<typeof ContentActivityDrawer> = {
 export default meta;
 type Story = StoryObj<typeof ContentActivityDrawer>;
 
-function ContentActivityDrawerLauncher() {
+function ContentActivityDrawerToggle({ contentType }: { contentType: 'faq' | 'blog' }) {
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-muted p-8">
-      <Button type="button" onClick={() => setOpen(true)}>
-        Open activity
-      </Button>
-      <ContentActivityDrawer open={open} onClose={() => setOpen(false)} contentType="faq" />
+    <div className="flex h-screen bg-[#F7F8FA] p-4 gap-2 items-start justify-end">
+      <div className="flex-1 flex items-center justify-center">
+        <Button type="button" onClick={() => setOpen(v => !v)}>
+          {open ? 'Close activity' : 'Open activity'}
+        </Button>
+      </div>
+      <ContentActivityDrawer
+        open={open}
+        onClose={() => setOpen(false)}
+        contentType={contentType}
+      />
     </div>
   );
 }
 
 export const Default: Story = {
-  render: () => <ContentActivityDrawerLauncher />,
+  render: () => <ContentActivityDrawerToggle contentType="faq" />,
 };
 
 export const FaqActivity: Story = {
   name: 'FAQ activity',
-  args: {
-    open: true,
-    onClose: () => {},
-    contentType: 'faq',
-  },
+  render: () => <ContentActivityDrawerToggle contentType="faq" />,
 };
 
 export const BlogActivity: Story = {
   name: 'Blog activity',
-  args: {
-    open: true,
-    onClose: () => {},
-    contentType: 'blog',
-  },
+  render: () => <ContentActivityDrawerToggle contentType="blog" />,
 };

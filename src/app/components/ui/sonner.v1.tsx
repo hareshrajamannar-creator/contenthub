@@ -5,6 +5,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
     <Sonner
       theme="light"
       className="toaster group"
+      closeButton
       style={
         {
           "--normal-bg": "#ffffff",
@@ -13,6 +14,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
           "--success-bg": "#ffffff",
           "--success-text": "var(--foreground)",
           "--success-border": "var(--border)",
+          "--success-icon": "#22c55e",
           "--error-bg": "#ffffff",
           "--error-text": "var(--foreground)",
           "--error-border": "var(--border)",

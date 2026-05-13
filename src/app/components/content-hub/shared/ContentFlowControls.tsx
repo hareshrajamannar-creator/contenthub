@@ -1,25 +1,32 @@
 import React from 'react';
-import { Check, ChevronDown, Minus, Plus, X } from 'lucide-react';
+import { Check, ChevronDown, Info, Minus, Plus, Search, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from '@/app/components/ui/popover';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/app/components/ui/tooltip';
 import { Input } from '@/app/components/ui/input';
 import { InlineSelectField } from '@/app/components/ui/inline-select-field';
 import { Textarea } from '@/app/components/ui/textarea';
+import { Checkbox } from '@/app/components/ui/checkbox';
 
 export interface ContentFlowStep {
   id: string;
   label: string;
 }
 
-export const CONTENT_FLOW_STEP_TITLE_CLASS = 'text-[18px] font-semibold leading-7 text-foreground';
+export const CONTENT_FLOW_STEP_TITLE_CLASS = 'text-[16px] font-semibold leading-6 text-foreground';
 export const CONTENT_FLOW_FIELD_CLASS =
-  'h-10 rounded-[8px] border-[#e5e9f0] bg-white px-4 text-[13px] font-normal text-[#212121] placeholder:text-[#a3a3a3] transition-[color,box-shadow,border-color] hover:border-[#c0c6d4] focus-visible:border-[#2552ED] focus-visible:ring-[3px] focus-visible:ring-[#2552ED]/10 dark:border-[#333a47] dark:bg-[#262b35] dark:text-[#e4e4e4] dark:placeholder:text-[#4d5568] dark:hover:border-[#4d5568]';
+  'h-10 rounded-[8px] border-[#e5e9f0] bg-white px-4 text-[15px] md:text-[15px] font-normal text-[#212121] placeholder:text-[#a3a3a3] transition-[color,box-shadow,border-color] hover:border-[#c0c6d4] focus-visible:border-[#2552ED] focus-visible:ring-[3px] focus-visible:ring-[#2552ED]/10 dark:border-[#333a47] dark:bg-[#262b35] dark:text-[#e4e4e4] dark:placeholder:text-[#4d5568] dark:hover:border-[#4d5568]';
 export const CONTENT_FLOW_TEXTAREA_CLASS =
-  'min-h-28 rounded-[8px] border-[#e5e9f0] bg-white px-4 py-2 text-[14px] md:text-[14px] font-medium leading-6 text-[#212121] placeholder:text-[#a3a3a3] transition-[color,box-shadow,border-color] hover:border-[#c0c6d4] focus-visible:border-[#2552ED] focus-visible:ring-[3px] focus-visible:ring-[#2552ED]/10 dark:border-[#333a47] dark:bg-[#262b35] dark:text-[#e4e4e4] dark:placeholder:text-[#4d5568] dark:hover:border-[#4d5568]';
+  'min-h-28 rounded-[8px] border-[#e5e9f0] bg-white px-4 py-2 text-[15px] md:text-[15px] font-normal leading-6 text-[#212121] placeholder:text-[#a3a3a3] transition-[color,box-shadow,border-color] hover:border-[#c0c6d4] focus-visible:border-[#2552ED] focus-visible:ring-[3px] focus-visible:ring-[#2552ED]/10 dark:border-[#333a47] dark:bg-[#262b35] dark:text-[#e4e4e4] dark:placeholder:text-[#4d5568] dark:hover:border-[#4d5568]';
 
 export function ContentFlowTextInput({
   className,
@@ -385,6 +392,276 @@ export function ContentFlowMultiSelect({
                 </span>
                 <span>{option.label}</span>
               </button>
+            );
+          })}
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+const LOCATION_INFO_ITEMS = ['Source material', 'Brand profile', 'Target customers', 'Style and voice', 'Media', 'Guardrails'];
+
+export function ContentFlowLocationInfoTooltip() {
+  return (
+    <TooltipProvider delayDuration={200}>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <button type="button" className="inline-flex shrink-0 text-muted-foreground hover:text-foreground transition-colors">
+            <Info size={14} strokeWidth={1.6} absoluteStrokeWidth />
+          </button>
+        </TooltipTrigger>
+        <TooltipContent side="right" align="start" className="max-w-[220px] p-3">
+          <p className="text-[12px] leading-relaxed text-muted-foreground">
+            Content will be generated using the selected brand identity.
+          </p>
+          <ul className="mt-2 space-y-1">
+            {LOCATION_INFO_ITEMS.map(item => (
+              <li key={item} className="flex items-center gap-1.5 text-[12px] text-foreground">
+                <Check size={10} strokeWidth={1.6} absoluteStrokeWidth className="text-primary shrink-0" />
+                {item}
+              </li>
+            ))}
+          </ul>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
+}
+
+const SELECT_BY_OPTIONS = [
+  'location', 'region', 'city', 'zip', 'division',
+  'content manager', 'social manager', 'area code',
+  'region manager', 'room custom',
+];
+
+export function ContentFlowLocationFlatList({
+  values,
+  options,
+  onChange,
+  description,
+}: {
+  values: string[];
+  options: { value: string; label: string }[];
+  onChange: (values: string[]) => void;
+  description?: string;
+}) {
+  const [search, setSearch] = React.useState('');
+  const [selectBy, setSelectBy] = React.useState('location');
+  const [selectByOpen, setSelectByOpen] = React.useState(false);
+
+  const filteredOptions = React.useMemo(
+    () => options.filter(o => o.label.toLowerCase().includes(search.toLowerCase())),
+    [options, search],
+  );
+
+  const allSelected = values.length === options.length && options.length > 0;
+  const someSelected = values.length > 0 && !allSelected;
+
+  const handleSelectAll = () => {
+    onChange(allSelected ? [] : options.map(o => o.value));
+  };
+
+  const handleToggle = (value: string) => {
+    onChange(values.includes(value) ? values.filter(v => v !== value) : [...values, value]);
+  };
+
+  return (
+    <div className="flex flex-col gap-2">
+      {/* Description with "Select by" inline dropdown */}
+      {description && (
+        <p className="flex flex-wrap items-center gap-1 text-[12px] text-muted-foreground">
+          <span>{description} Select by</span>
+          <Popover open={selectByOpen} onOpenChange={setSelectByOpen}>
+            <PopoverTrigger asChild>
+              <button
+                type="button"
+                className="inline-flex items-center gap-0.5 font-medium text-primary transition-colors hover:text-primary/80"
+              >
+                {selectBy}
+                <ChevronDown
+                  size={12}
+                  strokeWidth={1.6}
+                  absoluteStrokeWidth
+                  className={cn('transition-transform duration-150', selectByOpen && 'rotate-180')}
+                />
+              </button>
+            </PopoverTrigger>
+            <PopoverContent align="start" className="w-[176px] p-1">
+              <div className="flex flex-col">
+                {SELECT_BY_OPTIONS.map(opt => (
+                  <button
+                    key={opt}
+                    type="button"
+                    onClick={() => { setSelectBy(opt); setSelectByOpen(false); }}
+                    className={cn(
+                      'flex h-8 w-full items-center rounded-md px-3 text-[13px] transition-colors',
+                      selectBy === opt
+                        ? 'bg-muted font-medium text-foreground'
+                        : 'text-foreground hover:bg-muted',
+                    )}
+                  >
+                    {opt}
+                  </button>
+                ))}
+              </div>
+            </PopoverContent>
+          </Popover>
+        </p>
+      )}
+
+      {/* Search — standalone bordered input */}
+      <div className="flex items-center gap-2 rounded-[8px] border border-[#e5e9f0] bg-white px-3 dark:border-[#333a47] dark:bg-[#262b35]">
+        <Search size={14} strokeWidth={1.6} absoluteStrokeWidth className="shrink-0 text-muted-foreground" />
+        <input
+          type="text"
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          placeholder="Search location"
+          className="flex-1 bg-transparent py-2.5 text-[15px] text-[#212121] outline-none placeholder:text-[#a3a3a3] dark:text-[#e4e4e4] dark:placeholder:text-[#4d5568]"
+        />
+      </div>
+
+      {/* Select all — standalone row */}
+      <div
+        role="button"
+        tabIndex={0}
+        onClick={handleSelectAll}
+        onKeyDown={e => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); handleSelectAll(); } }}
+        className="flex cursor-pointer items-center justify-between border-b border-[#e5e9f0] py-2 transition-colors dark:border-[#333a47]"
+      >
+        <div className="flex items-center gap-2.5">
+          <Checkbox
+            checked={allSelected ? true : someSelected ? 'indeterminate' : false}
+            onCheckedChange={handleSelectAll}
+            onClick={e => e.stopPropagation()}
+          />
+          <span className="text-[13px] font-medium text-foreground">Select all</span>
+        </div>
+        <span className="text-[13px] text-muted-foreground">{values.length} locations selected</span>
+      </div>
+
+      {/* Location rows — no outer container, only border-b between rows */}
+      <div>
+        {filteredOptions.map((option, index) => {
+          const checked = values.includes(option.value);
+          return (
+            <div
+              key={option.value}
+              role="button"
+              tabIndex={0}
+              onClick={() => handleToggle(option.value)}
+              onKeyDown={e => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); handleToggle(option.value); } }}
+              className={cn(
+                'flex cursor-pointer items-center gap-2.5 rounded-sm py-2.5 transition-colors hover:bg-muted/40',
+                index < filteredOptions.length - 1 && 'border-b border-[#e5e9f0] dark:border-[#333a47]',
+              )}
+            >
+              <Checkbox
+                checked={checked}
+                onCheckedChange={() => handleToggle(option.value)}
+                onClick={e => e.stopPropagation()}
+              />
+              <span className="text-[13px] text-[#212121] dark:text-[#e4e4e4]">{option.label}</span>
+            </div>
+          );
+        })}
+        {filteredOptions.length === 0 && (
+          <div className="py-4 text-center text-[13px] text-muted-foreground">No locations found</div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+export function ContentFlowLocationMultiSelect({
+  values,
+  options,
+  onChange,
+  placeholder = 'Select location',
+}: {
+  values: string[];
+  options: { value: string; label: string }[];
+  onChange: (values: string[]) => void;
+  placeholder?: string;
+}) {
+  const [open, setOpen] = React.useState(false);
+  const allOption = options[0];
+  const specificOptions = options.slice(1);
+  const isAllSelected = values.includes(allOption?.value ?? '');
+
+  const triggerLabel = (() => {
+    if (values.length === 0) return placeholder;
+    if (isAllSelected) return allOption.label;
+    if (values.length === 1) return options.find(o => o.value === values[0])?.label ?? placeholder;
+    return `${values.length} locations selected`;
+  })();
+
+  const handleAllToggle = () => {
+    onChange(isAllSelected ? [] : [allOption.value]);
+  };
+
+  const handleSpecificToggle = (value: string) => {
+    if (isAllSelected) {
+      onChange(specificOptions.map(o => o.value).filter(v => v !== value));
+    } else if (values.includes(value)) {
+      onChange(values.filter(v => v !== value));
+    } else {
+      onChange([...values, value]);
+    }
+  };
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          className={cn(
+            'flex h-10 w-full items-center justify-between rounded-[8px] border border-[#e5e9f0] bg-white px-4 text-[15px] transition-[color,box-shadow,border-color]',
+            'hover:border-[#c0c6d4] focus-visible:border-[#2552ED] focus-visible:ring-[3px] focus-visible:ring-[#2552ED]/10 focus-visible:outline-none',
+            'dark:border-[#333a47] dark:bg-[#262b35]',
+            values.length > 0 ? 'text-[#212121] dark:text-[#e4e4e4]' : 'text-[#a3a3a3] dark:text-[#4d5568]',
+          )}
+        >
+          <span className="truncate">{triggerLabel}</span>
+          <ChevronDown size={16} strokeWidth={1.6} absoluteStrokeWidth className="shrink-0 text-[#888] dark:text-[#6b7280]" />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent align="start" className="w-[var(--radix-popover-trigger-width)] p-1">
+        <div className="flex flex-col">
+          <div
+            role="button"
+            tabIndex={0}
+            onClick={handleAllToggle}
+            onKeyDown={e => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); handleAllToggle(); } }}
+            className="flex h-9 w-full cursor-pointer items-center gap-2.5 rounded-md px-3 text-[13px] transition-colors hover:bg-muted"
+          >
+            <Checkbox
+              checked={isAllSelected}
+              onCheckedChange={handleAllToggle}
+              onClick={e => e.stopPropagation()}
+            />
+            <span className="text-foreground">{allOption.label}</span>
+          </div>
+          <div className="my-1 h-px bg-border" />
+          {specificOptions.map(option => {
+            const checked = isAllSelected || values.includes(option.value);
+            return (
+              <div
+                key={option.value}
+                role="button"
+                tabIndex={0}
+                onClick={() => handleSpecificToggle(option.value)}
+                onKeyDown={e => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); handleSpecificToggle(option.value); } }}
+                className="flex h-9 w-full cursor-pointer items-center gap-2.5 rounded-md px-3 text-[13px] transition-colors hover:bg-muted"
+              >
+                <Checkbox
+                  checked={checked}
+                  onCheckedChange={() => handleSpecificToggle(option.value)}
+                  onClick={e => e.stopPropagation()}
+                />
+                <span className="text-foreground">{option.label}</span>
+              </div>
             );
           })}
         </div>

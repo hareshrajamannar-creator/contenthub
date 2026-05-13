@@ -46,7 +46,7 @@ const STEP_LABELS: Record<WizardMode, [string, string, string]> = {
   faq:     ['Template',     'Source & context', 'Tune & publish'],
   blog:    ['Goal',         'Source & context', 'Tune & publish'],
   landing: ['Goal',         'Source & context', 'Tune & publish'],
-  project: ['Project type', 'Source & context', 'Tune & publish'],
+  project: ['Brand & location', 'Source & context', 'Tune & publish'],
 };
 
 const MODAL_TITLE: Record<WizardMode, string> = {
@@ -133,7 +133,7 @@ export interface ContentCreationWizardModalProps {
 
 function defaultStep1(mode: WizardMode): Record<string, unknown> {
   if (mode === 'faq')     return { template: 'aeo',       agent: 'balanced' };
-  if (mode === 'project') return { projectType: 'campaign', agent: 'balanced' };
+  if (mode === 'project') return { projectName: '', brandKit: 'olive-garden', locations: [] };
   return { goal: 'seo', agent: 'balanced' };
 }
 

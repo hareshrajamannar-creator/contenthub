@@ -1,17 +1,16 @@
 import {
   ArrowDown,
-  ArrowLeft,
   CalendarClock,
   CheckCircle2,
   Edit3,
   FileText,
   MessageSquareText,
   Sparkles,
+  X,
 } from 'lucide-react';
-import { Sheet, SheetContent } from '@/app/components/ui/sheet';
-import { FLOATING_SHEET_FRAME_CONTENT_CLASS } from '@/app/components/layout/FloatingSheetFrame';
+import { cn } from '@/lib/utils';
 
-type ContentActivityDrawerProps = {
+export type ContentActivityDrawerProps = {
   open: boolean;
   onClose: () => void;
   contentType?: 'blog' | 'faq';
@@ -54,7 +53,7 @@ const CONTENT_ACTIVITY = {
       action: 'added a missing pricing question',
       kind: 'edit',
       label: 'Question',
-      note: 'Added “Do emergency visits cost extra?” to cover high-intent pricing searches.',
+      note: 'Added "Do emergency visits cost extra?" to cover high-intent pricing searches.',
     },
     {
       id: 'faq-5',
@@ -153,11 +152,92 @@ const CONTENT_ACTIVITY = {
 } as const;
 
 function activityIcon(kind: string) {
-  const iconProps = { size: 15, strokeWidth: 1.6, absoluteStrokeWidth: true };
+  const iconProps = { size: 14, strokeWidth: 1.6, absoluteStrokeWidth: true } as const;
   if (kind === 'approval') return <CheckCircle2 {...iconProps} />;
   if (kind === 'schedule') return <CalendarClock {...iconProps} />;
   if (kind === 'ai') return <Sparkles {...iconProps} />;
   return <Edit3 {...iconProps} />;
+}
+
+function ActivityPanelContent({
+  onClose,
+  contentType,
+}: {
+  onClose: () => void;
+  contentType: 'blog' | 'faq';
+}) {
+  const activities = CONTENT_ACTIVITY[contentType];
+
+  return (
+    <div className="flex h-full flex-col">
+      {/* Header */}
+      <div className="flex shrink-0 items-center justify-between border-b border-border px-4 py-3">
+        <span className="text-[14px] font-semibold text-foreground">Activity</span>
+        <button
+          type="button"
+          onClick={onClose}
+          className="flex size-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+          aria-label="Close activity"
+        >
+          <X size={14} strokeWidth={1.6} absoluteStrokeWidth />
+        </button>
+      </div>
+
+      {/* Activity list */}
+      <div className="min-h-0 flex-1 overflow-y-auto px-3 py-3">
+        <p className="mb-4 text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground">
+          Today
+        </p>
+        <div className="divide-y divide-border">
+          {activities.map(activity => (
+            <div key={activity.id} className="flex gap-3 py-4 first:pt-0 last:pb-0">
+              <div className="flex size-7 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground">
+                {activityIcon(activity.kind)}
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-[11px] text-muted-foreground">{activity.when}</p>
+                <p className="mt-0.5 text-[12px] leading-5 text-foreground">
+                  <span className="font-medium">{activity.actor}</span>
+                  {' '}
+                  <span className="text-muted-foreground">{activity.action}</span>
+                </p>
+
+                {'before' in activity && 'after' in activity ? (
+                  <div className="mt-3 rounded-lg border border-border bg-muted/30 p-3">
+                    <div className="mb-3 flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-[0.1em] text-muted-foreground">
+                      <FileText size={12} strokeWidth={1.6} absoluteStrokeWidth />
+                      {activity.label}
+                    </div>
+                    <p className="text-[12px] leading-5 text-muted-foreground line-through">
+                      {activity.before}
+                    </p>
+                    <div className="my-3 flex items-center gap-2 text-muted-foreground">
+                      <div className="h-px flex-1 bg-border" />
+                      <ArrowDown size={12} strokeWidth={1.6} absoluteStrokeWidth />
+                      <div className="h-px flex-1 bg-border" />
+                    </div>
+                    <p className="text-[12px] leading-5 text-foreground">
+                      {activity.after}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="mt-3 rounded-lg border border-border bg-muted/30 p-3">
+                    <div className="mb-1.5 flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-[0.1em] text-muted-foreground">
+                      <MessageSquareText size={12} strokeWidth={1.6} absoluteStrokeWidth />
+                      {activity.label}
+                    </div>
+                    <p className="text-[12px] leading-5 text-foreground">
+                      {'note' in activity ? activity.note : ''}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export function ContentActivityDrawer({
@@ -165,87 +245,20 @@ export function ContentActivityDrawer({
   onClose,
   contentType = 'faq',
 }: ContentActivityDrawerProps) {
-  const activities = CONTENT_ACTIVITY[contentType];
-
   return (
-    <Sheet open={open} onOpenChange={isOpen => !isOpen && onClose()}>
-      <SheetContent
-        side="right"
-        inset="floating"
-        floatingSize="md"
-        className={FLOATING_SHEET_FRAME_CONTENT_CLASS}
-      >
-        <div className="flex h-full min-h-0 flex-col bg-background">
-          <div className="border-b border-border bg-background px-6 py-4">
-            <div className="flex items-center justify-between gap-4">
-              <div className="flex items-center gap-4">
-                <button
-                  type="button"
-                  onClick={onClose}
-                  className="flex size-8 items-center justify-center rounded-full border border-border bg-background text-foreground transition-colors hover:bg-muted/50"
-                  aria-label="Close activity"
-                >
-                  <ArrowLeft size={16} strokeWidth={1.6} absoluteStrokeWidth />
-                </button>
-                <h2 className="text-[18px] font-semibold text-foreground">Activity</h2>
-              </div>
-            </div>
-          </div>
-
-          <div className="min-h-0 flex-1 overflow-auto px-6 py-6">
-            <p className="mb-6 text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground">
-              Today
-            </p>
-            <div className="divide-y divide-border">
-              {activities.map(activity => (
-                <div key={activity.id} className="flex gap-4 py-6 first:pt-0 last:pb-0">
-                  <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-background text-muted-foreground">
-                    {activityIcon(activity.kind)}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-[12px] text-muted-foreground">{activity.when}</p>
-                    <p className="mt-1 text-[14px] leading-6 text-foreground">
-                      <span className="font-medium">{activity.actor}</span>
-                      {' '}
-                      <span className="text-muted-foreground">{activity.action}</span>
-                    </p>
-
-                    {'before' in activity && 'after' in activity ? (
-                      <div className="mt-4 rounded-lg border border-border bg-background p-4">
-                        <div className="mb-4 flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.1em] text-muted-foreground">
-                          <FileText size={13} strokeWidth={1.6} absoluteStrokeWidth />
-                          {activity.label}
-                        </div>
-                        <p className="text-[13px] leading-5 text-muted-foreground line-through">
-                          {activity.before}
-                        </p>
-                        <div className="my-4 flex items-center gap-2 text-muted-foreground">
-                          <div className="h-px flex-1 bg-border" />
-                          <ArrowDown size={14} strokeWidth={1.6} absoluteStrokeWidth />
-                          <div className="h-px flex-1 bg-border" />
-                        </div>
-                        <p className="text-[13px] leading-5 text-foreground">
-                          {activity.after}
-                        </p>
-                      </div>
-                    ) : (
-                      <div className="mt-4 rounded-lg border border-border bg-background p-4">
-                        <div className="mb-2 flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.1em] text-muted-foreground">
-                          <MessageSquareText size={13} strokeWidth={1.6} absoluteStrokeWidth />
-                          {activity.label}
-                        </div>
-                        <p className="text-[13px] leading-5 text-foreground">
-                          {'note' in activity ? activity.note : ''}
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </SheetContent>
-    </Sheet>
+    <div
+      className={cn(
+        'flex-none flex flex-col h-full transition-all duration-200 overflow-hidden',
+        open ? 'w-[300px]' : 'w-0',
+      )}
+      aria-hidden={!open}
+    >
+      {/* Fixed-width inner so content doesn't squish during slide */}
+      <div className="w-[300px] flex flex-col flex-1 min-h-0 rounded-xl border border-border/60 bg-background overflow-hidden">
+        {open && (
+          <ActivityPanelContent onClose={onClose} contentType={contentType} />
+        )}
+      </div>
+    </div>
   );
 }

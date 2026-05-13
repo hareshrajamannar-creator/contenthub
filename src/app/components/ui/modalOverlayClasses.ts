@@ -7,4 +7,4 @@
  * shell stays more readable when sheets/dialogs open.
  */
 export const MODAL_OVERLAY_VISUAL_CLASS =
-  "bg-neutral-900/25";
+  "bg-slate-900/30 backdrop-blur-[3px]";

@@ -166,6 +166,26 @@ export function ContentHubL2NavPanel({
           label: 'Agents',
           children: ['FAQ generation agents', 'Blog recommendation agents'],
         },
+        {
+          label: 'Outcomes',
+          children: [
+            { label: 'Content published',  key: 'outcomes-content-published',  nonNav: true },
+            { label: 'AEO score impact',   key: 'outcomes-aeo-score-impact',   nonNav: true },
+            { label: 'Content engagement', key: 'outcomes-content-engagement', nonNav: true },
+            { label: 'Reports',            key: 'outcomes-reports',            nonNav: true, external: true },
+          ],
+        },
+        {
+          label: 'Resources',
+          children: [
+            { label: 'Brand identity', key: 'resources-brand-identity', nonNav: true, external: true },
+            { label: 'Approvals',      key: 'resources-approvals',      nonNav: true, external: true },
+            { label: 'Media library',  key: 'resources-media-library',  nonNav: true, external: true },
+            { label: 'Files',          key: 'resources-files',          nonNav: true, external: true },
+            { label: 'Links',          key: 'resources-links',          nonNav: true, external: true },
+            { label: 'Tags',           key: 'resources-tags',           nonNav: true },
+          ],
+        },
       ]}
       activeItem={activeItem}
       onActiveItemChange={handleActiveItemChange}

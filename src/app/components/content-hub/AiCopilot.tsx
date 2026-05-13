@@ -120,32 +120,22 @@ const SCRIPTS: Record<Exclude<ConvPath, 'choose'>, QuestionDef[]> = {
   ],
   faq: [
     {
-      text: "What is this FAQ page about?",
-      chips: ["Restaurant dining", "Landscaping & outdoor", "Real estate", "Healthcare & wellness", "Home services", "Salon & beauty", "Retail"],
+      text: "What's your business or website URL? I'll use it to understand your offerings.",
       freeText: true,
+      chips: ["Skip for now"],
     },
     {
-      text: "Who is your primary audience?",
-      chips: ["Local customers", "Homeowners", "First-time buyers", "Families", "Business owners", "Patients"],
-      freeText: true,
-    },
-    {
-      text: "What topics should the FAQ cover?",
-      chips: ["Pricing & costs", "Booking & availability", "Services offered", "Cancellation policy", "Hours & location", "Parking & accessibility", "Dietary options"],
+      text: "Which topics should the FAQ cover?",
+      chips: ["Our services", "Pricing & plans", "Location & hours", "How we work", "Reviews & reputation", "Industry questions"],
       multiSelect: true,
     },
     {
-      text: "What tone should the answers use?",
-      chips: ["Friendly & conversational", "Professional & formal", "Concise & direct", "Warm & reassuring"],
+      text: "Which AI agent should power the generation?",
+      chips: ["Local business agent", "Service provider agent", "Restaurant agent", "Healthcare agent", "Real estate agent"],
     },
     {
-      text: "How many FAQ items do you need?",
-      chips: ["5 questions", "10 questions", "15 questions", "20 questions", "30+"],
-    },
-    {
-      text: "Should any specific locations be referenced?",
-      chips: ["All locations", "My primary location only", "Skip"],
-      freeText: true,
+      text: "Any focus areas for the FAQ generation?",
+      chips: ["Voice search answers", "Address common objections", "Include pricing details", "Skip — generate now"],
     },
   ],
   social: [

@@ -96,15 +96,22 @@ export const L2_HEADER_PLUS_STROKE_PX = L1_STRIP_ICON_STROKE_PX;
 /* ─────────────────────────────────────────────────────
    Types
    ───────────────────────────────────────────────────── */
-/** String = label and key are the same (legacy panels). Object = visible label + stable key (e.g. conversation id). */
-export type L2SectionChild = string | { label: string; key: string };
+/**
+ * String = label and key are the same (legacy panels).
+ * Object = visible label + stable key, with optional modifiers:
+ *   external — show ExternalLink icon on the right
+ *   nonNav   — render as a non-interactive div (no click / active state)
+ */
+export type L2SectionChild =
+  | string
+  | { label: string; key: string; external?: boolean; nonNav?: boolean };
 
 export interface L2Section {
   label: string;
   children: L2SectionChild[];
 }
 
-function l2ChildParts(c: L2SectionChild): { label: string; key: string } {
+function l2ChildParts(c: L2SectionChild): { label: string; key: string; external?: boolean; nonNav?: boolean } {
   return typeof c === "string" ? { label: c, key: c } : c;
 }
 
@@ -313,9 +320,25 @@ export function L2NavLayout({
           </button>
 
           {expanded[section.label] && section.children.map(child => {
-            const { label: childLabel, key: childKey } = l2ChildParts(child);
+            const { label: childLabel, key: childKey, external: childExternal, nonNav: childNonNav } = l2ChildParts(child);
             const compoundKey = `${section.label}/${childKey}`;
             const isActive = active === compoundKey;
+
+            if (childNonNav) {
+              return (
+                <div
+                  key={`${section.label}/${childKey}`}
+                  className={`${CHILD_INACTIVE} cursor-default`}
+                  style={{ fontWeight: 300 }}
+                >
+                  <span>{childLabel}</span>
+                  {childExternal && (
+                    <ExternalLink className="w-3.5 h-3.5 shrink-0 text-muted-foreground" />
+                  )}
+                </div>
+              );
+            }
+
             return (
               <button
                 key={`${section.label}/${childKey}`}
@@ -323,7 +346,10 @@ export function L2NavLayout({
                 className={isActive ? CHILD_ACTIVE : CHILD_INACTIVE}
                 style={{ fontWeight: isActive ? 400 : 300 }}
               >
-                {childLabel}
+                <span>{childLabel}</span>
+                {childExternal && (
+                  <ExternalLink className="w-3.5 h-3.5 shrink-0 text-muted-foreground" />
+                )}
               </button>
             );
           })}

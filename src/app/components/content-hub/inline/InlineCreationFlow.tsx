@@ -27,9 +27,9 @@ import { cn } from '@/lib/utils';
 import type { ContentMode } from '../editor/editorConfig';
 import {
   CONTENT_FLOW_STEP_TITLE_CLASS,
-  ContentFlowBrandKitSummary,
   ContentFlowChip,
   ContentFlowChoiceCard,
+  ContentFlowLocationFlatList,
   ContentFlowRadioCard,
   ContentFlowSelect,
   ContentFlowTextarea,
@@ -58,8 +58,9 @@ export interface InlineFlowData {
   mode: InlineFlowMode;
   projectType?: string;
   agent?: string;
+  projectName?: string;
   brandKit?: string;
-  location?: string;
+  locations?: string[];
   objective?: string;
   startDate?: string;
   endDate?: string;
@@ -157,12 +158,29 @@ const PROJECT_BRAND_KITS = [
 ];
 
 const PROJECT_LOCATIONS = [
-  { value: 'all',         label: 'All locations (10)' },
-  { value: 'austin',      label: 'Austin, TX' },
-  { value: 'houston',     label: 'Houston, TX' },
-  { value: 'dallas',      label: 'Dallas, TX' },
-  { value: 'san-antonio', label: 'San Antonio, TX' },
+  { value: 'loc-1001', label: '1001 - Mountain View, CA' },
+  { value: 'loc-1002', label: '1002 - Seattle, WA' },
+  { value: 'loc-1003', label: '1003 - Dallas, TX' },
+  { value: 'loc-1004', label: '1004 - Chicago, IL' },
+  { value: 'loc-1005', label: '1005 - Los Angeles, CA' },
+  { value: 'loc-1006', label: '1006 - Las Vegas, NV' },
+  { value: 'loc-1007', label: '1007 - Austin, TX' },
+  { value: 'loc-1008', label: '1008 - Houston, TX' },
+  { value: 'loc-1009', label: '1009 - Phoenix, AZ' },
+  { value: 'loc-1010', label: '1010 - Denver, CO' },
+  { value: 'loc-1011', label: '1011 - New York, NY' },
+  { value: 'loc-1012', label: '1012 - Miami, FL' },
+  { value: 'loc-1013', label: '1013 - Atlanta, GA' },
+  { value: 'loc-1014', label: '1014 - Boston, MA' },
+  { value: 'loc-1015', label: '1015 - Portland, OR' },
+  { value: 'loc-1016', label: '1016 - San Diego, CA' },
+  { value: 'loc-1017', label: '1017 - Nashville, TN' },
+  { value: 'loc-1018', label: '1018 - San Antonio, TX' },
+  { value: 'loc-1019', label: '1019 - Minneapolis, MN' },
+  { value: 'loc-1020', label: '1020 - Charlotte, NC' },
 ];
+
+const ALL_PROJECT_LOCATION_IDS = PROJECT_LOCATIONS.map(l => l.value);
 
 function StepProjectType({
   data,
@@ -171,6 +189,8 @@ function StepProjectType({
   data: Partial<InlineFlowData>;
   onChange: (d: Partial<InlineFlowData>) => void;
 }) {
+  const locations = data.locations ?? ALL_PROJECT_LOCATION_IDS;
+
   return (
     <div className="flex flex-col gap-6">
       <div>
@@ -180,9 +200,18 @@ function StepProjectType({
         </p>
       </div>
 
-      <div className="flex flex-col gap-4">
-        <div className="flex flex-col gap-2">
-          <label className="text-[13px] font-medium text-foreground">Brand identity</label>
+      <div className="flex flex-col gap-6">
+        <div className="space-y-1.5">
+          <label className="text-[13px] font-medium text-foreground">Project name <span className="text-destructive">*</span></label>
+          <ContentFlowTextInput
+            value={data.projectName ?? ''}
+            onChange={e => onChange({ ...data, projectName: e.target.value })}
+            placeholder="e.g. LushGreen spring campaign 2025"
+          />
+        </div>
+
+        <div className="space-y-1.5">
+          <label className="text-[13px] font-medium text-foreground">Brand identity <span className="text-destructive">*</span></label>
           <ContentFlowSelect
             value={data.brandKit ?? 'lushgreen'}
             onChange={value => onChange({ ...data, brandKit: value })}
@@ -190,17 +219,16 @@ function StepProjectType({
           />
         </div>
 
-        <div className="flex flex-col gap-2">
-          <label className="text-[13px] font-medium text-foreground">Location</label>
-          <ContentFlowSelect
-            value={data.location ?? 'all'}
-            onChange={value => onChange({ ...data, location: value })}
+        <div className="space-y-1.5">
+          <label className="text-[13px] font-medium text-foreground">Locations <span className="text-destructive">*</span></label>
+          <ContentFlowLocationFlatList
+            values={locations}
             options={PROJECT_LOCATIONS}
+            onChange={locs => onChange({ ...data, locations: locs })}
+            description="Choose the locations this project will apply to."
           />
         </div>
       </div>
-
-      <ContentFlowBrandKitSummary contentLabel="Project content" />
     </div>
   );
 }
@@ -1133,8 +1161,9 @@ export function InlineCreationFlow({ mode, onComplete, onCancel, controlRef, onN
       mode,
       projectType: data.projectType,
       agent: data.agent ?? 'balanced',
+      projectName: data.projectName,
       brandKit: data.brandKit,
-      location: data.location,
+      locations: data.locations,
       objective: data.objective,
       startDate: data.startDate,
       endDate: data.endDate,

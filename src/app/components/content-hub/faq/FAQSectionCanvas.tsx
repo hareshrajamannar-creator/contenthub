@@ -23,6 +23,7 @@ import { cn } from '@/lib/utils';
 import { AiCopilot } from '../AiCopilot';
 import { SegmentedToggle } from '@/app/components/ui/segmented-toggle.v1';
 import { EditorScorePanel } from '../editor/EditorScorePanel';
+import { CommentPanel } from '../editor/CommentPanel';
 import { EDITOR_CONFIGS } from '../editor/editorConfig';
 import { EditorChromeToolbar, type EditorToolbarPosition } from '../shared/EditorChromeToolbar';
 import { CanvasEditorTopBar } from '../shared/CanvasEditorTopBar';
@@ -196,6 +197,187 @@ function generateMockFAQs(sections: FAQSection[]): FAQSectionData[] {
       collapsed: false,
     };
   });
+}
+
+// ── FAQ canvas template definitions ──────────────────────────────────────────
+
+interface FAQCanvasTemplate {
+  id: string;
+  title: string;
+  description: string;
+  hue: number;
+  sections: FAQSection[];
+}
+
+const FAQ_CANVAS_TEMPLATES: FAQCanvasTemplate[] = [
+  {
+    id: 'general',
+    title: 'General business',
+    description: 'Common questions any local business gets asked',
+    hue: 210,
+    sections: [
+      { id: 'gen-1', title: 'General questions', description: '', count: 5 },
+      { id: 'gen-2', title: 'Pricing and appointments', description: '', count: 4 },
+    ],
+  },
+  {
+    id: 'restaurant',
+    title: 'Restaurant',
+    description: 'Menu, hours, reservations, dietary options',
+    hue: 30,
+    sections: [
+      { id: 'rest-1', title: 'Menu and dining', description: '', count: 5 },
+      { id: 'rest-2', title: 'Reservations and hours', description: '', count: 4 },
+    ],
+  },
+  {
+    id: 'home-services',
+    title: 'Home services',
+    description: 'Service area, availability, pricing, guarantees',
+    hue: 145,
+    sections: [
+      { id: 'hs-1', title: 'General questions', description: '', count: 5 },
+      { id: 'hs-2', title: 'Special cases', description: '', count: 4 },
+    ],
+  },
+  {
+    id: 'healthcare',
+    title: 'Healthcare',
+    description: 'Appointments, insurance, new patient info',
+    hue: 180,
+    sections: [
+      { id: 'hc-1', title: 'Appointments and booking', description: '', count: 5 },
+      { id: 'hc-2', title: 'Pricing and appointments', description: '', count: 4 },
+    ],
+  },
+  {
+    id: 'real-estate',
+    title: 'Real estate',
+    description: 'Buying, selling, listings, and market info',
+    hue: 280,
+    sections: [
+      { id: 're-1', title: 'Buying and selling', description: '', count: 5 },
+      { id: 're-2', title: 'Pricing and appointments', description: '', count: 4 },
+    ],
+  },
+];
+
+// ── Empty-canvas helper components ────────────────────────────────────────────
+
+function FAQTemplateCard({
+  template,
+  onSelect,
+}: {
+  template: FAQCanvasTemplate;
+  onSelect: (id: string) => void;
+}) {
+  const headerBg = `hsl(${template.hue}, 28%, 52%)`;
+  const accentBg = `hsl(${template.hue}, 25%, 92%)`;
+
+  return (
+    <button
+      type="button"
+      onClick={() => onSelect(template.id)}
+      className="flex flex-col rounded-xl border border-border bg-background overflow-hidden hover:border-primary/40 hover:shadow-md transition-all group text-left"
+    >
+      <div className="relative w-full bg-zinc-100 p-4">
+        <div
+          className="w-full bg-white rounded-lg overflow-hidden shadow-sm ring-1 ring-black/[0.07]"
+          style={{ height: 90 }}
+        >
+          <div className="h-7 w-full flex items-center gap-2 px-2" style={{ background: headerBg }}>
+            <div className="size-3.5 rounded bg-white/30 shrink-0" />
+            <div className="flex flex-col gap-[2px] flex-1">
+              <div className="h-[2px] w-full bg-white/70 rounded-full" />
+              <div className="h-[2px] w-2/3 bg-white/40 rounded-full" />
+            </div>
+          </div>
+          <div className="px-2 py-1.5 flex flex-col gap-[4px]">
+            <div className="h-[2.5px] w-full rounded-full bg-zinc-200" />
+            <div className="h-[5px] rounded-[2px] w-full" style={{ background: accentBg }} />
+            <div className="h-[2.5px] w-4/5 rounded-full bg-zinc-200" />
+            <div className="h-[5px] rounded-[2px] w-full" style={{ background: accentBg }} />
+          </div>
+        </div>
+        <div className="absolute inset-0 bg-zinc-900/0 group-hover:bg-zinc-900/40 transition-all duration-200 flex items-center justify-center opacity-0 group-hover:opacity-100 rounded-t-xl">
+          <span className="h-7 px-3 rounded-md bg-primary text-[11px] font-medium text-primary-foreground shadow-sm">
+            Use template
+          </span>
+        </div>
+      </div>
+      <div className="px-3 py-2">
+        <p className="text-[12px] font-medium text-foreground truncate group-hover:text-primary transition-colors">
+          {template.title}
+        </p>
+        <p className="text-[11px] text-muted-foreground mt-0.5 line-clamp-2">{template.description}</p>
+      </div>
+    </button>
+  );
+}
+
+function EmptyFAQCanvasState({ onSelectTemplate }: { onSelectTemplate: (id: string) => void }) {
+  return (
+    <div className="flex flex-col items-center gap-8 px-8 py-10">
+      <div className="text-center space-y-2">
+        <div className="flex size-12 items-center justify-center rounded-2xl bg-primary/10 mx-auto">
+          <MessageSquare size={22} strokeWidth={1.6} absoluteStrokeWidth className="text-primary" />
+        </div>
+        <p className="text-[15px] font-semibold text-foreground">Your FAQ canvas is ready</p>
+        <p className="text-[13px] text-muted-foreground max-w-sm mx-auto">
+          Use the AI Copilot on the left to generate FAQs, or start from a template below.
+        </p>
+      </div>
+
+      <div className="w-full">
+        <div className="flex items-center gap-4 mb-4">
+          <div className="flex-1 h-px bg-border" />
+          <span className="text-[12px] text-muted-foreground shrink-0">or choose a template</span>
+          <div className="flex-1 h-px bg-border" />
+        </div>
+        <div className="grid grid-cols-5 gap-3">
+          {FAQ_CANVAS_TEMPLATES.map(tmpl => (
+            <FAQTemplateCard key={tmpl.id} template={tmpl} onSelect={onSelectTemplate} />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function FAQGeneratingState() {
+  return (
+    <div className="px-8 py-6 flex flex-col gap-3">
+      <div className="flex items-center gap-2 mb-2">
+        <Sparkles size={15} strokeWidth={1.6} absoluteStrokeWidth className="text-primary animate-pulse" />
+        <span className="text-[13px] font-medium text-foreground">Generating your FAQs…</span>
+      </div>
+      {Array.from({ length: 3 }).map((_, si) => (
+        <div
+          key={si}
+          className="rounded-xl border border-border/60 bg-background overflow-hidden"
+        >
+          <div
+            className="h-10 border-b border-border bg-muted/30 px-4 flex items-center gap-3 animate-pulse"
+            style={{ animationDelay: `${si * 0.1}s` }}
+          >
+            <div className="size-5 rounded-md bg-muted" />
+            <div className="h-3 w-40 rounded-full bg-muted" />
+          </div>
+          {Array.from({ length: 3 }).map((_, qi) => (
+            <div
+              key={qi}
+              className="border-b border-border last:border-b-0 px-6 py-3 animate-pulse"
+              style={{ animationDelay: `${(si * 3 + qi) * 0.08}s` }}
+            >
+              <div className="h-3 w-2/3 rounded-full bg-muted mb-2" />
+              <div className="h-2.5 w-full rounded-full bg-muted/60" />
+              <div className="h-2.5 w-4/5 rounded-full bg-muted/60 mt-1" />
+            </div>
+          ))}
+        </div>
+      ))}
+    </div>
+  );
 }
 
 // ── Left panel tab items ──────────────────────────────────────────────────────
@@ -376,10 +558,7 @@ function FAQSuggestedStyleCard({
             <FAQTemplatePreview title={title} questions={questions} />
           </div>
         </div>
-        <div className="space-y-2 p-4">
-          <span className="inline-flex rounded bg-primary/8 px-2 py-1 text-[10px] font-medium text-primary">
-            {label}
-          </span>
+        <div className="space-y-1 p-4">
           <p className="text-[13px] font-medium leading-snug text-foreground">{title}</p>
           <p className="line-clamp-2 text-[11px] leading-relaxed text-muted-foreground">{description}</p>
         </div>
@@ -488,8 +667,8 @@ function FAQManualContent({
 
 // ── Question row ──────────────────────────────────────────────────────────────
 
-function shouldCloseTextEditor(event: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) {
-  return event.currentTarget.dataset.hasRichStyle !== 'true';
+function shouldCloseTextEditor(_event: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) {
+  return true;
 }
 
 function EditableFAQField({
@@ -507,6 +686,7 @@ function EditableFAQField({
 }) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const placedCaretRef = useRef(false);
+  const [richStyle, setRichStyle] = useState<React.CSSProperties>({});
   const isQuestion = variant === 'question';
   const textClass = isQuestion
     ? 'text-[13px] font-medium text-foreground'
@@ -515,6 +695,17 @@ function EditableFAQField({
     'w-full border-b bg-transparent px-0 py-0.5 text-left transition-colors',
     textClass,
   );
+
+  // Persist rich styles (font size, color, etc.) applied by EditorChromeToolbar
+  useEffect(() => {
+    const el = textareaRef.current;
+    if (!el) return;
+    const handler = (e: Event) => {
+      setRichStyle(prev => ({ ...prev, ...(e as CustomEvent<React.CSSProperties>).detail }));
+    };
+    el.addEventListener('richstylechange', handler);
+    return () => el.removeEventListener('richstylechange', handler);
+  }, [editing]);
 
   useLayoutEffect(() => {
     const node = textareaRef.current;
@@ -537,6 +728,7 @@ function EditableFAQField({
       <textarea
         ref={textareaRef}
         rows={1}
+        style={richStyle}
         className={cn(
           sharedClass,
           'overflow-hidden border-primary outline-none resize-none',
@@ -557,6 +749,7 @@ function EditableFAQField({
   return (
     <button
       type="button"
+      style={richStyle}
       onClick={() => onEditingChange(true)}
       className={cn(
         sharedClass,
@@ -906,8 +1099,10 @@ export function FAQSectionCanvas({ sections, generationLabel, onVersionHistory }
   const [leftTab, setLeftTab] = useState<'ai' | 'manual'>('ai');
   const [zoom, setZoom] = useState(1);
   const [scorePanelOpen, setScorePanelOpen] = useState(true);
+  const [commentsOpen, setCommentsOpen] = useState(false);
   const [fixingAll, setFixingAll] = useState(false);
   const [panelBump, setPanelBump] = useState(0);
+  const [isGeneratingFromCopilot, setIsGeneratingFromCopilot] = useState(false);
   const [activityOpen, setActivityOpen] = useState(false);
   const [richTextVisible, setRichTextVisible] = useState(false);
   const [canvasToolbarPosition, setCanvasToolbarPosition] = useState<EditorToolbarPosition>({ top: 96, left: 640 });
@@ -1207,6 +1402,25 @@ export function FAQSectionCanvas({ sections, generationLabel, onVersionHistory }
     ]);
   }, [setData]);
 
+  const handleSelectTemplate = useCallback((templateId: string) => {
+    const tmpl = FAQ_CANVAS_TEMPLATES.find(t => t.id === templateId);
+    if (!tmpl) return;
+    setSectionData(generateMockFAQs(tmpl.sections));
+  }, []);
+
+  const handleCopilotStartGenerating = useCallback(() => {
+    setIsGeneratingFromCopilot(true);
+    window.setTimeout(() => {
+      const copilotSections: FAQSection[] = [
+        { id: `ai-${Date.now()}-1`, title: 'General questions', description: '', count: 5 },
+        { id: `ai-${Date.now()}-2`, title: 'Pricing and appointments', description: '', count: 5 },
+        { id: `ai-${Date.now()}-3`, title: 'Special cases', description: '', count: 4 },
+      ];
+      setSectionData(generateMockFAQs(copilotSections));
+      setIsGeneratingFromCopilot(false);
+    }, 3200);
+  }, []);
+
   return (
     <div className="flex flex-1 min-h-0 gap-2 bg-[var(--color-canvas,#F7F8FA)] p-2 animate-in fade-in duration-150">
       {/* ── Left panel ───────────────────────────────────────────────── */}
@@ -1224,10 +1438,18 @@ export function FAQSectionCanvas({ sections, generationLabel, onVersionHistory }
         </div>
         <div className="flex-1 min-h-0 overflow-hidden">
           {leftTab === 'ai' ? (
-            <AiCopilot
-              editorContext="editing"
-              wizardSummary={generationLabel}
-            />
+            sectionData.length === 0 ? (
+              <AiCopilot
+                editorContext="setup"
+                initialContentType="faq"
+                onStartGenerating={handleCopilotStartGenerating}
+              />
+            ) : (
+              <AiCopilot
+                editorContext="editing"
+                wizardSummary={generationLabel}
+              />
+            )
           ) : (
             <FAQManualContent
               onAddQuestion={handleManualAddQuestion}
@@ -1240,21 +1462,7 @@ export function FAQSectionCanvas({ sections, generationLabel, onVersionHistory }
       </div>
 
       {/* ── Center canvas ─────────────────────────────────────────────── */}
-      <div className="flex flex-1 min-w-0 flex-col gap-2 overflow-hidden">
-        {richTextVisible && (
-          <EditorChromeToolbar
-            canUndo={canUndo}
-            canRedo={canRedo}
-            onUndo={handleUndo}
-            onRedo={handleRedo}
-            zoom={zoom}
-            onZoomOut={() => setZoom(z => Math.max(0.5, +(z - 0.1).toFixed(2)))}
-            onZoomIn={() => setZoom(z => Math.min(2, +(z + 0.1).toFixed(2)))}
-            richTextVisible={richTextVisible}
-            canvasPosition={canvasToolbarPosition}
-            richTextPosition={richTextPosition}
-          />
-        )}
+      <div className="flex flex-1 min-w-0 flex-col gap-2">
         <div
           className="animate-in fade-in slide-in-from-top-2 fill-mode-both"
           style={{ animationDuration: '300ms', animationDelay: '80ms' }}
@@ -1263,7 +1471,7 @@ export function FAQSectionCanvas({ sections, generationLabel, onVersionHistory }
             score={setScore}
             scoreLabel="Content score"
             scorePanelOpen={scorePanelOpen}
-            onScoreClick={() => setScorePanelOpen(v => !v)}
+            onScoreClick={() => { setScorePanelOpen(v => !v); setCommentsOpen(false); }}
             canUndo={canUndo}
             canRedo={canRedo}
             onUndo={handleUndo}
@@ -1272,14 +1480,38 @@ export function FAQSectionCanvas({ sections, generationLabel, onVersionHistory }
             onZoomOut={() => setZoom(z => Math.max(0.5, +(z - 0.1).toFixed(2)))}
             onZoomIn={() => setZoom(z => Math.min(2, +(z + 0.1).toFixed(2)))}
             onVersionHistory={onVersionHistory}
-            onActivity={() => setActivityOpen(true)}
+            onActivity={() => { setActivityOpen(v => !v); setScorePanelOpen(false); setCommentsOpen(false); }}
             onSave={() => setSavingTarget('all')}
+            onChat={() => { setCommentsOpen(v => !v); setScorePanelOpen(false); setActivityOpen(false); }}
           />
         </div>
 
+        {richTextVisible && (
+          <div className="animate-in fade-in slide-in-from-top-1 duration-150 fill-mode-both">
+            <EditorChromeToolbar
+              canUndo={canUndo}
+              canRedo={canRedo}
+              onUndo={handleUndo}
+              onRedo={handleRedo}
+              zoom={zoom}
+              onZoomOut={() => setZoom(z => Math.max(0.5, +(z - 0.1).toFixed(2)))}
+              onZoomIn={() => setZoom(z => Math.min(2, +(z + 0.1).toFixed(2)))}
+              richTextVisible={true}
+              canvasPosition={canvasToolbarPosition}
+              richTextPosition={richTextPosition}
+              inlineMode
+            />
+          </div>
+        )}
+
         <div ref={canvasRef} className="relative min-h-0 flex-1 overflow-y-auto rounded-xl bg-transparent">
 
-          {/* FAQ card container — padding stays fixed, only the card scales */}
+          {sectionData.length === 0 && !isGeneratingFromCopilot ? (
+            <EmptyFAQCanvasState onSelectTemplate={handleSelectTemplate} />
+          ) : isGeneratingFromCopilot ? (
+            <FAQGeneratingState />
+          ) : (
+          /* FAQ card container — padding stays fixed, only the card scales */
           <div className="px-8 py-6 pb-10">
             <div style={{ zoom }}>
             <div
@@ -1338,17 +1570,31 @@ export function FAQSectionCanvas({ sections, generationLabel, onVersionHistory }
             </div>
             </div>
           </div>
+          )}
         </div>
       </div>
 
       {/* ── Right score panel ─────────────────────────────────────────── */}
       <EditorScorePanel
-        open={scorePanelOpen}
+        open={scorePanelOpen && sectionData.length > 0 && !isGeneratingFromCopilot}
         onClose={() => setScorePanelOpen(false)}
         config={faqConfig}
         score={setScore}
         onItemFixed={handleItemFixed}
         onFixAll={handleFixAll}
+      />
+
+      {/* ── Comment panel ─────────────────────────────────────────────── */}
+      <CommentPanel
+        open={commentsOpen}
+        onClose={() => setCommentsOpen(false)}
+      />
+
+      {/* ── Activity panel ────────────────────────────────────────────── */}
+      <ContentActivityDrawer
+        open={activityOpen}
+        onClose={() => setActivityOpen(false)}
+        contentType="faq"
       />
 
       {/* ── Save to Saved modal ──────────────────────────────────────── */}
@@ -1400,11 +1646,6 @@ export function FAQSectionCanvas({ sections, generationLabel, onVersionHistory }
           }))
         )}
         overallScore={setScore}
-      />
-      <ContentActivityDrawer
-        open={activityOpen}
-        onClose={() => setActivityOpen(false)}
-        contentType="faq"
       />
     </div>
   );

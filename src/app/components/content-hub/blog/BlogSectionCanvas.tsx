@@ -26,6 +26,7 @@ import { cn } from '@/lib/utils';
 import { AiCopilot } from '../AiCopilot';
 import { SegmentedToggle } from '@/app/components/ui/segmented-toggle.v1';
 import { EditorScorePanel } from '../editor/EditorScorePanel';
+import { CommentPanel } from '../editor/CommentPanel';
 import { EDITOR_CONFIGS } from '../editor/editorConfig';
 import { EditorChromeToolbar, type EditorToolbarPosition } from '../shared/EditorChromeToolbar';
 import { CanvasEditorTopBar } from '../shared/CanvasEditorTopBar';
@@ -40,7 +41,7 @@ import type { BlogSection } from './BlogInlineCreationFlow';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
-export type BlockType = 'hero' | 'heading' | 'paragraph' | 'bullets' | 'image' | 'callout' | 'quote' | 'faq-section';
+export type BlockType = 'hero' | 'heading' | 'paragraph' | 'bullets' | 'image' | 'callout' | 'quote' | 'faq-section' | 'cta-banner';
 
 export interface FaqQuestion {
   id: string;
@@ -80,6 +81,11 @@ export interface BlogBlock {
   quoteAuthor?: string;
   // faq-section
   faqSection?: FaqSectionData;
+  // cta-banner
+  ctaHeadline?: string;
+  ctaBody?: string;
+  ctaButtonText?: string;
+  ctaBgColor?: string;
   // shared
   status?: 'ready' | 'warning' | 'blocked';
   warningText?: string;
@@ -215,6 +221,17 @@ function generateBlogBlocks(sections: BlogSection[]): BlogBlock[] {
     status: 'ready',
   });
 
+  // CTA banner — mid-article
+  blocks.push({
+    id: makeBlockId(),
+    type: 'cta-banner',
+    ctaHeadline: 'Take your customer experience to the next level',
+    ctaBody: 'See how thousands of businesses use our platform to build loyalty and drive growth.',
+    ctaButtonText: 'Start free trial',
+    ctaBgColor: 'linear-gradient(135deg, #1e3a5f 0%, #2563eb 100%)',
+    status: 'ready',
+  });
+
   // Bullets — common mistakes
   blocks.push({
     id: makeBlockId(),
@@ -245,6 +262,17 @@ function generateBlogBlocks(sections: BlogSection[]): BlogBlock[] {
     quoteAuthor: 'Adapted from service excellence research',
     status: 'blocked',
     warningText: 'Attribution source is missing. Add a verifiable citation or replace with an internal case study.',
+  });
+
+  // CTA banner — end of article
+  blocks.push({
+    id: makeBlockId(),
+    type: 'cta-banner',
+    ctaHeadline: 'Ready to transform your business?',
+    ctaBody: 'Join over 100,000 businesses that trust our platform to deliver exceptional experiences at scale.',
+    ctaButtonText: 'Book a demo',
+    ctaBgColor: 'linear-gradient(135deg, #0f172a 0%, #7c3aed 100%)',
+    status: 'ready',
   });
 
   return blocks;
@@ -401,10 +429,7 @@ function SuggestedStyleCard({
             <BlogTemplatePreview label={label} title={previewTitle ?? title} />
           </div>
         </div>
-        <div className="space-y-2 p-4">
-          <span className="inline-flex rounded bg-primary/8 px-2 py-1 text-[10px] font-medium text-primary">
-            {label}
-          </span>
+        <div className="space-y-1 p-4">
           <p className="text-[13px] font-medium leading-snug text-foreground">{title}</p>
           <p className="line-clamp-2 text-[11px] leading-relaxed text-muted-foreground">{description}</p>
         </div>
@@ -460,7 +485,7 @@ function BlogManualContent({ onAddBlock, onDropFaqSection, onInsertSavedBlock }:
       </div>
 
       {manualTab === 'basic' && (
-        <div className="flex-1 overflow-y-auto px-4 pb-4">
+        <div className="flex-1 min-h-0 overflow-y-auto px-4 pb-4">
           <div className="grid grid-cols-2 gap-2">
             {BLOCK_PALETTE.map(({ type, label, Icon }) => (
               <button
@@ -483,7 +508,7 @@ function BlogManualContent({ onAddBlock, onDropFaqSection, onInsertSavedBlock }:
       )}
 
       {manualTab === 'prebuilt' && (
-        <div className="flex-1 overflow-y-auto px-4 pb-4 flex flex-col gap-2">
+        <div className="flex-1 min-h-0 overflow-y-auto px-4 pb-4 flex flex-col gap-2">
           {BLOG_PREBUILT_TEMPLATES.map(template => (
             <SuggestedStyleCard
               key={template.id}
@@ -504,7 +529,7 @@ function BlogManualContent({ onAddBlock, onDropFaqSection, onInsertSavedBlock }:
       )}
 
       {manualTab === 'saved' && (
-        <div className="flex-1 overflow-y-auto px-4 pb-4">
+        <div className="flex-1 min-h-0 overflow-y-auto px-4 pb-4">
           {savedBlocks.length === 0 ? (
             <div className="flex min-h-[220px] flex-col items-center justify-center gap-2 text-center">
               <div className="flex size-10 items-center justify-center rounded-xl bg-muted">
@@ -540,8 +565,8 @@ function BlogManualContent({ onAddBlock, onDropFaqSection, onInsertSavedBlock }:
 
 // ── Individual block renderers ────────────────────────────────────────────────
 
-function shouldCloseTextEditor(event: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) {
-  return event.currentTarget.dataset.hasRichStyle !== 'true';
+function shouldCloseTextEditor(_event: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) {
+  return true;
 }
 
 interface BlockRowProps {
@@ -704,6 +729,8 @@ function renderBlockContent(
       return <QuoteBlock block={block} onUpdate={onUpdate} />;
     case 'faq-section':
       return <FaqSectionBlock block={block} />;
+    case 'cta-banner':
+      return <CtaBannerBlock block={block} onUpdate={onUpdate} />;
     default:
       return null;
   }
@@ -829,11 +856,22 @@ function HeroBlock({ block, onUpdate }: { block: BlogBlock; onUpdate: (p: Partia
 
 function HeadingBlock({ block, onUpdate }: { block: BlogBlock; onUpdate: (p: Partial<BlogBlock>) => void }) {
   const [editing, setEditing] = useState(false);
+  const [richStyle, setRichStyle] = useState<React.CSSProperties>({});
+  const inputRef = useRef<HTMLInputElement>(null);
   const isH2 = block.level === 2;
+
+  useEffect(() => {
+    const el = inputRef.current;
+    if (!el) return;
+    const handler = (e: Event) => {
+      setRichStyle(prev => ({ ...prev, ...(e as CustomEvent<React.CSSProperties>).detail }));
+    };
+    el.addEventListener('richstylechange', handler);
+    return () => el.removeEventListener('richstylechange', handler);
+  }, [editing]);
 
   return (
     <div className="group/heading pt-6 pb-2">
-      {isH2 && <div className="border-t border-border mb-4" />}
       <div className="flex items-center gap-2">
         <GripVertical
           size={13}
@@ -843,7 +881,9 @@ function HeadingBlock({ block, onUpdate }: { block: BlogBlock; onUpdate: (p: Par
         />
         {editing ? (
           <input
+            ref={inputRef}
             autoFocus
+            style={richStyle}
             className={cn(
               'flex-1 bg-transparent border-b border-primary outline-none',
               isH2 ? 'text-[18px] font-bold tracking-tight text-foreground' : 'text-[15px] font-semibold text-foreground',
@@ -855,6 +895,7 @@ function HeadingBlock({ block, onUpdate }: { block: BlogBlock; onUpdate: (p: Par
           />
         ) : (
           <p
+            style={richStyle}
             className={cn(
               'flex-1 cursor-text hover:text-primary transition-colors',
               isH2 ? 'text-[18px] font-bold tracking-tight text-foreground' : 'text-[15px] font-semibold text-foreground',
@@ -873,13 +914,27 @@ function HeadingBlock({ block, onUpdate }: { block: BlogBlock; onUpdate: (p: Par
 
 function ParagraphBlock({ block, onUpdate }: { block: BlogBlock; onUpdate: (p: Partial<BlogBlock>) => void }) {
   const [editing, setEditing] = useState(false);
+  const [richStyle, setRichStyle] = useState<React.CSSProperties>({});
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    const el = textareaRef.current;
+    if (!el) return;
+    const handler = (e: Event) => {
+      setRichStyle(prev => ({ ...prev, ...(e as CustomEvent<React.CSSProperties>).detail }));
+    };
+    el.addEventListener('richstylechange', handler);
+    return () => el.removeEventListener('richstylechange', handler);
+  }, [editing]);
 
   return (
     <div className="py-2">
       {editing ? (
         <textarea
+          ref={textareaRef}
           autoFocus
           rows={5}
+          style={richStyle}
           className="w-full text-[14px] leading-relaxed text-foreground bg-transparent border border-border rounded-lg p-2 outline-none resize-none focus:border-primary"
           value={block.body ?? ''}
           onChange={e => onUpdate({ body: e.target.value })}
@@ -887,6 +942,7 @@ function ParagraphBlock({ block, onUpdate }: { block: BlogBlock; onUpdate: (p: P
         />
       ) : (
         <p
+          style={richStyle}
           className="text-[14px] leading-relaxed text-foreground cursor-text hover:text-foreground/90 transition-colors"
           onClick={() => setEditing(true)}
         >
@@ -949,15 +1005,26 @@ function BulletsBlock({ block, onUpdate }: { block: BlogBlock; onUpdate: (p: Par
 
 // ── Image block ───────────────────────────────────────────────────────────────
 
+const IMAGE_GRADIENTS = [
+  'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+  'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+  'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+  'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
+  'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
+  'linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%)',
+];
+
 function ImageBlock({ block, onUpdate }: { block: BlogBlock; onUpdate: (p: Partial<BlogBlock>) => void }) {
   const [editingCaption, setEditingCaption] = useState(false);
+  const gradientIndex = parseInt(block.id.replace(/\D/g, ''), 10) % IMAGE_GRADIENTS.length;
+  const gradient = IMAGE_GRADIENTS[gradientIndex];
 
   return (
     <div className="py-3 space-y-2">
-      <div className="h-52 bg-muted/60 rounded-xl border border-border flex items-center justify-center">
-        <div className="flex flex-col items-center gap-2 text-muted-foreground/50">
-          <ImageIcon size={36} strokeWidth={1.6} absoluteStrokeWidth />
-          <span className="text-[12px]">{block.alt ?? 'Image placeholder'}</span>
+      <div className="h-52 rounded-xl flex items-center justify-center" style={{ background: gradient }}>
+        <div className="flex flex-col items-center gap-2">
+          <ImageIcon size={36} strokeWidth={1.6} absoluteStrokeWidth className="text-white/40" />
+          <span className="text-[12px] text-white/60">{block.alt ?? 'Image placeholder'}</span>
         </div>
       </div>
       {editingCaption ? (
@@ -1066,6 +1133,46 @@ function QuoteBlock({ block, onUpdate }: { block: BlogBlock; onUpdate: (p: Parti
   );
 }
 
+// ── CTA banner block ──────────────────────────────────────────────────────────
+
+function CtaBannerBlock({ block, onUpdate }: { block: BlogBlock; onUpdate: (p: Partial<BlogBlock>) => void }) {
+  const [editingHeadline, setEditingHeadline] = useState(false);
+  const bg = block.ctaBgColor ?? 'linear-gradient(135deg, #1e3a5f 0%, #2563eb 100%)';
+
+  return (
+    <div className="my-4 overflow-hidden rounded-xl" style={{ background: bg }}>
+      <div className="px-8 py-10 flex flex-col items-center text-center gap-4">
+        {editingHeadline ? (
+          <input
+            autoFocus
+            className="w-full text-center text-[22px] font-bold text-white bg-transparent border-b border-white/40 outline-none pb-1"
+            value={block.ctaHeadline ?? ''}
+            onChange={e => onUpdate({ ctaHeadline: e.target.value })}
+            onBlur={() => setEditingHeadline(false)}
+            onKeyDown={e => { if (e.key === 'Enter' || e.key === 'Escape') setEditingHeadline(false); }}
+          />
+        ) : (
+          <h2
+            className="text-[22px] font-bold text-white leading-tight cursor-text hover:opacity-80 transition-opacity"
+            onClick={() => setEditingHeadline(true)}
+          >
+            {block.ctaHeadline ?? 'Ready to get started?'}
+          </h2>
+        )}
+        <p className="text-[14px] text-white/80 max-w-md leading-relaxed">
+          {block.ctaBody ?? 'Join thousands of businesses using our platform to deliver exceptional customer experiences.'}
+        </p>
+        <button
+          type="button"
+          className="mt-2 inline-flex h-10 items-center gap-2 rounded-lg bg-white px-6 text-[13px] font-semibold text-[#1e3a5f] transition-opacity hover:opacity-90"
+        >
+          {block.ctaButtonText ?? 'Get started free'}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 // ── Main component ────────────────────────────────────────────────────────────
 
 export function BlogSectionCanvas({ sections, generationLabel, onVersionHistory }: BlogSectionCanvasProps) {
@@ -1073,6 +1180,7 @@ export function BlogSectionCanvas({ sections, generationLabel, onVersionHistory 
   const [leftTab, setLeftTab] = useState<'ai' | 'manual'>('ai');
   const [zoom, setZoom] = useState(1);
   const [scorePanelOpen, setScorePanelOpen] = useState(true);
+  const [commentsOpen, setCommentsOpen] = useState(false);
   const [fixingAll, setFixingAll] = useState(false);
   const [panelBump, setPanelBump] = useState(0);
   const [activityOpen, setActivityOpen] = useState(false);
@@ -1327,21 +1435,7 @@ export function BlogSectionCanvas({ sections, generationLabel, onVersionHistory 
       </div>
 
       {/* ── Center canvas ─────────────────────────────────────────────── */}
-      <div className="flex flex-1 min-w-0 flex-col gap-2 overflow-hidden">
-        {richTextVisible && (
-          <EditorChromeToolbar
-            canUndo={canUndo}
-            canRedo={canRedo}
-            onUndo={handleUndo}
-            onRedo={handleRedo}
-            zoom={zoom}
-            onZoomOut={() => setZoom(z => Math.max(0.5, +(z - 0.1).toFixed(2)))}
-            onZoomIn={() => setZoom(z => Math.min(2, +(z + 0.1).toFixed(2)))}
-            richTextVisible={richTextVisible}
-            canvasPosition={canvasToolbarPosition}
-            richTextPosition={richTextPosition}
-          />
-        )}
+      <div className="flex flex-1 min-w-0 flex-col gap-2">
         <div
           className="animate-in fade-in slide-in-from-top-2 fill-mode-both"
           style={{ animationDuration: '300ms', animationDelay: '80ms' }}
@@ -1350,7 +1444,7 @@ export function BlogSectionCanvas({ sections, generationLabel, onVersionHistory 
             score={finalScore}
             scoreLabel="Content score"
             scorePanelOpen={scorePanelOpen}
-            onScoreClick={() => setScorePanelOpen(v => !v)}
+            onScoreClick={() => { setScorePanelOpen(v => !v); setCommentsOpen(false); }}
             canUndo={canUndo}
             canRedo={canRedo}
             onUndo={handleUndo}
@@ -1359,9 +1453,28 @@ export function BlogSectionCanvas({ sections, generationLabel, onVersionHistory 
             onZoomOut={() => setZoom(z => Math.max(0.5, +(z - 0.1).toFixed(2)))}
             onZoomIn={() => setZoom(z => Math.min(2, +(z + 0.1).toFixed(2)))}
             onVersionHistory={onVersionHistory}
-            onActivity={() => setActivityOpen(true)}
+            onActivity={() => { setActivityOpen(v => !v); setScorePanelOpen(false); setCommentsOpen(false); }}
+            onChat={() => { setCommentsOpen(v => !v); setScorePanelOpen(false); setActivityOpen(false); }}
           />
         </div>
+
+        {richTextVisible && (
+          <div className="animate-in fade-in slide-in-from-top-1 duration-150 fill-mode-both">
+            <EditorChromeToolbar
+              canUndo={canUndo}
+              canRedo={canRedo}
+              onUndo={handleUndo}
+              onRedo={handleRedo}
+              zoom={zoom}
+              onZoomOut={() => setZoom(z => Math.max(0.5, +(z - 0.1).toFixed(2)))}
+              onZoomIn={() => setZoom(z => Math.min(2, +(z + 0.1).toFixed(2)))}
+              richTextVisible={true}
+              canvasPosition={canvasToolbarPosition}
+              richTextPosition={richTextPosition}
+              inlineMode
+            />
+          </div>
+        )}
 
         <div ref={canvasRef} className="relative min-h-0 flex-1 overflow-y-auto rounded-xl bg-transparent">
 
@@ -1369,12 +1482,12 @@ export function BlogSectionCanvas({ sections, generationLabel, onVersionHistory 
           <div className="px-8 py-6 pb-10">
             <div style={{ zoom }}>
               <div
-                className="rounded-xl border border-border/60 bg-background animate-in fade-in zoom-in-95 fill-mode-both"
+                className="rounded-xl bg-background animate-in fade-in zoom-in-95 fill-mode-both"
                 style={{ animationDuration: '380ms', animationDelay: '160ms' }}
               >
 
                 {/* Block list */}
-                <div className="divide-y divide-border/40">
+                <div>
                   {blocks.map((block, idx) => (
                     <BlockRow
                       key={block.id}
@@ -1417,6 +1530,14 @@ export function BlogSectionCanvas({ sections, generationLabel, onVersionHistory 
         onItemFixed={handleItemFixed}
         onFixAll={handleFixAll}
       />
+
+      {/* ── Comment panel ─────────────────────────────────────────────── */}
+      <CommentPanel
+        open={commentsOpen}
+        onClose={() => setCommentsOpen(false)}
+      />
+
+      {/* ── Activity panel ────────────────────────────────────────────── */}
       <ContentActivityDrawer
         open={activityOpen}
         onClose={() => setActivityOpen(false)}

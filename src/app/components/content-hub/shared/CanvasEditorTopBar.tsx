@@ -1,7 +1,6 @@
 import {
   Activity,
   Bookmark,
-  CalendarDays,
   History,
   MessageCircle,
   Redo2,
@@ -9,17 +8,8 @@ import {
   ZoomIn,
   ZoomOut,
 } from 'lucide-react';
-import { useState, type ReactNode } from 'react';
+import { type ReactNode } from 'react';
 import { cn } from '@/lib/utils';
-import { Calendar } from '@/app/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/app/components/ui/popover';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/app/components/ui/select';
 import { scoreStrokeColor } from './scoreColors';
 
 interface CanvasEditorTopBarProps {
@@ -38,27 +28,6 @@ interface CanvasEditorTopBarProps {
   onActivity?: () => void;
   onSave?: () => void;
   onChat?: () => void;
-}
-
-const APPROVAL_WORKFLOWS = [
-  'Marketing approval',
-  'Legal review',
-  'Brand compliance',
-  'Regional manager approval',
-  'SEO review',
-  'Product marketing review',
-  'Executive approval',
-  'Franchise owner approval',
-  'Content quality review',
-  'Final publishing review',
-];
-
-function formatScheduleDate(date: Date) {
-  return new Intl.DateTimeFormat('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  }).format(date);
 }
 
 function TopBarIconButton({
@@ -139,10 +108,6 @@ export function CanvasEditorTopBar({
   onSave,
   onChat,
 }: CanvasEditorTopBarProps) {
-  const [approvalWorkflow, setApprovalWorkflow] = useState(APPROVAL_WORKFLOWS[0]);
-  const [scheduleDate, setScheduleDate] = useState<Date | undefined>(new Date());
-  const [datePickerOpen, setDatePickerOpen] = useState(false);
-
   return (
     <div className="flex h-[48px] flex-none items-center justify-between gap-4 rounded-lg border border-border/60 bg-background px-4">
       <div className="flex min-w-0 items-center gap-2">
@@ -160,46 +125,6 @@ export function CanvasEditorTopBar({
           <span>/ 100 {scoreLabel}</span>
         </button>
 
-        <Select value={approvalWorkflow} onValueChange={setApprovalWorkflow}>
-          <SelectTrigger
-            size="sm"
-            aria-label="Approval workflow"
-            className="h-8 w-[216px] border-border bg-background text-[13px]"
-          >
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent align="start" className="w-[240px]">
-            {APPROVAL_WORKFLOWS.map(workflow => (
-              <SelectItem key={workflow} value={workflow}>
-                {workflow}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        <Popover open={datePickerOpen} onOpenChange={setDatePickerOpen}>
-          <PopoverTrigger asChild>
-            <button
-              type="button"
-              className="flex h-8 items-center gap-2 rounded-md border border-border bg-background px-2 text-[13px] text-foreground transition-colors hover:bg-muted/60"
-              aria-label="Schedule date"
-            >
-              <CalendarDays size={14} strokeWidth={1.6} absoluteStrokeWidth className="text-muted-foreground" />
-              {scheduleDate ? formatScheduleDate(scheduleDate) : 'Select date'}
-            </button>
-          </PopoverTrigger>
-          <PopoverContent align="start" className="w-auto p-0">
-            <Calendar
-              mode="single"
-              selected={scheduleDate}
-              onSelect={date => {
-                setScheduleDate(date);
-                if (date) setDatePickerOpen(false);
-              }}
-              initialFocus
-            />
-          </PopoverContent>
-        </Popover>
       </div>
 
       <div className="flex items-center gap-1">

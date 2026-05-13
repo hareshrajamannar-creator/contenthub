@@ -16,6 +16,7 @@ import {
   Search,
   Table,
   Users,
+  X,
 } from 'lucide-react';
 import {
   Dialog,
@@ -128,20 +129,22 @@ export function ContentShareModal({
     jon: 'Comment',
     nina: 'View only',
   });
+  const [removedMembers, setRemovedMembers] = useState<Set<string>>(new Set());
   const [advancedOpen, setAdvancedOpen] = useState(false);
   const [requirePassword, setRequirePassword] = useState(false);
   const [searchIndex, setSearchIndex] = useState(false);
-  const [downloadScope, setDownloadScope] = useState('all');
+
   const [copied, setCopied] = useState(false);
 
   const embedCode = `<iframe src="${shareUrl}/embed" width="100%" style="border:0;min-height:480px" loading="lazy"></iframe>`;
   const filteredMembers = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return MEMBERS;
-    return MEMBERS.filter(member =>
-      member.name.toLowerCase().includes(q) || member.email.toLowerCase().includes(q),
-    );
-  }, [query]);
+    return MEMBERS.filter(member => {
+      if (removedMembers.has(member.id)) return false;
+      if (!q) return true;
+      return member.name.toLowerCase().includes(q) || member.email.toLowerCase().includes(q);
+    });
+  }, [query, removedMembers]);
 
   function copyText(text: string) {
     navigator.clipboard?.writeText(text);
@@ -151,7 +154,7 @@ export function ContentShareModal({
 
   return (
     <Dialog open={open} onOpenChange={isOpen => !isOpen && onClose()}>
-      <DialogContent className="!w-[960px] !max-w-[calc(100vw-32px)] flex flex-col gap-0 overflow-hidden p-0 h-[680px]">
+      <DialogContent className="!w-[960px] !max-w-[calc(100vw-32px)] flex flex-col gap-0 overflow-hidden p-0 h-[630px] !top-[50px] !translate-y-0">
         {/* Header — fixed */}
         <DialogHeader className="shrink-0 border-b border-border px-6 py-4">
           <DialogTitle className="text-[15px] font-semibold">Share content</DialogTitle>
@@ -159,7 +162,7 @@ export function ContentShareModal({
 
         {/* Tab bar — fixed */}
         <div className="shrink-0 px-6">
-          <div className="flex gap-8">
+          <div className="flex gap-[28px]">
             {TABS.map(tab => (
               <button
                 key={tab.id}
@@ -168,7 +171,7 @@ export function ContentShareModal({
                 className={cn(
                   'border-b-2 px-0 pt-4 pb-1 text-[13px] font-medium transition-colors',
                   activeTab === tab.id
-                    ? 'border-primary text-primary'
+                    ? 'border-primary text-foreground'
                     : 'border-transparent text-muted-foreground hover:text-foreground',
                 )}
               >
@@ -231,15 +234,25 @@ export function ContentShareModal({
                     <span className="text-[12px] font-medium text-muted-foreground">Full access</span>
                   </div>
                   {filteredMembers.map(member => (
-                    <div key={member.id} className="flex items-center justify-between gap-4 px-4 py-4">
+                    <div key={member.id} className="group flex items-center justify-between gap-4 px-4 py-4">
                       <div className="min-w-0">
                         <p className="truncate text-[13px] font-medium text-foreground">{member.name}</p>
-                        <p className="truncate text-[12px] text-muted-foreground">{member.email} · {member.role}</p>
+                        <p className="truncate text-[12px] text-muted-foreground">{member.email}</p>
                       </div>
-                      <PermissionSelect
-                        value={memberPermissions[member.id]}
-                        onChange={value => setMemberPermissions(prev => ({ ...prev, [member.id]: value }))}
-                      />
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setRemovedMembers(prev => new Set([...prev, member.id]))}
+                          className="flex size-7 items-center justify-center rounded-md text-muted-foreground opacity-0 transition-opacity hover:bg-muted hover:text-foreground group-hover:opacity-100"
+                          aria-label={`Remove ${member.name}`}
+                        >
+                          <X size={14} strokeWidth={1.6} absoluteStrokeWidth />
+                        </button>
+                        <PermissionSelect
+                          value={memberPermissions[member.id]}
+                          onChange={value => setMemberPermissions(prev => ({ ...prev, [member.id]: value }))}
+                        />
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -266,7 +279,7 @@ export function ContentShareModal({
                   value={shareUrl}
                   className="h-10 min-w-0 flex-1 bg-transparent text-[13px] text-foreground outline-none"
                 />
-                <CopyButton text={shareUrl} copied={copied} onCopy={copyText}>
+                <CopyButton text={shareUrl} copied={copied} onCopy={copyText} variant="outline">
                   Copy
                 </CopyButton>
               </div>
@@ -306,22 +319,6 @@ export function ContentShareModal({
 
           {activeTab === 'download' && (
             <div className="space-y-6">
-              <div className="rounded-[8px] border border-border/70 p-4">
-                <label className="flex flex-col gap-1">
-                  <span className="text-[12px] font-medium text-foreground">Download scope</span>
-                  <Select value={downloadScope} onValueChange={setDownloadScope}>
-                    <SelectTrigger className="h-9 border-border bg-background text-[13px]">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent align="start">
-                      <SelectItem value="all">All content</SelectItem>
-                      <SelectItem value="overview">FAQ overview section</SelectItem>
-                      <SelectItem value="answers">Questions and answers only</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </label>
-              </div>
-
               <div className="grid grid-cols-2 gap-4">
                 {DOWNLOAD_OPTIONS.map(option => {
                   const Icon = option.icon;
