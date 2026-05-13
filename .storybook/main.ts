@@ -32,6 +32,7 @@ const config: StorybookConfig = {
     }
 
     return mergeConfig(config, {
+      base: process.env.BASE_URL ?? "/",
       plugins: [tailwindcss(), figmaAssetStubPlugin()],
       resolve: {
         alias: {
