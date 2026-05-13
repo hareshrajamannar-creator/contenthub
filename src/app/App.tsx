@@ -137,6 +137,8 @@ export type AppView =
   | "content-hub-agents-blog"
   | "recommendations";
 
+const DEFAULT_APP_VIEW: AppView = "recommendations";
+
 /** Brief shell shimmer after login so the first paint mirrors real app loading. */
 const POST_LOGIN_BOOT_MS = 1200;
 
@@ -147,8 +149,7 @@ export default function App() {
   const signIn = useCallback(() => {
     try {
       sessionStorage.setItem(AUTH_STORAGE_KEY, "true");
-      // Always land on Reviews after login
-      sessionStorage.setItem("nav:l1", JSON.stringify("reviews"));
+      sessionStorage.setItem("nav:l1", JSON.stringify(DEFAULT_APP_VIEW));
     } catch {
       /* ignore */
     }
@@ -181,7 +182,7 @@ export default function App() {
   }, []);
 
   const [aiPanelOpen, setAiPanelOpen] = useState(false);
-  const [currentView, setCurrentView] = usePersistedState<AppView>("nav:l1", "reviews");
+  const [currentView, setCurrentView] = usePersistedState<AppView>("nav:l1", DEFAULT_APP_VIEW);
   /** True while the FAQ agents embedded builder is open — hides the Content Hub L2 nav. */
   const [faqAgentBuilderOpen, setFaqAgentBuilderOpen] = useState(false);
   const [editingDraft, setEditingDraft] = useState<DraftReport | null>(null);

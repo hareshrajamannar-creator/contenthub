@@ -216,10 +216,10 @@ export const StartingWithAgents: Story = {
   },
 };
 
-export const StartingWithReviews: Story = {
-  name: "App Shell — start: Reviews",
+export const StartingWithSearchAI: Story = {
+  name: "App Shell - start: Search AI",
   render: () => {
-    const [view, setView] = useState<AppView>("reviews");
+    const [view, setView] = useState<AppView>("recommendations");
 
     return (
       <MonitorNotificationsProvider onNavigateToMonitor={() => setView("agents-monitor")}>
