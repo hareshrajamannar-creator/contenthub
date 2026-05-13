@@ -182,12 +182,10 @@ const SETUP_STEPS_BY_MODE: Record<ContentMode, ContentFlowStep[]> = {
   faq: [
     { id: 'brand-kit', label: 'Brand identity' },
     { id: 'setup', label: 'Content setup' },
-    { id: 'content-brief', label: 'Content brief' },
   ],
   blog: [
     { id: 'brand-kit', label: 'Brand identity' },
     { id: 'setup', label: 'Blog setup' },
-    { id: 'content-brief', label: 'Content brief' },
   ],
   landing: [
     { id: 'goal', label: 'Goal' },
