@@ -69,6 +69,8 @@ function suppressElementalGlobalResetPlugin(): Plugin {
 }
 
 export default defineConfig({
+  // GitHub Pages deploys to /contenthub/ — base must match the repo name
+  base: '/contenthub/',
   // Use /tmp for vite's dep cache — avoids EPERM issues on macOS FUSE mounts
   cacheDir: '/tmp/vite-birdeyev2',
   plugins: [
