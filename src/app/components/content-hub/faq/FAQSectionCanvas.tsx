@@ -621,7 +621,7 @@ function FAQManualContent({
         <ManualSubTabs value={manualTab} onChange={setManualTab} />
       </div>
 
-      <div className="flex-1 overflow-y-auto px-4 pb-4">
+      <div className="flex-1 min-h-0 overflow-y-auto px-4 pb-4">
         {manualTab === 'basic' && (
           <div className="grid grid-cols-2 gap-2">
             <FAQManualActionCard
@@ -638,7 +638,7 @@ function FAQManualContent({
         )}
 
         {manualTab === 'prebuilt' && (
-          <div className="flex flex-col gap-2">
+          <div className="space-y-2 pt-1">
             {FAQ_PREBUILT_SECTIONS.map(template => (
               <FAQSuggestedStyleCard
                 key={template.id}
@@ -666,7 +666,7 @@ function FAQManualContent({
               </div>
             </div>
           ) : (
-            <div className="flex flex-col gap-2">
+            <div className="space-y-2 pt-1">
               {savedBlocks.map(block => (
                 <FAQSuggestedStyleCard
                   key={block.id}
@@ -1511,7 +1511,7 @@ export function FAQSectionCanvas({ sections, generationLabel, onVersionHistory, 
         </div>
 
         {richTextVisible && (
-          <div className="animate-in fade-in slide-in-from-top-1 duration-150 fill-mode-both">
+          <div className="relative z-10 animate-in fade-in slide-in-from-top-1 duration-150 fill-mode-both">
             <EditorChromeToolbar
               canUndo={canUndo}
               canRedo={canRedo}
@@ -1524,6 +1524,7 @@ export function FAQSectionCanvas({ sections, generationLabel, onVersionHistory, 
               canvasPosition={canvasToolbarPosition}
               richTextPosition={richTextPosition}
               inlineMode
+              mode="faq"
             />
           </div>
         )}

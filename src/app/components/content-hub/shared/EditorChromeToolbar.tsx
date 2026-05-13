@@ -29,6 +29,9 @@ import {
   Minus,
   Plus,
   AlignVerticalSpaceAround,
+  TrendingUp,
+  MousePointerClick,
+  BookOpen,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -49,6 +52,7 @@ interface EditorChromeToolbarProps {
   canvasPosition: EditorToolbarPosition;
   richTextPosition?: EditorToolbarPosition;
   inlineMode?: boolean;
+  mode?: 'blog' | 'faq';
 }
 
 type TextInput = HTMLInputElement | HTMLTextAreaElement;
@@ -70,15 +74,19 @@ const MODIFY_ACTIONS = [
   { id: 'spelling', label: 'Fix spelling and grammar', icon: SpellCheck },
 ] as const;
 
-const IMPROVE_ACTIONS = [
-  { id: 'expand', label: 'Expand answer', icon: StretchHorizontal },
-  { id: 'concise', label: 'Make more concise', icon: Minimize2 },
-  { id: 'aeo', label: 'Improve AEO score', icon: Gauge },
-  { id: 'clarity', label: 'Rewrite for clarity', icon: ScanText },
-  { id: 'local', label: 'Add local context', icon: MapPin },
+const IMPROVE_ACTIONS_BLOG = [
+  { id: 'boost-seo', label: 'Boost SEO', icon: TrendingUp },
+  { id: 'strengthen-cta', label: 'Strengthen CTA', icon: MousePointerClick },
+  { id: 'improve-readability', label: 'Improve readability', icon: BookOpen },
 ] as const;
 
-type AiActionId = 'expand' | 'concise' | 'aeo' | 'clarity' | 'local' | 'shorter' | 'longer' | 'spelling';
+const IMPROVE_ACTIONS_FAQ = [
+  { id: 'aeo', label: 'Improve AEO score', icon: Gauge },
+  { id: 'local', label: 'Add local context', icon: MapPin },
+  { id: 'clarity', label: 'Rewrite for clarity', icon: ScanText },
+] as const;
+
+type AiActionId = 'boost-seo' | 'strengthen-cta' | 'improve-readability' | 'aeo' | 'clarity' | 'local' | 'shorter' | 'longer' | 'spelling';
 
 function activeTextInput(): TextInput | null {
   const active = document.activeElement;
@@ -421,6 +429,7 @@ export function EditorChromeToolbar({
   canvasPosition,
   richTextPosition,
   inlineMode = false,
+  mode = 'blog',
 }: EditorChromeToolbarProps) {
   const [fontFamily, setFontFamily] = React.useState('Inter');
   const [textColor, setTextColor] = React.useState('#2f3340');
@@ -428,6 +437,7 @@ export function EditorChromeToolbar({
   const [fontSizeNum, setFontSizeNum] = React.useState(15);
   const [toneOpen, setToneOpen] = React.useState(false);
   const position = richTextVisible && richTextPosition ? richTextPosition : canvasPosition;
+  const improveActions = mode === 'faq' ? IMPROVE_ACTIONS_FAQ : IMPROVE_ACTIONS_BLOG;
 
   const richTextContent = (
     <>
@@ -518,7 +528,7 @@ export function EditorChromeToolbar({
             <p className="px-2 pb-1 pt-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
               Improve
             </p>
-            {IMPROVE_ACTIONS.map(action => {
+            {improveActions.map(action => {
               const Icon = action.icon;
               return (
                 <button

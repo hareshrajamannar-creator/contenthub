@@ -70,6 +70,7 @@ export interface BlogBlock {
   // bullets
   items?: string[];
   // image
+  src?: string;
   alt?: string;
   caption?: string;
   // callout
@@ -127,7 +128,7 @@ function buildBlogBlocksFromSections(heroTitle: string, sections: PreloadedSecti
     if (s.heading) blocks.push({ id: makeBlockId(), type: 'heading', level: 2, headingText: s.heading, status: 'ready' });
     if (s.body)    blocks.push({ id: makeBlockId(), type: 'paragraph', body: s.body, status: 'ready' });
     if (s.listItems && s.listItems.length > 0) blocks.push({ id: makeBlockId(), type: 'bullets', items: s.listItems, status: 'ready' });
-    if (s.image)   blocks.push({ id: makeBlockId(), type: 'image', alt: s.imageAlt ?? s.heading ?? '', status: 'ready' });
+    if (s.image)   blocks.push({ id: makeBlockId(), type: 'image', src: s.image, alt: s.imageAlt ?? s.heading ?? '', status: 'ready' });
   }
   return blocks;
 }
@@ -537,7 +538,7 @@ function BlogManualContent({ onAddBlock, onDropFaqSection, onInsertSavedBlock }:
       )}
 
       {manualTab === 'prebuilt' && (
-        <div className="flex-1 min-h-0 overflow-y-auto px-4 pb-4 flex flex-col gap-2">
+        <div className="flex-1 min-h-0 overflow-y-auto px-4 pt-1 pb-4 space-y-2">
           {BLOG_PREBUILT_TEMPLATES.map(template => (
             <SuggestedStyleCard
               key={template.id}
@@ -827,14 +828,28 @@ function HeroBlock({ block, onUpdate }: { block: BlogBlock; onUpdate: (p: Partia
 
   return (
     <div
-      className="rounded-xl overflow-hidden mb-4 mt-4"
-      style={{ background: 'linear-gradient(135deg, #EEF2FF 0%, #E0E7FF 100%)' }}
+      className="rounded-xl overflow-hidden mb-4 mt-4 relative"
+      style={{ background: 'linear-gradient(135deg, #0f2540 0%, #1a3d6b 50%, #15543a 100%)' }}
     >
-      <div className="px-8 py-10">
+      {/* Grid overlay */}
+      <svg
+        className="absolute inset-0 w-full h-full pointer-events-none"
+        style={{ opacity: 0.07 }}
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <defs>
+          <pattern id="hero-grid" width="32" height="32" patternUnits="userSpaceOnUse">
+            <path d="M 32 0 L 0 0 0 32" fill="none" stroke="white" strokeWidth="0.5" />
+          </pattern>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#hero-grid)" />
+      </svg>
+
+      <div className="relative px-8 py-10">
         {/* Tag chip */}
-        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/60 border border-indigo-200/60 mb-4">
-          <FileText size={11} strokeWidth={1.6} absoluteStrokeWidth className="text-indigo-500" />
-          <span className="text-[11px] font-semibold text-indigo-600 uppercase tracking-wide">
+        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/15 border border-white/20 mb-4">
+          <FileText size={11} strokeWidth={1.6} absoluteStrokeWidth className="text-white/80" />
+          <span className="text-[11px] font-semibold text-white/90 uppercase tracking-wide">
             {block.heroTag ?? 'Blog post'}
           </span>
         </div>
@@ -843,7 +858,7 @@ function HeroBlock({ block, onUpdate }: { block: BlogBlock; onUpdate: (p: Partia
         {editingTitle ? (
           <input
             autoFocus
-            className="w-full text-[22px] font-bold text-foreground bg-transparent border-b border-primary outline-none pb-1 mb-3"
+            className="w-full text-[22px] font-bold text-white bg-transparent border-b border-white/40 outline-none pb-1 mb-3"
             value={block.heroTitle ?? ''}
             onChange={e => onUpdate({ heroTitle: e.target.value })}
             onBlur={e => { if (shouldCloseTextEditor(e)) setEditingTitle(false); }}
@@ -851,7 +866,7 @@ function HeroBlock({ block, onUpdate }: { block: BlogBlock; onUpdate: (p: Partia
           />
         ) : (
           <h1
-            className="text-[22px] font-bold text-foreground leading-tight mb-3 cursor-text hover:text-primary transition-colors"
+            className="text-[22px] font-bold text-white leading-tight mb-3 cursor-text hover:text-white/80 transition-colors"
             onClick={() => setEditingTitle(true)}
           >
             {block.heroTitle}
@@ -863,19 +878,33 @@ function HeroBlock({ block, onUpdate }: { block: BlogBlock; onUpdate: (p: Partia
           <textarea
             autoFocus
             rows={2}
-            className="w-full text-sm text-muted-foreground bg-transparent border border-primary/40 rounded-lg p-2 outline-none resize-none"
+            className="w-full text-sm text-white/70 bg-transparent border border-white/20 rounded-lg p-2 outline-none resize-none"
             value={block.heroSubtitle ?? ''}
             onChange={e => onUpdate({ heroSubtitle: e.target.value })}
             onBlur={e => { if (shouldCloseTextEditor(e)) setEditingSubtitle(false); }}
           />
         ) : (
-          <p
-            className="text-sm text-muted-foreground leading-relaxed max-w-2xl cursor-text hover:text-foreground transition-colors"
-            onClick={() => setEditingSubtitle(true)}
-          >
-            {block.heroSubtitle}
-          </p>
+          block.heroSubtitle ? (
+            <p
+              className="text-sm text-white/70 leading-relaxed max-w-2xl cursor-text hover:text-white/90 transition-colors mb-6"
+              onClick={() => setEditingSubtitle(true)}
+            >
+              {block.heroSubtitle}
+            </p>
+          ) : null
         )}
+
+        {/* Author / metadata row */}
+        <div className="flex items-center gap-2 mt-4">
+          <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
+            <span className="text-[10px] text-white font-semibold">AI</span>
+          </div>
+          <span className="text-[12px] text-white/60">Birdeye AI</span>
+          <span className="text-white/30 text-[12px]">·</span>
+          <span className="text-[12px] text-white/60">5 min read</span>
+          <span className="text-white/30 text-[12px]">·</span>
+          <span className="text-[11px] px-2 py-0.5 rounded-full bg-white/10 text-white/70 font-medium">AI-generated</span>
+        </div>
       </div>
     </div>
   );
@@ -900,41 +929,33 @@ function HeadingBlock({ block, onUpdate }: { block: BlogBlock; onUpdate: (p: Par
   }, [editing]);
 
   return (
-    <div className="group/heading pt-6 pb-2">
-      <div className="flex items-center gap-2">
-        <GripVertical
-          size={13}
-          strokeWidth={1.6}
-          absoluteStrokeWidth
-          className="text-muted-foreground/0 group-hover/heading:text-muted-foreground/30 transition-colors cursor-grab flex-shrink-0"
+    <div className="pt-6 pb-2">
+      {editing ? (
+        <input
+          ref={inputRef}
+          autoFocus
+          style={richStyle}
+          className={cn(
+            'w-full bg-transparent border-b border-primary outline-none',
+            isH2 ? 'text-[18px] font-bold tracking-tight text-foreground' : 'text-[15px] font-semibold text-foreground',
+          )}
+          value={block.headingText ?? ''}
+          onChange={e => onUpdate({ headingText: e.target.value })}
+          onBlur={e => { if (shouldCloseTextEditor(e)) setEditing(false); }}
+          onKeyDown={e => { if (e.key === 'Enter' || e.key === 'Escape') setEditing(false); }}
         />
-        {editing ? (
-          <input
-            ref={inputRef}
-            autoFocus
-            style={richStyle}
-            className={cn(
-              'flex-1 bg-transparent border-b border-primary outline-none',
-              isH2 ? 'text-[18px] font-bold tracking-tight text-foreground' : 'text-[15px] font-semibold text-foreground',
-            )}
-            value={block.headingText ?? ''}
-            onChange={e => onUpdate({ headingText: e.target.value })}
-            onBlur={e => { if (shouldCloseTextEditor(e)) setEditing(false); }}
-            onKeyDown={e => { if (e.key === 'Enter' || e.key === 'Escape') setEditing(false); }}
-          />
-        ) : (
-          <p
-            style={richStyle}
-            className={cn(
-              'flex-1 cursor-text hover:text-primary transition-colors',
-              isH2 ? 'text-[18px] font-bold tracking-tight text-foreground' : 'text-[15px] font-semibold text-foreground',
-            )}
-            onClick={() => setEditing(true)}
-          >
-            {block.headingText}
-          </p>
-        )}
-      </div>
+      ) : (
+        <p
+          style={richStyle}
+          className={cn(
+            'cursor-text hover:text-primary transition-colors',
+            isH2 ? 'text-[18px] font-bold tracking-tight text-foreground' : 'text-[15px] font-semibold text-foreground',
+          )}
+          onClick={() => setEditing(true)}
+        >
+          {block.headingText}
+        </p>
+      )}
     </div>
   );
 }
@@ -1050,12 +1071,18 @@ function ImageBlock({ block, onUpdate }: { block: BlogBlock; onUpdate: (p: Parti
 
   return (
     <div className="py-3 space-y-2">
-      <div className="h-52 rounded-xl flex items-center justify-center" style={{ background: gradient }}>
-        <div className="flex flex-col items-center gap-2">
-          <ImageIcon size={36} strokeWidth={1.6} absoluteStrokeWidth className="text-white/40" />
-          <span className="text-[12px] text-white/60">{block.alt ?? 'Image placeholder'}</span>
+      {block.src ? (
+        <div className="h-52 rounded-xl overflow-hidden">
+          <img src={block.src} alt={block.alt ?? ''} className="w-full h-full object-cover" />
         </div>
-      </div>
+      ) : (
+        <div className="h-52 rounded-xl flex items-center justify-center" style={{ background: gradient }}>
+          <div className="flex flex-col items-center gap-2">
+            <ImageIcon size={36} strokeWidth={1.6} absoluteStrokeWidth className="text-white/40" />
+            <span className="text-[12px] text-white/60">{block.alt ?? 'Image placeholder'}</span>
+          </div>
+        </div>
+      )}
       {editingCaption ? (
         <input
           autoFocus
@@ -1498,7 +1525,7 @@ export function BlogSectionCanvas({ sections, generationLabel, onVersionHistory,
         </div>
 
         {richTextVisible && (
-          <div className="animate-in fade-in slide-in-from-top-1 duration-150 fill-mode-both">
+          <div className="relative z-10 animate-in fade-in slide-in-from-top-1 duration-150 fill-mode-both">
             <EditorChromeToolbar
               canUndo={canUndo}
               canRedo={canRedo}
@@ -1511,6 +1538,7 @@ export function BlogSectionCanvas({ sections, generationLabel, onVersionHistory,
               canvasPosition={canvasToolbarPosition}
               richTextPosition={richTextPosition}
               inlineMode
+              mode="blog"
             />
           </div>
         )}
