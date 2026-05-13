@@ -47,6 +47,7 @@ const LABEL_TO_VIEW: Record<string, ContentHubSubView> = {
   'Calendar':                    'content-hub-calendar',
   'Assigned to me':              'content-hub-assigned',
   'Awaiting approval':           'content-hub-approve',
+  'Fix content':                 'content-hub-projects',
   'Drafts':                      'content-hub-projects',
   'FAQ generation agents':       'content-hub-agents-faq',
   'Blog recommendation agents':  'content-hub-agents-blog',
@@ -158,7 +159,7 @@ export function ContentHubL2NavPanel({
             { label: 'View all contents', key: 'Projects' },
             'Assigned to me',
             'Awaiting approval',
-            'Drafts',
+            'Fix content',
           ],
         },
         {
