@@ -7,6 +7,13 @@ import { ProjectWizardStep3 } from '@/app/components/content-hub/wizard/ProjectW
 const meta: Meta<typeof ProjectWizardStep1> = {
   title: 'App/ProjectWizardSteps',
   component: ProjectWizardStep1,
+  parameters: {
+    docs: {
+      description: {
+        component: 'Project wizard steps with source helper copy moved into info tooltips.',
+      },
+    },
+  },
 };
 export default meta;
 type Story = StoryObj<typeof ProjectWizardStep1>;

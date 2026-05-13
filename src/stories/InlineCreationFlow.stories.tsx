@@ -8,7 +8,7 @@ const meta: Meta<typeof InlineCreationFlow> = {
     layout: 'fullscreen',
     docs: {
       description: {
-        component: 'Shared project/blog/landing setup flow with dropdown-based project setup fields and editable 14px per-piece content brief summaries.',
+        component: 'Shared project/blog/landing setup flow with compact step titles, info-tooltip field guidance, and editable per-piece content brief summaries.',
       },
     },
   },

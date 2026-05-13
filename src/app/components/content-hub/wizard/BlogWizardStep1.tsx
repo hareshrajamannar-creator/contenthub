@@ -8,7 +8,7 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
 import type { WizardMode } from './wizardTypes';
-import { ContentFlowSelect } from '../shared/ContentFlowControls';
+import { ContentFlowInfoLabel, ContentFlowSelect } from '../shared/ContentFlowControls';
 
 // ── Goal options ──────────────────────────────────────────────────────────────
 
@@ -109,13 +109,14 @@ export function BlogWizardStep1({ mode, data, onChange }: BlogWizardStep1Props) 
 
       {/* Agent picker */}
       <div className="flex flex-col gap-2">
-        <label className="text-[13px] font-medium text-foreground">Writing agent</label>
+        <ContentFlowInfoLabel tooltip={agentDesc}>
+          Writing agent
+        </ContentFlowInfoLabel>
         <ContentFlowSelect
           value={selectedAgent}
           onChange={value => onChange({ ...data, agent: value })}
           options={AGENT_OPTIONS}
         />
-        <p className="text-[12px] text-muted-foreground">{agentDesc}</p>
       </div>
     </div>
   );

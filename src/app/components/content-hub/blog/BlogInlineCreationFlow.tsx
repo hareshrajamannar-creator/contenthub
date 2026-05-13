@@ -15,6 +15,7 @@ import { cn } from '@/lib/utils';
 import {
   CONTENT_FLOW_STEP_TITLE_CLASS,
   ContentFlowCountStepper,
+  ContentFlowInfoLabel,
   ContentFlowLocationFlatList,
   ContentFlowMultiSelect,
   ContentFlowRadioCard,
@@ -204,9 +205,6 @@ function Step1BrandKit({ contentName, brandKit, locations, onChange }: Step1Prop
     <div className="space-y-6">
       <div>
         <h2 className={CONTENT_FLOW_STEP_TITLE_CLASS}>Select brand identity and location</h2>
-        <p className="text-[13px] text-muted-foreground">
-          Content will be created from the selected brand identity and location context.
-        </p>
       </div>
 
       <div className="space-y-6">
@@ -274,9 +272,6 @@ function Step2Setup({ blogType, topic, keywords, wordTarget, signalSources, atta
     <div className="space-y-6">
       <div>
         <h2 className={CONTENT_FLOW_STEP_TITLE_CLASS}>Blog setup</h2>
-        <p className="text-[13px] text-muted-foreground">
-          Configure the blog type, topic, length, and supporting signals.
-        </p>
       </div>
 
       {/* Blog type */}
@@ -308,22 +303,22 @@ function Step2Setup({ blogType, topic, keywords, wordTarget, signalSources, atta
 
       {/* Target keywords */}
       <div className="space-y-1.5">
-        <label className="text-[13px] font-medium text-foreground">
-          Target keywords <span className="text-muted-foreground font-normal">(optional)</span>
-        </label>
+        <ContentFlowInfoLabel tooltip="Separate multiple keywords with commas.">
+          Target keywords
+        </ContentFlowInfoLabel>
         <ContentFlowTextInput
           value={keywords}
           onChange={e => onChange({ keywords: e.target.value })}
           placeholder="e.g. customer experience, restaurant reviews, local dining"
         />
-        <p className="text-[12px] text-muted-foreground">Separate multiple keywords with commas.</p>
       </div>
 
       {/* Blog count */}
       <div className="flex items-center justify-between gap-4 rounded-[8px] border border-border bg-background px-4 py-3">
         <div>
-          <label className="text-[13px] font-medium text-foreground">How many blog posts do you want?</label>
-          <p className="mt-0.5 text-[12px] text-muted-foreground">Each post will be generated as a separate piece of content.</p>
+          <ContentFlowInfoLabel tooltip="Each post will be generated as a separate piece of content.">
+            How many blog posts do you want?
+          </ContentFlowInfoLabel>
         </div>
         <ContentFlowCountStepper
           value={blogCount}
@@ -358,7 +353,9 @@ function Step2Setup({ blogType, topic, keywords, wordTarget, signalSources, atta
 
       {/* Attachments */}
       <div className="space-y-2">
-        <label className="text-[13px] font-medium text-foreground">Attachments <span className="text-muted-foreground font-normal">(optional)</span></label>
+        <ContentFlowInfoLabel tooltip="Attach PDFs for more context.">
+          Attachments
+        </ContentFlowInfoLabel>
         <input ref={fileInputRef} type="file" accept=".pdf" multiple className="hidden" onChange={e => handleFiles(e.target.files)} />
         <button
           type="button"
@@ -448,9 +445,6 @@ function Step3ContentBrief({ sections, onChange }: Step3Props) {
     <div className="space-y-6">
       <div>
         <h2 className={CONTENT_FLOW_STEP_TITLE_CLASS}>Content brief</h2>
-        <p className="text-[13px] text-muted-foreground">
-          Review the detailed brief for what these blog posts will generate.
-        </p>
       </div>
 
       {generating ? (

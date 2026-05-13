@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
-import { ContentFlowSelect } from '../shared/ContentFlowControls';
+import { ContentFlowInfoLabel, ContentFlowSelect } from '../shared/ContentFlowControls';
 
 interface Template {
   id: string;
@@ -165,13 +165,14 @@ export const FAQWizardStep1 = ({
 
         {/* Agent picker */}
         <div className="flex flex-col gap-2 flex-shrink-0">
-          <label className="text-[13px] font-medium text-foreground">Generation agent</label>
+          <ContentFlowInfoLabel tooltip={selectedAgent_.description}>
+            Generation agent
+          </ContentFlowInfoLabel>
           <ContentFlowSelect
             value={selectedAgent}
             onChange={onAgentChange}
             options={AGENT_OPTIONS}
           />
-          <p className="text-[12px] text-muted-foreground">{selectedAgent_.description}</p>
         </div>
     </div>
   );

@@ -29,6 +29,7 @@ import {
   CONTENT_FLOW_STEP_TITLE_CLASS,
   ContentFlowChip,
   ContentFlowChoiceCard,
+  ContentFlowInfoLabel,
   ContentFlowLocationFlatList,
   ContentFlowRadioCard,
   ContentFlowSelect,
@@ -195,9 +196,6 @@ function StepProjectType({
     <div className="flex flex-col gap-6">
       <div>
         <h2 className={CONTENT_FLOW_STEP_TITLE_CLASS}>Select brand identity and location</h2>
-        <p className="text-[13px] text-muted-foreground mt-1">
-          Content will be created from the selected brand identity and location context.
-        </p>
       </div>
 
       <div className="flex flex-col gap-6">
@@ -308,12 +306,9 @@ function AdditionalContextSection({
 
   return (
     <div className="flex flex-col gap-4 pt-2 border-t border-border">
-      <div>
-        <p className="text-[13px] font-medium text-foreground">Additional context</p>
-        <p className="text-[12px] text-muted-foreground mt-0.5">
-          Add any extra instructions, background details, or constraints for the AI.
-        </p>
-      </div>
+      <ContentFlowInfoLabel tooltip="Add any extra instructions, background details, or constraints for the AI.">
+        Additional context
+      </ContentFlowInfoLabel>
 
       <ContentFlowTextarea
         rows={3}
@@ -323,10 +318,9 @@ function AdditionalContextSection({
       />
 
       <div className="flex flex-col gap-2">
-        <p className="text-[13px] font-medium text-foreground">
+        <ContentFlowInfoLabel tooltip="Attach supporting files for the AI to reference.">
           Attachments
-          <span className="ml-2 text-[11px] font-normal text-muted-foreground">optional</span>
-        </p>
+        </ContentFlowInfoLabel>
 
         <button
           type="button"
@@ -400,9 +394,6 @@ function StepGoal({
       <div className="flex flex-col gap-6">
         <div>
           <h2 className={CONTENT_FLOW_STEP_TITLE_CLASS}>Project setup</h2>
-          <p className="text-[13px] text-muted-foreground mt-1">
-            Set your goal, objective, campaign duration, and content mix.
-          </p>
         </div>
 
         <div className="flex flex-col gap-2">
@@ -493,9 +484,6 @@ function StepGoal({
         <h2 className={CONTENT_FLOW_STEP_TITLE_CLASS}>
           What's the primary goal for this {mode === 'faq' ? 'FAQ page' : mode === 'blog' ? 'blog post' : 'landing page'}?
         </h2>
-        <p className="text-[13px] text-muted-foreground mt-1">
-          This shapes the tone, structure, and optimisation strategy.
-        </p>
       </div>
 
       <div className="flex flex-col gap-2">
@@ -623,9 +611,6 @@ function StepTemplate({
     <div className="flex flex-col gap-6">
       <div>
         <h2 className={CONTENT_FLOW_STEP_TITLE_CLASS}>Choose a template</h2>
-        <p className="text-[13px] text-muted-foreground mt-1">
-          Templates give AI a proven structure to start from. You can always edit everything.
-        </p>
       </div>
 
       <div className="grid grid-cols-3 gap-3">
@@ -752,9 +737,6 @@ function StepFineTune({
       <div className="flex flex-col gap-6">
         <div>
           <h2 className={CONTENT_FLOW_STEP_TITLE_CLASS}>Fine-tune the FAQ</h2>
-          <p className="text-[13px] text-muted-foreground mt-1">
-            Set the number of questions and the tone of the answers.
-          </p>
         </div>
 
         <div className="flex flex-col gap-2">
@@ -798,9 +780,6 @@ function StepFineTune({
         <h2 className={CONTENT_FLOW_STEP_TITLE_CLASS}>
           Fine-tune your {mode === 'blog' ? 'blog post' : 'landing page'}
         </h2>
-        <p className="text-[13px] text-muted-foreground mt-1">
-          These settings shape the content AI produces.
-        </p>
       </div>
 
       <div className="flex flex-col gap-2">
@@ -1011,9 +990,6 @@ function StepSummary({
       <div className="space-y-6">
         <div>
           <h2 className={CONTENT_FLOW_STEP_TITLE_CLASS}>Content brief</h2>
-          <p className="text-[13px] text-muted-foreground mt-0.5">
-            Review the individual summaries for each content piece before generating.
-          </p>
         </div>
 
         {generating ? (
@@ -1051,9 +1027,6 @@ function StepSummary({
     <div className="flex flex-col gap-6">
       <div>
         <h2 className={CONTENT_FLOW_STEP_TITLE_CLASS}>Content brief</h2>
-        <p className="text-[13px] text-muted-foreground mt-0.5">
-          Click any topic to edit it before generating.
-        </p>
       </div>
 
       {generating ? (

@@ -9,6 +9,13 @@ import { BlogWizardStep3 } from '@/app/components/content-hub/wizard/BlogWizardS
 const meta1: Meta<typeof BlogWizardStep1> = {
   title: 'App/BlogWizardStep1',
   component: BlogWizardStep1,
+  parameters: {
+    docs: {
+      description: {
+        component: 'Blog wizard steps with agent and source helper copy moved into info tooltips.',
+      },
+    },
+  },
 };
 export default meta1;
 type Story1 = StoryObj<typeof BlogWizardStep1>;

@@ -8,7 +8,14 @@ import { Button } from '@/app/components/ui/button';
 const meta: Meta<typeof FAQInlineCreationFlow> = {
   title: 'App/FAQInlineCreationFlow',
   component: FAQInlineCreationFlow,
-  parameters: { layout: 'fullscreen' },
+  parameters: {
+    layout: 'fullscreen',
+    docs: {
+      description: {
+        component: 'Inline FAQ setup flow with required Website URL and field helper copy moved into info tooltips.',
+      },
+    },
+  },
 };
 export default meta;
 type Story = StoryObj<typeof FAQInlineCreationFlow>;

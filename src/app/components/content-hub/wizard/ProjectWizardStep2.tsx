@@ -9,7 +9,7 @@ import React, { useState } from 'react';
 import { Sparkles, X, Plus } from 'lucide-react';
 import { Button } from '@/app/components/ui/button';
 import { cn } from '@/lib/utils';
-import { ContentFlowTextarea, ContentFlowTextInput } from '../shared/ContentFlowControls';
+import { ContentFlowInfoLabel, ContentFlowTextarea, ContentFlowTextInput } from '../shared/ContentFlowControls';
 
 interface ProjectWizardStep2Props {
   step1Data: Record<string, unknown>;
@@ -76,10 +76,9 @@ export function ProjectWizardStep2({ step1Data: _s1, data, onChange }: ProjectWi
 
       {/* Reference URLs */}
       <div className="flex flex-col gap-2">
-        <label className="text-[13px] font-medium text-foreground">
+        <ContentFlowInfoLabel tooltip="Add source pages for the AI to reference while building the project.">
           Reference URLs
-          <span className="ml-2 text-[11px] font-normal text-muted-foreground">optional</span>
-        </label>
+        </ContentFlowInfoLabel>
         <div className="flex items-center gap-2">
           <ContentFlowTextInput
             type="text"
@@ -114,10 +113,9 @@ export function ProjectWizardStep2({ step1Data: _s1, data, onChange }: ProjectWi
 
       {/* File attachment */}
       <div className="flex flex-col gap-2">
-        <label className="text-[13px] font-medium text-foreground">
+        <ContentFlowInfoLabel tooltip="Attach supporting files for the AI to reference.">
           Attach files
-          <span className="ml-2 text-[11px] font-normal text-muted-foreground">optional</span>
-        </label>
+        </ContentFlowInfoLabel>
         <div className={cn(
           'border-2 border-dashed border-border rounded-lg p-6 text-center',
           'flex flex-col items-center gap-2',

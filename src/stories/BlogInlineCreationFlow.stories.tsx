@@ -8,7 +8,7 @@ const meta: Meta<typeof BlogInlineCreationFlow> = {
     layout: 'fullscreen',
     docs: {
       description: {
-        component: 'Inline blog setup flow with a fixed-height scroll container and per-blog content brief summaries.',
+        component: 'Inline blog setup flow with compact step titles, helper copy in info tooltips, and per-blog content brief summaries.',
       },
     },
   },

@@ -5,6 +5,7 @@ import {
   ContentFlowChip,
   ContentFlowChoiceCard,
   ContentFlowCountStepper,
+  ContentFlowInfoLabel,
   ContentFlowLocationFlatList,
   ContentFlowMultiSelect,
   ContentFlowRadioCard,
@@ -94,7 +95,16 @@ const ContentFlowControlsDemo = () => {
 
       <section className="flex flex-col gap-2">
         <h2 className="text-[14px] font-medium text-foreground">Text fields with 14px textarea text</h2>
+        <ContentFlowInfoLabel
+          required
+          tooltip="We'll crawl this page to understand your offerings and generate relevant content."
+        >
+          Website URL
+        </ContentFlowInfoLabel>
         <ContentFlowTextInput placeholder="Add a source URL" />
+        <ContentFlowInfoLabel tooltip="Add any extra instructions, background details, or constraints for the AI.">
+          Additional context
+        </ContentFlowInfoLabel>
         <ContentFlowTextarea rows={3} placeholder="Add extra instructions or context" />
       </section>
 

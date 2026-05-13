@@ -15,6 +15,7 @@ import { Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   CONTENT_FLOW_STEP_TITLE_CLASS,
+  ContentFlowInfoLabel,
   ContentFlowLocationFlatList,
   ContentFlowSelect,
   ContentFlowTextarea,
@@ -191,9 +192,6 @@ function Step1BrandKit({ contentName, brandKit, locations, onChange }: Step1Prop
     <div className="space-y-6">
       <div>
         <h2 className={CONTENT_FLOW_STEP_TITLE_CLASS}>Select brand identity and location</h2>
-        <p className="text-[13px] text-muted-foreground">
-          Content will be created from the selected brand identity and location context.
-        </p>
       </div>
 
       <div className="space-y-6">
@@ -243,45 +241,40 @@ function Step2Setup({ customAgent, sourceUrl, additionalContext, onChange }: Ste
     <div className="space-y-6">
       <div>
         <h2 className={CONTENT_FLOW_STEP_TITLE_CLASS}>Content setup</h2>
-        <p className="text-[13px] text-muted-foreground">
-          Tell us where to pull content from and any specifics you want covered.
-        </p>
       </div>
 
       {/* Website URL */}
       <div className="space-y-1.5">
-        <label className="text-[13px] font-medium text-foreground">
-          Website URL <span className="text-muted-foreground font-normal">(optional)</span>
-        </label>
+        <ContentFlowInfoLabel
+          required
+          tooltip="We'll crawl this page to understand your offerings and generate relevant FAQs."
+        >
+          Website URL
+        </ContentFlowInfoLabel>
         <ContentFlowTextInput
+          required
           value={sourceUrl}
           onChange={e => onChange({ sourceUrl: e.target.value })}
           placeholder="https://yourwebsite.com"
         />
-        <p className="text-[12px] text-muted-foreground">
-          We'll crawl this page to understand your offerings and generate relevant FAQs.
-        </p>
       </div>
 
       {/* Agent */}
       <div className="space-y-1.5">
-        <label className="text-[13px] font-medium text-foreground">Agent</label>
+        <ContentFlowInfoLabel tooltip="Each agent is optimized for a different FAQ style and goal.">
+          Agent
+        </ContentFlowInfoLabel>
         <ContentFlowSelect
           value={customAgent}
           onChange={value => onChange({ customAgent: value })}
           placeholder="Choose an agent..."
           options={CUSTOM_AGENTS.map(a => ({ value: a.id, label: a.label }))}
         />
-        <p className="text-[12px] text-muted-foreground">
-          Each agent is optimized for a different FAQ style and goal.
-        </p>
       </div>
 
       {/* Additional context */}
       <div className="space-y-1.5">
-        <label className="text-[13px] font-medium text-foreground">
-          Anything specific you want covered? <span className="text-muted-foreground font-normal">(optional)</span>
-        </label>
+        <label className="text-[13px] font-medium text-foreground">Anything specific you want covered?</label>
         <ContentFlowTextarea
           value={additionalContext}
           onChange={e => onChange({ additionalContext: e.target.value })}
@@ -312,9 +305,6 @@ function Step3ContentBrief({ value, onChange }: Step3Props) {
     <div className="space-y-6">
       <div>
         <h2 className={CONTENT_FLOW_STEP_TITLE_CLASS}>Content brief</h2>
-        <p className="text-[13px] text-muted-foreground">
-          Review the detailed brief for what this FAQ set will generate.
-        </p>
       </div>
 
       {generating ? (
@@ -371,7 +361,7 @@ export function FAQInlineCreationFlow({ onComplete, onCancel, controlRef, onNavS
 
   const canAdvance = [
     contentName.trim() !== '' && brandKit !== '' && locations.length > 0,
-    true,
+    sourceUrl.trim() !== '',
     contentBrief.trim() !== '',
   ][step];
 

@@ -3,7 +3,7 @@ import { Sparkles } from 'lucide-react';
 import { Button } from '@/app/components/ui/button';
 import { cn } from '@/lib/utils';
 import { STATUS_COLORS } from '../shared/scoreColors';
-import { ContentFlowTextarea, ContentFlowTextInput } from '../shared/ContentFlowControls';
+import { ContentFlowInfoLabel, ContentFlowTextarea, ContentFlowTextInput } from '../shared/ContentFlowControls';
 
 interface FAQWizardStep2Props {
   template: string;
@@ -74,15 +74,16 @@ export const FAQWizardStep2 = ({ template, onSourceDataChange }: FAQWizardStep2P
       {(template === 'aeo' || template === 'newpage') && (
         <div className="flex flex-col gap-2">
           <div className="flex items-center gap-2">
-            <label className="text-[13px] font-medium text-foreground">
+            <ContentFlowInfoLabel required tooltip="We'll extract questions your customers are already asking.">
               {template === 'aeo' ? 'Page to optimize' : 'Page URL'}
-            </label>
+            </ContentFlowInfoLabel>
             {autoFilled && (
               <span className="text-[11px] px-2 py-0.5 rounded-md" style={{ background: STATUS_COLORS.ready.bg, color: STATUS_COLORS.ready.text }}>Auto-filled</span>
             )}
           </div>
           <div className="flex items-center gap-2">
             <ContentFlowTextInput
+              required
               value={urlValue}
               onChange={(e) => setUrlValue(e.target.value)}
               placeholder="https://example.com/services"
@@ -102,7 +103,6 @@ export const FAQWizardStep2 = ({ template, onSourceDataChange }: FAQWizardStep2P
               <button className="ml-auto text-muted-foreground hover:text-foreground" onClick={() => setUrlScraped(false)}>✕</button>
             </div>
           )}
-          <p className="text-[12px] text-muted-foreground">We'll extract questions your customers are already asking</p>
         </div>
       )}
 
@@ -245,7 +245,9 @@ export const FAQWizardStep2 = ({ template, onSourceDataChange }: FAQWizardStep2P
             />
           </div>
           <div className="flex flex-col gap-2">
-            <p className="text-[13px] font-medium text-foreground">Optional: add sources</p>
+            <ContentFlowInfoLabel tooltip="Add source material to guide the FAQ output.">
+              Add sources
+            </ContentFlowInfoLabel>
             {[
               { id: 'scrape', label: 'Scrape a URL' },
               { id: 'upload', label: 'Upload a document' },

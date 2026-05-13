@@ -42,6 +42,45 @@ export function ContentFlowTextarea({
   return <Textarea className={cn(CONTENT_FLOW_TEXTAREA_CLASS, className)} {...props} />;
 }
 
+export function ContentFlowInfoLabel({
+  children,
+  tooltip,
+  required = false,
+  className,
+}: {
+  children: React.ReactNode;
+  tooltip?: React.ReactNode;
+  required?: boolean;
+  className?: string;
+}) {
+  const labelText = typeof children === 'string' ? children : 'Field';
+
+  return (
+    <div className={cn('flex items-center gap-1.5 text-[13px] font-medium text-foreground', className)}>
+      <span>{children}</span>
+      {required && <span className="text-destructive">*</span>}
+      {tooltip && (
+        <TooltipProvider delayDuration={150}>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                type="button"
+                aria-label={`${labelText} information`}
+                className="inline-flex size-4 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                <Info size={13} strokeWidth={1.6} absoluteStrokeWidth />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="top" align="start" className="max-w-[260px] text-[12px] leading-snug">
+              {tooltip}
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      )}
+    </div>
+  );
+}
+
 export function ContentFlowStepper({
   steps,
   currentStep,

@@ -14,7 +14,7 @@ import { Sparkles, X } from 'lucide-react';
 import { Button } from '@/app/components/ui/button';
 import { cn } from '@/lib/utils';
 import { STATUS_COLORS } from '../shared/scoreColors';
-import { ContentFlowTextarea, ContentFlowTextInput } from '../shared/ContentFlowControls';
+import { ContentFlowInfoLabel, ContentFlowTextarea, ContentFlowTextInput } from '../shared/ContentFlowControls';
 import type { WizardMode } from './wizardTypes';
 
 interface BlogWizardStep2Props {
@@ -79,25 +79,30 @@ export function BlogWizardStep2({ mode, step1Data: _step1Data, data, onChange }:
       {/* Keywords (blog only) */}
       {mode === 'blog' && (
         <div className="flex flex-col gap-2">
-          <label className="text-[13px] font-medium text-foreground">
+          <ContentFlowInfoLabel tooltip="Separate multiple keywords with commas.">
             Target keywords
-            <span className="ml-2 text-[11px] font-normal text-muted-foreground">optional</span>
-          </label>
+          </ContentFlowInfoLabel>
           <ContentFlowTextInput
             type="text"
             value={keywords}
             onChange={e => onChange({ ...data, keywords: e.target.value })}
             placeholder="e.g. lawn care tips, landscaping services near me"
           />
-          <p className="text-[12px] text-muted-foreground">Separate multiple keywords with commas</p>
         </div>
       )}
 
       {/* Reference URL */}
       <div className="flex flex-col gap-2">
         <div className="flex items-center gap-2">
-          <label className="text-[13px] font-medium text-foreground">Reference page</label>
-          <span className="text-[11px] font-normal text-muted-foreground">optional</span>
+          <ContentFlowInfoLabel
+            tooltip={
+              mode === 'landing'
+                ? 'We will extract key messaging and structure from this page.'
+                : 'We will extract context and competing angles from this page.'
+            }
+          >
+            Reference page
+          </ContentFlowInfoLabel>
           {autoFilled && (
             <span
               className="text-[11px] px-2 py-0.5 rounded-md"
@@ -143,19 +148,13 @@ export function BlogWizardStep2({ mode, step1Data: _step1Data, data, onChange }:
             </button>
           </div>
         )}
-        <p className="text-[12px] text-muted-foreground">
-          {mode === 'landing'
-            ? 'We will extract key messaging and structure from this page'
-            : 'We will extract context and competing angles from this page'}
-        </p>
       </div>
 
       {/* File attachment */}
       <div className="flex flex-col gap-2">
-        <label className="text-[13px] font-medium text-foreground">
+        <ContentFlowInfoLabel tooltip="Attach a brief or notes for additional context.">
           Attach a brief or notes
-          <span className="ml-2 text-[11px] font-normal text-muted-foreground">optional</span>
-        </label>
+        </ContentFlowInfoLabel>
         <div className={cn(
           'border-2 border-dashed border-border rounded-lg p-6 text-center flex flex-col items-center gap-2',
           'hover:border-primary/40 hover:bg-muted/30 transition-colors cursor-pointer',

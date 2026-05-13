@@ -5,6 +5,13 @@ import { FAQWizard } from "@/app/components/content-hub/faq/FAQWizard";
 const meta: Meta<typeof FAQWizard> = {
   title: "App/FAQWizard",
   component: FAQWizard,
+  parameters: {
+    docs: {
+      description: {
+        component: "FAQ wizard with required URL labels and helper copy moved into info tooltips.",
+      },
+    },
+  },
 };
 export default meta;
 type Story = StoryObj<typeof FAQWizard>;
