@@ -50,13 +50,13 @@ export interface ScheduledItem {
   status: 'Scheduled' | 'Draft' | 'Published';
   title: string;
   caption: string;
+  image?: string;
 }
 
 // ── Helper ────────────────────────────────────────────────────────────────────
 
-const now = new Date();
-const Y = now.getFullYear();
-const M = now.getMonth();
+const Y = 2026;
+const M = 4;
 const d = (day: number, h = 10, m = 0): Date => new Date(Y, M, day, h, m);
 
 // ── Projects ──────────────────────────────────────────────────────────────────

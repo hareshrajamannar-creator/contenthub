@@ -19,8 +19,22 @@ export const Default: Story = {};
 Default.parameters = {
   docs: {
     description: {
-      story: 'Saved projects view with the review-style list/grid switcher in the header.',
+      story: 'View all contents list with the review-style list/grid/calendar switcher in the header.',
     },
+  },
+};
+
+export const Grid: Story = {
+  name: 'Grid',
+  args: {
+    initialViewMode: 'grid',
+  },
+};
+
+export const Calendar: Story = {
+  name: 'Calendar',
+  args: {
+    initialViewMode: 'calendar',
   },
 };
 

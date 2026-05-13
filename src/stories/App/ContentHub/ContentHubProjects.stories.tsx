@@ -16,7 +16,7 @@ export const Default: Story = {
   parameters: {
     docs: {
       description: {
-        story: "Saved projects view with the review-style list/grid switcher in the header.",
+        story: "View all contents list with the review-style list/grid switcher in the header.",
       },
     },
   },

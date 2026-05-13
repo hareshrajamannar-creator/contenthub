@@ -42,6 +42,7 @@ interface ContentHubL2NavPanelProps {
 const LABEL_TO_VIEW: Record<string, ContentHubSubView> = {
   'Home':                        'content-hub-home',
   'Projects':                    'content-hub-projects',
+  'View all contents':           'content-hub-projects',
   'Templates':                   'content-hub-templates',
   'Calendar':                    'content-hub-calendar',
   'Assigned to me':              'content-hub-assigned',
@@ -152,11 +153,9 @@ export function ContentHubL2NavPanel({
       headerSlot={createDropdown}
       sections={[
         {
-          label: 'Content',
+          label: 'Human actions',
           children: [
-            'Home',
-            'Projects',
-            'Calendar',
+            { label: 'View all contents', key: 'Projects' },
             'Assigned to me',
             'Awaiting approval',
             'Drafts',
@@ -189,8 +188,8 @@ export function ContentHubL2NavPanel({
       ]}
       activeItem={activeItem}
       onActiveItemChange={handleActiveItemChange}
-      defaultActive="Content/Home"
-      defaultExpandedSections={['Content']}
+      defaultActive="Human actions/Projects"
+      defaultExpandedSections={['Human actions']}
       data-no-print
     />
   );

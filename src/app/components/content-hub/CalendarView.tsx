@@ -10,6 +10,8 @@ import { ListView } from './ListView';
 
 export type CalendarViewType = 'month' | 'week' | 'list';
 
+const DEFAULT_CONTENT_HUB_CALENDAR_DATE = new Date(2026, 4, 13);
+
 const CALENDAR_FILTERS: FilterItem[] = [
   { id: 'contentType', label: 'Content type', options: ['All', 'FAQ', 'Social', 'Email', 'Blog', 'Review response', 'Ads'] },
   { id: 'status', label: 'Status', options: ['All statuses', 'Draft', 'Scheduled', 'Published', 'Awaiting approval'] },
@@ -18,9 +20,19 @@ const CALENDAR_FILTERS: FilterItem[] = [
   { id: 'dateRange', label: 'Date range', options: ['Current view', 'Next 7 days', 'Next 30 days', 'This quarter'] },
 ];
 
-export const CalendarView = () => {
-  const [viewType, setViewType] = useState<CalendarViewType>('week');
-  const [currentDate, setCurrentDate] = useState(new Date());
+interface CalendarViewProps {
+  initialView?: CalendarViewType;
+  initialDate?: Date;
+  embedded?: boolean;
+}
+
+export const CalendarView = ({
+  initialView = 'week',
+  initialDate,
+  embedded = false,
+}: CalendarViewProps = {}) => {
+  const [viewType, setViewType] = useState<CalendarViewType>(initialView);
+  const [currentDate, setCurrentDate] = useState(initialDate ?? DEFAULT_CONTENT_HUB_CALENDAR_DATE);
   const [filterPanelOpen, setFilterPanelOpen] = useState(false);
   const [filters, setFilters] = useState<FilterItem[]>(CALENDAR_FILTERS);
 
@@ -47,9 +59,10 @@ export const CalendarView = () => {
           onViewChange={setViewType}
           onPrevious={handlePrevious}
           onNext={handleNext}
-          onToday={() => setCurrentDate(new Date())}
+          onToday={() => setCurrentDate(DEFAULT_CONTENT_HUB_CALENDAR_DATE)}
           filterOpen={filterPanelOpen}
           onFilterOpenChange={setFilterPanelOpen}
+          showViewControls={!embedded}
         />
         <div className="flex-1 overflow-auto">
           {viewType === 'month' && <MonthView currentDate={currentDate} />}
@@ -58,15 +71,17 @@ export const CalendarView = () => {
         </div>
       </div>
 
-      <FilterPane
-        initialFilters={filters}
-        open={filterPanelOpen}
-        onOpenChange={setFilterPanelOpen}
-        onFiltersChange={setFilters}
-        motion="static"
-        dock="right"
-        storageKey="content_hub_calendar_filters"
-      />
+      {!embedded && (
+        <FilterPane
+          initialFilters={filters}
+          open={filterPanelOpen}
+          onOpenChange={setFilterPanelOpen}
+          onFiltersChange={setFilters}
+          motion="static"
+          dock="right"
+          storageKey="content_hub_calendar_filters"
+        />
+      )}
     </div>
   );
 };

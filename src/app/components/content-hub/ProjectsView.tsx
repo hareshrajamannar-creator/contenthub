@@ -1,7 +1,7 @@
-import { useMemo, useState } from 'react';
+import { type KeyboardEvent, useMemo, useState } from 'react';
 import { createColumnHelper } from '@tanstack/react-table';
 import {
-  LayoutGrid, List, MoreVertical, Search,
+  BookMarked, CalendarDays, Copy, LayoutGrid, List, MoreVertical, Pencil, Search,
   FileText, Share2, Mail, MessageSquare, Monitor, Megaphone, MessageCircle,
 } from 'lucide-react';
 import { AppDataTable } from '@/app/components/ui/AppDataTable';
@@ -29,6 +29,7 @@ import {
   RowActions,
 } from './projectShared';
 import { TEMPLATES, type ContentType, type TemplateItem } from './TemplateGallery';
+import { CalendarView as ContentHubCalendarView } from './CalendarView';
 
 // ── Mock data ─────────────────────────────────────────────────────────────────
 
@@ -52,9 +53,16 @@ function getTemplateCreator(templateId: string) {
   return TEMPLATE_CREATORS[seed % TEMPLATE_CREATORS.length];
 }
 
+function handleCardKeyDown(event: KeyboardEvent<HTMLElement>, onActivate: () => void) {
+  if (event.key !== 'Enter' && event.key !== ' ') return;
+  event.preventDefault();
+  onActivate();
+}
+
 // ── Tab config ────────────────────────────────────────────────────────────────
 
 type TabId = 'saved' | 'library';
+type ViewMode = 'list' | 'grid' | 'calendar';
 
 const TABS: TextTabItem<TabId>[] = [
   { id: 'saved',   label: 'Saved',   suffix: <Badge variant="secondary" className="bg-muted text-muted-foreground font-normal">50</Badge> },
@@ -120,6 +128,9 @@ function TemplateCard({ tmpl, onUse }: { tmpl: TemplateItem; onUse: (t: Template
   return (
     <div
       onClick={() => onUse(tmpl)}
+      onKeyDown={(event) => handleCardKeyDown(event, () => onUse(tmpl))}
+      role="button"
+      tabIndex={0}
       className="border border-border rounded-[10px] bg-background hover:border-primary/30 transition-all cursor-pointer group flex flex-col overflow-hidden"
     >
       {/* Thumbnail preview area */}
@@ -198,6 +209,101 @@ function TemplateCard({ tmpl, onUse }: { tmpl: TemplateItem; onUse: (t: Template
   );
 }
 
+function getProjectContentType(project: ProjectRow): ContentType {
+  if (project.channels.includes('blog')) return 'blog';
+  if (project.channels.includes('email')) return 'email';
+  if (project.channels.includes('web')) return 'faq';
+  return 'social';
+}
+
+const SAVED_STATUS_CLASS: Record<ProjectStatus, string> = {
+  Draft: 'bg-muted text-muted-foreground',
+  Running: 'bg-blue-50 text-blue-700',
+  Paused: 'bg-amber-50 text-amber-700',
+  Completed: 'bg-green-50 text-green-700',
+};
+
+function SavedContentGridCard({ project, onOpen }: { project: ProjectRow; onOpen: () => void }) {
+  const type = getProjectContentType(project);
+  const thumb = TYPE_THUMB[type];
+  const { Icon } = thumb;
+
+  return (
+    <div
+      onClick={onOpen}
+      onKeyDown={(event) => handleCardKeyDown(event, onOpen)}
+      role="button"
+      tabIndex={0}
+      className="group border border-border rounded-[10px] bg-background transition-all cursor-pointer flex flex-col overflow-hidden hover:border-primary/30"
+    >
+      <div className="relative h-[160px] overflow-hidden border-b border-border bg-zinc-100">
+        <div className="absolute inset-0 p-6">
+          <div className="flex h-full w-full flex-col overflow-hidden rounded-lg border border-zinc-200 bg-white">
+            <div className="flex items-center gap-2 border-b border-zinc-100 px-2 py-1">
+              <div className={cn('flex size-[18px] shrink-0 items-center justify-center rounded-[4px] border', thumb.iconBg)}>
+                <Icon size={9} strokeWidth={1.6} absoluteStrokeWidth className={thumb.iconColor} />
+              </div>
+              <span className="flex-1 text-[6px] font-semibold text-zinc-700">{TYPE_LABEL[type]}</span>
+              <div className="h-[3px] w-8 overflow-hidden rounded-full bg-zinc-100">
+                <div className="h-full w-4/5 rounded-full bg-emerald-600" />
+              </div>
+            </div>
+            <div className="relative h-[44px] shrink-0 overflow-hidden border-b border-zinc-100">
+              <div className="absolute inset-0" style={{ background: `linear-gradient(135deg, hsl(${project.hue} 82% 88%), hsl(${(project.hue + 58) % 360} 72% 68%))` }} />
+              <div className="absolute inset-x-0 bottom-0 h-4 bg-white/45" />
+              <div className="absolute bottom-3 left-4 h-6 w-8 rounded-t-full bg-white/40" />
+              <div className="absolute bottom-2 right-6 h-8 w-5 rounded-t-full bg-white/50" />
+            </div>
+            <div className="flex flex-1 flex-col gap-1 overflow-hidden px-2 py-2">
+              <div className="flex gap-1">
+                <span className={cn('rounded-[2px] px-1 py-0.5 text-[5px] font-semibold', TYPE_BADGE[type])}>
+                  {TYPE_LABEL[type]}
+                </span>
+                <span className="rounded-[2px] bg-zinc-100 px-1 py-0.5 text-[5px] font-semibold text-zinc-600">
+                  {project.status}
+                </span>
+              </div>
+              <span className="text-[6px] font-bold leading-tight text-zinc-800">{project.name}</span>
+              <div className="mt-0.5 flex flex-col gap-0.5">
+                <div className="h-[2px] w-full rounded-full bg-zinc-200" />
+                <div className="h-[2px] w-10/12 rounded-full bg-zinc-200" />
+                <div className="h-[2px] w-7/12 rounded-full bg-zinc-100" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex flex-1 flex-col gap-2 p-4">
+        <div className="flex items-center justify-between gap-2">
+          <span className={cn('self-start rounded px-2 py-0.5 text-[10px] font-medium', SAVED_STATUS_CLASS[project.status])}>
+            {project.status}
+          </span>
+          <ChannelCell channels={project.channels} />
+        </div>
+        <p className="text-[12px] text-foreground font-medium leading-snug line-clamp-2">{project.name}</p>
+        <p className="text-[10px] text-muted-foreground leading-relaxed line-clamp-2">
+          {project.locations.toLocaleString()} locations · Updated {project.updated} · Created by {project.createdBy}
+        </p>
+        <div className="mt-auto flex items-center gap-1 pt-1 text-muted-foreground">
+          <button type="button" aria-label="Edit" onClick={(e) => { e.stopPropagation(); onOpen(); }} className="flex size-7 items-center justify-center rounded hover:bg-muted hover:text-foreground">
+            <Pencil size={14} strokeWidth={1.6} absoluteStrokeWidth />
+          </button>
+          <button type="button" aria-label="Duplicate" onClick={(e) => e.stopPropagation()} className="flex size-7 items-center justify-center rounded hover:bg-muted hover:text-foreground">
+            <Copy size={14} strokeWidth={1.6} absoluteStrokeWidth />
+          </button>
+          <button type="button" aria-label="Add to library" onClick={(e) => e.stopPropagation()} className="flex size-7 items-center justify-center rounded hover:bg-muted hover:text-foreground">
+            <BookMarked size={14} strokeWidth={1.6} absoluteStrokeWidth />
+          </button>
+          <button type="button" aria-label="More options" onClick={(e) => e.stopPropagation()} className="flex size-7 items-center justify-center rounded hover:bg-muted hover:text-foreground">
+            <MoreVertical size={14} strokeWidth={1.6} absoluteStrokeWidth />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Column definitions ────────────────────────────────────────────────────────
 
 const col = createColumnHelper<ProjectRow>();
@@ -214,9 +320,11 @@ function isAllFilter(value: string | undefined, allLabel: string) {
 
 export const ProjectsView = ({
   initialTab = 'saved',
+  initialViewMode = 'list',
   onNavigate,
 }: {
   initialTab?: TabId;
+  initialViewMode?: ViewMode;
   onNavigate: (view: 'content-hub-create') => void;
 }) => {
   const [activeTab, setActiveTab] = useState<TabId>(initialTab);
@@ -225,7 +333,7 @@ export const ProjectsView = ({
   const [filterPanelOpen, setFilterPanelOpen] = useState(false);
   const [savedFilters, setSavedFilters] = useState<FilterItem[]>(SAVED_FILTERS);
   const [libraryFilters, setLibraryFilters] = useState<FilterItem[]>(LIBRARY_FILTERS);
-  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
+  const [viewMode, setViewMode] = useState<ViewMode>(initialViewMode);
   const [columnSheetOpen, setColumnSheetOpen] = useState(false);
 
   const tableData = useMemo(() => {
@@ -351,28 +459,29 @@ export const ProjectsView = ({
 
       {/* Header band */}
       <div className={MAIN_VIEW_HEADER_BAND_CLASS}>
-        <h1 className={MAIN_VIEW_PRIMARY_HEADING_CLASS}>Projects</h1>
+        <h1 className={MAIN_VIEW_PRIMARY_HEADING_CLASS}>View all contents</h1>
         <div className="flex items-center gap-2">
           {activeTab === 'saved' && (
             <>
-              <Button type="button" variant="outline" size="icon" aria-label="Search projects">
+              <Button type="button" variant="outline" size="icon" aria-label="Search contents">
                 <Search className="size-[14px]" strokeWidth={1.6} absoluteStrokeWidth aria-hidden />
               </Button>
-              <SegmentedToggle<'grid' | 'list'>
+              <SegmentedToggle<ViewMode>
                 iconOnly
-                ariaLabel="Projects view"
+                ariaLabel="Content view"
                 value={viewMode}
                 onChange={setViewMode}
                 items={[
                   { value: 'list', label: 'List view', icon: <List className="size-[14px]" strokeWidth={1.6} absoluteStrokeWidth aria-hidden /> },
                   { value: 'grid', label: 'Grid view', icon: <LayoutGrid className="size-[14px]" strokeWidth={1.6} absoluteStrokeWidth aria-hidden /> },
+                  { value: 'calendar', label: 'Calendar view', icon: <CalendarDays className="size-[14px]" strokeWidth={1.6} absoluteStrokeWidth aria-hidden /> },
                 ]}
               />
               <Button type="button" variant="outline" size="icon" aria-label="More options">
                 <MoreVertical className="size-[14px]" strokeWidth={1.6} absoluteStrokeWidth aria-hidden />
               </Button>
               <AppDataTableColumnSettingsTrigger
-                sheetTitle="Project columns"
+                sheetTitle="Content columns"
                 onClick={() => setColumnSheetOpen(true)}
               />
               <FilterPaneTriggerButton
@@ -441,13 +550,13 @@ export const ProjectsView = ({
         items={TABS}
         value={activeTab}
         onChange={setActiveTab}
-        ariaLabel="Projects tabs"
+        ariaLabel="Content tabs"
         variant="plain"
         className="px-6"
       />
 
       {/* Saved tab — table */}
-      {activeTab === 'saved' && (
+      {activeTab === 'saved' && viewMode === 'list' && (
         <div className="min-h-0 flex-1 overflow-hidden py-4">
           <AppDataTable<ProjectRow>
             tableId="content-hub.projects"
@@ -461,6 +570,34 @@ export const ProjectsView = ({
             onColumnSheetOpenChange={setColumnSheetOpen}
             onRowClick={() => onNavigate('content-hub-create')}
           />
+        </div>
+      )}
+
+      {/* Saved tab — grid */}
+      {activeTab === 'saved' && viewMode === 'grid' && (
+        <div className="min-h-0 flex-1 overflow-y-auto px-6 py-4">
+          {tableData.length === 0 ? (
+            <div className="flex h-40 items-center justify-center text-[13px] text-muted-foreground">
+              No content matches your filters.
+            </div>
+          ) : (
+            <div className="grid grid-cols-4 gap-4">
+              {tableData.map(project => (
+                <SavedContentGridCard
+                  key={project.id}
+                  project={project}
+                  onOpen={() => onNavigate('content-hub-create')}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Saved tab — calendar */}
+      {activeTab === 'saved' && viewMode === 'calendar' && (
+        <div className="min-h-0 flex-1 overflow-hidden">
+          <ContentHubCalendarView embedded />
         </div>
       )}
 

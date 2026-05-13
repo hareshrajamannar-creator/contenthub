@@ -62,7 +62,7 @@ import { BirdAILoginPage } from "./components/auth/BirdAILoginPage";
 import { AppBootShimmer } from "./components/layout/AppBootShimmer";
 import { SEARCH_AI_L2_DEFAULT_ACTIVE } from "./components/searchai/searchAIL2Keys";
 import { ContentHubL2NavPanel } from "./components/ContentHubL2NavPanel";
-import { ContentHome, type ContentHomeInitialMode } from "./components/content-hub/ContentHome";
+import type { ContentHomeInitialMode } from "./components/content-hub/ContentHome";
 import { ProjectsView } from "./components/content-hub/ProjectsView";
 import { TemplateGallery, type TemplateItem } from "./components/content-hub/TemplateGallery";
 
@@ -70,7 +70,6 @@ import { TemplateGallery, type TemplateItem } from "./components/content-hub/Tem
 function ContentHubTemplatesView({ onSelectTemplate, onBack }: { onSelectTemplate: (t: TemplateItem) => void; onBack: () => void }) {
   return <TemplateGallery hideBack onBack={onBack} onSelectTemplate={onSelectTemplate} />;
 }
-import { CalendarView as ContentHubCalendarView } from "./components/content-hub/CalendarView";
 import { CreateView as ContentHubCreateView } from "./components/content-hub/CreateView";
 import { ContentEditorShell } from "./components/content-hub/editor/ContentEditorShell";
 import type { ContentMode } from "./components/content-hub/editor/editorConfig";
@@ -79,6 +78,7 @@ import { RecommendationsView } from "./components/recommendations/Recommendation
 
 const AUTH_STORAGE_KEY = "birdai_demo_authenticated";
 const LOGIN_TAB_TITLE_INDEX_KEY = "auth:login_tab_title_index";
+const CONTENT_HUB_DEFAULT_L2_ACTIVE = "Human actions/Projects";
 
 function parseStoredLoginTabIndex(raw: string | null): number {
   if (raw === null) return 0;
@@ -252,7 +252,7 @@ export default function App() {
   }, [currentView]);
 
   const [socialL2Active, setSocialL2Active] = usePersistedState("nav:l2:social", "Publish/Calendar");
-  const [contentHubL2Active, setContentHubL2Active] = usePersistedState("nav:l2:content-hub", "Content/Home");
+  const [contentHubL2Active, setContentHubL2Active] = usePersistedState("nav:l2:content-hub", CONTENT_HUB_DEFAULT_L2_ACTIVE);
   const [createViewInitialMode, setCreateViewInitialMode] = useState<ContentHomeInitialMode | undefined>(undefined);
   const [createViewStartAtFAQCanvas, setCreateViewStartAtFAQCanvas] = useState(false);
   const [createViewStartAtBlogCanvas, setCreateViewStartAtBlogCanvas] = useState(false);
@@ -262,14 +262,26 @@ export default function App() {
   const [createViewRecAeoScore, setCreateViewRecAeoScore] = useState<number | undefined>(undefined);
   const [createViewPreloadedQuestions, setCreateViewPreloadedQuestions] = useState<{ question: string; answer: string }[] | undefined>(undefined);
   const [createViewPreloadedBlogSections, setCreateViewPreloadedBlogSections] = useState<{ heading?: string; body?: string; listItems?: string[]; image?: string; imageAlt?: string }[] | undefined>(undefined);
-  // When the L1 Content Hub icon sets currentView = "content-hub", redirect
-  // immediately to the FAQ agents page so ContentHome is never shown.
+  // The home surface is temporarily hidden, so Content Hub lands on the saved content list.
   useEffect(() => {
-    if (currentView === "content-hub") {
-      setCurrentView("content-hub-home");
-      setContentHubL2Active("Content/Home");
+    if (currentView === "content-hub" || currentView === "content-hub-home") {
+      setCurrentView("content-hub-projects");
+      setContentHubL2Active(CONTENT_HUB_DEFAULT_L2_ACTIVE);
+      return;
     }
-  }, [currentView]);
+
+    if (
+      (currentView === "content-hub-projects" || currentView === "content-hub-calendar") &&
+      (
+        contentHubL2Active === "Content/Home" ||
+        contentHubL2Active === "Content/Projects" ||
+        contentHubL2Active === "standalone/Projects" ||
+        contentHubL2Active === "Human actions/Calendar"
+      )
+    ) {
+      setContentHubL2Active(CONTENT_HUB_DEFAULT_L2_ACTIVE);
+    }
+  }, [contentHubL2Active, currentView]);
 
   const handleContentHubL2Change = useCallback((key: string, view: AppView) => {
     setContentHubL2Active(key);
@@ -674,23 +686,7 @@ export default function App() {
               <PaymentsView />
             ) : currentView === "appointments" ? (
               <AppointmentsView />
-            ) : currentView === "content-hub" || currentView === "content-hub-home" ? (
-              <ContentHome
-                onNavigate={(view, initialMode) => {
-                  setCreateViewInitialMode(initialMode);
-                  setCurrentView(view);
-                }}
-                onOpenCanvas={(mode) => {
-                  if (mode === 'faq') setCreateViewStartAtFAQCanvas(true);
-                  if (mode === 'blog') setCreateViewStartAtBlogCanvas(true);
-                  setCurrentView("content-hub-create");
-                }}
-                onOpenProjects={() => {
-                  setContentHubL2Active("standalone/Projects");
-                  setCurrentView("content-hub-projects");
-                }}
-              />
-            ) : currentView === "content-hub-projects" ? (
+            ) : currentView === "content-hub" || currentView === "content-hub-home" || currentView === "content-hub-projects" ? (
               <ProjectsView onNavigate={(view) => setCurrentView(view)} />
             ) : currentView === "content-hub-templates" ? (
               <ContentHubTemplatesView
@@ -706,7 +702,7 @@ export default function App() {
                 onBack={() => {}}
               />
             ) : currentView === "content-hub-calendar" ? (
-              <ContentHubCalendarView />
+              <ProjectsView initialViewMode="calendar" onNavigate={(view) => setCurrentView(view)} />
             ) : currentView === "content-hub-agents-faq" ? (
               <FAQGenerationAgentsView onBuilderModeChange={setFaqAgentBuilderOpen} />
             ) : currentView === "content-hub-agents-blog" ? (
@@ -746,7 +742,7 @@ export default function App() {
                     setCreateViewRecTitle(undefined);
                     setCreateViewRecAeoScore(undefined);
                     setCreateViewPreloadedBlogSections(undefined);
-                    setCurrentView("content-hub-home");
+                    setCurrentView("content-hub-projects");
                   }}
                 />
               ) : (

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { ChevronDown, ChevronUp, Pencil } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { ChevronDown, ChevronUp } from 'lucide-react';
+import { cn } from '@/app/components/ui/utils';
 import { PostCard } from './PostCard';
 import { mockScheduledItems, mockProjects, PROJECT_COLOR_MAP } from './calendarData';
 import type { Project } from './calendarData';
@@ -29,6 +29,14 @@ function isSameDay(a: Date, b: Date) {
 
 function isToday(d: Date) {
   return isSameDay(d, new Date());
+}
+
+function isPastDay(d: Date) {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const day = new Date(d);
+  day.setHours(0, 0, 0, 0);
+  return day < today;
 }
 
 type ProjectWithSpan = Project & { startCol: number; spanCols: number };
@@ -66,16 +74,16 @@ export const WeekView: React.FC<WeekViewProps> = ({ currentDate }) => {
   const remaining = allProjects.length - VISIBLE;
 
   return (
-    <div className="flex flex-col h-full bg-background">
+    <div className="flex h-full flex-col bg-background">
 
       {/* Day header */}
-      <div className="grid grid-cols-7 border-b border-border sticky top-0 z-10 bg-background shrink-0">
+      <div className="grid h-[45px] shrink-0 grid-cols-7 border-b border-border bg-background">
         {weekDays.map((day, i) => (
           <div
             key={i}
             className={cn(
-              'h-[45px] flex items-center justify-center border-r border-border last:border-r-0',
-              isToday(day) ? 'bg-primary/[0.04]' : '',
+              'flex items-center justify-center border-r border-border last:border-r-0',
+              isToday(day) && 'bg-primary/[0.04]',
             )}
           >
             {isToday(day) ? (
@@ -96,8 +104,8 @@ export const WeekView: React.FC<WeekViewProps> = ({ currentDate }) => {
 
       {/* Project strips */}
       {allProjects.length > 0 && (
-        <div className="border-b border-border bg-muted/30 shrink-0">
-          <div className="py-1.5 px-1 flex flex-col gap-1">
+        <div className="shrink-0 border-b border-border bg-muted/30">
+          <div className="flex flex-col gap-1 px-1 py-1">
             {displayProjects.map(project => {
               const colors = PROJECT_COLOR_MAP[project.colorKey];
               const selected = selectedProjectId === project.id;
@@ -114,7 +122,7 @@ export const WeekView: React.FC<WeekViewProps> = ({ currentDate }) => {
                     tabIndex={0}
                     onClick={() => setSelectedProjectId(p => p === project.id ? null : project.id)}
                     className={cn(
-                      'absolute top-0 h-full flex items-center gap-1.5 px-2 rounded-md text-[11px] font-medium cursor-pointer transition-all truncate border',
+                      'absolute top-0 flex h-full cursor-pointer items-center gap-1 px-2 truncate rounded-[4px] border text-[11px] font-medium transition-all',
                       colors.bg, colors.text, colors.border,
                       selected && 'ring-1 ring-primary/40 border-primary/50',
                       dimmed && 'opacity-35',
@@ -132,7 +140,7 @@ export const WeekView: React.FC<WeekViewProps> = ({ currentDate }) => {
           </div>
           {/* Show more / less */}
           {remaining > 0 || showAll ? (
-            <div className="pb-1.5 px-3">
+            <div className="px-4 pb-1">
               <button
                 type="button"
                 onClick={() => setShowAll(v => !v)}
@@ -150,7 +158,7 @@ export const WeekView: React.FC<WeekViewProps> = ({ currentDate }) => {
 
       {/* Content grid */}
       <div className="flex-1 overflow-auto">
-        <div className="grid grid-cols-7 border-l border-border min-h-full">
+        <div className="grid min-h-full grid-cols-7 border-l border-border">
           {weekDays.map((day, i) => {
             const posts = mockScheduledItems
               .filter(p => isSameDay(p.date, day) &&
@@ -161,13 +169,14 @@ export const WeekView: React.FC<WeekViewProps> = ({ currentDate }) => {
               <div
                 key={i}
                 className={cn(
-                  'border-r border-b border-border p-2 flex flex-col gap-2',
+                  'flex min-w-px flex-col items-start gap-[10px] border-b border-r border-border p-[10px]',
+                  isPastDay(day) ? 'bg-[#f9fafb] dark:bg-[#181b22]' : 'bg-background',
                   isToday(day) && 'bg-primary/[0.02]',
                 )}
-                style={{ minHeight: 360 }}
+                style={{ minHeight: 939 }}
               >
                 {posts.map(post => (
-                  <PostCard key={post.id} post={post} />
+                  <PostCard key={post.id} post={post} isPast={isPastDay(day)} />
                 ))}
               </div>
             );
