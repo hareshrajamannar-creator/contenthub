@@ -64,7 +64,7 @@ const CATEGORY_METRIC: Partial<Record<RecCategory, { label: string; key: keyof B
 
 interface RecommendationsViewProps {
   onNavigateToContentHub?: (recId: string, recTitle: string, recAeoScore: number, preloadedQuestions?: { question: string; answer: string }[]) => void
-  onNavigateToBlogCanvas?: (recId: string, recTitle: string) => void
+  onNavigateToBlogCanvas?: (recId: string, recTitle: string, aeoScore: number) => void
   initialRecId?: string
 }
 
@@ -306,7 +306,7 @@ export function RecommendationsView({ onNavigateToContentHub, onNavigateToBlogCa
             onNavigateToBlogCanvas
               ? () => {
                   if (selectedRec.status === 'pending') acceptRec(selectedRec.id, 'self')
-                  onNavigateToBlogCanvas(selectedRec.id, selectedRec.title)
+                  onNavigateToBlogCanvas(selectedRec.id, selectedRec.title, selectedRec.aeoScore?.you ?? 92)
                 }
               : undefined
           }
@@ -396,7 +396,7 @@ export function RecommendationsView({ onNavigateToContentHub, onNavigateToBlogCa
             ) : (
               <div className="mt-5">
                 <AppDataTable<Recommendation>
-                  tableId="recommendations.list.v1"
+                  tableId="recommendations.list.v2"
                   data={filtered}
                   columns={columns}
                   initialSorting={[{ id: 'impact', desc: false }]}
