@@ -1617,11 +1617,7 @@ export function FAQSectionCanvas({ sections, generationLabel, onVersionHistory, 
         )}
 
         <div ref={canvasRef} className="relative min-h-0 flex-1 overflow-y-auto rounded-xl bg-transparent">
-
-          {sectionData.length === 0 && !isGeneratingFromCopilot ? (
-            <EmptyFAQCanvasState onSelectTemplate={handleSelectTemplate} />
-          ) : (
-          /* Document container — padding stays fixed, only the page scales */
+          {/* Document container — padding stays fixed, only the page scales */}
           <div className="px-8 py-6 pb-10">
             <div style={{ zoom }}>
             <div
@@ -1634,43 +1630,53 @@ export function FAQSectionCanvas({ sections, generationLabel, onVersionHistory, 
                 </>
               )}
 
-              <div className="grid">
-                <div
-                  className={cn(
-                    'col-start-1 row-start-1 transition-all duration-500 ease-out',
-                    showGenerationLayer && !isRevealingGeneratedContent
-                      ? 'opacity-100 blur-0 translate-y-0'
-                      : 'pointer-events-none opacity-0 blur-sm -translate-y-1',
+              {(showGenerationLayer || showDocumentContent) && (
+                <div className="grid">
+                  {showGenerationLayer && (
+                    <div
+                      className={cn(
+                        'col-start-1 row-start-1 transition-all duration-500 ease-out',
+                        !isRevealingGeneratedContent
+                          ? 'opacity-100 blur-0 translate-y-0'
+                          : 'pointer-events-none opacity-0 blur-sm -translate-y-1',
+                      )}
+                    >
+                      <FAQDocumentSkeleton count={generationQuestionCount} />
+                    </div>
                   )}
-                >
-                  <FAQDocumentSkeleton count={generationQuestionCount} />
-                </div>
 
-                {showDocumentContent && (
-                  <div
-                    className={cn(
-                      'col-start-1 row-start-1 space-y-6 transition-all duration-500 ease-out',
-                      isGeneratingFromCopilot && !isRevealingGeneratedContent
-                        ? 'pointer-events-none opacity-0 translate-y-2 blur-sm'
-                        : 'opacity-100 translate-y-0 blur-0',
-                    )}
-                  >
-                    {flatQuestions.map(({ section, question }, index) => (
-                      <QuestionRow
-                        key={question.id}
-                        question={question}
-                        index={index}
-                        totalInSection={flatQuestions.length}
-                        onUpdate={patch => updateQuestionInSection(section.id, question.id, patch)}
-                        onDelete={() => deleteQuestionFromSection(section.id, question.id)}
-                        onMoveUp={() => moveQuestionInDocument(section.id, question.id, 'up')}
-                        onMoveDown={() => moveQuestionInDocument(section.id, question.id, 'down')}
-                        fixingAll={fixingAll}
-                      />
-                    ))}
-                  </div>
-                )}
-              </div>
+                  {showDocumentContent && (
+                    <div
+                      className={cn(
+                        'col-start-1 row-start-1 space-y-6 transition-all duration-500 ease-out',
+                        isGeneratingFromCopilot && !isRevealingGeneratedContent
+                          ? 'pointer-events-none opacity-0 translate-y-2 blur-sm'
+                          : 'opacity-100 translate-y-0 blur-0',
+                      )}
+                    >
+                      {flatQuestions.map(({ section, question }, index) => (
+                        <QuestionRow
+                          key={question.id}
+                          question={question}
+                          index={index}
+                          totalInSection={flatQuestions.length}
+                          onUpdate={patch => updateQuestionInSection(section.id, question.id, patch)}
+                          onDelete={() => deleteQuestionFromSection(section.id, question.id)}
+                          onMoveUp={() => moveQuestionInDocument(section.id, question.id, 'up')}
+                          onMoveDown={() => moveQuestionInDocument(section.id, question.id, 'down')}
+                          fixingAll={fixingAll}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {!showGenerationLayer && !showDocumentContent && (
+                <div className="animate-in fade-in duration-300">
+                  <EmptyFAQCanvasState onSelectTemplate={handleSelectTemplate} />
+                </div>
+              )}
 
               {showDocumentContent && !showGenerationLayer && (
                 <button
@@ -1689,7 +1695,6 @@ export function FAQSectionCanvas({ sections, generationLabel, onVersionHistory, 
             </div>
             </div>
           </div>
-          )}
         </div>
       </div>
 
