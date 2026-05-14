@@ -64,6 +64,7 @@ export interface FAQSectionCanvasProps {
   generationLabel?: string;
   onEditSettings?: () => void;
   onVersionHistory?: () => void;
+  onGenerationComplete?: () => void;
   /** Pre-loaded Q&As from a recommendation — bypasses mock generation */
   initialQuestions?: { question: string; answer: string }[];
   /** AEO score from the recommendation — used as the starting content score */
@@ -1155,7 +1156,7 @@ function SectionBlock({
 
 // ── Main component ────────────────────────────────────────────────────────────
 
-export function FAQSectionCanvas({ sections, generationLabel, onVersionHistory, initialQuestions, initialScore, initialGenerating = false }: FAQSectionCanvasProps) {
+export function FAQSectionCanvas({ sections, generationLabel, onVersionHistory, onGenerationComplete, initialQuestions, initialScore, initialGenerating = false }: FAQSectionCanvasProps) {
   const [sectionData, setSectionData] = useState<FAQSectionData[]>(() =>
     initialQuestions && initialQuestions.length > 0
       ? buildSectionDataFromQuestions(initialQuestions)
@@ -1176,12 +1177,44 @@ export function FAQSectionCanvas({ sections, generationLabel, onVersionHistory, 
   const [richTextPosition, setRichTextPosition] = useState<EditorToolbarPosition | undefined>();
   const canvasRef = useRef<HTMLDivElement>(null);
   const activeTextTargetRef = useRef<HTMLElement | null>(null);
+  const generationCompleteRef = useRef(onGenerationComplete);
 
   // Card metadata state
   const [publishModalOpen, setPublishModalOpen] = useState(false);
 
   // Save to Saved — null = closed, 'all' = save full FAQ, FAQSectionData = save one section
   const [savingTarget, setSavingTarget] = useState<FAQSectionData | 'all' | null>(null);
+
+  useEffect(() => {
+    generationCompleteRef.current = onGenerationComplete;
+  }, [onGenerationComplete]);
+
+  useEffect(() => {
+    if (!initialGenerating) return;
+
+    setIsGeneratingFromCopilot(true);
+    setIsRevealingGeneratedContent(false);
+    setScorePanelOpen(false);
+    setCommentsOpen(false);
+    setActivityOpen(false);
+
+    const revealTimer = window.setTimeout(() => {
+      setIsRevealingGeneratedContent(true);
+    }, 3200);
+    const settleTimer = window.setTimeout(() => {
+      setIsGeneratingFromCopilot(false);
+    }, 3660);
+    const completeTimer = window.setTimeout(() => {
+      setIsRevealingGeneratedContent(false);
+      generationCompleteRef.current?.();
+    }, 3960);
+
+    return () => {
+      window.clearTimeout(revealTimer);
+      window.clearTimeout(settleTimer);
+      window.clearTimeout(completeTimer);
+    };
+  }, [initialGenerating]);
 
   // Pinch-to-zoom via trackpad (ctrl+wheel)
   useEffect(() => {
@@ -1535,7 +1568,7 @@ export function FAQSectionCanvas({ sections, generationLabel, onVersionHistory, 
   const showStarterContent = !showGenerationLayer && !showDocumentContent;
 
   return (
-    <div className="flex flex-1 min-h-0 gap-2 bg-[var(--color-canvas,#F7F8FA)] p-2 animate-in fade-in duration-150">
+    <div className="flex flex-1 min-h-0 gap-2 bg-[var(--color-canvas,#F7F8FA)] p-2">
       {/* ── Left panel ───────────────────────────────────────────────── */}
       <div
         className="flex-shrink-0 flex flex-col overflow-hidden rounded-xl border border-border/60 bg-background animate-in fade-in slide-in-from-left-6 fill-mode-both"

@@ -57,7 +57,6 @@ import { FAQInlineCreationFlow } from '../faq/FAQInlineCreationFlow';
 import type { FAQFlowData, FlowNavControls, FlowNavState } from '../faq/FAQInlineCreationFlow';
 import { Button } from '@/app/components/ui/button';
 import { Badge } from '@/app/components/ui/badge';
-import { FAQGenerationProgress } from '../faq/FAQGenerationProgress';
 import { FAQSectionCanvas } from '../faq/FAQSectionCanvas';
 import { FAQPublishModal } from '../faq/FAQPublishModal';
 import { BlogPublishModal } from '../blog/BlogPublishModal';
@@ -786,14 +785,8 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
     setSetupPhase('generating');
   }
 
-  const [faqGenerationExiting, setFaqGenerationExiting] = useState(false);
-
   function handleFAQGenerationComplete() {
-    setFaqGenerationExiting(true);
-    window.setTimeout(() => {
-      setSetupPhase('done');
-      setFaqGenerationExiting(false);
-    }, 360);
+    setSetupPhase('done');
   }
 
   function handleBlogFlowComplete(data: BlogFlowData) {
@@ -1318,21 +1311,18 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
         </div>
       )}
 
-      {/* ── Generating: FAQ progress card or generic shimmer ────────────── */}
-      {setupPhase === 'generating' && mode === 'faq' && faqFlowData && (
-        <div className="flex flex-1 min-h-0 gap-2 bg-[var(--color-canvas,#F7F8FA)] p-2">
-          <LeftPanelSkeleton />
-          <div className="flex flex-1 min-w-0 flex-col overflow-hidden">
-            <FAQGenerationProgress
-              sections={faqFlowData.sections}
-              brandKit={faqFlowData.brandKit}
-              sourceUrl={faqFlowData.sourceUrl}
-              onComplete={handleFAQGenerationComplete}
-              isExiting={faqGenerationExiting}
-            />
-          </div>
-          <ScorePanelSkeleton />
-        </div>
+      {/* ── FAQ section canvas: one persistent document surface for generation + editing ─────────── */}
+      {(setupPhase === 'generating' || setupPhase === 'done') && mode === 'faq' && faqFlowData && (
+        <FAQSectionCanvas
+          sections={faqFlowData.sections}
+          generationLabel={generationInfo?.label}
+          onEditSettings={handleEditSettings}
+          onVersionHistory={() => setVersionHistoryOpen(true)}
+          onGenerationComplete={handleFAQGenerationComplete}
+          initialQuestions={preloadedFAQs}
+          initialScore={recAeoScore}
+          initialGenerating={setupPhase === 'generating'}
+        />
       )}
       {setupPhase === 'generating' && mode === 'blog' && blogFlowData && (
         <div className="flex flex-1 min-h-0 gap-2 bg-[var(--color-canvas,#F7F8FA)] p-2">
@@ -1366,18 +1356,6 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
         <div className="flex-1 min-h-0 overflow-y-auto bg-[var(--color-canvas,#F7F8FA)]">
           <GeneratingSkeleton count={generateCount} />
         </div>
-      )}
-
-      {/* ── FAQ section canvas (done phase, FAQ mode) ─────────────────── */}
-      {setupPhase === 'done' && mode === 'faq' && faqFlowData && (
-        <FAQSectionCanvas
-          sections={faqFlowData.sections}
-          generationLabel={generationInfo?.label}
-          onEditSettings={handleEditSettings}
-          onVersionHistory={() => setVersionHistoryOpen(true)}
-          initialQuestions={preloadedFAQs}
-          initialScore={recAeoScore}
-        />
       )}
 
       {/* ── Blog section canvas (done phase, blog mode) ───────────────── */}

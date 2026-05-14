@@ -36,7 +36,7 @@ export const CreateBlogPost: Story = {
 };
 
 export const GeneratingFAQ: Story = {
-  name: 'Generating FAQ',
+  name: 'Generating FAQ inside editor',
   args: {
     mode: 'faq',
     skipSetupPhase: true,
