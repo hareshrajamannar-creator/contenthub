@@ -406,7 +406,7 @@ function FAQDocumentGenerationStrip({ totalQuestions }: { totalQuestions: number
   const count = Math.max(1, totalQuestions);
 
   return (
-    <div className="mb-8 overflow-hidden rounded-lg bg-muted/45 px-4 py-2 animate-in fade-in slide-in-from-top-2 duration-300">
+    <div className="mb-8 overflow-hidden rounded-lg bg-muted/45 px-4 py-2">
       <div className="flex items-center justify-between gap-4">
         <div className="flex min-w-0 items-center gap-2">
           <span className="relative flex size-6 flex-none items-center justify-center rounded-full bg-primary/10">
@@ -1532,6 +1532,7 @@ export function FAQSectionCanvas({ sections, generationLabel, onVersionHistory, 
 
   const showGenerationLayer = isGeneratingFromCopilot || isRevealingGeneratedContent;
   const showDocumentContent = flatQuestions.length > 0 && (!isGeneratingFromCopilot || isRevealingGeneratedContent);
+  const showStarterContent = !showGenerationLayer && !showDocumentContent;
 
   return (
     <div className="flex flex-1 min-h-0 gap-2 bg-[var(--color-canvas,#F7F8FA)] p-2 animate-in fade-in duration-150">
@@ -1620,58 +1621,59 @@ export function FAQSectionCanvas({ sections, generationLabel, onVersionHistory, 
           {/* Document container — padding stays fixed, only the page scales */}
           <div className="px-8 py-6 pb-10">
             <div style={{ zoom }}>
-            <div
-              className="mx-auto min-h-[calc(100vh-160px)] max-w-[1040px] rounded-lg bg-background px-16 py-14 shadow-[0_18px_60px_rgba(15,23,42,0.08)] ring-1 ring-border/40 animate-in fade-in zoom-in-95 fill-mode-both"
-              style={{ animationDuration: '380ms', animationDelay: '160ms' }}
-            >
+            <div className="mx-auto min-h-[calc(100vh-160px)] max-w-[1040px] rounded-lg bg-background px-16 py-14 shadow-[0_18px_60px_rgba(15,23,42,0.08)] ring-1 ring-border/40">
               <div className="grid min-h-[640px]">
-                {showGenerationLayer && (
-                  <div
-                    className={cn(
-                      'col-start-1 row-start-1 transition-all duration-500 ease-out',
-                      !isRevealingGeneratedContent
-                        ? 'opacity-100 blur-0 translate-y-0'
-                        : 'pointer-events-none opacity-0 blur-sm',
-                    )}
-                  >
-                    <FAQDocumentGenerationStrip totalQuestions={generationQuestionCount} />
-                    <FAQDocumentSkeleton count={generationQuestionCount} />
-                  </div>
-                )}
+                <div
+                  aria-hidden={!showGenerationLayer}
+                  className={cn(
+                    'col-start-1 row-start-1 transition-opacity duration-500 ease-out',
+                    showGenerationLayer && !isRevealingGeneratedContent
+                      ? 'opacity-100'
+                      : 'pointer-events-none opacity-0',
+                  )}
+                >
+                  <FAQDocumentGenerationStrip totalQuestions={generationQuestionCount} />
+                  <FAQDocumentSkeleton count={generationQuestionCount} />
+                </div>
 
-                {showDocumentContent && (
-                  <div
-                    className={cn(
-                      'col-start-1 row-start-1 space-y-6 transition-all duration-500 ease-out',
-                      isGeneratingFromCopilot && !isRevealingGeneratedContent
-                        ? 'pointer-events-none opacity-0 translate-y-2 blur-sm'
-                        : 'opacity-100 translate-y-0 blur-0',
-                    )}
-                  >
-                    {flatQuestions.map(({ section, question }, index) => (
-                      <QuestionRow
-                        key={question.id}
-                        question={question}
-                        index={index}
-                        totalInSection={flatQuestions.length}
-                        onUpdate={patch => updateQuestionInSection(section.id, question.id, patch)}
-                        onDelete={() => deleteQuestionFromSection(section.id, question.id)}
-                        onMoveUp={() => moveQuestionInDocument(section.id, question.id, 'up')}
-                        onMoveDown={() => moveQuestionInDocument(section.id, question.id, 'down')}
-                        fixingAll={fixingAll}
-                      />
-                    ))}
-                  </div>
-                )}
+                <div
+                  aria-hidden={!showDocumentContent}
+                  className={cn(
+                    'col-start-1 row-start-1 space-y-6 transition-opacity duration-500 ease-out',
+                    showDocumentContent
+                      ? 'opacity-100'
+                      : 'pointer-events-none opacity-0',
+                  )}
+                >
+                  {flatQuestions.map(({ section, question }, index) => (
+                    <QuestionRow
+                      key={question.id}
+                      question={question}
+                      index={index}
+                      totalInSection={flatQuestions.length}
+                      onUpdate={patch => updateQuestionInSection(section.id, question.id, patch)}
+                      onDelete={() => deleteQuestionFromSection(section.id, question.id)}
+                      onMoveUp={() => moveQuestionInDocument(section.id, question.id, 'up')}
+                      onMoveDown={() => moveQuestionInDocument(section.id, question.id, 'down')}
+                      fixingAll={fixingAll}
+                    />
+                  ))}
+                </div>
 
-                {!showGenerationLayer && !showDocumentContent && (
-                  <div className="col-start-1 row-start-1 animate-in fade-in duration-300">
-                    <EmptyFAQCanvasState onSelectTemplate={handleSelectTemplate} />
-                  </div>
-                )}
+                <div
+                  aria-hidden={!showStarterContent}
+                  className={cn(
+                    'col-start-1 row-start-1 transition-opacity duration-300 ease-out',
+                    showStarterContent
+                      ? 'opacity-100'
+                      : 'pointer-events-none opacity-0',
+                  )}
+                >
+                  <EmptyFAQCanvasState onSelectTemplate={handleSelectTemplate} />
+                </div>
               </div>
 
-              {showDocumentContent && !showGenerationLayer && (
+              <div className="mt-8 h-10">
                 <button
                   type="button"
                   onClick={() => {
@@ -1679,12 +1681,15 @@ export function FAQSectionCanvas({ sections, generationLabel, onVersionHistory, 
                     if (target) addQuestionToSection(target.id);
                     else handleManualAddQuestion();
                   }}
-                  className="mt-8 flex items-center gap-2 rounded-md px-4 py-2 text-[13px] text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                  className={cn(
+                    'flex items-center gap-2 rounded-md px-4 py-2 text-[13px] text-muted-foreground transition-opacity duration-300 hover:bg-muted hover:text-foreground',
+                    showDocumentContent && !showGenerationLayer ? 'opacity-100' : 'pointer-events-none opacity-0',
+                  )}
                 >
                   <Plus size={14} strokeWidth={1.6} absoluteStrokeWidth />
                   Add question
                 </button>
-              )}
+              </div>
             </div>
             </div>
           </div>
