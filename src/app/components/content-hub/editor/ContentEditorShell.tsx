@@ -58,6 +58,7 @@ import type { FAQFlowData, FlowNavControls, FlowNavState } from '../faq/FAQInlin
 import { Button } from '@/app/components/ui/button';
 import { Badge } from '@/app/components/ui/badge';
 import { FAQSectionCanvas } from '../faq/FAQSectionCanvas';
+import { FAQGenerationProgress } from '../faq/FAQGenerationProgress';
 import { FAQPublishModal } from '../faq/FAQPublishModal';
 import { BlogPublishModal } from '../blog/BlogPublishModal';
 import { BlogInlineCreationFlow } from '../blog/BlogInlineCreationFlow';
@@ -785,8 +786,14 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
     setSetupPhase('generating');
   }
 
+  const [faqGenerationExiting, setFaqGenerationExiting] = useState(false);
+
   function handleFAQGenerationComplete() {
-    setSetupPhase('done');
+    setFaqGenerationExiting(true);
+    window.setTimeout(() => {
+      setSetupPhase('done');
+      setFaqGenerationExiting(false);
+    }, 360);
   }
 
   function handleBlogFlowComplete(data: BlogFlowData) {
@@ -1311,17 +1318,32 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
         </div>
       )}
 
-      {/* ── FAQ section canvas: one persistent document surface for generation + editing ─────────── */}
-      {(setupPhase === 'generating' || setupPhase === 'done') && mode === 'faq' && faqFlowData && (
+      {/* ── FAQ generation progress (generating phase) ─────────────────── */}
+      {setupPhase === 'generating' && mode === 'faq' && faqFlowData && (
+        <div className="flex flex-1 min-h-0 gap-2 bg-[var(--color-canvas,#F7F8FA)] p-2">
+          <LeftPanelSkeleton />
+          <div className="flex flex-1 min-w-0 flex-col overflow-hidden">
+            <FAQGenerationProgress
+              sections={faqFlowData.sections}
+              brandKit={faqFlowData.brandKit}
+              sourceUrl={faqFlowData.sourceUrl}
+              onComplete={handleFAQGenerationComplete}
+              isExiting={faqGenerationExiting}
+            />
+          </div>
+          <ScorePanelSkeleton />
+        </div>
+      )}
+
+      {/* ── FAQ section canvas (done phase) ──────────────────────────────── */}
+      {setupPhase === 'done' && mode === 'faq' && faqFlowData && (
         <FAQSectionCanvas
           sections={faqFlowData.sections}
           generationLabel={generationInfo?.label}
           onEditSettings={handleEditSettings}
           onVersionHistory={() => setVersionHistoryOpen(true)}
-          onGenerationComplete={handleFAQGenerationComplete}
           initialQuestions={preloadedFAQs}
           initialScore={recAeoScore}
-          initialGenerating={setupPhase === 'generating'}
         />
       )}
       {setupPhase === 'generating' && mode === 'blog' && blogFlowData && (
