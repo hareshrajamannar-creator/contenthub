@@ -44,3 +44,17 @@ export const ScorePanelOpen: Story = {
     scorePanelOpen: true,
   },
 };
+
+export const ActionTooltips: Story = {
+  name: 'Action tooltips',
+  args: {
+    ...Default.args,
+  },
+  parameters: {
+    docs: {
+      description: {
+        story: 'Hover the icon buttons to view tooltips for version history, activity, save, and comments.',
+      },
+    },
+  },
+};

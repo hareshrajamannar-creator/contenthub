@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { type ReactNode } from 'react';
 import { cn } from '@/lib/utils';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/app/components/ui/tooltip';
 import { scoreStrokeColor } from './scoreColors';
 
 interface CanvasEditorTopBarProps {
@@ -42,16 +43,22 @@ function TopBarIconButton({
   children: ReactNode;
 }) {
   return (
-    <button
-      type="button"
-      title={title}
-      aria-label={title}
-      disabled={disabled}
-      onClick={onClick}
-      className="flex size-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-30"
-    >
-      {children}
-    </button>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <button
+          type="button"
+          aria-label={title}
+          disabled={disabled}
+          onClick={onClick}
+          className="flex size-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-30"
+        >
+          {children}
+        </button>
+      </TooltipTrigger>
+      <TooltipContent side="bottom" sideOffset={8}>
+        {title}
+      </TooltipContent>
+    </Tooltip>
   );
 }
 
@@ -154,7 +161,7 @@ export function CanvasEditorTopBar({
         <TopBarIconButton title="Save" onClick={onSave}>
           <Bookmark size={15} strokeWidth={1.6} absoluteStrokeWidth />
         </TopBarIconButton>
-        <TopBarIconButton title="Chat" onClick={onChat}>
+        <TopBarIconButton title="Comments" onClick={onChat}>
           <MessageCircle size={15} strokeWidth={1.6} absoluteStrokeWidth />
         </TopBarIconButton>
       </div>
