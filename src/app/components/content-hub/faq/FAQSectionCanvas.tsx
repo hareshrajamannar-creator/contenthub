@@ -753,8 +753,8 @@ function EditableFAQField({
   const [richStyle, setRichStyle] = useState<React.CSSProperties>({});
   const isQuestion = variant === 'question';
   const textClass = isQuestion
-    ? 'text-[28px] font-semibold leading-tight text-foreground'
-    : 'text-[19px] leading-[1.55] text-foreground/90';
+    ? 'text-[24px] font-semibold leading-tight text-foreground'
+    : 'text-[16px] leading-[1.55] text-foreground/90';
   const sharedClass = cn(
     'w-full border-b bg-transparent px-0 py-0.5 text-left tracking-normal transition-colors',
     textClass,
@@ -877,7 +877,7 @@ function QuestionRow({ question, index, totalInSection, onUpdate, onDelete, onMo
         />
 
         {/* Number */}
-        <span className="mt-0.5 w-9 flex-shrink-0 select-none text-right text-[28px] font-semibold leading-tight text-foreground">
+        <span className="mt-0.5 w-9 flex-shrink-0 select-none text-right text-[24px] font-semibold leading-tight text-foreground">
           {index + 1}.
         </span>
 
