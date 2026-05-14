@@ -37,6 +37,11 @@ export const AssignedActive: Story = {
   render: () => <Frame initialActive="Human actions/Assigned to me" />,
 };
 
+export const FixContentActive: Story = {
+  name: 'Fix content active',
+  render: () => <Frame initialActive="Human actions/Fix content" />,
+};
+
 export const FAQAgentsActive: Story = {
   name: 'FAQ agents active',
   render: () => <Frame initialActive="Agents/FAQ generation agents" />,

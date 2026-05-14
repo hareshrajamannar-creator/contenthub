@@ -133,6 +133,7 @@ export type AppView =
   | "content-hub-create"
   | "content-hub-assigned"
   | "content-hub-approve"
+  | "content-hub-fix"
   | "content-hub-agents-faq"
   | "content-hub-agents-blog"
   | "recommendations";
@@ -466,6 +467,7 @@ export default function App() {
     v === "content-hub-create" ||
     v === "content-hub-assigned" ||
     v === "content-hub-approve" ||
+    v === "content-hub-fix" ||
     v === "content-hub-agents-faq" ||
     v === "content-hub-agents-blog" ||
     v === "recommendations";
@@ -711,6 +713,8 @@ export default function App() {
               <div className="flex-1 flex items-center justify-center text-muted-foreground text-sm">Assigned to me — coming soon</div>
             ) : currentView === "content-hub-approve" ? (
               <div className="flex-1 flex items-center justify-center text-muted-foreground text-sm">Awaiting approval — coming soon</div>
+            ) : currentView === "content-hub-fix" ? (
+              <div className="flex-1 flex items-center justify-center text-muted-foreground text-sm">Fix content — coming soon</div>
             ) : currentView === "content-hub-create" ? (
               createViewStartAtFAQCanvas ? (
                 <ContentEditorShell

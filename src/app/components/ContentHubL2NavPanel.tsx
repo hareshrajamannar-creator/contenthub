@@ -27,6 +27,7 @@ export type ContentHubSubView =
   | 'content-hub-calendar'
   | 'content-hub-assigned'
   | 'content-hub-approve'
+  | 'content-hub-fix'
   | 'content-hub-agents-faq'
   | 'content-hub-agents-blog';
 
@@ -47,7 +48,7 @@ const LABEL_TO_VIEW: Record<string, ContentHubSubView> = {
   'Calendar':                    'content-hub-calendar',
   'Assigned to me':              'content-hub-assigned',
   'Awaiting approval':           'content-hub-approve',
-  'Fix content':                 'content-hub-projects',
+  'Fix content':                 'content-hub-fix',
   'Drafts':                      'content-hub-projects',
   'FAQ generation agents':       'content-hub-agents-faq',
   'Blog recommendation agents':  'content-hub-agents-blog',
