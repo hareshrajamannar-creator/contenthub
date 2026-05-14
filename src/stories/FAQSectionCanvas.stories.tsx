@@ -59,6 +59,16 @@ export const LargeSet: Story = {
   },
 };
 
+export const GeneratingInDocument: Story = {
+  name: 'Generating in document',
+  args: {
+    sections: TWO_SECTIONS,
+    generationLabel: 'AEO optimized · 10 FAQs',
+    initialGenerating: true,
+    onEditSettings: () => console.log('Edit settings'),
+  },
+};
+
 export const TextEditingToolbar: Story = {
   name: 'Text editing toolbar',
   args: {

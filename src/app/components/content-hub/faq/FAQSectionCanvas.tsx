@@ -6,9 +6,8 @@
  *  ┌──────────────────────┬──────────────────────────────────────┬─────────┐
  *  │  Left panel (280px)  │  Center canvas (flex-1)              │  Score  │
  *  │  AI / Manual tabs    │  Floating toolbar (undo + zoom)      │  panel  │
- *  │                      │  Single FAQ card                     │ (280px) │
- *  │                      │    ├─ card header (score pill)       │         │
- *  │                      │    └─ section sub-cards + add btn    │         │
+ *  │                      │  Flat document editor                │ (280px) │
+ *  │                      │    └─ numbered Q&A blocks            │         │
  *  └──────────────────────┴──────────────────────────────────────┴─────────┘
  */
 
@@ -16,7 +15,7 @@ import React, { useState, useCallback, useRef, useEffect, useLayoutEffect } from
 import {
   GripVertical, GripHorizontal, ChevronDown, ChevronRight, Trash2, Plus,
   AlertTriangle, XCircle, CheckCircle2,
-  ArrowUp, ArrowDown, Sparkles, Layers,
+  ArrowUp, ArrowDown, Sparkles,
   Bookmark, BookmarkX, MessageSquare,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -69,6 +68,8 @@ export interface FAQSectionCanvasProps {
   initialQuestions?: { question: string; answer: string }[];
   /** AEO score from the recommendation — used as the starting content score */
   initialScore?: number;
+  /** Story/demo hook for showing generation inside the document surface. */
+  initialGenerating?: boolean;
 }
 
 // ── Build section data from preloaded questions ───────────────────────────────
@@ -401,6 +402,54 @@ function FAQGeneratingState() {
   );
 }
 
+function FAQDocumentGenerationStrip({ totalQuestions }: { totalQuestions: number }) {
+  const count = Math.max(1, totalQuestions);
+
+  return (
+    <div className="mb-8 overflow-hidden rounded-lg bg-muted/45 px-4 py-2 animate-in fade-in slide-in-from-top-2 duration-300">
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex min-w-0 items-center gap-2">
+          <span className="relative flex size-6 flex-none items-center justify-center rounded-full bg-primary/10">
+            <Sparkles size={13} strokeWidth={1.6} absoluteStrokeWidth className="text-primary" />
+            <span className="absolute inset-0 rounded-full border border-primary/25 animate-ping" />
+          </span>
+          <div className="min-w-0">
+            <p className="text-[13px] font-medium text-foreground">Writing {count} FAQ answers</p>
+            <p className="text-[12px] text-muted-foreground">Questions will settle into the document as they finish.</p>
+          </div>
+        </div>
+        <div className="hidden h-1.5 w-28 overflow-hidden rounded-full bg-background/80 sm:block">
+          <div className="h-full w-2/3 rounded-full bg-primary animate-pulse" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function FAQDocumentSkeleton({ count }: { count: number }) {
+  return (
+    <div className="space-y-8">
+      {Array.from({ length: Math.max(1, count) }).map((_, index) => (
+        <div
+          key={index}
+          className="animate-pulse"
+          style={{ animationDelay: `${index * 80}ms` }}
+        >
+          <div className="mb-4 flex items-center gap-4">
+            <div className="h-7 w-8 rounded-md bg-muted" />
+            <div className="h-7 w-[min(560px,70%)] rounded-md bg-muted" />
+          </div>
+          <div className="ml-11 space-y-2.5">
+            <div className="h-4 w-full rounded-full bg-muted/70" />
+            <div className="h-4 w-[92%] rounded-full bg-muted/70" />
+            <div className="h-4 w-[74%] rounded-full bg-muted/70" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 // ── Left panel tab items ──────────────────────────────────────────────────────
 
 const LEFT_TAB_ITEMS = [
@@ -601,12 +650,10 @@ function FAQSuggestedStyleCard({
 
 function FAQManualContent({
   onAddQuestion,
-  onAddSection,
   onAddPrebuiltSection,
   onInsertSavedBlock,
 }: {
   onAddQuestion: () => void;
-  onAddSection: () => void;
   onAddPrebuiltSection: (template: typeof FAQ_PREBUILT_SECTIONS[number]) => void;
   onInsertSavedBlock: (block: SavedBlock) => void;
 }) {
@@ -623,16 +670,11 @@ function FAQManualContent({
 
       <div className="flex-1 min-h-0 overflow-y-auto px-4 pb-4">
         {manualTab === 'basic' && (
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid gap-2">
             <FAQManualActionCard
               label="Question"
               icon={<Plus size={18} strokeWidth={1.6} absoluteStrokeWidth />}
               onClick={onAddQuestion}
-            />
-            <FAQManualActionCard
-              label="Section"
-              icon={<Layers size={18} strokeWidth={1.6} absoluteStrokeWidth />}
-              onClick={onAddSection}
             />
           </div>
         )}
@@ -661,7 +703,7 @@ function FAQManualContent({
               <div className="space-y-1">
                 <p className="text-[13px] font-medium text-foreground">No saved blocks yet</p>
                 <p className="text-[12px] leading-relaxed text-muted-foreground">
-                  Save FAQ sections from the canvas and reuse them here.
+                  Save FAQ content from the canvas and reuse it here.
                 </p>
               </div>
             </div>
@@ -710,10 +752,10 @@ function EditableFAQField({
   const [richStyle, setRichStyle] = useState<React.CSSProperties>({});
   const isQuestion = variant === 'question';
   const textClass = isQuestion
-    ? 'text-[13px] font-medium text-foreground'
-    : 'text-[13px] leading-relaxed text-muted-foreground';
+    ? 'text-[28px] font-semibold leading-tight text-foreground'
+    : 'text-[19px] leading-[1.55] text-foreground/90';
   const sharedClass = cn(
-    'w-full border-b bg-transparent px-0 py-0.5 text-left transition-colors',
+    'w-full border-b bg-transparent px-0 py-0.5 text-left tracking-normal transition-colors',
     textClass,
   );
 
@@ -820,26 +862,26 @@ function QuestionRow({ question, index, totalInSection, onUpdate, onDelete, onMo
 
   return (
     <div className={cn(
-      'group relative border-b border-border last:border-b-0',
-      question.status === 'blocked' && 'bg-destructive/[0.03]',
-      question.status === 'warning' && 'bg-amber-50/40',
+      'group relative rounded-lg transition-colors hover:bg-muted/35',
+      question.status === 'blocked' && 'bg-destructive/[0.025]',
+      question.status === 'warning' && 'bg-amber-50/35',
     )}>
-      <div className="flex items-start gap-2 px-4 py-3">
+      <div className="flex items-start gap-4 px-4 py-4">
         {/* Drag handle */}
         <GripVertical
           size={14}
           strokeWidth={1.6}
           absoluteStrokeWidth
-          className="text-muted-foreground/30 mt-1 flex-shrink-0 cursor-grab opacity-0 group-hover:opacity-100 transition-opacity"
+          className="text-muted-foreground/30 mt-2 flex-shrink-0 cursor-grab opacity-0 group-hover:opacity-100 transition-opacity"
         />
 
         {/* Number */}
-        <span className="text-[12px] text-muted-foreground/60 mt-1 flex-shrink-0 w-5 text-right select-none">
+        <span className="mt-0.5 w-9 flex-shrink-0 select-none text-right text-[28px] font-semibold leading-tight text-foreground">
           {index + 1}.
         </span>
 
         {/* Content */}
-        <div className="flex-1 min-w-0 space-y-2">
+        <div className="flex-1 min-w-0 space-y-3">
           <EditableFAQField
             value={question.question}
             onChange={value => onUpdate({ question: value })}
@@ -851,10 +893,10 @@ function QuestionRow({ question, index, totalInSection, onUpdate, onDelete, onMo
           {/* Answer — shimmer while fixing, editable otherwise */}
           <div>
             {isBeingFixed ? (
-              <div className="space-y-2 py-1 animate-pulse">
-                <div className="h-2.5 w-full rounded-full bg-muted" />
-                <div className="h-2.5 w-5/6 rounded-full bg-muted" />
-                <div className="h-2.5 w-4/5 rounded-full bg-muted" />
+              <div className="space-y-2.5 py-1 animate-pulse">
+                <div className="h-4 w-full rounded-full bg-muted" />
+                <div className="h-4 w-5/6 rounded-full bg-muted" />
+                <div className="h-4 w-4/5 rounded-full bg-muted" />
               </div>
             ) : (
               <EditableFAQField
@@ -893,7 +935,7 @@ function QuestionRow({ question, index, totalInSection, onUpdate, onDelete, onMo
         </div>
 
         {/* Right side actions */}
-        <div className="flex items-center gap-1 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity mt-0.5">
+        <div className="flex flex-shrink-0 items-center gap-1 rounded-md bg-background/95 p-1 opacity-0 shadow-sm ring-1 ring-border/60 transition-opacity group-hover:opacity-100 mt-0.5">
           {question.status !== 'ready' && (
             question.status === 'warning'
               ? <AlertTriangle size={13} strokeWidth={1.6} absoluteStrokeWidth className="text-amber-500" />
@@ -1113,7 +1155,7 @@ function SectionBlock({
 
 // ── Main component ────────────────────────────────────────────────────────────
 
-export function FAQSectionCanvas({ sections, generationLabel, onVersionHistory, initialQuestions, initialScore }: FAQSectionCanvasProps) {
+export function FAQSectionCanvas({ sections, generationLabel, onVersionHistory, initialQuestions, initialScore, initialGenerating = false }: FAQSectionCanvasProps) {
   const [sectionData, setSectionData] = useState<FAQSectionData[]>(() =>
     initialQuestions && initialQuestions.length > 0
       ? buildSectionDataFromQuestions(initialQuestions)
@@ -1126,7 +1168,7 @@ export function FAQSectionCanvas({ sections, generationLabel, onVersionHistory, 
   const [fixingAll, setFixingAll] = useState(false);
   const [panelBump, setPanelBump] = useState(0);
   const baseScore = initialScore;
-  const [isGeneratingFromCopilot, setIsGeneratingFromCopilot] = useState(false);
+  const [isGeneratingFromCopilot, setIsGeneratingFromCopilot] = useState(initialGenerating);
   const [activityOpen, setActivityOpen] = useState(false);
   const [richTextVisible, setRichTextVisible] = useState(false);
   const [canvasToolbarPosition, setCanvasToolbarPosition] = useState<EditorToolbarPosition>({ top: 96, left: 640 });
@@ -1278,6 +1320,13 @@ export function FAQSectionCanvas({ sections, generationLabel, onVersionHistory, 
 
   const faqConfig = EDITOR_CONFIGS['faq'];
   const visibleSections = sectionData.filter(section => !section.standalone);
+  const flatQuestions = sectionData.flatMap(section =>
+    section.questions.map(question => ({ section, question }))
+  );
+  const generationQuestionCount = Math.max(
+    1,
+    totalQuestions || sections.reduce((sum, section) => sum + section.count, 0) || 10,
+  );
 
   const updateSection = useCallback((sId: string, patch: Partial<FAQSectionData>) => {
     setData(prev => prev.map(s => s.id === sId ? { ...s, ...patch } : s));
@@ -1312,6 +1361,31 @@ export function FAQSectionCanvas({ sections, generationLabel, onVersionHistory, 
       [next[idx], next[swap]] = [next[swap], next[idx]];
       return { ...section, questions: next };
     }));
+  }, [setData]);
+
+  const moveQuestionInDocument = useCallback((sId: string, qId: string, dir: 'up' | 'down') => {
+    setData(prev => {
+      const flat = prev.flatMap(section =>
+        section.questions.map(question => ({ sectionId: section.id, question }))
+      );
+      const index = flat.findIndex(item => item.sectionId === sId && item.question.id === qId);
+      const swap = dir === 'up' ? index - 1 : index + 1;
+      if (index < 0 || swap < 0 || swap >= flat.length) return prev;
+
+      const nextFlat = [...flat];
+      [nextFlat[index], nextFlat[swap]] = [nextFlat[swap], nextFlat[index]];
+      const queues = new Map<string, FAQQuestion[]>();
+      nextFlat.forEach(item => {
+        const queue = queues.get(item.sectionId) ?? [];
+        queue.push(item.question);
+        queues.set(item.sectionId, queue);
+      });
+
+      return prev.map(section => ({
+        ...section,
+        questions: queues.get(section.id) ?? [],
+      }));
+    });
   }, [setData]);
 
   const deleteSection = useCallback((sId: string) => {
@@ -1434,6 +1508,9 @@ export function FAQSectionCanvas({ sections, generationLabel, onVersionHistory, 
 
   const handleCopilotStartGenerating = useCallback(() => {
     setIsGeneratingFromCopilot(true);
+    setScorePanelOpen(false);
+    setCommentsOpen(false);
+    setActivityOpen(false);
     window.setTimeout(() => {
       const copilotSections: FAQSection[] = [
         { id: `ai-${Date.now()}-1`, title: 'General questions', description: '', count: 5 },
@@ -1477,7 +1554,6 @@ export function FAQSectionCanvas({ sections, generationLabel, onVersionHistory, 
           ) : (
             <FAQManualContent
               onAddQuestion={handleManualAddQuestion}
-              onAddSection={addSection}
               onAddPrebuiltSection={handleAddPrebuiltSection}
               onInsertSavedBlock={handleInsertSavedBlock}
             />
@@ -1533,65 +1609,53 @@ export function FAQSectionCanvas({ sections, generationLabel, onVersionHistory, 
 
           {sectionData.length === 0 && !isGeneratingFromCopilot ? (
             <EmptyFAQCanvasState onSelectTemplate={handleSelectTemplate} />
-          ) : isGeneratingFromCopilot ? (
-            <FAQGeneratingState />
           ) : (
-          /* FAQ card container — padding stays fixed, only the card scales */
+          /* Document container — padding stays fixed, only the page scales */
           <div className="px-8 py-6 pb-10">
             <div style={{ zoom }}>
             <div
-              className="rounded-xl border border-border/60 bg-background animate-in fade-in zoom-in-95 fill-mode-both"
+              className="mx-auto min-h-[calc(100vh-160px)] max-w-[1040px] rounded-lg bg-background px-16 py-14 shadow-[0_18px_60px_rgba(15,23,42,0.08)] ring-1 ring-border/40 animate-in fade-in zoom-in-95 fill-mode-both"
               style={{ animationDuration: '380ms', animationDelay: '160ms' }}
             >
+              {isGeneratingFromCopilot && (
+                <>
+                  <FAQDocumentGenerationStrip totalQuestions={generationQuestionCount} />
+                  <FAQDocumentSkeleton count={generationQuestionCount} />
+                </>
+              )}
 
-              {/* Section sub-cards with visual separation */}
-              <div className="p-4 flex flex-col gap-3">
-                {sectionData.map(section => {
-                  if (section.standalone) {
-                    return section.questions.map((question, qi) => (
-                      <QuestionRow
-                        key={question.id}
-                        question={question}
-                        index={qi}
-                        totalInSection={section.questions.length}
-                        onUpdate={patch => updateQuestionInSection(section.id, question.id, patch)}
-                        onDelete={() => deleteQuestionFromSection(section.id, question.id)}
-                        onMoveUp={() => moveQuestionInSection(section.id, question.id, 'up')}
-                        onMoveDown={() => moveQuestionInSection(section.id, question.id, 'down')}
-                        fixingAll={fixingAll}
-                      />
-                    ));
-                  }
-
-                  const sectionIndex = visibleSections.findIndex(visible => visible.id === section.id);
-                  return (
-                    <SectionBlock
-                      key={section.id}
-                      section={section}
-                      sectionIndex={sectionIndex}
-                      totalSections={visibleSections.length}
-                      onUpdate={patch => updateSection(section.id, patch)}
-                      onDelete={() => deleteSection(section.id)}
-                      onMoveUp={() => moveSection(section.id, 'up')}
-                      onMoveDown={() => moveSection(section.id, 'down')}
-                      onAddQuestion={() => addQuestionToSection(section.id)}
-                      onSaveToSaved={() => setSavingTarget(section)}
+              {!isGeneratingFromCopilot && (
+                <div className="space-y-6">
+                  {flatQuestions.map(({ section, question }, index) => (
+                    <QuestionRow
+                      key={question.id}
+                      question={question}
+                      index={index}
+                      totalInSection={flatQuestions.length}
+                      onUpdate={patch => updateQuestionInSection(section.id, question.id, patch)}
+                      onDelete={() => deleteQuestionFromSection(section.id, question.id)}
+                      onMoveUp={() => moveQuestionInDocument(section.id, question.id, 'up')}
+                      onMoveDown={() => moveQuestionInDocument(section.id, question.id, 'down')}
                       fixingAll={fixingAll}
-                      entranceDelay={260 + sectionIndex * 90}
                     />
-                  );
-                })}
+                  ))}
+                </div>
+              )}
 
-                {/* Add section */}
+              {!isGeneratingFromCopilot && (
                 <button
                   type="button"
-                  onClick={addSection}
-                  className="w-full flex items-center justify-center gap-2 rounded-xl border border-border py-3 text-[13px] text-muted-foreground hover:text-foreground hover:border-primary/40 hover:bg-muted/20 transition-colors"
+                  onClick={() => {
+                    const target = sectionData[0];
+                    if (target) addQuestionToSection(target.id);
+                    else handleManualAddQuestion();
+                  }}
+                  className="mt-8 flex items-center gap-2 rounded-md px-4 py-2 text-[13px] text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                 >
                   <Plus size={14} strokeWidth={1.6} absoluteStrokeWidth />
-                  Add section
+                  Add question
                 </button>
-              </div>
+              )}
             </div>
             </div>
           </div>
