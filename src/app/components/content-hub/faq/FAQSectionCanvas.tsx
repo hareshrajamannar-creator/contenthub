@@ -1169,6 +1169,7 @@ export function FAQSectionCanvas({ sections, generationLabel, onVersionHistory, 
   const [panelBump, setPanelBump] = useState(0);
   const baseScore = initialScore;
   const [isGeneratingFromCopilot, setIsGeneratingFromCopilot] = useState(initialGenerating);
+  const [isRevealingGeneratedContent, setIsRevealingGeneratedContent] = useState(false);
   const [activityOpen, setActivityOpen] = useState(false);
   const [richTextVisible, setRichTextVisible] = useState(false);
   const [canvasToolbarPosition, setCanvasToolbarPosition] = useState<EditorToolbarPosition>({ top: 96, left: 640 });
@@ -1508,6 +1509,7 @@ export function FAQSectionCanvas({ sections, generationLabel, onVersionHistory, 
 
   const handleCopilotStartGenerating = useCallback(() => {
     setIsGeneratingFromCopilot(true);
+    setIsRevealingGeneratedContent(false);
     setScorePanelOpen(false);
     setCommentsOpen(false);
     setActivityOpen(false);
@@ -1518,9 +1520,18 @@ export function FAQSectionCanvas({ sections, generationLabel, onVersionHistory, 
         { id: `ai-${Date.now()}-3`, title: 'Special cases', description: '', count: 4 },
       ];
       setSectionData(generateMockFAQs(copilotSections));
-      setIsGeneratingFromCopilot(false);
+      setIsRevealingGeneratedContent(true);
+      window.setTimeout(() => {
+        setIsGeneratingFromCopilot(false);
+      }, 460);
+      window.setTimeout(() => {
+        setIsRevealingGeneratedContent(false);
+      }, 760);
     }, 3200);
   }, []);
+
+  const showGenerationLayer = isGeneratingFromCopilot || isRevealingGeneratedContent;
+  const showDocumentContent = flatQuestions.length > 0 && (!isGeneratingFromCopilot || isRevealingGeneratedContent);
 
   return (
     <div className="flex flex-1 min-h-0 gap-2 bg-[var(--color-canvas,#F7F8FA)] p-2 animate-in fade-in duration-150">
@@ -1617,32 +1628,51 @@ export function FAQSectionCanvas({ sections, generationLabel, onVersionHistory, 
               className="mx-auto min-h-[calc(100vh-160px)] max-w-[1040px] rounded-lg bg-background px-16 py-14 shadow-[0_18px_60px_rgba(15,23,42,0.08)] ring-1 ring-border/40 animate-in fade-in zoom-in-95 fill-mode-both"
               style={{ animationDuration: '380ms', animationDelay: '160ms' }}
             >
-              {isGeneratingFromCopilot && (
+              {showGenerationLayer && (
                 <>
                   <FAQDocumentGenerationStrip totalQuestions={generationQuestionCount} />
-                  <FAQDocumentSkeleton count={generationQuestionCount} />
                 </>
               )}
 
-              {!isGeneratingFromCopilot && (
-                <div className="space-y-6">
-                  {flatQuestions.map(({ section, question }, index) => (
-                    <QuestionRow
-                      key={question.id}
-                      question={question}
-                      index={index}
-                      totalInSection={flatQuestions.length}
-                      onUpdate={patch => updateQuestionInSection(section.id, question.id, patch)}
-                      onDelete={() => deleteQuestionFromSection(section.id, question.id)}
-                      onMoveUp={() => moveQuestionInDocument(section.id, question.id, 'up')}
-                      onMoveDown={() => moveQuestionInDocument(section.id, question.id, 'down')}
-                      fixingAll={fixingAll}
-                    />
-                  ))}
+              <div className="grid">
+                <div
+                  className={cn(
+                    'col-start-1 row-start-1 transition-all duration-500 ease-out',
+                    showGenerationLayer && !isRevealingGeneratedContent
+                      ? 'opacity-100 blur-0 translate-y-0'
+                      : 'pointer-events-none opacity-0 blur-sm -translate-y-1',
+                  )}
+                >
+                  <FAQDocumentSkeleton count={generationQuestionCount} />
                 </div>
-              )}
 
-              {!isGeneratingFromCopilot && (
+                {showDocumentContent && (
+                  <div
+                    className={cn(
+                      'col-start-1 row-start-1 space-y-6 transition-all duration-500 ease-out',
+                      isGeneratingFromCopilot && !isRevealingGeneratedContent
+                        ? 'pointer-events-none opacity-0 translate-y-2 blur-sm'
+                        : 'opacity-100 translate-y-0 blur-0',
+                    )}
+                  >
+                    {flatQuestions.map(({ section, question }, index) => (
+                      <QuestionRow
+                        key={question.id}
+                        question={question}
+                        index={index}
+                        totalInSection={flatQuestions.length}
+                        onUpdate={patch => updateQuestionInSection(section.id, question.id, patch)}
+                        onDelete={() => deleteQuestionFromSection(section.id, question.id)}
+                        onMoveUp={() => moveQuestionInDocument(section.id, question.id, 'up')}
+                        onMoveDown={() => moveQuestionInDocument(section.id, question.id, 'down')}
+                        fixingAll={fixingAll}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {showDocumentContent && !showGenerationLayer && (
                 <button
                   type="button"
                   onClick={() => {
