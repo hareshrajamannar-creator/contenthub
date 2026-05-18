@@ -6,7 +6,41 @@
 
 /* ─── In-memory store ─── */
 const _agents = new Map();
-const _customTools = new Map();
+
+const _SEED_TOOLS = [
+  {
+    id: '39hbiez',
+    name: 'Webpage scraper',
+    description: 'Scrapes selected business webpages to extract content and context for analysis.',
+    category: 'Data collection',
+  },
+  {
+    id: 's69wacq',
+    name: "Google's PAA questions",
+    description: "Retrieves Google's People Also Ask questions for a given set of search queries.",
+    category: 'Research',
+  },
+  {
+    id: '538goya',
+    name: 'Select FAQs from question pool',
+    description: 'Clusters similar questions, classifies intent, and picks the strongest 8–15 to form the final FAQ set.',
+    category: 'Content selection',
+  },
+  {
+    id: 'qgmncsh',
+    name: 'Send FAQs to Content Hub',
+    description: 'Formats the final FAQ set and pushes it into the Content Hub editor.',
+    category: 'Output',
+  },
+  {
+    id: 'sr1m5sk',
+    name: 'Send to Search AI',
+    description: 'Formats the final FAQ set and sends it to Search AI recommendations.',
+    category: 'Output',
+  },
+];
+
+const _customTools = new Map(_SEED_TOOLS.map(t => [t.id, t]));
 const _agentListeners = new Set();
 const _toolListeners = new Set();
 
