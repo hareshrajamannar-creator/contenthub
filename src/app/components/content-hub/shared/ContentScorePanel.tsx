@@ -168,7 +168,7 @@ export function ContentScorePanel({
     <div className={cn('flex flex-col h-full min-h-0 bg-background', className)}>
 
       {/* Header */}
-      <div className="flex-shrink-0 flex items-center justify-between px-5 py-3 border-b border-[#e5e9f0]">
+      <div className="flex-shrink-0 flex items-center justify-between px-5 py-3 border-b border-white">
         <span className="text-[13px] font-semibold text-foreground">{title}</span>
         {showClose && (
           <button

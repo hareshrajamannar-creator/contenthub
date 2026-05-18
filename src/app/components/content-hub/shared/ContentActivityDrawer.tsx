@@ -180,7 +180,7 @@ function ActivityPanelContent({
   return (
     <div className="flex h-full flex-col">
       {/* Header */}
-      <div className="flex shrink-0 items-center justify-between border-b border-border px-4 py-3">
+      <div className="flex shrink-0 items-center justify-between border-b border-white px-4 py-3">
         <span className="text-[14px] font-semibold text-foreground">Activity</span>
         <button
           type="button"
