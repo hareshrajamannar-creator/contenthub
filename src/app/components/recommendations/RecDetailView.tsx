@@ -80,6 +80,8 @@ interface AeoLeftPanelProps {
 
 function AeoLeftPanel({ score, subScores, lowScore = false }: AeoLeftPanelProps) {
   const scoreColor = lowScore ? 'text-primary' : 'text-[#3d9e4a]'
+  const barColor = lowScore ? 'var(--color-primary)' : '#4cae3d'
+  const pct = Math.max(0, Math.min(score, 100))
 
   return (
     <div className="flex flex-col gap-4 px-5 py-5">
@@ -95,6 +97,17 @@ function AeoLeftPanel({ score, subScores, lowScore = false }: AeoLeftPanelProps)
         <div className="w-4 h-4 rounded-full border border-muted-foreground/40 flex items-center justify-center flex-shrink-0">
           <span className="text-[10px] text-muted-foreground leading-none">?</span>
         </div>
+      </div>
+
+      {/* Progress bar */}
+      <div
+        role="meter"
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuenow={pct}
+        style={{ width: '100%', height: 8, borderRadius: 999, backgroundColor: '#E5E7EB', overflow: 'hidden' }}
+      >
+        <div style={{ width: `${pct}%`, height: '100%', borderRadius: 999, backgroundColor: barColor, transition: 'width 600ms ease' }} />
       </div>
 
       <div className="border-t border-border" />
