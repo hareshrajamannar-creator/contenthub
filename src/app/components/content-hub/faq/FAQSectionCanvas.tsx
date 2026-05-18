@@ -1129,6 +1129,14 @@ export function FAQSectionCanvas({ sections, generationLabel, onVersionHistory, 
   const [isGeneratingFromCopilot, setIsGeneratingFromCopilot] = useState(initialGenerating);
   const [isRevealingGeneratedContent, setIsRevealingGeneratedContent] = useState(false);
   const [activityOpen, setActivityOpen] = useState(false);
+
+  useEffect(() => {
+    if (scorePanelOpen) {
+      setActivityOpen(false);
+      setCommentsOpen(false);
+    }
+  }, [scorePanelOpen]);
+
   const [richTextVisible, setRichTextVisible] = useState(false);
   const [draggingQId, setDraggingQId] = useState<string | null>(null);
   const [dragOverQId, setDragOverQId] = useState<string | null>(null);

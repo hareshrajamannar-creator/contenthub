@@ -1294,6 +1294,14 @@ export function BlogSectionCanvas({ sections, generationLabel, onVersionHistory,
   const [fixingAll, setFixingAll] = useState(false);
   const [panelBump, setPanelBump] = useState(0);
   const [activityOpen, setActivityOpen] = useState(false);
+
+  useEffect(() => {
+    if (scorePanelOpen) {
+      setActivityOpen(false);
+      setCommentsOpen(false);
+    }
+  }, [scorePanelOpen]);
+
   const [richTextVisible, setRichTextVisible] = useState(false);
   const [draggingBlockId, setDraggingBlockId] = useState<string | null>(null);
   const [dragOverBlockId, setDragOverBlockId] = useState<string | null>(null);
