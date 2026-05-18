@@ -272,14 +272,16 @@ export function ContentScorePanel({
             <div className="flex flex-col gap-3 mt-4">
               <div className="flex items-center justify-between">
                 <span className="text-[13px] font-semibold text-foreground">Ways to improve</span>
-                <button
-                  type="button"
-                  onClick={handleFixAll}
-                  disabled={fixingAll}
-                  className="text-[12px] font-medium text-primary hover:underline disabled:opacity-50"
-                >
-                  Fix all
-                </button>
+                {visibleItems.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={handleFixAll}
+                    disabled={fixingAll}
+                    className="text-[12px] font-medium text-primary hover:underline disabled:opacity-50"
+                  >
+                    Fix all
+                  </button>
+                )}
               </div>
 
               {visibleItems.map(item => {
