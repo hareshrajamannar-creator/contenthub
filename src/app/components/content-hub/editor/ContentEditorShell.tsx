@@ -708,7 +708,7 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
   const [shareOpen, setShareOpen] = useState(false);
   const [shareInitialTab, setShareInitialTab] = useState<'collaborate' | 'download'>('collaborate');
   const [faqScore, setFaqScore] = useState(0);
-  const [faqScorePanelOpen, setFaqScorePanelOpen] = useState(false);
+  const [faqScorePanelOpen, setFaqScorePanelOpen] = useState(true);
   const [commentsOpen, setCommentsOpen] = useState(false);
   const [activityOpen, setActivityOpen] = useState(false);
   const [versionHistoryOpen, setVersionHistoryOpen] = useState(false);
@@ -1251,8 +1251,8 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
                     type="button"
                     onClick={() => setFaqScorePanelOpen(v => !v)}
                     className={cn(
-                      'flex h-[34px] items-center gap-2 rounded-md border border-border px-3 text-[13px] text-muted-foreground transition-colors hover:bg-muted/60',
-                      faqScorePanelOpen && 'bg-muted text-foreground',
+                      'flex h-[34px] items-center gap-2 rounded-md px-3 text-[13px] text-muted-foreground transition-colors hover:bg-muted/60',
+                      faqScorePanelOpen ? 'bg-muted text-foreground' : 'border border-border',
                     )}
                   >
                     <ScoreProgressRing score={faqScore} />
