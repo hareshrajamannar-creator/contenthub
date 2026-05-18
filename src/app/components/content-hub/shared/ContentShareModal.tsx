@@ -1,4 +1,5 @@
 import { useMemo, useState, type ReactNode } from 'react';
+import { toast } from 'sonner';
 import {
   BarChart3,
   Braces,
@@ -6,7 +7,6 @@ import {
   ChevronDown,
   Code,
   Copy,
-  Download,
   File,
   FileText,
   Image,
@@ -46,9 +46,9 @@ interface ContentShareModalProps {
 }
 
 const TABS: { id: ShareTab; label: string }[] = [
+  { id: 'download', label: 'Download' },
   { id: 'collaborate', label: 'Collaborate' },
   { id: 'link', label: 'Share link' },
-  { id: 'download', label: 'Download' },
   { id: 'embed', label: 'Embed' },
 ];
 
@@ -318,28 +318,24 @@ export function ContentShareModal({
           )}
 
           {activeTab === 'download' && (
-            <div className="space-y-6">
-              <div className="grid grid-cols-2 gap-4">
-                {DOWNLOAD_OPTIONS.map(option => {
-                  const Icon = option.icon;
-                  return (
-                    <button
-                      key={option.id}
-                      type="button"
-                      className="group flex items-center gap-4 rounded-[8px] border border-border/70 p-4 text-left transition-colors hover:border-primary/40 hover:bg-muted/30"
-                    >
-                      <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
-                        <Icon size={17} strokeWidth={1.6} absoluteStrokeWidth />
-                      </div>
-                      <span className="flex-1 text-[13px] font-medium text-foreground">{option.label}</span>
-                      <span className="flex items-center gap-1 text-[12px] font-medium text-primary opacity-0 transition-opacity group-hover:opacity-100">
-                        <Download size={13} strokeWidth={1.6} absoluteStrokeWidth />
-                        Download
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
+            <div className="flex flex-col gap-2">
+              {DOWNLOAD_OPTIONS.map(option => (
+                <div
+                  key={option.id}
+                  className="group flex items-center gap-4 rounded-[8px] border border-border/70 px-4 py-3"
+                >
+                  <span className="flex-1 text-[13px] font-medium text-foreground">{option.label}</span>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    className="opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={() => toast.success(`${option.label} download started`)}
+                  >
+                    Download
+                  </Button>
+                </div>
+              ))}
             </div>
           )}
 
