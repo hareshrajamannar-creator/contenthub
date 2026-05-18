@@ -257,43 +257,31 @@ const BLOG_CONTENT: Record<VersionId, BlogVersionBlock[]> = {
 function FAQReadOnlyPreview({ versionId }: { versionId: VersionId }) {
   const sections = FAQ_CONTENT[versionId];
   return (
-    <div className="rounded-xl border border-border/60 bg-background">
-      <div className="p-4 flex flex-col gap-3">
-        {sections.map((section, si) => (
-          <div key={si} className="rounded-xl border border-border/60 bg-background overflow-hidden">
-            {/* Section header — matches SectionBlock header */}
-            <div className="flex items-center gap-2 px-4 py-2.5 bg-muted/30 border-b border-border">
-              <span className="text-[13px] font-semibold text-foreground">{section.title}</span>
-            </div>
-            {/* Questions — matches divide-y pattern */}
-            <div>
-              {section.items.map((item, qi) => (
-                <div
-                  key={qi}
-                  className={cn(
-                    'border-b border-border last:border-b-0',
-                    item.answerChanged && 'bg-amber-50/60',
-                  )}
-                >
-                  <div className="flex items-start gap-2 px-4 py-3">
-                    {/* Index number — matches QuestionRow */}
-                    <span className="text-[12px] text-muted-foreground/60 mt-0.5 shrink-0 w-5 text-right select-none">
-                      {qi + 1}.
-                    </span>
-                    <div className="flex-1 min-w-0 space-y-2">
-                      <p className="text-[13px] font-medium text-foreground leading-snug">
-                        {item.question}
-                      </p>
-                      <p className={cn(
-                        'text-[13px] leading-relaxed text-muted-foreground',
-                        item.answerChanged && 'bg-amber-100 rounded-[3px] px-1',
-                      )}>
-                        {item.answer}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              ))}
+    <div className="mx-auto max-w-[1040px] rounded-lg bg-background px-[30px] pt-[30px] pb-14 shadow-[0_18px_60px_rgba(15,23,42,0.08)] ring-[0.5px] ring-border/20">
+      <div className="space-y-6">
+        {sections.flatMap(section => section.items).map((item, qi) => (
+          <div
+            key={qi}
+            className={cn(
+              'group relative rounded-lg',
+              item.answerChanged && 'bg-amber-50/35',
+            )}
+          >
+            <div className="flex items-start gap-4 px-4 py-4">
+              <span className="mt-0.5 w-9 flex-shrink-0 select-none text-right text-[24px] font-semibold leading-tight text-foreground">
+                {qi + 1}.
+              </span>
+              <div className="flex-1 min-w-0 space-y-3">
+                <p className="text-[24px] font-semibold leading-tight text-foreground">
+                  {item.question}
+                </p>
+                <p className={cn(
+                  'text-[16px] leading-[1.55] text-foreground/90',
+                  item.answerChanged && 'bg-amber-100 rounded-[3px] px-1',
+                )}>
+                  {item.answer}
+                </p>
+              </div>
             </div>
           </div>
         ))}

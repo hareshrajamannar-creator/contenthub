@@ -111,6 +111,12 @@ export interface BlogSectionCanvasProps {
   preloadedBlogSections?: PreloadedSection[];
   /** Recommendation title — used as the hero heading */
   title?: string;
+  /** Called whenever the computed content score changes — lets the parent show it in the outer header */
+  onScoreChange?: (score: number) => void;
+  /** Controlled score-panel open state (from outer header button) */
+  scorePanelOpen?: boolean;
+  /** Called when the panel open state changes internally */
+  onScorePanelChange?: (open: boolean) => void;
 }
 
 // ── Block generation ──────────────────────────────────────────────────────────
@@ -439,29 +445,34 @@ function BlogTemplatePreview({
 function SuggestedStyleCard({
   label,
   title,
-  description,
+  description: _description,
   onClick,
   onRemove,
   previewTitle,
 }: {
   label: string;
   title: string;
-  description: string;
+  description?: string;
   onClick: () => void;
   onRemove?: () => void;
   previewTitle?: string;
 }) {
   return (
-    <div className="overflow-hidden rounded-[10px] border border-border bg-background transition-colors hover:border-primary/30">
+    <div className="group overflow-hidden rounded-[10px] border border-border bg-background transition-colors hover:border-primary/30">
       <button type="button" onClick={onClick} className="block w-full text-left">
-        <div className="border-b border-border bg-muted/60 p-4">
+        <div className="relative border-b border-border bg-muted/60 p-4 transition-colors group-hover:bg-muted/80">
           <div className="h-[116px]">
             <BlogTemplatePreview label={label} title={previewTitle ?? title} />
           </div>
+          {/* Insert overlay */}
+          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+            <span className="rounded-md border border-border bg-background px-3 py-1.5 text-[12px] font-medium text-foreground shadow-sm">
+              Insert
+            </span>
+          </div>
         </div>
-        <div className="space-y-1 p-4">
+        <div className="p-4">
           <p className="text-[13px] font-medium leading-snug text-foreground">{title}</p>
-          <p className="line-clamp-2 text-[11px] leading-relaxed text-muted-foreground">{description}</p>
         </div>
       </button>
       {onRemove && (
@@ -521,12 +532,17 @@ function BlogManualContent({ onAddBlock, onDropFaqSection, onInsertSavedBlock }:
               <button
                 key={label}
                 type="button"
+                draggable
+                onDragStart={e => {
+                  e.dataTransfer.setData('application/blog-add-block', type);
+                  e.dataTransfer.effectAllowed = 'copy';
+                }}
                 onClick={() => onAddBlock(type)}
-                className="flex min-h-[120px] flex-col items-center justify-center gap-2 rounded-xl border border-border bg-background p-4 text-center transition-colors hover:border-primary/40 hover:bg-primary/[0.03] group"
+                className="flex aspect-square flex-col items-center justify-center gap-2 rounded-xl border border-border bg-background p-4 text-center transition-colors hover:border-primary/40 hover:bg-primary/[0.03] group cursor-grab active:cursor-grabbing"
               >
                 <GripHorizontal size={15} strokeWidth={1.6} absoluteStrokeWidth className="text-muted-foreground/50" />
-                <div className="flex size-9 items-center justify-center rounded-xl bg-muted">
-                  <Icon size={18} strokeWidth={1.6} absoluteStrokeWidth className="text-muted-foreground transition-colors group-hover:text-primary" />
+                <div className="text-muted-foreground transition-colors group-hover:text-primary">
+                  <Icon size={18} strokeWidth={1.6} absoluteStrokeWidth />
                 </div>
                 <span className="text-[12px] font-medium leading-tight text-foreground transition-colors group-hover:text-primary">
                   {label}
@@ -609,9 +625,15 @@ interface BlockRowProps {
   onMoveDown: () => void;
   fixingAll?: boolean;
   entranceDelay?: number;
+  isDragging?: boolean;
+  isDragOver?: boolean;
+  onDragStart?: () => void;
+  onDragOver?: (e: React.DragEvent) => void;
+  onDrop?: (e: React.DragEvent) => void;
+  onDragEnd?: () => void;
 }
 
-function BlockRow({ block, index, total, onUpdate, onDelete, onMoveUp, onMoveDown, fixingAll, entranceDelay = 0 }: BlockRowProps) {
+function BlockRow({ block, index, total, onUpdate, onDelete, onMoveUp, onMoveDown, fixingAll, entranceDelay = 0, isDragging, isDragOver, onDragStart, onDragOver, onDrop, onDragEnd }: BlockRowProps) {
   const [fixing, setFixing] = useState(false);
   const isBeingFixed = fixing || (!!fixingAll && block.status !== 'ready');
 
@@ -650,7 +672,23 @@ function BlockRow({ block, index, total, onUpdate, onDelete, onMoveUp, onMoveDow
 
   return (
     <div
-      className={cn('group relative animate-in fade-in slide-in-from-bottom-3 fill-mode-both', statusRing)}
+      draggable
+      onDragStart={e => {
+        e.dataTransfer.setData('application/blog-block-id', block.id);
+        e.dataTransfer.effectAllowed = 'move';
+        onDragStart?.();
+      }}
+      onDragOver={e => {
+        if (e.dataTransfer.types.includes('application/blog-block-id')) onDragOver?.(e);
+      }}
+      onDrop={onDrop}
+      onDragEnd={onDragEnd}
+      className={cn(
+        'group relative animate-in fade-in slide-in-from-bottom-3 fill-mode-both',
+        statusRing,
+        isDragging && 'opacity-40',
+        isDragOver && 'ring-2 ring-inset ring-primary/50 bg-primary/[0.02]',
+      )}
       style={{ animationDuration: '380ms', animationDelay: `${entranceDelay}ms` }}
     >
       {/* Drag handle + actions overlay */}
@@ -774,10 +812,10 @@ function FaqSectionBlock({ block }: { block: BlogBlock }) {
   if (!section) return null;
 
   return (
-    <div className="my-2 rounded-xl border border-border overflow-hidden">
-      {/* Section header — identical style to FAQSectionCanvas SectionBlock */}
+    <div className="my-2 rounded-xl border border-border/60 bg-background overflow-hidden">
+      {/* Section header */}
       <div className="flex items-center gap-2 px-4 py-2.5 bg-muted/30 border-b border-border">
-        <Layers size={13} strokeWidth={1.6} absoluteStrokeWidth className="text-muted-foreground flex-none" />
+        <Layers size={13} strokeWidth={1.6} absoluteStrokeWidth className="text-muted-foreground/40 flex-none" />
         <span className="flex-1 min-w-0 text-[13px] font-semibold text-foreground truncate">
           {section.title}
         </span>
@@ -798,18 +836,18 @@ function FaqSectionBlock({ block }: { block: BlogBlock }) {
         </button>
       </div>
 
-      {/* Questions — exactly like FAQSectionCanvas question rows */}
+      {/* Questions — matching FAQSectionCanvas QuestionRow style */}
       {!collapsed && (
         <div>
           {section.questions.map((q, qi) => (
-            <div key={q.id} className="border-b border-border last:border-b-0 px-4 py-3">
-              <div className="flex items-start gap-2">
-                <span className="text-[12px] text-muted-foreground/60 mt-0.5 w-5 text-right select-none flex-none">
+            <div key={q.id} className="border-b border-border last:border-b-0">
+              <div className="flex items-start gap-4 px-4 py-4">
+                <span className="mt-0.5 w-9 flex-shrink-0 select-none text-right text-[24px] font-semibold leading-tight text-foreground">
                   {qi + 1}.
                 </span>
-                <div className="flex-1 min-w-0 space-y-1">
-                  <p className="text-[13px] font-medium text-foreground">{q.question}</p>
-                  <p className="text-[13px] text-muted-foreground leading-relaxed">{q.answer}</p>
+                <div className="flex-1 min-w-0 space-y-3">
+                  <p className="text-[24px] font-semibold leading-tight text-foreground">{q.question}</p>
+                  <p className="text-[16px] leading-[1.55] text-foreground/90">{q.answer}</p>
                 </div>
               </div>
             </div>
@@ -1231,7 +1269,7 @@ function CtaBannerBlock({ block, onUpdate }: { block: BlogBlock; onUpdate: (p: P
 
 // ── Main component ────────────────────────────────────────────────────────────
 
-export function BlogSectionCanvas({ sections, generationLabel, onVersionHistory, initialScore, preloadedBlogSections, title }: BlogSectionCanvasProps) {
+export function BlogSectionCanvas({ sections, generationLabel, onVersionHistory, initialScore, preloadedBlogSections, title, onScoreChange, scorePanelOpen: externalScorePanelOpen, onScorePanelChange }: BlogSectionCanvasProps) {
   const [blocks, setBlocksState] = useState<BlogBlock[]>(() => {
     if (preloadedBlogSections && preloadedBlogSections.length > 0) {
       return buildBlogBlocksFromSections(title ?? 'Blog post', preloadedBlogSections);
@@ -1244,13 +1282,21 @@ export function BlogSectionCanvas({ sections, generationLabel, onVersionHistory,
     return generated;
   });
   const [leftTab, setLeftTab] = useState<'ai' | 'manual'>('ai');
-  const [zoom, setZoom] = useState(1);
-  const [scorePanelOpen, setScorePanelOpen] = useState(true);
+  const [zoom, setZoom] = useState(0.85);
+  const [internalScorePanelOpen, setInternalScorePanelOpen] = useState(true);
+  const scorePanelOpen = externalScorePanelOpen !== undefined ? externalScorePanelOpen : internalScorePanelOpen;
+  const setScorePanelOpen = useCallback((v: boolean | ((prev: boolean) => boolean)) => {
+    const next = typeof v === 'function' ? v(scorePanelOpen) : v;
+    setInternalScorePanelOpen(next);
+    onScorePanelChange?.(next);
+  }, [scorePanelOpen, onScorePanelChange]);
   const [commentsOpen, setCommentsOpen] = useState(false);
   const [fixingAll, setFixingAll] = useState(false);
   const [panelBump, setPanelBump] = useState(0);
   const [activityOpen, setActivityOpen] = useState(false);
   const [richTextVisible, setRichTextVisible] = useState(false);
+  const [draggingBlockId, setDraggingBlockId] = useState<string | null>(null);
+  const [dragOverBlockId, setDragOverBlockId] = useState<string | null>(null);
   const [canvasToolbarPosition, setCanvasToolbarPosition] = useState<EditorToolbarPosition>({ top: 96, left: 640 });
   const [richTextPosition, setRichTextPosition] = useState<EditorToolbarPosition | undefined>();
   const canvasRef = useRef<HTMLDivElement>(null);
@@ -1391,6 +1437,8 @@ export function BlogSectionCanvas({ sections, generationLabel, onVersionHistory,
   const canvasScore  = Math.round((readyBlocks / Math.max(1, totalBlocks)) * 78);
   const finalScore   = Math.min(100, (initialScore !== undefined ? initialScore : canvasScore) + panelBump);
 
+  useEffect(() => { onScoreChange?.(finalScore); }, [finalScore, onScoreChange]);
+
   const blogConfig = EDITOR_CONFIGS['blog'];
 
   // ── Block CRUD ─────────────────────────────────────────────────────────────
@@ -1453,6 +1501,27 @@ export function BlogSectionCanvas({ sections, generationLabel, onVersionHistory,
     addFaqSection(section);
   }, [addFaqSection]);
 
+  const handleReorderBlocks = useCallback((draggedId: string, targetId: string) => {
+    if (draggedId === targetId) return;
+    setBlocks(prev => {
+      const fromIdx = prev.findIndex(b => b.id === draggedId);
+      const toIdx = prev.findIndex(b => b.id === targetId);
+      if (fromIdx < 0 || toIdx < 0) return prev;
+      const next = [...prev];
+      const [removed] = next.splice(fromIdx, 1);
+      next.splice(toIdx, 0, removed);
+      return next;
+    });
+    setDraggingBlockId(null);
+    setDragOverBlockId(null);
+  }, [setBlocks]);
+
+  const handleCanvasDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    const blockType = e.dataTransfer.getData('application/blog-add-block') as BlockType | '';
+    if (blockType) addBlock(blockType);
+  }, [addBlock]);
+
   const handleItemFixed = useCallback((bump: number) => {
     setPanelBump(p => p + bump);
   }, []);
@@ -1509,6 +1578,7 @@ export function BlogSectionCanvas({ sections, generationLabel, onVersionHistory,
           <CanvasEditorTopBar
             score={finalScore}
             scoreLabel="Content score"
+            hideScore
             scorePanelOpen={scorePanelOpen}
             onScoreClick={() => { setScorePanelOpen(v => !v); setCommentsOpen(false); }}
             canUndo={canUndo}
@@ -1516,8 +1586,7 @@ export function BlogSectionCanvas({ sections, generationLabel, onVersionHistory,
             onUndo={handleUndo}
             onRedo={handleRedo}
             zoom={zoom}
-            onZoomOut={() => setZoom(z => Math.max(0.5, +(z - 0.1).toFixed(2)))}
-            onZoomIn={() => setZoom(z => Math.min(2, +(z + 0.1).toFixed(2)))}
+            onZoomChange={setZoom}
             onVersionHistory={onVersionHistory}
             onActivity={() => { setActivityOpen(v => !v); setScorePanelOpen(false); setCommentsOpen(false); }}
             onChat={() => { setCommentsOpen(v => !v); setScorePanelOpen(false); setActivityOpen(false); }}
@@ -1543,7 +1612,12 @@ export function BlogSectionCanvas({ sections, generationLabel, onVersionHistory,
           </div>
         )}
 
-        <div ref={canvasRef} className="relative min-h-0 flex-1 overflow-y-auto rounded-xl bg-transparent">
+        <div
+          ref={canvasRef}
+          className="relative min-h-0 flex-1 overflow-y-auto rounded-xl bg-transparent"
+          onDragOver={e => { e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; }}
+          onDrop={handleCanvasDrop}
+        >
 
           {/* Blog card container — padding stays fixed, only the card scales */}
           <div className="px-8 py-6 pb-10">
@@ -1567,6 +1641,16 @@ export function BlogSectionCanvas({ sections, generationLabel, onVersionHistory,
                       onMoveDown={() => moveBlock(block.id, 'down')}
                       fixingAll={fixingAll}
                       entranceDelay={260 + idx * 60}
+                      isDragging={draggingBlockId === block.id}
+                      isDragOver={dragOverBlockId === block.id}
+                      onDragStart={() => setDraggingBlockId(block.id)}
+                      onDragOver={e => { e.preventDefault(); setDragOverBlockId(block.id); }}
+                      onDrop={e => {
+                        e.stopPropagation();
+                        const draggedId = e.dataTransfer.getData('application/blog-block-id');
+                        if (draggedId) handleReorderBlocks(draggedId, block.id);
+                      }}
+                      onDragEnd={() => { setDraggingBlockId(null); setDragOverBlockId(null); }}
                     />
                   ))}
                 </div>

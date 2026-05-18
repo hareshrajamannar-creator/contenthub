@@ -1,11 +1,11 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, Fragment, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { cn } from '@/lib/utils'
 
 // Asset base path — '/' locally, '/contenthub/' on GitHub Pages
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const B: string = (import.meta as any).env?.BASE_URL ?? '/'
-import { ArrowLeft, Sparkles, X, Copy, Check, ChevronDown, ChevronUp, CheckCircle2, Info, MoreVertical } from 'lucide-react'
+import { ArrowLeft, Sparkles, X, Copy, Check, ChevronDown, ChevronUp, CheckCircle2, Info, MoreVertical, Maximize2, Clock } from 'lucide-react'
 import { Button } from '@/app/components/ui/button'
 import { Checkbox } from '@/app/components/ui/checkbox'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/app/components/ui/dropdown-menu'
@@ -547,6 +547,49 @@ function ScoreCard({ rec, metrics }: { rec: Recommendation; metrics: BusinessMet
   )
 }
 
+// ── Citation share section ────────────────────────────────────────────────────
+
+function CitationShareSection({ rec, metrics }: { rec: Recommendation; metrics: BusinessMetrics }) {
+  const { key: metricsKey } = getMetricForCategory(rec.category)
+  const yourPct = rec.youScore !== undefined ? rec.youScore : metrics[metricsKey]
+  const rawCompetitors = rec.competitors.length > 0 ? rec.competitors : MOCK_EVIDENCE_COMPETITORS
+  const competitors = rawCompetitors.slice(0, 3)
+  const compPercentages = [83.3, 4.0, 3.0]
+  const topic = 'Residential Property Sales'
+
+  return (
+    <div className="bg-background border border-border rounded-lg p-5">
+      <p className="text-[16px] text-foreground font-normal leading-[24px] mb-4">
+        What is your citation share compared to competitors for &lsquo;{topic}&rsquo;
+      </p>
+      <div className="flex items-center overflow-x-auto">
+        {/* You */}
+        <div className="flex flex-col gap-2 flex-shrink-0">
+          <p className="text-[24px] font-normal text-foreground leading-[1.2] tracking-[-0.5px]">{yourPct.toFixed(1)}%</p>
+          <span className="inline-flex items-center w-fit text-[12px] bg-primary text-primary-foreground px-3 py-1 rounded-full font-normal leading-none">You</span>
+        </div>
+
+        {competitors.map((comp, i) => (
+          <Fragment key={comp.id}>
+            <div className="flex-shrink-0 px-6">
+              <span
+                className="flex items-center justify-center w-9 h-9 rounded-full text-[12px] text-muted-foreground font-light"
+                style={{ background: '#e8f0fe' }}
+              >
+                vs
+              </span>
+            </div>
+            <div className="flex flex-col gap-2 flex-shrink-0">
+              <p className="text-[24px] font-normal text-foreground leading-[1.2] tracking-[-0.5px]">{compPercentages[i].toFixed(1)}%</p>
+              <span className="text-[12px] font-light text-muted-foreground leading-[18px]">{comp.name}</span>
+            </div>
+          </Fragment>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 // ── Blog preview box ──────────────────────────────────────────────────────────
 
 interface BlogPreviewBoxProps {
@@ -631,7 +674,7 @@ function FAQPreviewBox({ rec, onPreviewClick, onNavigateToContentHub }: FAQPrevi
 
 interface Step {
   label: string
-  description: string
+  description: ReactNode
   cta?: { label: string; onClick: () => void }
 }
 
@@ -649,8 +692,8 @@ function Stepper({ steps }: { steps: Step[] }) {
               {!isLast && <div className="w-px flex-1 bg-border mt-1" />}
             </div>
             <div className={cn('flex flex-col flex-1 min-w-0 pt-0.5', !isLast ? 'pb-5' : 'pb-1')}>
-              <p className="text-[14px] text-foreground leading-[22px]">{step.label}</p>
-              <p className="text-[12px] text-muted-foreground leading-[18px] mt-0.5">{step.description}</p>
+              <p className="text-[14px] font-light text-foreground leading-[22px]">{step.label}</p>
+              <div className="text-[12px] font-light text-muted-foreground leading-[18px] mt-0.5">{step.description}</div>
               {step.cta && (
                 <div className="mt-2">
                   <Button variant="outline" size="sm" onClick={step.cta.onClick} className="h-8 text-[13px]">
@@ -675,13 +718,13 @@ function NeedHelpBanner() {
     <div className="flex items-center justify-between gap-4 mx-6 mb-4 mt-2 px-4 py-3 bg-primary/[0.06] rounded-lg">
       <div className="flex items-center gap-2 min-w-0">
         <Info size={14} strokeWidth={1.6} absoluteStrokeWidth className="text-primary flex-shrink-0" />
-        <span className="text-[12px] text-muted-foreground leading-[18px]">
+        <span className="text-[12px] font-light text-muted-foreground leading-[18px]">
           Need help with implementation? Our team will make the updates for you on your website.
         </span>
       </div>
       <div className="flex items-center gap-2 flex-shrink-0">
-        <button className="text-[14px] text-primary font-normal whitespace-nowrap hover:underline">
-          Implement for me
+        <button className="text-[14px] font-light text-primary whitespace-nowrap hover:underline">
+          Contact support
         </button>
         <button
           onClick={() => setDismissed(true)}
@@ -706,7 +749,6 @@ interface ContentDetailProps {
 function ContentDetail({ rec, metrics, onAccept, onNavigateToBlogCanvas }: ContentDetailProps) {
   const [showBlogPreview, setShowBlogPreview] = useState(false)
   const aeoScore = rec.aeoScore?.you ?? 92
-  const topComp = rec.competitors[0]
 
   const isRejectedOrCompleted = rec.status === 'rejected' || rec.status === 'completed' || rec.status === 'in_progress'
 
@@ -722,7 +764,9 @@ function ContentDetail({ rec, metrics, onAccept, onNavigateToBlogCanvas }: Conte
       label: rec.status === 'accepted' || rec.status === 'completed' || rec.status === 'in_progress'
         ? 'Publish to your website'
         : 'Accept and publish to your website',
-      description: 'Publish to your website to boost Search AI score',
+      description: (
+        <>Publish <a href="#" className="text-primary hover:underline">on these pages</a> to boost your Search AI score</>
+      ),
     },
     {
       label: 'Mark it as complete after publishing',
@@ -742,41 +786,18 @@ function ContentDetail({ rec, metrics, onAccept, onNavigateToBlogCanvas }: Conte
         />
       )}
 
-      {/* Score + why it matters */}
-      <div className="flex gap-4 items-stretch">
-        <div className="w-[30%] flex-shrink-0">
-          <ScoreCard rec={rec} metrics={metrics} />
-        </div>
-        {rec.whyItWorks.length > 0 && (
-          <div className="flex-1 bg-background border border-border rounded-lg p-5 min-w-0">
-            <p className="text-[16px] text-foreground font-normal leading-[24px] mb-0.5">Why does this recommendation matter to you</p>
-            <p className="text-[12px] text-muted-foreground leading-[18px] mb-3">We analyzed your reports and found these gaps</p>
-            <ul className="flex flex-col gap-2.5">
-              {rec.whyItWorks.map((pt, i) => (
-                <li key={i} className="flex items-start gap-2.5 text-[13px] text-foreground leading-[21px]">
-                  <span className="mt-[7px] w-[5px] h-[5px] rounded-full bg-muted-foreground flex-shrink-0" />
-                  {pt}
-                </li>
-              ))}
-              {topComp && (
-                <li className="flex items-start gap-2.5 text-[13px] text-foreground leading-[21px]">
-                  <span className="mt-[7px] w-[5px] h-[5px] rounded-full bg-muted-foreground flex-shrink-0" />
-                  {topComp.name} is the top cited competitor
-                </li>
-              )}
-            </ul>
-          </div>
-        )}
-      </div>
+      {/* Citation share */}
+      <CitationShareSection rec={rec} metrics={metrics} />
 
       {/* Blog preview card */}
       <div className="bg-background border border-border rounded-lg">
         <div className="px-5 pt-4 pb-4 flex flex-col">
-          <div className="flex flex-col gap-1">
-            <p className="text-[16px] text-foreground font-normal leading-[24px]">How can you fix this gap</p>
-            <p className="text-[16px] text-foreground font-normal leading-[24px]">{rec.title}</p>
+          <p className="text-[16px] text-foreground font-normal leading-[24px]">How can you fix this gap</p>
+          <p className="text-[14px] font-light text-muted-foreground leading-[22px] mt-1">{rec.title}</p>
+          <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+            <p className="text-[12px] font-light text-muted-foreground leading-[18px] flex-1 min-w-0">{rec.description}</p>
+            <span className="inline-flex items-center rounded-full border border-border text-muted-foreground text-[12px] font-light px-2.5 py-0.5 flex-shrink-0">12 locations</span>
           </div>
-          <p className="text-[14px] text-muted-foreground font-normal leading-[20px] mt-1">{rec.description}</p>
           <div className="mt-3">
             <BlogPreviewBox rec={rec} aeoScore={aeoScore} onOpenClick={() => setShowBlogPreview(true)} onAccept={onNavigateToBlogCanvas ?? onAccept} />
           </div>
@@ -788,12 +809,16 @@ function ContentDetail({ rec, metrics, onAccept, onNavigateToBlogCanvas }: Conte
         <div className="bg-background border border-border rounded-lg">
           <div className="px-5 pt-5 pb-3">
             <p className="text-[16px] text-foreground font-normal leading-[24px]">What to do next</p>
-            <p className="text-[12px] text-muted-foreground leading-[18px] mt-0.5">Step by step guide on what you need to do next</p>
+            <p className="text-[12px] font-light text-muted-foreground leading-[18px] mt-0.5">Step by step guide on what you need to do next</p>
           </div>
           <Stepper steps={steps} />
           <NeedHelpBanner />
         </div>
       )}
+
+      {/* Evidence sections */}
+      <CompetitorCitationsCard rec={rec} />
+      <LLMResponsesCard rec={rec} />
 
     </div>
   )
@@ -822,7 +847,9 @@ function FAQDetail({ rec, metrics, onNavigateToContentHub }: FAQDetailProps) {
     },
     {
       label: 'Add FAQ schema to your website',
-      description: "Paste the structured JSON-LD schema generated by Birdeye into your site's <head> or page body.",
+      description: (
+        <>Paste the FAQ schema <a href="#" className="text-primary hover:underline">on these pages</a> to improve AI citation potential.</>
+      ),
     },
     {
       label: 'Publish to Birdeye website page',
@@ -845,35 +872,18 @@ function FAQDetail({ rec, metrics, onNavigateToContentHub }: FAQDetailProps) {
         />
       )}
 
-      {/* Score + why it matters */}
-      <div className="flex gap-4 items-stretch">
-        <div className="w-[30%] flex-shrink-0">
-          <ScoreCard rec={rec} metrics={metrics} />
-        </div>
-        {rec.whyItWorks.length > 0 && (
-          <div className="flex-1 bg-background border border-border rounded-lg p-5 min-w-0">
-            <p className="text-[16px] text-foreground font-normal leading-[24px] mb-0.5">Why does this recommendation matter to you</p>
-            <p className="text-[12px] text-muted-foreground leading-[18px] mb-3">We analyzed your reports and found these gaps</p>
-            <ul className="flex flex-col gap-2.5">
-              {rec.whyItWorks.map((pt, i) => (
-                <li key={i} className="flex items-start gap-2.5 text-[13px] text-foreground leading-[21px]">
-                  <span className="mt-[7px] w-[5px] h-[5px] rounded-full bg-muted-foreground flex-shrink-0" />
-                  {pt}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-      </div>
+      {/* Citation share */}
+      <CitationShareSection rec={rec} metrics={metrics} />
 
       {/* FAQ preview card */}
       <div className="bg-background border border-border rounded-lg">
         <div className="px-5 pt-4 pb-4 flex flex-col">
-          <div className="flex flex-col gap-1">
-            <p className="text-[16px] text-foreground font-normal leading-[24px]">How can you fix this gap</p>
-            <p className="text-[16px] text-foreground font-normal leading-[24px]">{rec.title}</p>
+          <p className="text-[16px] text-foreground font-normal leading-[24px]">How can you fix this gap</p>
+          <p className="text-[14px] font-light text-muted-foreground leading-[22px] mt-1">{rec.title}</p>
+          <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+            <p className="text-[12px] font-light text-muted-foreground leading-[18px] flex-1 min-w-0">{rec.description}</p>
+            <span className="inline-flex items-center rounded-full border border-border text-muted-foreground text-[12px] font-light px-2.5 py-0.5 flex-shrink-0">12 locations</span>
           </div>
-          <p className="text-[14px] text-muted-foreground font-normal leading-[20px] mt-1">{rec.description}</p>
           <div className="mt-3">
             <FAQPreviewBox
               rec={rec}
@@ -889,12 +899,16 @@ function FAQDetail({ rec, metrics, onNavigateToContentHub }: FAQDetailProps) {
         <div className="bg-background border border-border rounded-lg">
           <div className="px-5 pt-5 pb-3">
             <p className="text-[16px] text-foreground font-normal leading-[24px]">What to do next</p>
-            <p className="text-[12px] text-muted-foreground leading-[18px] mt-0.5">Step by step guide on what you need to do next</p>
+            <p className="text-[12px] font-light text-muted-foreground leading-[18px] mt-0.5">Step by step guide on what you need to do next</p>
           </div>
           <Stepper steps={steps} />
           <NeedHelpBanner />
         </div>
       )}
+
+      {/* Evidence sections */}
+      <CompetitorCitationsCard rec={rec} />
+      <LLMResponsesCard rec={rec} />
     </div>
   )
 }
@@ -967,6 +981,10 @@ function GenericDetail({ rec, metrics }: GenericDetailProps) {
           <NeedHelpBanner />
         </div>
       )}
+
+      {/* Evidence sections */}
+      <CompetitorCitationsCard rec={rec} />
+      <LLMResponsesCard rec={rec} />
     </div>
   )
 }
@@ -1156,161 +1174,305 @@ const COMP_SUBSCORE_VALS = [
   [80, 81, 79, 82, 80, 82], // Elders       → weighted avg ≈ 81
 ]
 
-function CompetitorCitationsCard({ rec }: { rec: Recommendation }) {
-  const [compareOpen, setCompareOpen] = useState(false)
-  const [subScoresOpen, setSubScoresOpen] = useState(true)
-  const rawCompetitors = rec.competitors.length > 0 ? rec.competitors : MOCK_EVIDENCE_COMPETITORS
-  const competitors = rawCompetitors.slice(0, 3)
-  const aeoYourScore = rec.aeoScore?.you ?? 92
-  const subScores = rec.aeoScore?.subScores ?? DEFAULT_BLOG_SUBSCORES
+const MOCK_COMP_CARDS = [
+  {
+    id: 'bowery',
+    name: 'Bowery',
+    initial: 'B',
+    avatarBg: '#f59e0b',
+    pageTitle: 'Bowery | Residential Property Sales',
+    pageUrl: 'https://bowery.com.au',
+    snippet: 'Bowery maintains dedicated suburb service pages for key Dubbo areas including Dubbo South, Delroy Park, and Whylandra,...',
+    aeoScore: 79,
+  },
+  {
+    id: 'ray-white',
+    name: 'Ray White Dubbo',
+    initial: 'R',
+    avatarBg: '#374151',
+    pageTitle: 'Ray White Dubbo | Residential Property Sales',
+    pageUrl: 'https://raywhitedubbo.com.au',
+    snippet: "Ray White Dubbo's suburb profile pages include median sale prices, days-on-market data, and local agent bios — making the...",
+    aeoScore: 57,
+  },
+  {
+    id: 'mcgrath',
+    name: 'McGrath Dubbo',
+    initial: 'M',
+    avatarBg: '#7c3aed',
+    pageTitle: 'McGrath Dubbo | Residential Property Sales',
+    pageUrl: 'https://mcgrath.com.au',
+    snippet: 'McGrath Dubbo has suburb-specific pages targeting rural and lifestyle property seekers in surrounding areas like Narromine a...',
+    aeoScore: 41,
+  },
+]
 
+function CompetitorAeoScore({ score }: { score: number }) {
+  const r = 8
+  const circ = 2 * Math.PI * r
+  const pct = Math.min(score, 100) / 100
+  return (
+    <div className="flex items-center gap-1.5">
+      <span className="text-[12px] font-light text-muted-foreground">AEO content score</span>
+      <svg width="20" height="20" viewBox="0 0 20 20" style={{ transform: 'rotate(270deg)' }} className="flex-shrink-0">
+        <circle cx="10" cy="10" r={r} fill="none" stroke="hsl(var(--border))" strokeWidth="2.5" />
+        <circle cx="10" cy="10" r={r} fill="none" stroke="#4cae3d" strokeWidth="2.5" strokeDasharray={circ} strokeDashoffset={circ * (1 - pct)} strokeLinecap="round" />
+      </svg>
+      <span className="text-[14px] font-normal leading-none" style={{ color: '#4cae3d' }}>{score}</span>
+      <span className="text-[12px] font-light text-muted-foreground leading-none">/100</span>
+    </div>
+  )
+}
+
+function CompetitorCitationsCard({ rec }: { rec: Recommendation }) {
   const query = rec.promptsTriggeringThis[0]
-    ?? 'Find real estate agencies near me specializing in residential property sales.'
+    ?? 'Find real estate agencies near me specializing in residential property sales'
 
   return (
     <div className="bg-background border border-border rounded-xl overflow-hidden">
-      <div className="px-5 pt-4 pb-2">
-        <p className="text-[16px] text-foreground font-normal leading-[24px]">
-          Which top competitor blogs are cited by AI for &lsquo;{query}&rsquo;
-        </p>
-        <p className="text-[12px] mt-0.5" style={{ color: '#717182' }}>
-          Analyze why competitors blog is getting cited instead of you
+      <div className="px-5 pt-4 pb-4">
+        <div className="flex items-baseline gap-1.5 flex-wrap">
+          <span className="text-[16px] text-foreground font-normal leading-[24px]">Which competitor pages are cited by AI for</span>
+          <button type="button" className="inline-flex items-center gap-1 text-[16px] text-primary font-normal leading-[24px] hover:underline">
+            {query}
+            <ChevronDown size={14} strokeWidth={1.6} absoluteStrokeWidth className="flex-shrink-0" />
+          </button>
+        </div>
+        <p className="text-[12px] font-light text-muted-foreground mt-0.5">
+          Analyze competitor blogs cited in AI-generated answers for prompts you are tracking
         </p>
       </div>
 
-      {/* Competitor rows */}
-      <div className="px-6 pt-4 pb-4 flex flex-col gap-3">
-        {competitors.map((comp, idx) => {
-          const initial = comp.name.charAt(0).toUpperCase()
-          const badge = getBadgeStyle(initial)
-          return (
-            <div key={comp.id} className="rounded-lg bg-[var(--s-bg-secondary)] p-3">
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex flex-col gap-1 flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span
-                      className="w-5 h-5 rounded flex items-center justify-center text-[11px] font-bold flex-shrink-0"
-                      style={{ backgroundColor: badge.bg, color: badge.color }}
-                    >
-                      {initial}
-                    </span>
-                    <span className="text-[12px] font-normal leading-none" style={{ color: '#717182' }}>{comp.name}</span>
-                  </div>
-                  {comp.pageUrl ? (
-                    <a
-                      href={comp.pageUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-[13px] text-primary hover:underline leading-[20px] truncate"
-                    >
-                      {comp.name} | Leading agency in Dubbo
-                    </a>
-                  ) : (
-                    <span className="text-[13px] text-foreground leading-[20px] truncate">
-                      {comp.name} | Leading agency in Dubbo
-                    </span>
-                  )}
-                  <p className="text-[13px] leading-[20px] line-clamp-1" style={{ color: '#717182' }}>{comp.llmSnippet}</p>
-                </div>
-                <AeoScoreBox score={COMP_AEO_SCORES[idx] ?? 81} />
-              </div>
+      {/* 3-column card grid */}
+      <div className="px-5 pb-5 grid grid-cols-3 gap-4">
+        {MOCK_COMP_CARDS.map(comp => (
+          <div key={comp.id} className="rounded-lg bg-[var(--s-bg-secondary)] p-4 flex flex-col gap-3">
+            {/* Avatar + name */}
+            <div className="flex items-center gap-2">
+              <span
+                className="w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-normal text-white flex-shrink-0"
+                style={{ backgroundColor: comp.avatarBg }}
+              >
+                {comp.initial}
+              </span>
+              <span className="text-[12px] font-light text-muted-foreground leading-none truncate">{comp.name}</span>
             </div>
-          )
-        })}
 
-        {/* Compare AEO score collapsible */}
-        <div className="rounded-lg bg-[var(--s-bg-secondary)] overflow-hidden">
-          <button
-            type="button"
-            onClick={() => setCompareOpen(v => !v)}
-            className="w-full flex items-start justify-between px-5 py-4 hover:bg-[var(--s-bg-secondary)] transition-colors text-left"
-          >
-            <div>
-              <p className="text-[13px] font-medium text-foreground leading-[20px]">
-                Compare AEO content score for Search AI generated blog vs competitor&apos;s blog
-              </p>
-              <p className="text-[12px] text-muted-foreground leading-[18px]">
-                AEO content score predicts how well your page is likely to perform in answers generated by AI
-              </p>
-            </div>
-            {compareOpen
-              ? <ChevronUp size={15} strokeWidth={1.6} absoluteStrokeWidth className="text-muted-foreground flex-shrink-0 mt-0.5" />
-              : <ChevronDown size={15} strokeWidth={1.6} absoluteStrokeWidth className="text-muted-foreground flex-shrink-0 mt-0.5" />
-            }
-          </button>
+            {/* Page link */}
+            <a
+              href={comp.pageUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[14px] font-normal text-primary hover:underline leading-[20px]"
+            >
+              {comp.pageTitle}
+            </a>
 
-          {compareOpen && (
-            <div className="overflow-x-auto px-5">
-              {/* Column header row — div 2 wrapper owns the px-5 inset */}
-              <div className="flex items-center py-4 border-t border-border">
-                <div className="w-[38%] flex-shrink-0">
-                  <span className="text-[12px] text-muted-foreground">Score</span>
-                </div>
-                <div className="flex-1 min-w-0 flex items-center gap-1.5">
-                  <span className="text-[12px] bg-primary text-primary-foreground px-2.5 py-0.5 rounded-full font-medium leading-none">You</span>
-                  <Info size={13} strokeWidth={1.6} absoluteStrokeWidth className="text-muted-foreground flex-shrink-0" />
-                </div>
-                {competitors.map(comp => (
-                  <div key={comp.id} className="flex-1 min-w-0 flex items-center gap-1.5">
-                    <span className="text-[12px] text-muted-foreground leading-none">{comp.name}</span>
-                    <Info size={13} strokeWidth={1.6} absoluteStrokeWidth className="text-muted-foreground flex-shrink-0" />
-                  </div>
-                ))}
-              </div>
+            {/* Snippet */}
+            <p className="text-[12px] font-light text-muted-foreground leading-[18px] flex-1">{comp.snippet}</p>
 
-              {/* AEO content score row — toggles sub-scores */}
-              <div className="border-t border-border">
-                <button
-                  type="button"
-                  onClick={() => setSubScoresOpen(v => !v)}
-                  className="w-full flex items-center py-4 hover:bg-muted/20 transition-colors text-left"
-                >
-                  <div className="w-[38%] flex-shrink-0 flex items-center gap-2">
-                    <ChevronDown
-                      size={14}
-                      strokeWidth={1.6}
-                      absoluteStrokeWidth
-                      className={cn('text-foreground flex-shrink-0 transition-transform duration-150', !subScoresOpen && '-rotate-90')}
-                    />
-                    <span className="text-[13px] text-foreground font-medium">AEO content score</span>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <span className="text-[13px] text-foreground">{aeoYourScore}%</span>
-                  </div>
-                  {competitors.map((comp, idx) => (
-                    <div key={comp.id} className="flex-1 min-w-0">
-                      <span className="text-[13px] text-foreground">{COMP_AEO_SCORES[idx] ?? 81}%</span>
-                    </div>
-                  ))}
-                </button>
-
-                {/* Sub-score rows */}
-                {subScoresOpen && subScores.map((sub, subIdx) => (
-                  <div key={sub.name} className="flex items-center py-4 border-t border-border">
-                    <div className="w-[38%] flex-shrink-0 pl-6">
-                      <p className="text-[13px] text-foreground leading-[18px]">{sub.name}</p>
-                      <p className="text-[11px] text-muted-foreground leading-[16px]">
-                        Weights: {typeof sub.weight === 'number' && sub.weight < 1
-                          ? (sub.weight * 100).toFixed(1)
-                          : sub.weight}
-                      </p>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <span className="text-[13px] text-foreground">{sub.you}%</span>
-                    </div>
-                    {competitors.map((comp, idx) => (
-                      <div key={comp.id} className="flex-1 min-w-0">
-                        <span className="text-[13px] text-foreground">{COMP_SUBSCORE_VALS[idx]?.[subIdx] ?? sub.competitor}%</span>
-                      </div>
-                    ))}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
+            {/* AEO score */}
+            <CompetitorAeoScore score={comp.aeoScore} />
+          </div>
+        ))}
       </div>
     </div>
+  )
+}
+
+// ── LLM Response Modal ─────────────────────────────────────────────────────────
+
+const RESPONSE_AGENCIES_FULL = [
+  { name: 'Raine & Horne Dubbo', description: "One of Dubbo's largest and longest-running agencies, specialising in residential sales, auctions, rentals, and investment properties. They sold over 200 properties in the last 12 months according to View.com.au.", badges: ['View'] },
+  { name: 'Elders Real Estate Dubbo', description: 'Established local agency with more than 50 years operating in the Dubbo region. Strong focus on residential home sales, lifestyle properties, and auctions.', badges: ['Allhomes', '+2'] },
+  { name: 'Ray White Dubbo', description: 'Well-known national brand with a strong Dubbo office specialising in residential property sales and property management across the region.', badges: [] },
+  { name: 'Bob Berry Real Estate', description: 'Highly rated local agency known for residential sales and investment properties with a strong reputation among Dubbo homeowners and investors.', badges: [] },
+  { name: 'Redden Family Real Estate', description: 'Family-run boutique agency specialising in personalised residential property sales services with excellent customer reviews.', badges: [] },
+  { name: 'Matt Hansen Real Estate', description: 'Popular independent Dubbo agency focused on residential homes, investment properties, and local market expertise.', badges: [] },
+  { name: 'Western Plains Real Estate', description: 'Local agency servicing residential sales and rentals throughout Dubbo and surrounding suburbs.', badges: [] },
+  { name: 'Dubbo Real Estate Agency', description: 'Established agency offering residential property sales, leasing, and property management services.', badges: [] },
+  { name: 'Peter Milling & Company - Livestock & Real Estate Agents Dubbo', description: 'Regional agency handling residential, rural, and lifestyle property sales.', badges: [] },
+  { name: 'Brien Real Estate Agency', description: 'Smaller local agency focused on personalised property sales and management services.', badges: [] },
+]
+
+const RESPONSE_CITATIONS = [
+  { id: 'raine', initial: 'R', avatarBg: '#e53935', name: 'Raine & Horne Dubbo', link: 'Raine & Horne Dubbo | Leading Property Agency in Dubbo', snippet: 'Raine & Horne Dubbo maintains dedicated suburb service pages for key Dubbo areas including Dubbo South, Delroy Park, and surrounding rural communities.' },
+  { id: 'ray-white', initial: 'R', avatarBg: '#1a73e8', name: 'Ray White Dubbo', link: 'Ray White Dubbo | Real Estate Agents & Property Management', snippet: "Ray White Dubbo's suburb profile pages include median sale prices, days-on-market data, and local agent profiles to help buyers and sellers navigate the market." },
+  { id: 'mcgrath', initial: 'M', avatarBg: '#7c3aed', name: 'McGrath Dubbo', link: 'McGrath Dubbo | Residential & Rural Property Specialists', snippet: 'McGrath Dubbo has suburb-specific pages targeting rural and lifestyle property seekers in surrounding areas, with consistent coverage of Dubbo residential sales.' },
+]
+
+function LLMResponseModal({ row, query, onClose }: { row: LLMResponseRow; query: string; onClose: () => void }) {
+  return createPortal(
+    <div
+      className="fixed inset-0 z-[200] flex items-start justify-center overflow-y-auto py-10 px-6"
+      style={{ backgroundColor: 'rgba(33,33,33,0.64)' }}
+      onClick={onClose}
+    >
+      <div
+        className="relative bg-background rounded-lg shadow-xl w-full max-w-[860px] flex flex-col overflow-hidden my-4"
+        onClick={e => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="flex items-start gap-4 px-6 pt-5 pb-4 border-b border-border">
+          <div className="flex-1 min-w-0">
+            <p className="text-[16px] text-foreground font-normal leading-[24px]">{query}</p>
+            <p className="text-[12px] font-light text-muted-foreground mt-0.5">
+              Prompt executed on {row.date} on ChatGPT for {row.location}
+            </p>
+          </div>
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <Button size="sm">Accept</Button>
+            <button
+              onClick={onClose}
+              className="w-8 h-8 flex items-center justify-center rounded hover:bg-muted transition-colors"
+            >
+              <X size={16} strokeWidth={1.6} absoluteStrokeWidth className="text-muted-foreground" />
+            </button>
+          </div>
+        </div>
+
+        {/* Scrollable body */}
+        <div className="overflow-y-auto max-h-[80vh] flex flex-col gap-5 px-6 pt-5 pb-6">
+          {/* Query bubble */}
+          <div className="flex justify-end">
+            <div className="bg-muted/60 rounded-2xl px-4 py-2.5 max-w-[88%]">
+              <p className="text-[13px] text-foreground leading-[20px]">{query}</p>
+            </div>
+          </div>
+
+          {/* Map */}
+          <div className="rounded-lg overflow-hidden relative select-none flex-shrink-0" style={{ height: '280px', minHeight: '280px', background: '#e8e0d5' }}>
+            {/* Road network SVG — preserveAspectRatio none so viewBox fills the rectangle exactly */}
+            <svg
+              className="absolute inset-0"
+              width="100%"
+              height="100%"
+              viewBox="0 0 860 280"
+              preserveAspectRatio="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              {/* Block fill for road surfaces */}
+              <rect width="860" height="280" fill="#e8e0d5"/>
+              {/* Minor grid streets */}
+              <line x1="0" y1="70" x2="860" y2="70" stroke="#d4c5b0" strokeWidth="2"/>
+              <line x1="0" y1="100" x2="860" y2="100" stroke="#d4c5b0" strokeWidth="2"/>
+              <line x1="0" y1="180" x2="860" y2="180" stroke="#d4c5b0" strokeWidth="2"/>
+              <line x1="0" y1="220" x2="860" y2="220" stroke="#d4c5b0" strokeWidth="2"/>
+              <line x1="180" y1="0" x2="180" y2="280" stroke="#d4c5b0" strokeWidth="2"/>
+              <line x1="515" y1="0" x2="515" y2="280" stroke="#d4c5b0" strokeWidth="2"/>
+              <line x1="660" y1="0" x2="660" y2="280" stroke="#d4c5b0" strokeWidth="2"/>
+              {/* Main arterial — horizontal (wider road surface) */}
+              <rect x="0" y="141" width="860" height="12" fill="#c9b89a"/>
+              {/* Main arterial — vertical */}
+              <rect x="356" y="0" width="12" height="280" fill="#c9b89a"/>
+              {/* Peak Hill Rd diagonal */}
+              <line x1="0" y1="103" x2="318" y2="280" stroke="#c9b89a" strokeWidth="7" strokeLinecap="round"/>
+            </svg>
+
+            {/* Green coverage blobs */}
+            <div className="absolute pointer-events-none" style={{ top: '-10px', right: '-10px', width: 160, height: 160, background: 'radial-gradient(circle, rgba(34,197,94,0.30) 0%, transparent 65%)', borderRadius: '50%' }} />
+            <div className="absolute pointer-events-none" style={{ bottom: '-5px', right: '50px', width: 110, height: 110, background: 'radial-gradient(circle, rgba(34,197,94,0.34) 0%, transparent 68%)', borderRadius: '50%' }} />
+
+            {/* Fullscreen button */}
+            <button type="button" className="absolute top-2 left-2 z-10 w-7 h-7 bg-white/95 border border-gray-200 rounded flex items-center justify-center shadow-sm hover:bg-white transition-colors">
+              <Maximize2 size={11} strokeWidth={1.6} absoluteStrokeWidth className="text-gray-600" />
+            </button>
+
+            {/* Time button */}
+            <button type="button" className="absolute bottom-2 left-2 z-10 w-7 h-7 bg-white/95 border border-gray-200 rounded flex items-center justify-center shadow-sm hover:bg-white transition-colors">
+              <Clock size={11} strokeWidth={1.6} absoluteStrokeWidth className="text-gray-600" />
+            </button>
+
+            {/* Suburb labels */}
+            <div className="absolute" style={{ top: '10%', left: '4%' }}><span className="text-[9px] font-normal text-gray-500 drop-shadow-sm">Churchill Gardens</span></div>
+            <div className="absolute" style={{ top: '28%', left: '8%' }}><span className="text-[9px] font-normal text-gray-500 drop-shadow-sm">Delroy Gardens</span></div>
+            <div className="absolute" style={{ top: '60%', left: '44%' }}><span className="text-[9px] font-normal text-gray-500 drop-shadow-sm">South Dubbo</span></div>
+            <div className="absolute" style={{ top: '32%', left: '62%' }}><span className="text-[9px] font-normal text-gray-500 drop-shadow-sm">Yarrawonga</span></div>
+            <div className="absolute" style={{ top: '50%', left: '63%' }}><span className="text-[9px] font-normal text-gray-500 drop-shadow-sm">Keswick</span></div>
+            <div className="absolute" style={{ top: '72%', left: '52%' }}><span className="text-[9px] font-normal text-gray-500 drop-shadow-sm">Southlakes</span></div>
+
+            {/* Peak Hill Rd diagonal label — rotated to match road angle */}
+            <div className="absolute" style={{ top: '64%', left: '7%', transform: 'rotate(29deg)', transformOrigin: 'left center' }}>
+              <span className="text-[8px] font-normal text-gray-400 whitespace-nowrap drop-shadow-sm">Peak Hill Rd</span>
+            </div>
+
+            {/* Rating pins */}
+            <div className="absolute bg-white rounded-full px-2 py-[3px] shadow flex items-center gap-1 text-[10px] font-normal whitespace-nowrap" style={{ top: '16%', left: '42%' }}>
+              <span className="text-yellow-400 text-[11px]">★</span><span className="text-gray-800">4.8</span>
+            </div>
+            <div className="absolute bg-white rounded-full px-2 py-[3px] shadow text-[10px] font-normal whitespace-nowrap text-gray-800" style={{ top: '27%', left: '35%' }}>
+              Ray <span className="text-yellow-400 text-[11px]">★</span> 4.0 Dubbo
+            </div>
+            <div className="absolute bg-white rounded-full px-2 py-[3px] shadow flex items-center gap-1 text-[10px] font-normal whitespace-nowrap" style={{ top: '40%', left: '32%' }}>
+              <span className="text-yellow-400 text-[11px]">★</span><span className="text-gray-800">3.7</span>
+            </div>
+            <div className="absolute bg-white rounded-full px-2 py-[3px] shadow text-[10px] font-normal whitespace-nowrap text-gray-800" style={{ top: '39%', left: '40%' }}>
+              Matt Hansen Real Estate
+            </div>
+            <div className="absolute bg-white rounded-full px-2 py-[3px] shadow flex items-center gap-1 text-[10px] font-normal whitespace-nowrap" style={{ top: '65%', left: '50%' }}>
+              <span className="text-yellow-400 text-[11px]">★</span><span className="text-gray-800">5.0</span>
+            </div>
+            <div className="absolute bg-white rounded-full px-2 py-[3px] shadow text-[10px] font-normal whitespace-nowrap text-gray-500" style={{ top: '74%', left: '50%' }}>
+              Redden Family Real Est...
+            </div>
+          </div>
+
+          {/* AI response text */}
+          <div>
+            <p className="text-[14px] font-light text-foreground leading-[22px]">
+              Here are some of the top real estate agencies in Dubbo, Australia that specialise in residential property sales:
+            </p>
+            <ul className="mt-3 flex flex-col gap-2.5">
+              {RESPONSE_AGENCIES_FULL.map((agency, i) => (
+                <li key={i} className="flex items-start gap-2">
+                  <span className="mt-[9px] w-[5px] h-[5px] rounded-full bg-foreground flex-shrink-0" />
+                  <span className="text-[14px] font-light leading-[22px]">
+                    <span className="text-primary font-normal">{agency.name}</span>
+                    <span className="text-foreground"> — {agency.description}</span>
+                    {agency.badges.length > 0 && (
+                      <span className="inline-flex items-center gap-1 ml-1.5">
+                        {agency.badges.map((b, j) => (
+                          <span key={j} className="text-[11px] font-light border border-border rounded px-1.5 py-0.5 text-muted-foreground leading-none">{b}</span>
+                        ))}
+                      </span>
+                    )}
+                  </span>
+                </li>
+              ))}
+            </ul>
+            <div className="mt-4">
+              <p className="text-[14px] font-light text-foreground leading-[22px]">If you want, I can also help with:</p>
+              <ul className="mt-2 flex flex-col gap-1.5">
+                {['Best agencies specifically for selling homes', 'Agencies with strongest online reviews', 'Boutique vs large franchise comparison', 'Top-performing agents in Dubbo', 'Agencies best for investment properties or first-home buyers', 'Sentiment analysis of customer reviews across these agencies'].map((item, i) => (
+                  <li key={i} className="flex items-start gap-2">
+                    <span className="mt-[9px] w-[5px] h-[5px] rounded-full bg-foreground flex-shrink-0" />
+                    <span className="text-[14px] font-light text-foreground leading-[22px]">{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+
+          {/* Citations */}
+          <div className="border-t border-border pt-4">
+            <p className="text-[12px] font-light text-muted-foreground text-center mb-4">Citations ({RESPONSE_CITATIONS.length})</p>
+            <div className="flex flex-col gap-2">
+              {RESPONSE_CITATIONS.map(c => (
+                <div key={c.id} className="flex flex-col gap-1 rounded-lg bg-muted/50 px-3 py-2.5">
+                  <div className="flex items-center gap-2">
+                    <span className="w-5 h-5 rounded-full flex items-center justify-center text-[11px] font-normal text-white flex-shrink-0" style={{ backgroundColor: c.avatarBg }}>{c.initial}</span>
+                    <span className="text-[14px] font-normal text-foreground">{c.name}</span>
+                  </div>
+                  <a href="#" className="text-[14px] font-normal text-primary hover:underline leading-[20px] pl-7">{c.link}</a>
+                  <p className="text-[12px] font-light text-muted-foreground leading-[18px] pl-7">{c.snippet}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>,
+    document.body,
   )
 }
 
@@ -1318,31 +1480,39 @@ function CompetitorCitationsCard({ rec }: { rec: Recommendation }) {
 
 function LLMResponsesCard({ rec }: { rec: Recommendation }) {
   const [activePlatform, setActivePlatform] = useState<EvidencePlatform>('ChatGPT')
+  const [selectedRow, setSelectedRow] = useState<LLMResponseRow | null>(null)
 
   const query = rec.promptsTriggeringThis[0]
-    ?? 'Find real estate agencies near me specializing in residential property sales.'
+    ?? 'Find real estate agencies near me specialising in residential property sales'
 
   return (
     <div className="bg-background border border-border rounded-xl overflow-hidden">
+      {selectedRow && (
+        <LLMResponseModal row={selectedRow} query={query} onClose={() => setSelectedRow(null)} />
+      )}
+
       <div className="px-5 py-4">
-        <p className="text-[16px] font-normal text-foreground leading-[24px]">
-          How did AI sites respond to &lsquo;{query}&rsquo;
-        </p>
-        <p className="text-[12px] text-muted-foreground mt-0.5">
+        <div className="flex items-baseline gap-1.5 flex-wrap">
+          <span className="text-[16px] font-normal text-foreground leading-[24px]">What were the AI sites&apos; responses to</span>
+          <button type="button" className="inline-flex items-center gap-1 text-[16px] font-normal text-primary leading-[24px] hover:underline">
+            {query}
+            <ChevronDown size={14} strokeWidth={1.6} absoluteStrokeWidth className="flex-shrink-0" />
+          </button>
+        </div>
+        <p className="text-[12px] font-light text-muted-foreground mt-0.5">
           To generate this recommendation, we ran these prompts across LLMs. Here are the responses each AI site returned.
         </p>
       </div>
 
       {/* Platform tabs */}
-      {/* Same tab component as Recommendation/Evidence tabs — no border-b on container */}
-      <div className="flex px-5 gap-6">
+      <div className="flex px-5 gap-6 border-b border-border">
         {LLM_EVIDENCE_PLATFORMS.map(platform => (
           <button
             key={platform}
             type="button"
             onClick={() => setActivePlatform(platform)}
             className={cn(
-              'py-3 text-[14px] font-normal border-b-2 -mb-px transition-colors whitespace-nowrap',
+              'py-3 text-[13px] font-normal border-b-2 -mb-px transition-colors whitespace-nowrap',
               activePlatform === platform
                 ? 'border-primary text-foreground'
                 : 'border-transparent text-muted-foreground hover:text-foreground',
@@ -1353,41 +1523,34 @@ function LLMResponsesCard({ rec }: { rec: Recommendation }) {
         ))}
       </div>
 
-      {/* Table — div 2 wrapper owns the px-5 inset from card edges */}
+      {/* Table */}
       <div className="overflow-x-auto px-5">
         {/* Header row */}
-        <div className="flex items-center py-4 border-b border-border">
-          <span className="text-[12px] text-muted-foreground font-medium w-[110px] flex-shrink-0">Date</span>
-          <span className="text-[12px] text-muted-foreground font-medium w-[130px] flex-shrink-0">Location</span>
-          <span className="text-[12px] text-muted-foreground font-medium w-[90px] flex-shrink-0 flex items-center gap-1">
+        <div className="flex items-center py-3 border-b border-border">
+          <span className="text-[12px] font-light text-muted-foreground w-[110px] flex-shrink-0">Date</span>
+          <span className="text-[12px] font-light text-muted-foreground w-[130px] flex-shrink-0">Location</span>
+          <span className="text-[12px] font-light text-muted-foreground w-[90px] flex-shrink-0 flex items-center gap-1">
             Mention
-            <span className="w-3.5 h-3.5 rounded-full border border-muted-foreground/50 flex items-center justify-center text-[9px] text-muted-foreground flex-shrink-0">i</span>
+            <span className="w-3.5 h-3.5 rounded-full border border-muted-foreground/40 flex items-center justify-center text-[9px] text-muted-foreground flex-shrink-0">i</span>
           </span>
-          <span className="text-[12px] text-muted-foreground font-medium w-[100px] flex-shrink-0">Position</span>
-          <span className="text-[12px] text-muted-foreground font-medium w-[160px] flex-shrink-0">All mentions</span>
-          <span className="text-[12px] text-muted-foreground font-medium flex-1 min-w-0">Response</span>
+          <span className="text-[12px] font-light text-muted-foreground w-[100px] flex-shrink-0">Position</span>
+          <span className="text-[12px] font-light text-muted-foreground w-[160px] flex-shrink-0">All mentions</span>
+          <span className="text-[12px] font-light text-muted-foreground flex-1 min-w-0">Response</span>
         </div>
 
         {MOCK_LLM_ROWS.map((row, i) => (
           <div
             key={i}
-            className={cn('group/table-row flex items-center py-6', i > 0 && 'border-t border-border')}
+            className={cn('group/table-row flex items-center py-5', i > 0 && 'border-t border-border')}
           >
-            {/* Date */}
             <span className="text-[13px] text-foreground w-[110px] flex-shrink-0">{row.date}</span>
-
-            {/* Location */}
             <span className="text-[13px] text-foreground w-[130px] flex-shrink-0">{row.location}</span>
-
-            {/* Mention */}
             <div className="w-[90px] flex-shrink-0">
               {row.mentioned
                 ? <img src={`${B}assets/rec/check_circle.svg`} alt="mentioned" className="w-6 h-6" />
                 : <img src={`${B}assets/rec/Component 75-2.svg`} alt="not mentioned" className="w-6 h-6" />
               }
             </div>
-
-            {/* Position */}
             <div className="w-[100px] flex-shrink-0">
               {row.position !== null
                 ? (
@@ -1401,8 +1564,6 @@ function LLMResponsesCard({ rec }: { rec: Recommendation }) {
                 : <span className="text-[13px] text-muted-foreground">—</span>
               }
             </div>
-
-            {/* All mentions — hover on +N shows site name popover */}
             <div className="w-[160px] flex-shrink-0">
               {row.mentions.length > 0
                 ? <MentionsWithPopover items={row.mentions} overflow={row.mentionsOverflow} />
@@ -1410,17 +1571,18 @@ function LLMResponsesCard({ rec }: { rec: Recommendation }) {
               }
             </div>
 
-            {/* Response — "View response" Button reveals on row hover */}
+            {/* Response cell — "View response" fades in on row hover */}
             <div className="flex-1 min-w-0 relative flex items-center overflow-hidden">
-              <span className="text-[13px] text-foreground truncate pr-2 group-hover/table-row:pr-36 transition-all">
+              <span className="text-[13px] text-foreground leading-[20px] truncate w-full">
                 {row.response}
               </span>
-              <div className="absolute right-0 hidden group-hover/table-row:flex items-center">
-                <div className="w-12 h-full bg-gradient-to-r from-transparent to-background flex-shrink-0" />
+              <div className="absolute inset-y-0 right-0 flex items-center opacity-0 group-hover/table-row:opacity-100 transition-opacity pointer-events-none group-hover/table-row:pointer-events-auto">
+                <div className="w-16 h-full bg-gradient-to-r from-transparent to-background flex-shrink-0" />
                 <Button
                   variant="outline"
                   size="sm"
-                  className="h-8 text-[13px] whitespace-nowrap flex-shrink-0 bg-background"
+                  className="h-8 text-[13px] whitespace-nowrap flex-shrink-0"
+                  onClick={() => setSelectedRow(row)}
                 >
                   View response
                 </Button>
@@ -1429,17 +1591,6 @@ function LLMResponsesCard({ rec }: { rec: Recommendation }) {
           </div>
         ))}
       </div>
-    </div>
-  )
-}
-
-// ── Evidence tab wrapper ───────────────────────────────────────────────────────
-
-function EvidenceTab({ rec }: { rec: Recommendation }) {
-  return (
-    <div className="flex flex-col gap-4">
-      <CompetitorCitationsCard rec={rec} />
-      <LLMResponsesCard rec={rec} />
     </div>
   )
 }
@@ -1557,7 +1708,6 @@ export function RecDetailView({
   onNavigateToContentHub, onNavigateToBlogCanvas,
   onCompleteRec, onRevertToPending,
 }: RecDetailViewProps) {
-  const [activeTab, setActiveTab] = useState<'recommendation' | 'evidence'>('recommendation')
   const [showRejectDialog, setShowRejectDialog] = useState(false)
 
   const isBlog = rec.category === 'Content' && !!rec.aeoScore
@@ -1661,31 +1811,11 @@ export function RecDetailView({
           </div>
         </div>
 
-        {/* Tab bar — all rec types, no full-width border (active tab underline is the separator) */}
-        <div className="px-6 flex gap-6 bg-background flex-shrink-0">
-          {(['recommendation', 'evidence'] as const).map(tab => (
-            <button
-              key={tab}
-              type="button"
-              onClick={() => setActiveTab(tab)}
-              className={cn(
-                'py-3 text-[14px] font-normal border-b-2 -mb-px transition-colors',
-                activeTab === tab
-                  ? 'border-primary text-foreground'
-                  : 'border-transparent text-muted-foreground hover:text-foreground',
-              )}
-            >
-              {tab.charAt(0).toUpperCase() + tab.slice(1)}
-            </button>
-          ))}
-        </div>
       </div>{/* end sticky top block */}
 
       {/* Body */}
       <div className="px-6 py-4 flex flex-col gap-4">
-        {activeTab === 'evidence' ? (
-          <EvidenceTab rec={rec} />
-        ) : rec.category === 'FAQ' ? (
+        {rec.category === 'FAQ' ? (
           <FAQDetail rec={rec} metrics={metrics} onNavigateToContentHub={onNavigateToContentHub} />
         ) : rec.category === 'Content' && rec.aeoScore ? (
           <ContentDetail rec={rec} metrics={metrics} onAccept={() => onAccept(rec.id)} onNavigateToBlogCanvas={onNavigateToBlogCanvas} />

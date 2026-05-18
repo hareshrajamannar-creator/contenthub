@@ -567,7 +567,7 @@ export function ContentFlowLocationFlatList({
         tabIndex={0}
         onClick={handleSelectAll}
         onKeyDown={e => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); handleSelectAll(); } }}
-        className="flex cursor-pointer items-center justify-between border-b border-[#e5e9f0] py-2 transition-colors dark:border-[#333a47]"
+        className="flex cursor-pointer items-center justify-between py-2 transition-colors"
       >
         <div className="flex items-center gap-2.5">
           <Checkbox
@@ -591,10 +591,7 @@ export function ContentFlowLocationFlatList({
               tabIndex={0}
               onClick={() => handleToggle(option.value)}
               onKeyDown={e => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); handleToggle(option.value); } }}
-              className={cn(
-                'flex cursor-pointer items-center gap-2.5 rounded-sm py-2.5 transition-colors hover:bg-muted/40',
-                index < filteredOptions.length - 1 && 'border-b border-[#e5e9f0] dark:border-[#333a47]',
-              )}
+              className="flex cursor-pointer items-center gap-2.5 rounded-sm py-2.5 transition-colors hover:bg-muted/40"
             >
               <Checkbox
                 checked={checked}

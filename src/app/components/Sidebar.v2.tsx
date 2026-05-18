@@ -750,7 +750,8 @@ const searchAIConfig = {
   sections: [
     { label: "Actions", children: ["Recommendations", "Track progress"] },
     { label: "Reports", children: ["Citations", "Visibility", "Rankings", "Accuracy", "Sentiment"] },
-    { label: "Settings", children: ["Prompts"] },
+    { label: "Agents", children: ["Monitor", "Performance", "Builder"] },
+    { label: "Settings", children: ["Prompts", "Locations", "Competitors"] },
   ],
 };
 
@@ -1129,7 +1130,10 @@ export { MynaConversationsL2NavPanel } from "./MynaConversationsL2NavPanel";
    ═══════════════════════════════════════════ */
 const recommendationsL2Config = {
   sections: [
-    { label: "Actions", children: ["All recommendations", "Pending", "Completed"] },
+    { label: "Actions", children: ["Recommendations"] },
+    { label: "Reports", children: ["Citations", "Visibility", "Rankings", "Accuracy", "Sentiment"] },
+    { label: "Agents", children: [] },
+    { label: "Settings", children: ["Prompts", "Locations", "Competitors"] },
   ],
 };
 

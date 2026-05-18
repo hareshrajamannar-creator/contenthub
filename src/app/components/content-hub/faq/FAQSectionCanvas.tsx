@@ -16,7 +16,7 @@ import {
   GripVertical, GripHorizontal, ChevronDown, ChevronRight, Trash2, Plus,
   AlertTriangle, XCircle, CheckCircle2,
   ArrowUp, ArrowDown, Sparkles,
-  Bookmark, BookmarkX, MessageSquare,
+  Bookmark, MessageSquare, CircleHelp,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { AiCopilot } from '../AiCopilot';
@@ -32,9 +32,6 @@ import { FAQPublishModal } from './FAQPublishModal';
 import { SaveToSavedModal } from './SaveToSavedModal';
 import {
   addSavedBlock,
-  getSavedBlocks,
-  removeSavedBlock,
-  subscribeSavedBlocks,
   type SavedBlock,
 } from '../shared/savedBlocksStore';
 
@@ -470,8 +467,6 @@ const LEFT_TAB_ITEMS = [
 
 // ── FAQ Manual panel ──────────────────────────────────────────────────────────
 
-type FAQManualTab = 'basic' | 'prebuilt' | 'saved';
-
 const FAQ_PREBUILT_SECTIONS = [
   {
     id: 'faq-prebuilt-emergency',
@@ -520,57 +515,33 @@ const FAQ_PREBUILT_SECTIONS = [
   },
 ];
 
-function ManualSubTabs({
-  value,
-  onChange,
-}: {
-  value: FAQManualTab;
-  onChange: (value: FAQManualTab) => void;
-}) {
-  const tabs: { value: FAQManualTab; label: string }[] = [
-    { value: 'basic', label: 'Basic' },
-    { value: 'prebuilt', label: 'Pre-built' },
-    { value: 'saved', label: 'Saved' },
-  ];
-
-  return (
-    <div className="flex rounded-lg border border-border bg-background p-1">
-      {tabs.map(tab => (
-        <button
-          key={tab.value}
-          type="button"
-          onClick={() => onChange(tab.value)}
-          className={cn(
-            'h-8 flex-1 rounded-md text-[12px] font-medium transition-colors',
-            value === tab.value
-              ? 'bg-muted text-foreground'
-              : 'text-muted-foreground hover:text-foreground',
-          )}
-        >
-          {tab.label}
-        </button>
-      ))}
-    </div>
-  );
-}
 
 function FAQManualActionCard({
   label,
   icon,
   onClick,
+  dragType,
+  dragPayload,
 }: {
   label: string;
   icon: React.ReactNode;
   onClick: () => void;
+  dragType?: string;
+  dragPayload?: string;
 }) {
   return (
     <button
       type="button"
+      draggable={!!dragType}
+      onDragStart={dragType ? e => {
+        e.dataTransfer.setData(dragType, dragPayload ?? 'true');
+        e.dataTransfer.effectAllowed = 'copy';
+      } : undefined}
       onClick={onClick}
-      className="flex min-h-[120px] flex-col items-center justify-center gap-2 rounded-xl border border-border bg-background p-4 text-center transition-colors hover:border-primary/40 hover:bg-primary/[0.03]"
+      className="flex aspect-square flex-col items-center justify-center gap-2 rounded-xl border border-border bg-background p-4 text-center transition-colors hover:border-primary/40 hover:bg-primary/[0.03] cursor-grab active:cursor-grabbing"
     >
       <GripHorizontal size={15} strokeWidth={1.6} absoluteStrokeWidth className="text-muted-foreground/50" />
-      <div className="flex size-9 items-center justify-center rounded-xl bg-muted text-muted-foreground">
+      <div className="text-muted-foreground">
         {icon}
       </div>
       <p className="text-[12px] font-medium text-foreground">{label}</p>
@@ -619,6 +590,8 @@ function FAQSuggestedStyleCard({
   questions,
   onClick,
   onRemove,
+  dragType,
+  dragPayload,
 }: {
   label: string;
   title: string;
@@ -626,9 +599,18 @@ function FAQSuggestedStyleCard({
   questions: string[];
   onClick: () => void;
   onRemove?: () => void;
+  dragType?: string;
+  dragPayload?: string;
 }) {
   return (
-    <div className="overflow-hidden rounded-[10px] border border-border bg-background transition-colors hover:border-primary/30">
+    <div
+      draggable={!!dragType}
+      onDragStart={dragType ? e => {
+        e.dataTransfer.setData(dragType, dragPayload ?? 'true');
+        e.dataTransfer.effectAllowed = 'copy';
+      } : undefined}
+      className="overflow-hidden rounded-[10px] border border-border bg-background transition-colors hover:border-primary/30 cursor-grab active:cursor-grabbing"
+    >
       <button type="button" onClick={onClick} className="block w-full text-left">
         <div className="border-b border-border bg-muted/60 p-4">
           <div className="h-[116px]">
@@ -657,79 +639,21 @@ function FAQSuggestedStyleCard({
 
 function FAQManualContent({
   onAddQuestion,
-  onAddPrebuiltSection,
-  onInsertSavedBlock,
 }: {
   onAddQuestion: () => void;
-  onAddPrebuiltSection: (template: typeof FAQ_PREBUILT_SECTIONS[number]) => void;
-  onInsertSavedBlock: (block: SavedBlock) => void;
 }) {
-  const [manualTab, setManualTab] = useState<FAQManualTab>('basic');
-  const [savedBlocks, setSavedBlocks] = useState<SavedBlock[]>(() => getSavedBlocks());
-
-  useEffect(() => subscribeSavedBlocks(setSavedBlocks), []);
-
   return (
     <div className="flex h-full flex-col overflow-hidden">
-      <div className="flex-none p-4">
-        <ManualSubTabs value={manualTab} onChange={setManualTab} />
-      </div>
-
-      <div className="flex-1 min-h-0 overflow-y-auto px-4 pb-4">
-        {manualTab === 'basic' && (
-          <div className="grid gap-2">
-            <FAQManualActionCard
-              label="Question"
-              icon={<Plus size={18} strokeWidth={1.6} absoluteStrokeWidth />}
-              onClick={onAddQuestion}
-            />
-          </div>
-        )}
-
-        {manualTab === 'prebuilt' && (
-          <div className="space-y-2 pt-1">
-            {FAQ_PREBUILT_SECTIONS.map(template => (
-              <FAQSuggestedStyleCard
-                key={template.id}
-                label="FAQ suggestion"
-                title={template.title}
-                description={template.description}
-                questions={template.questions.map(item => item.question)}
-                onClick={() => onAddPrebuiltSection(template)}
-              />
-            ))}
-          </div>
-        )}
-
-        {manualTab === 'saved' && (
-          savedBlocks.length === 0 ? (
-            <div className="flex min-h-[220px] flex-col items-center justify-center gap-2 text-center">
-              <div className="flex size-10 items-center justify-center rounded-xl bg-muted">
-                <BookmarkX size={18} strokeWidth={1.6} absoluteStrokeWidth className="text-muted-foreground" />
-              </div>
-              <div className="space-y-1">
-                <p className="text-[13px] font-medium text-foreground">No saved blocks yet</p>
-                <p className="text-[12px] leading-relaxed text-muted-foreground">
-                  Save FAQ content from the canvas and reuse it here.
-                </p>
-              </div>
-            </div>
-          ) : (
-            <div className="space-y-2 pt-1">
-              {savedBlocks.map(block => (
-                <FAQSuggestedStyleCard
-                  key={block.id}
-                  label="Saved block"
-                  title={block.name}
-                  description={`${block.preview.snippets.length} saved questions from ${block.preview.title}.`}
-                  questions={block.preview.snippets}
-                  onClick={() => onInsertSavedBlock(block)}
-                  onRemove={() => removeSavedBlock(block.id)}
-                />
-              ))}
-            </div>
-          )
-        )}
+      <div className="flex-1 min-h-0 overflow-y-auto px-4 py-4">
+        <div className="grid grid-cols-2 gap-2">
+          <FAQManualActionCard
+            label="Question"
+            icon={<CircleHelp size={20} strokeWidth={1.6} absoluteStrokeWidth />}
+            onClick={onAddQuestion}
+            dragType="application/faq-add-question"
+            dragPayload="new"
+          />
+        </div>
       </div>
     </div>
   );
@@ -840,9 +764,15 @@ interface QuestionRowProps {
   onMoveUp: () => void;
   onMoveDown: () => void;
   fixingAll?: boolean;
+  isDragging?: boolean;
+  isDragOver?: boolean;
+  onDragStart?: () => void;
+  onDragOver?: (e: React.DragEvent) => void;
+  onDrop?: (e: React.DragEvent) => void;
+  onDragEnd?: () => void;
 }
 
-function QuestionRow({ question, index, totalInSection, onUpdate, onDelete, onMoveUp, onMoveDown, fixingAll }: QuestionRowProps) {
+function QuestionRow({ question, index, totalInSection, onUpdate, onDelete, onMoveUp, onMoveDown, fixingAll, isDragging, isDragOver, onDragStart, onDragOver, onDrop, onDragEnd }: QuestionRowProps) {
   const [editingQ, setEditingQ] = useState(false);
   const [editingA, setEditingA] = useState(false);
   const [fixing, setFixing] = useState(false);
@@ -868,11 +798,26 @@ function QuestionRow({ question, index, totalInSection, onUpdate, onDelete, onMo
   }
 
   return (
-    <div className={cn(
-      'group relative rounded-lg transition-colors hover:bg-muted/35',
-      question.status === 'blocked' && 'bg-destructive/[0.025]',
-      question.status === 'warning' && 'bg-amber-50/35',
-    )}>
+    <div
+      draggable={!editingQ && !editingA}
+      onDragStart={e => {
+        e.dataTransfer.setData('application/faq-question-id', question.id);
+        e.dataTransfer.effectAllowed = 'move';
+        onDragStart?.();
+      }}
+      onDragOver={e => {
+        if (e.dataTransfer.types.includes('application/faq-question-id')) onDragOver?.(e);
+      }}
+      onDrop={onDrop}
+      onDragEnd={onDragEnd}
+      className={cn(
+        'group relative rounded-lg transition-colors hover:bg-muted/35',
+        question.status === 'blocked' && 'bg-destructive/[0.025]',
+        question.status === 'warning' && 'bg-amber-50/35',
+        isDragging && 'opacity-40',
+        isDragOver && 'ring-2 ring-inset ring-primary/50 bg-primary/[0.02]',
+      )}
+    >
       <div className="flex items-start gap-4 px-4 py-4">
         {/* Drag handle */}
         <GripVertical
@@ -1169,7 +1114,7 @@ export function FAQSectionCanvas({ sections, generationLabel, onVersionHistory, 
       : generateMockFAQs(sections)
   );
   const [leftTab, setLeftTab] = useState<'ai' | 'manual'>('ai');
-  const [zoom, setZoom] = useState(1);
+  const [zoom, setZoom] = useState(0.85);
   const [internalScorePanelOpen, setInternalScorePanelOpen] = useState(false);
   const scorePanelOpen = externalScorePanelOpen !== undefined ? externalScorePanelOpen : internalScorePanelOpen;
   const setScorePanelOpen = useCallback((v: boolean | ((prev: boolean) => boolean)) => {
@@ -1185,6 +1130,8 @@ export function FAQSectionCanvas({ sections, generationLabel, onVersionHistory, 
   const [isRevealingGeneratedContent, setIsRevealingGeneratedContent] = useState(false);
   const [activityOpen, setActivityOpen] = useState(false);
   const [richTextVisible, setRichTextVisible] = useState(false);
+  const [draggingQId, setDraggingQId] = useState<string | null>(null);
+  const [dragOverQId, setDragOverQId] = useState<string | null>(null);
   const [canvasToolbarPosition, setCanvasToolbarPosition] = useState<EditorToolbarPosition>({ top: 96, left: 640 });
   const [richTextPosition, setRichTextPosition] = useState<EditorToolbarPosition | undefined>();
   const canvasRef = useRef<HTMLDivElement>(null);
@@ -1554,6 +1501,46 @@ export function FAQSectionCanvas({ sections, generationLabel, onVersionHistory, 
     setSectionData(generateMockFAQs(tmpl.sections));
   }, []);
 
+  const handleReorderQuestions = useCallback((draggedId: string, targetId: string) => {
+    if (draggedId === targetId) return;
+    setData(prev => {
+      const flat = prev.flatMap(section =>
+        section.questions.map(question => ({ sectionId: section.id, question }))
+      );
+      const fromIdx = flat.findIndex(item => item.question.id === draggedId);
+      const toIdx = flat.findIndex(item => item.question.id === targetId);
+      if (fromIdx < 0 || toIdx < 0) return prev;
+      const next = [...flat];
+      const [removed] = next.splice(fromIdx, 1);
+      next.splice(toIdx, 0, removed);
+      const queues = new Map<string, FAQQuestion[]>();
+      next.forEach(item => {
+        const queue = queues.get(item.sectionId) ?? [];
+        queue.push(item.question);
+        queues.set(item.sectionId, queue);
+      });
+      return prev.map(section => ({ ...section, questions: queues.get(section.id) ?? [] }));
+    });
+    setDraggingQId(null);
+    setDragOverQId(null);
+  }, [setData]);
+
+  const handleCanvasDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    const addQuestion = e.dataTransfer.getData('application/faq-add-question');
+    if (addQuestion === 'new') {
+      handleManualAddQuestion();
+      return;
+    }
+    const sectionJson = e.dataTransfer.getData('application/faq-add-section');
+    if (sectionJson) {
+      try {
+        const template = JSON.parse(sectionJson);
+        handleAddPrebuiltSection(template);
+      } catch { /* invalid JSON — ignore */ }
+    }
+  }, [handleManualAddQuestion, handleAddPrebuiltSection]);
+
   const handleCopilotStartGenerating = useCallback(() => {
     setIsGeneratingFromCopilot(true);
     setIsRevealingGeneratedContent(false);
@@ -1613,8 +1600,6 @@ export function FAQSectionCanvas({ sections, generationLabel, onVersionHistory, 
           ) : (
             <FAQManualContent
               onAddQuestion={handleManualAddQuestion}
-              onAddPrebuiltSection={handleAddPrebuiltSection}
-              onInsertSavedBlock={handleInsertSavedBlock}
             />
           )}
         </div>
@@ -1634,8 +1619,7 @@ export function FAQSectionCanvas({ sections, generationLabel, onVersionHistory, 
             onUndo={handleUndo}
             onRedo={handleRedo}
             zoom={zoom}
-            onZoomOut={() => setZoom(z => Math.max(0.5, +(z - 0.1).toFixed(2)))}
-            onZoomIn={() => setZoom(z => Math.min(2, +(z + 0.1).toFixed(2)))}
+            onZoomChange={setZoom}
             onVersionHistory={onVersionHistory}
             onActivity={() => { setActivityOpen(v => !v); setScorePanelOpen(false); setCommentsOpen(false); }}
             onSave={() => setSavingTarget('all')}
@@ -1662,11 +1646,16 @@ export function FAQSectionCanvas({ sections, generationLabel, onVersionHistory, 
           </div>
         )}
 
-        <div ref={canvasRef} className="relative min-h-0 flex-1 overflow-y-auto rounded-xl bg-transparent">
+        <div
+          ref={canvasRef}
+          className="relative min-h-0 flex-1 overflow-y-auto rounded-xl bg-transparent"
+          onDragOver={e => { e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; }}
+          onDrop={handleCanvasDrop}
+        >
           {/* Document container — padding stays fixed, only the page scales */}
           <div className="px-8 py-6 pb-10">
             <div style={{ zoom }}>
-            <div className="mx-auto min-h-[calc(100vh-160px)] max-w-[1040px] rounded-lg bg-background px-[30px] pt-[30px] pb-14 shadow-[0_18px_60px_rgba(15,23,42,0.08)] ring-1 ring-border/40">
+            <div className="mx-auto min-h-[calc(100vh-160px)] max-w-[1040px] rounded-lg bg-background px-[30px] pt-[30px] pb-14 shadow-[0_18px_60px_rgba(15,23,42,0.08)] ring-[0.5px] ring-border/20">
               <div className="grid min-h-[640px]">
                 <div
                   aria-hidden={!showGenerationLayer}
@@ -1701,6 +1690,16 @@ export function FAQSectionCanvas({ sections, generationLabel, onVersionHistory, 
                       onMoveUp={() => moveQuestionInDocument(section.id, question.id, 'up')}
                       onMoveDown={() => moveQuestionInDocument(section.id, question.id, 'down')}
                       fixingAll={fixingAll}
+                      isDragging={draggingQId === question.id}
+                      isDragOver={dragOverQId === question.id}
+                      onDragStart={() => setDraggingQId(question.id)}
+                      onDragOver={e => { e.preventDefault(); setDragOverQId(question.id); }}
+                      onDrop={e => {
+                        e.stopPropagation();
+                        const draggedId = e.dataTransfer.getData('application/faq-question-id');
+                        if (draggedId) handleReorderQuestions(draggedId, question.id);
+                      }}
+                      onDragEnd={() => { setDraggingQId(null); setDragOverQId(null); }}
                     />
                   ))}
                 </div>
@@ -1718,23 +1717,6 @@ export function FAQSectionCanvas({ sections, generationLabel, onVersionHistory, 
                 </div>
               </div>
 
-              <div className="mt-8 h-10">
-                <button
-                  type="button"
-                  onClick={() => {
-                    const target = sectionData[0];
-                    if (target) addQuestionToSection(target.id);
-                    else handleManualAddQuestion();
-                  }}
-                  className={cn(
-                    'flex items-center gap-2 rounded-md px-4 py-2 text-[13px] text-muted-foreground transition-opacity duration-300 hover:bg-muted hover:text-foreground',
-                    showDocumentContent && !showGenerationLayer ? 'opacity-100' : 'pointer-events-none opacity-0',
-                  )}
-                >
-                  <Plus size={14} strokeWidth={1.6} absoluteStrokeWidth />
-                  Add question
-                </button>
-              </div>
             </div>
             </div>
           </div>

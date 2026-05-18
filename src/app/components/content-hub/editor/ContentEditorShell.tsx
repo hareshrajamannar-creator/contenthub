@@ -709,6 +709,8 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
   const [shareInitialTab, setShareInitialTab] = useState<'collaborate' | 'download'>('collaborate');
   const [faqScore, setFaqScore] = useState(0);
   const [faqScorePanelOpen, setFaqScorePanelOpen] = useState(true);
+  const [blogScore, setBlogScore] = useState(0);
+  const [blogScorePanelOpen, setBlogScorePanelOpen] = useState(true);
   const [commentsOpen, setCommentsOpen] = useState(false);
   const [activityOpen, setActivityOpen] = useState(false);
   const [versionHistoryOpen, setVersionHistoryOpen] = useState(false);
@@ -839,7 +841,7 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
 
   // ── Floating toolbar state (canvas)
   const [viewMode, setViewMode] = useState<'grid' | 'list' | 'calendar'>('grid');
-  const [zoom, setZoom] = useState(1);
+  const [zoom, setZoom] = useState(0.85);
   const [layoutDirection, setLayoutDirection] = useState<'vertical' | 'horizontal'>('horizontal');
   const [cardLayouts, setCardLayouts] = useState<Record<string, CanvasCardLayout>>({});
   const [measuredCardHeights, setMeasuredCardHeights] = useState<Record<string, number>>({});
@@ -1261,6 +1263,21 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
                   </button>
                 )}
 
+                {mode === 'blog' && blogScore > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setBlogScorePanelOpen(v => !v)}
+                    className={cn(
+                      'flex h-[34px] items-center gap-2 rounded-md px-3 text-[13px] text-muted-foreground transition-colors hover:bg-muted/60',
+                      blogScorePanelOpen ? 'bg-muted text-foreground' : 'border border-border',
+                    )}
+                  >
+                    <ScoreProgressRing score={blogScore} />
+                    <span className="font-medium text-foreground">{blogScore}</span>
+                    <span>/ 100 Content score</span>
+                  </button>
+                )}
+
                 <Button
                   type="button"
                   variant="outline"
@@ -1269,12 +1286,21 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
                   Share
                 </Button>
 
-                <Button
-                  type="button"
-                  onClick={() => { setShareInitialTab('download'); setShareOpen(true); }}
-                >
-                  Download
-                </Button>
+                {mode === 'blog' ? (
+                  <Button
+                    type="button"
+                    onClick={() => setExportOpen(true)}
+                  >
+                    Publish
+                  </Button>
+                ) : (
+                  <Button
+                    type="button"
+                    onClick={() => { setShareInitialTab('download'); setShareOpen(true); }}
+                  >
+                    Download
+                  </Button>
+                )}
 
               </>
             )}
@@ -1399,6 +1425,9 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
           initialScore={recAeoScore}
           preloadedBlogSections={preloadedBlogSections}
           title={initialTitle}
+          onScoreChange={setBlogScore}
+          scorePanelOpen={blogScorePanelOpen}
+          onScorePanelChange={setBlogScorePanelOpen}
         />
       )}
 
@@ -1434,8 +1463,7 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
                 onUndo={handleUndo}
                 onRedo={handleRedo}
                 zoom={zoom}
-                onZoomOut={() => setZoom(z => Math.max(0.25, +(z - 0.1).toFixed(2)))}
-                onZoomIn={() => setZoom(z => Math.min(3, +(z + 0.1).toFixed(2)))}
+                onZoomChange={setZoom}
                 onActivity={() => { setActivityOpen(v => !v); setCommentsOpen(false); setActiveScoreCardId(null); }}
                 onChat={() => { setCommentsOpen(v => !v); setActivityOpen(false); setActiveScoreCardId(null); }}
               />

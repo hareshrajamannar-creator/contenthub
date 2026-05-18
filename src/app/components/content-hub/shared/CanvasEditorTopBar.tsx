@@ -1,17 +1,24 @@
 import {
   Activity,
   Bookmark,
+  ChevronDown,
   History,
   MessageCircle,
   Redo2,
   Undo2,
-  ZoomIn,
-  ZoomOut,
 } from 'lucide-react';
 import { type ReactNode } from 'react';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/app/components/ui/tooltip';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/app/components/ui/dropdown-menu';
 import { scoreStrokeColor } from './scoreColors';
+
+const ZOOM_PRESETS = [0.25, 0.5, 0.75, 0.85, 1.0, 1.25, 1.5, 2.0, 3.0];
 
 interface CanvasEditorTopBarProps {
   score: number;
@@ -23,8 +30,9 @@ interface CanvasEditorTopBarProps {
   onUndo: () => void;
   onRedo: () => void;
   zoom: number;
-  onZoomOut: () => void;
-  onZoomIn: () => void;
+  onZoomOut?: () => void;
+  onZoomIn?: () => void;
+  onZoomChange?: (zoom: number) => void;
   onVersionHistory?: () => void;
   onActivity?: () => void;
   onSave?: () => void;
@@ -32,7 +40,7 @@ interface CanvasEditorTopBarProps {
   hideScore?: boolean;
 }
 
-function TopBarIconButton({
+function TileButton({
   title,
   onClick,
   disabled,
@@ -51,7 +59,7 @@ function TopBarIconButton({
           aria-label={title}
           disabled={disabled}
           onClick={onClick}
-          className="flex size-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-30"
+          className="flex w-[30px] h-[30px] items-center justify-center rounded-lg border border-border/70 bg-background text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:text-muted-foreground/25 disabled:pointer-events-none"
         >
           {children}
         </button>
@@ -109,8 +117,7 @@ export function CanvasEditorTopBar({
   onUndo,
   onRedo,
   zoom,
-  onZoomOut,
-  onZoomIn,
+  onZoomChange,
   onVersionHistory,
   onActivity,
   onSave,
@@ -118,7 +125,8 @@ export function CanvasEditorTopBar({
   hideScore = false,
 }: CanvasEditorTopBarProps) {
   return (
-    <div className="flex h-[48px] flex-none items-center justify-between gap-4 rounded-lg border border-border/60 bg-background px-4">
+    <div className="flex h-[48px] flex-none items-center gap-4 rounded-lg border border-border/60 bg-background px-4">
+      {/* Left: content score (when visible) */}
       {!hideScore && (
         <div className="flex min-w-0 items-center gap-2">
           <button
@@ -137,36 +145,53 @@ export function CanvasEditorTopBar({
         </div>
       )}
 
-      <div className="flex items-center gap-1">
-        <TopBarIconButton title="Undo" onClick={onUndo} disabled={!canUndo}>
-          <Undo2 size={15} strokeWidth={1.6} absoluteStrokeWidth />
-        </TopBarIconButton>
-        <TopBarIconButton title="Redo" onClick={onRedo} disabled={!canRedo}>
-          <Redo2 size={15} strokeWidth={1.6} absoluteStrokeWidth />
-        </TopBarIconButton>
-        <div className="mx-1 h-5 w-px bg-border" />
-        <TopBarIconButton title="Zoom out" onClick={onZoomOut}>
-          <ZoomOut size={15} strokeWidth={1.6} absoluteStrokeWidth />
-        </TopBarIconButton>
-        <span className="min-w-10 text-center text-[13px] text-muted-foreground tabular-nums">
-          {Math.round(zoom * 100)}%
-        </span>
-        <TopBarIconButton title="Zoom in" onClick={onZoomIn}>
-          <ZoomIn size={15} strokeWidth={1.6} absoluteStrokeWidth />
-        </TopBarIconButton>
-        <div className="mx-1 h-5 w-px bg-border" />
-        <TopBarIconButton title="Version history" onClick={onVersionHistory}>
-          <History size={15} strokeWidth={1.6} absoluteStrokeWidth />
-        </TopBarIconButton>
-        <TopBarIconButton title="Activity" onClick={onActivity}>
-          <Activity size={15} strokeWidth={1.6} absoluteStrokeWidth />
-        </TopBarIconButton>
-        <TopBarIconButton title="Save" onClick={onSave}>
-          <Bookmark size={15} strokeWidth={1.6} absoluteStrokeWidth />
-        </TopBarIconButton>
-        <TopBarIconButton title="Comments" onClick={onChat}>
-          <MessageCircle size={15} strokeWidth={1.6} absoluteStrokeWidth />
-        </TopBarIconButton>
+      {/* Right: action icon tiles */}
+      <div className="flex items-center gap-1 ml-auto">
+        <TileButton title="Undo" onClick={onUndo} disabled={!canUndo}>
+          <Undo2 size={14} strokeWidth={1.6} absoluteStrokeWidth />
+        </TileButton>
+        <TileButton title="Redo" onClick={onRedo} disabled={!canRedo}>
+          <Redo2 size={14} strokeWidth={1.6} absoluteStrokeWidth />
+        </TileButton>
+
+        {/* Zoom dropdown */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button
+              type="button"
+              className="flex h-[30px] items-center gap-1 rounded-lg border border-border/70 bg-background px-2.5 text-[12px] text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            >
+              <span className="tabular-nums min-w-[28px] text-center">
+                {Math.round(zoom * 100)}%
+              </span>
+              <ChevronDown size={11} strokeWidth={1.6} absoluteStrokeWidth />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="center" className="min-w-[80px]">
+            {ZOOM_PRESETS.map(p => (
+              <DropdownMenuItem
+                key={p}
+                onClick={() => onZoomChange?.(p)}
+                className="justify-center text-[13px]"
+              >
+                {Math.round(p * 100)}%
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+
+        <TileButton title="Version history" onClick={onVersionHistory}>
+          <History size={14} strokeWidth={1.6} absoluteStrokeWidth />
+        </TileButton>
+        <TileButton title="Activity" onClick={onActivity}>
+          <Activity size={14} strokeWidth={1.6} absoluteStrokeWidth />
+        </TileButton>
+        <TileButton title="Save" onClick={onSave}>
+          <Bookmark size={14} strokeWidth={1.6} absoluteStrokeWidth />
+        </TileButton>
+        <TileButton title="Comments" onClick={onChat}>
+          <MessageCircle size={14} strokeWidth={1.6} absoluteStrokeWidth />
+        </TileButton>
       </div>
     </div>
   );
