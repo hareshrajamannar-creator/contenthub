@@ -342,7 +342,6 @@ export function ContentShareModal({
                         icon: <CheckCircle2 size={20} strokeWidth={1.6} absoluteStrokeWidth className="text-green-600" />,
                       })}
                     >
-                      <Download size={13} strokeWidth={1.6} absoluteStrokeWidth />
                       Download
                     </Button>
                   </div>
