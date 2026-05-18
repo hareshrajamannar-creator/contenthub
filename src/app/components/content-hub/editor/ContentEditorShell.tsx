@@ -706,6 +706,7 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
   const [regenConfirmOpen, setRegenConfirmOpen] = useState(false);
   const [exportOpen, setExportOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
+  const [shareInitialTab, setShareInitialTab] = useState<'collaborate' | 'download'>('collaborate');
   const [faqScore, setFaqScore] = useState(0);
   const [faqScorePanelOpen, setFaqScorePanelOpen] = useState(false);
   const [commentsOpen, setCommentsOpen] = useState(false);
@@ -1165,10 +1166,16 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
                         onChange={e => setTitle(e.target.value)}
                         onBlur={() => setIsEditingTitle(false)}
                         onKeyDown={e => { if (e.key === 'Enter' || e.key === 'Escape') setIsEditingTitle(false); }}
-                        className="text-[16px] font-semibold text-foreground bg-transparent border-b border-primary outline-none leading-tight min-w-[120px] max-w-[260px]"
+                        className={cn(
+                          'text-[16px] font-semibold text-foreground bg-transparent border-b border-primary outline-none leading-tight min-w-[120px]',
+                          mode === 'faq' ? 'max-w-none' : 'max-w-[260px]',
+                        )}
                       />
                     ) : (
-                      <span className="text-[16px] font-semibold text-foreground leading-tight truncate max-w-[240px]">
+                      <span className={cn(
+                        'text-[16px] font-semibold text-foreground leading-tight',
+                        mode !== 'faq' && 'truncate max-w-[240px]',
+                      )}>
                         {title}
                       </span>
                     )}
@@ -1182,7 +1189,7 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
                         <Edit2 size={14} strokeWidth={1.6} absoluteStrokeWidth />
                       </button>
                     )}
-                    <Badge variant="secondary">Draft</Badge>
+                    {mode !== 'faq' && <Badge variant="secondary">Draft</Badge>}
                   </div>
                   {/* Subtitle row — clickable to reopen edit settings */}
                   <button
@@ -1244,7 +1251,7 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
                     type="button"
                     onClick={() => setFaqScorePanelOpen(v => !v)}
                     className={cn(
-                      'flex h-9 items-center gap-2 rounded-md border border-border px-3 text-[13px] text-muted-foreground transition-colors hover:bg-muted/60',
+                      'flex h-[34px] items-center gap-2 rounded-md border border-border px-3 text-[13px] text-muted-foreground transition-colors hover:bg-muted/60',
                       faqScorePanelOpen && 'bg-muted text-foreground',
                     )}
                   >
@@ -1257,35 +1264,17 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => setShareOpen(true)}
+                  onClick={() => { setShareInitialTab('collaborate'); setShareOpen(true); }}
                 >
                   Share
                 </Button>
 
-                <DropdownMenu>
-                  <div className="flex items-center">
-                    <Button
-                      type="button"
-                      className="rounded-r-none"
-                      onClick={() => setExportOpen(true)}
-                    >
-                      Publish
-                    </Button>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        type="button"
-                        aria-label="Publish options"
-                        className="rounded-l-none border-l border-primary-foreground/20 px-2"
-                      >
-                        <ChevronDown size={13} strokeWidth={1.6} absoluteStrokeWidth />
-                      </Button>
-                    </DropdownMenuTrigger>
-                  </div>
-                  <DropdownMenuContent align="end" className="w-44">
-                    <DropdownMenuItem className="gap-2" onSelect={() => setExportOpen(true)}>Publish</DropdownMenuItem>
-                    <DropdownMenuItem className="gap-2">Add to library</DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                <Button
+                  type="button"
+                  onClick={() => { setShareInitialTab('download'); setShareOpen(true); }}
+                >
+                  Download
+                </Button>
 
               </>
             )}
@@ -1775,6 +1764,7 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
         open={shareOpen}
         onClose={() => setShareOpen(false)}
         contentTitle={title}
+        initialTab={shareInitialTab}
       />
       {/* Version history — full-screen overlay covering the entire editor */}
       {versionHistoryOpen && (
