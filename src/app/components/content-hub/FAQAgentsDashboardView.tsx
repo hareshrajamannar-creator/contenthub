@@ -41,16 +41,16 @@ export interface AgentRow {
 
 const INITIAL_AGENTS: AgentRow[] = [
   { id: 'a1',  name: 'Search AI metric enhancer FAQ agent', status: 'Draft',   generatedFAQs: 30, acceptedFAQs: 28, timeSaved: '1h',     locations: 2 },
-  { id: 'a2',  name: 'Search AI metric enhancer FAQ agent', status: 'Draft',   generatedFAQs: 24, acceptedFAQs: 22, timeSaved: '1h',     locations: 3 },
+  { id: 'a2',  name: 'On demand FAQ generation agent',      status: 'Draft',   generatedFAQs: 24, acceptedFAQs: 22, timeSaved: '1h',     locations: 3 },
   { id: 'a3',  name: 'Search AI metric enhancer FAQ agent', status: 'Running', generatedFAQs: 40, acceptedFAQs: 38, timeSaved: '2h',     locations: 5 },
-  { id: 'a4',  name: 'Search AI metric enhancer FAQ agent', status: 'Draft',   generatedFAQs: 18, acceptedFAQs: 16, timeSaved: '45m',    locations: 1 },
+  { id: 'a4',  name: 'On demand FAQ generation agent',      status: 'Draft',   generatedFAQs: 18, acceptedFAQs: 16, timeSaved: '45m',    locations: 1 },
   { id: 'a5',  name: 'Search AI metric enhancer FAQ agent', status: 'Draft',   generatedFAQs: 22, acceptedFAQs: 20, timeSaved: '1h',     locations: 2 },
-  { id: 'a6',  name: 'Search AI metric enhancer FAQ agent', status: 'Draft',   generatedFAQs: 28, acceptedFAQs: 26, timeSaved: '1h',     locations: 4 },
+  { id: 'a6',  name: 'On demand FAQ generation agent',      status: 'Running', generatedFAQs: 28, acceptedFAQs: 26, timeSaved: '1h',     locations: 4 },
   { id: 'a7',  name: 'Search AI metric enhancer FAQ agent', status: 'Draft',   generatedFAQs: 15, acceptedFAQs: 14, timeSaved: '30m',    locations: 1 },
   { id: 'a8',  name: 'Search AI metric enhancer FAQ agent', status: 'Running', generatedFAQs: 35, acceptedFAQs: 33, timeSaved: '1h 30m', locations: 3 },
-  { id: 'a9',  name: 'Search AI metric enhancer FAQ agent', status: 'Draft',   generatedFAQs: 20, acceptedFAQs: 18, timeSaved: '45m',    locations: 2 },
+  { id: 'a9',  name: 'On demand FAQ generation agent',      status: 'Draft',   generatedFAQs: 20, acceptedFAQs: 18, timeSaved: '45m',    locations: 2 },
   { id: 'a10', name: 'Search AI metric enhancer FAQ agent', status: 'Draft',   generatedFAQs: 19, acceptedFAQs: 17, timeSaved: '30m',    locations: 2 },
-  { id: 'a11', name: 'Search AI metric enhancer FAQ agent', status: 'Draft',   generatedFAQs: 14, acceptedFAQs: 13, timeSaved: '15m',    locations: 1 },
+  { id: 'a11', name: 'On demand FAQ generation agent',      status: 'Draft',   generatedFAQs: 14, acceptedFAQs: 13, timeSaved: '15m',    locations: 1 },
 ];
 
 const DEFAULT_TEMPLATES = [
