@@ -110,27 +110,22 @@ function AeoLeftPanel({ score, subScores, lowScore = false }: AeoLeftPanelProps)
         <div style={{ width: `${pct}%`, height: '100%', borderRadius: 999, backgroundColor: barColor, transition: 'width 600ms ease' }} />
       </div>
 
-      <div className="border-t border-border" />
-
       {/* Sub-score breakdown — name + "Weights: X.X" + score/100 */}
       <div className="flex flex-col">
-        {subScores.map((sub, i) => (
-          <div key={sub.name}>
-            <div className="flex items-start justify-between gap-2 py-3">
-              <div className="flex flex-col gap-0.5">
-                <span className="text-[13px] text-foreground font-medium leading-[18px]">{sub.name}</span>
-                <span className="text-[12px] text-muted-foreground leading-[16px]">
-                  Weights: {typeof sub.weight === 'number' && sub.weight < 1
-                    ? (sub.weight * 100).toFixed(1)
-                    : sub.weight}
-                </span>
-              </div>
-              <div className="flex items-baseline gap-0.5 flex-shrink-0">
-                <span className="text-[14px] text-foreground font-semibold leading-none">{sub.you}</span>
-                <span className="text-[12px] text-muted-foreground leading-none">/100</span>
-              </div>
+        {subScores.map((sub) => (
+          <div key={sub.name} className="flex items-start justify-between gap-2 py-2">
+            <div className="flex flex-col gap-0.5">
+              <span className="text-[13px] text-foreground font-medium leading-[18px]">{sub.name}</span>
+              <span className="text-[12px] text-muted-foreground leading-[16px]">
+                Weights: {typeof sub.weight === 'number' && sub.weight < 1
+                  ? (sub.weight * 100).toFixed(1)
+                  : sub.weight}
+              </span>
             </div>
-            {i < subScores.length - 1 && <div className="border-t border-border" />}
+            <div className="flex items-baseline gap-0.5 flex-shrink-0">
+              <span className="text-[14px] text-foreground font-semibold leading-none">{sub.you}</span>
+              <span className="text-[12px] text-muted-foreground leading-none">/100</span>
+            </div>
           </div>
         ))}
       </div>
