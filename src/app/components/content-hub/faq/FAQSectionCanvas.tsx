@@ -1655,7 +1655,7 @@ export function FAQSectionCanvas({ sections, generationLabel, onVersionHistory, 
           {/* Document container — padding stays fixed, only the page scales */}
           <div className="px-8 py-6 pb-10">
             <div style={{ zoom }}>
-            <div className="mx-auto min-h-[calc(100vh-160px)] max-w-[1040px] rounded-lg bg-background px-[30px] pt-[30px] pb-14 shadow-[0_18px_60px_rgba(15,23,42,0.08)] ring-[0.5px] ring-border/20">
+            <div className="mx-auto min-h-[calc(100vh-160px)] max-w-[1040px] rounded-lg bg-background px-[30px] pt-[30px] pb-14 shadow-[0_2px_12px_rgba(15,23,42,0.06)] ring-[0.5px] ring-border/20">
               <div className="grid min-h-[640px]">
                 <div
                   aria-hidden={!showGenerationLayer}
