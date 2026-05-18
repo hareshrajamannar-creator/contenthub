@@ -1,4 +1,4 @@
-import { useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { toast } from 'sonner';
 import {
   BarChart3,
@@ -122,6 +122,7 @@ export function ContentShareModal({
   initialTab = 'collaborate',
 }: ContentShareModalProps) {
   const [activeTab, setActiveTab] = useState<ShareTab>(initialTab);
+  useEffect(() => { if (open) setActiveTab(initialTab); }, [open, initialTab]);
   const [query, setQuery] = useState('');
   const [workspaceAccess, setWorkspaceAccess] = useState(false);
   const [linkPermission, setLinkPermission] = useState<Permission>('View only');
