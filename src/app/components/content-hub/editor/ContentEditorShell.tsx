@@ -668,10 +668,20 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
   // 'generating' → shimmer cards
   // 'done'       → normal canvas + left pane visible
   const needsSetup = !skipSetupPhase && (BLOCK_MODES.has(mode) || mode === 'project');
+  const hasPreloadedContent = (preloadedFAQs?.length ?? 0) > 0 || (preloadedBlogSections?.length ?? 0) > 0;
   type SetupPhase = 'setup' | 'generating' | 'done';
   const [setupPhase, setSetupPhase] = useState<SetupPhase>(
-    skipSetupPhase && (mode === 'faq' || mode === 'blog') ? 'generating' : (needsSetup ? 'setup' : 'done')
+    skipSetupPhase && (mode === 'faq' || mode === 'blog') && !hasPreloadedContent
+      ? 'generating'
+      : (needsSetup ? 'setup' : 'done')
   );
+  // Quick shimmer for rec-to-editor transitions: show skeleton briefly then reveal canvas
+  const [isQuickShimmering, setIsQuickShimmering] = useState(skipSetupPhase && hasPreloadedContent);
+  useEffect(() => {
+    if (!isQuickShimmering) return;
+    const t = window.setTimeout(() => setIsQuickShimmering(false), 500);
+    return () => window.clearTimeout(t);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
   const [flowData, setFlowData]         = useState<InlineFlowData | null>(null);
   const [generationInfo, setGenerationInfo] = useState<GenerationInfo | null>(
     skipSetupPhase && mode === 'faq'
@@ -1369,17 +1379,27 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
 
       {/* ── FAQ section canvas (done phase) ──────────────────────────────── */}
       {setupPhase === 'done' && mode === 'faq' && faqFlowData && (
-        <FAQSectionCanvas
-          sections={faqFlowData.sections}
-          generationLabel={generationInfo?.label}
-          onEditSettings={handleEditSettings}
-          onVersionHistory={() => setVersionHistoryOpen(true)}
-          initialQuestions={preloadedFAQs}
-          initialScore={recAeoScore}
-          onScoreChange={setFaqScore}
-          scorePanelOpen={faqScorePanelOpen}
-          onScorePanelChange={setFaqScorePanelOpen}
-        />
+        isQuickShimmering
+          ? (
+            <div className="flex flex-1 min-h-0 gap-2 bg-[var(--color-canvas,#F7F8FA)] p-2">
+              <LeftPanelSkeleton />
+              <div className="flex-1 min-h-0 rounded-xl bg-background animate-pulse" />
+              <ScorePanelSkeleton />
+            </div>
+          )
+          : (
+            <FAQSectionCanvas
+              sections={faqFlowData.sections}
+              generationLabel={generationInfo?.label}
+              onEditSettings={handleEditSettings}
+              onVersionHistory={() => setVersionHistoryOpen(true)}
+              initialQuestions={preloadedFAQs}
+              initialScore={recAeoScore}
+              onScoreChange={setFaqScore}
+              scorePanelOpen={faqScorePanelOpen}
+              onScorePanelChange={setFaqScorePanelOpen}
+            />
+          )
       )}
       {setupPhase === 'generating' && mode === 'blog' && blogFlowData && (
         <div className="flex flex-1 min-h-0 gap-2 bg-[var(--color-canvas,#F7F8FA)] p-2">
@@ -1417,18 +1437,28 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
 
       {/* ── Blog section canvas (done phase, blog mode) ───────────────── */}
       {setupPhase === 'done' && mode === 'blog' && blogFlowData && (
-        <BlogSectionCanvas
-          sections={blogFlowData.sections}
-          generationLabel={generationInfo?.label}
-          onEditSettings={handleEditSettings}
-          onVersionHistory={() => setVersionHistoryOpen(true)}
-          initialScore={recAeoScore}
-          preloadedBlogSections={preloadedBlogSections}
-          title={initialTitle}
-          onScoreChange={setBlogScore}
-          scorePanelOpen={blogScorePanelOpen}
-          onScorePanelChange={setBlogScorePanelOpen}
-        />
+        isQuickShimmering
+          ? (
+            <div className="flex flex-1 min-h-0 gap-2 bg-[var(--color-canvas,#F7F8FA)] p-2">
+              <LeftPanelSkeleton />
+              <div className="flex-1 min-h-0 rounded-xl bg-background animate-pulse" />
+              <ScorePanelSkeleton />
+            </div>
+          )
+          : (
+            <BlogSectionCanvas
+              sections={blogFlowData.sections}
+              generationLabel={generationInfo?.label}
+              onEditSettings={handleEditSettings}
+              onVersionHistory={() => setVersionHistoryOpen(true)}
+              initialScore={recAeoScore}
+              preloadedBlogSections={preloadedBlogSections}
+              title={initialTitle}
+              onScoreChange={setBlogScore}
+              scorePanelOpen={blogScorePanelOpen}
+              onScorePanelChange={setBlogScorePanelOpen}
+            />
+          )
       )}
 
       {/* ── Body (left + center + right) — only when done (non-FAQ, non-blog) ── */}

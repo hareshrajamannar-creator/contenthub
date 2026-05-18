@@ -30,6 +30,8 @@ interface EditorScorePanelProps {
   onFixAll?: () => void;
   /** Override the auto-derived score label */
   scoreLabel?: string;
+  /** Max number of improvement items to show */
+  maxImprovements?: number;
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
@@ -43,6 +45,7 @@ export function EditorScorePanel({
   onItemFixed,
   onFixAll,
   scoreLabel,
+  maxImprovements,
 }: EditorScorePanelProps) {
   const dims: ScoreDim[] = (dimensions ?? config.scoreDimensions).map(d => ({
     label: d.label,
@@ -68,6 +71,7 @@ export function EditorScorePanel({
           onClose={onClose}
           onItemFixed={onItemFixed}
           onFixAll={onFixAll}
+          maxImprovements={maxImprovements}
         />
       </div>
     </div>

@@ -1735,6 +1735,7 @@ export function FAQSectionCanvas({ sections, generationLabel, onVersionHistory, 
         onItemFixed={handleItemFixed}
         onFixAll={handleFixAll}
         scoreLabel="Content score"
+        maxImprovements={baseScore !== undefined ? 1 : undefined}
       />
 
       {/* ── Comment panel ─────────────────────────────────────────────── */}

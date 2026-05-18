@@ -44,6 +44,8 @@ export interface ContentScorePanelProps {
   /** Called immediately when "Fix all" is clicked — triggers canvas shimmer */
   onFixAll?: () => void;
   className?: string;
+  /** Max number of improvement items to show (undefined = show all) */
+  maxImprovements?: number;
 }
 
 // ── Improvement items ─────────────────────────────────────────────────────────
@@ -114,16 +116,27 @@ export function ContentScorePanel({
   onItemFixed,
   onFixAll,
   className,
+  maxImprovements,
 }: ContentScorePanelProps) {
   const [doneIds, setDoneIds] = useState<Set<string>>(new Set());
   const [fixingIds, setFixingIds] = useState<Set<string>>(new Set());
   const [fixingAll, setFixingAll] = useState(false);
 
   const pendingItems = ALL_IMPROVEMENTS.filter(item => !doneIds.has(item.id));
+  const visibleItems = pendingItems.slice(0, maxImprovements ?? pendingItems.length);
 
-  const pct = Math.max(0, Math.min(score, 100));
-  const color = scoreColor(score).text;
-  const barColor = scoreStrokeColor(score);
+  // Display score = average of dimension scores + cumulative fix bumps
+  const dimAvg = dimensions.length > 0
+    ? Math.round(dimensions.reduce((s, d) => s + d.score, 0) / dimensions.length)
+    : score;
+  const cumulativeBump = ALL_IMPROVEMENTS
+    .filter(i => doneIds.has(i.id))
+    .reduce((sum, i) => sum + i.scoreBump, 0);
+  const displayScore = Math.min(100, dimAvg + cumulativeBump);
+
+  const pct = Math.max(0, Math.min(displayScore, 100));
+  const color = scoreColor(displayScore).text;
+  const barColor = scoreStrokeColor(displayScore);
 
   function handleFixItem(id: string) {
     if (fixingIds.has(id) || doneIds.has(id)) return;
@@ -137,9 +150,9 @@ export function ContentScorePanel({
   }
 
   function handleFixAll() {
-    if (fixingAll || pendingItems.length === 0) return;
-    const pendingIds = pendingItems.map(i => i.id);
-    const totalBump = pendingItems.reduce((sum, i) => sum + i.scoreBump, 0);
+    if (fixingAll || visibleItems.length === 0) return;
+    const pendingIds = visibleItems.map(i => i.id);
+    const totalBump = visibleItems.reduce((sum, i) => sum + i.scoreBump, 0);
     setFixingAll(true);
     setFixingIds(new Set(pendingIds));
     onFixAll?.();
@@ -182,7 +195,7 @@ export function ContentScorePanel({
             className="text-[52px] font-semibold leading-none transition-all duration-700"
             style={{ color }}
           >
-            {score}
+            {displayScore}
           </span>
           <span className="text-[20px] text-muted-foreground font-normal leading-none">/ 100</span>
         </div>
@@ -254,7 +267,7 @@ export function ContentScorePanel({
         </div>
 
         {/* Ways to improve — single unified section, hidden when all done */}
-        {pendingItems.length > 0 && (
+        {visibleItems.length > 0 && (
           <>
             <div className="flex flex-col gap-3 mt-4">
               <div className="flex items-center justify-between">
@@ -269,7 +282,7 @@ export function ContentScorePanel({
                 </button>
               </div>
 
-              {pendingItems.map(item => {
+              {visibleItems.map(item => {
                 const isFixing = fixingIds.has(item.id);
                 return (
                   <div

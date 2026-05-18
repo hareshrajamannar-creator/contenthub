@@ -1683,6 +1683,7 @@ export function BlogSectionCanvas({ sections, generationLabel, onVersionHistory,
         score={finalScore}
         onItemFixed={handleItemFixed}
         onFixAll={handleFixAll}
+        maxImprovements={initialScore !== undefined ? 1 : undefined}
       />
 
       {/* ── Comment panel ─────────────────────────────────────────────── */}
