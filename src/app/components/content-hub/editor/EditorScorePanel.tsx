@@ -28,6 +28,8 @@ interface EditorScorePanelProps {
   onItemFixed?: (bump: number) => void;
   /** Called immediately when "Fix all" is clicked — triggers canvas shimmer */
   onFixAll?: () => void;
+  /** Override the auto-derived score label */
+  scoreLabel?: string;
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
@@ -40,6 +42,7 @@ export function EditorScorePanel({
   score,
   onItemFixed,
   onFixAll,
+  scoreLabel,
 }: EditorScorePanelProps) {
   const dims: ScoreDim[] = (dimensions ?? config.scoreDimensions).map(d => ({
     label: d.label,
@@ -59,7 +62,7 @@ export function EditorScorePanel({
       <div className="w-[300px] flex flex-col flex-1 min-h-0 rounded-xl border border-border/60 bg-background overflow-hidden">
         <ContentScorePanel
           score={score}
-          scoreLabel={config.label + ' score'}
+          scoreLabel={scoreLabel ?? config.label + ' score'}
           dimensions={dims}
           showClose
           onClose={onClose}

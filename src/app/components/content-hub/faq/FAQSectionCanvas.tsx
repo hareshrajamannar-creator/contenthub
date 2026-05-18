@@ -1740,6 +1740,7 @@ export function FAQSectionCanvas({ sections, generationLabel, onVersionHistory, 
         score={setScore}
         onItemFixed={handleItemFixed}
         onFixAll={handleFixAll}
+        scoreLabel="Content score"
       />
 
       {/* ── Comment panel ─────────────────────────────────────────────── */}

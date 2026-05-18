@@ -249,7 +249,6 @@ export function ContentScorePanel({
                   <span className="text-[12px] text-muted-foreground leading-none">/100</span>
                 </div>
               </div>
-              {i < dimensions.length - 1 && <div className="border-t border-border" />}
             </div>
           ))}
         </div>
