@@ -413,6 +413,58 @@ function ScorePanelSkeleton() {
   );
 }
 
+// ── Canvas shimmer (used for quick rec→editor transitions) ───────────────────
+
+function CanvasShimmer({ mode }: { mode: 'faq' | 'blog' }) {
+  return (
+    <div className="flex-1 min-h-0 overflow-y-auto bg-[var(--color-canvas,#F7F8FA)] flex items-start justify-center px-8 py-8">
+      <div className="w-full max-w-[1040px] rounded-xl bg-background shadow-[0_18px_60px_rgba(15,23,42,0.08)] ring-[0.5px] ring-border/20 px-[30px] pt-[30px] pb-14 animate-pulse">
+        {mode === 'faq' ? (
+          <>
+            {/* Info bar */}
+            <div className="flex items-center gap-3 mb-8 pb-5 border-b border-border/40">
+              <div className="h-3 w-48 rounded-full bg-muted" />
+              <div className="h-3 w-24 rounded-full bg-muted/60" />
+            </div>
+            {/* FAQ rows */}
+            {[0, 1, 2, 3, 4].map(i => (
+              <div key={i} className="flex items-start gap-4 py-5 border-b border-border/30 last:border-0" style={{ animationDelay: `${i * 0.06}s` }}>
+                <div className="h-7 w-7 rounded-full bg-muted flex-none mt-0.5" />
+                <div className="flex flex-col gap-3 flex-1 min-w-0">
+                  <div className="h-6 w-4/5 rounded-lg bg-muted" />
+                  <div className="h-4 w-full rounded-full bg-muted/60" />
+                  <div className="h-4 w-3/4 rounded-full bg-muted/50" />
+                </div>
+              </div>
+            ))}
+          </>
+        ) : (
+          <>
+            {/* Blog title */}
+            <div className="mb-8 pb-6 border-b border-border/40">
+              <div className="h-8 w-2/3 rounded-lg bg-muted mb-3" />
+              <div className="h-4 w-1/2 rounded-full bg-muted/60" />
+            </div>
+            {/* Blog sections */}
+            {[0, 1, 2].map(i => (
+              <div key={i} className="mb-8" style={{ animationDelay: `${i * 0.08}s` }}>
+                <div className="h-6 w-1/3 rounded-lg bg-muted mb-4" />
+                <div className="flex flex-col gap-2">
+                  <div className="h-4 w-full rounded-full bg-muted/60" />
+                  <div className="h-4 w-11/12 rounded-full bg-muted/50" />
+                  <div className="h-4 w-4/5 rounded-full bg-muted/40" />
+                  <div className="h-4 w-full rounded-full bg-muted/60 mt-1" />
+                  <div className="h-4 w-3/4 rounded-full bg-muted/50" />
+                </div>
+              </div>
+            ))}
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ── Generating skeleton ───────────────────────────────────────────────────────
 
 function GeneratingSkeleton({ count }: { count: number }) {
@@ -679,7 +731,7 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
   const [isQuickShimmering, setIsQuickShimmering] = useState(skipSetupPhase && hasPreloadedContent);
   useEffect(() => {
     if (!isQuickShimmering) return;
-    const t = window.setTimeout(() => setIsQuickShimmering(false), 500);
+    const t = window.setTimeout(() => setIsQuickShimmering(false), 1000);
     return () => window.clearTimeout(t);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
   const [flowData, setFlowData]         = useState<InlineFlowData | null>(null);
@@ -1383,7 +1435,7 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
           ? (
             <div className="flex flex-1 min-h-0 gap-2 bg-[var(--color-canvas,#F7F8FA)] p-2">
               <LeftPanelSkeleton />
-              <div className="flex-1 min-h-0 rounded-xl bg-background animate-pulse" />
+              <CanvasShimmer mode="faq" />
               <ScorePanelSkeleton />
             </div>
           )
@@ -1441,7 +1493,7 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
           ? (
             <div className="flex flex-1 min-h-0 gap-2 bg-[var(--color-canvas,#F7F8FA)] p-2">
               <LeftPanelSkeleton />
-              <div className="flex-1 min-h-0 rounded-xl bg-background animate-pulse" />
+              <CanvasShimmer mode="blog" />
               <ScorePanelSkeleton />
             </div>
           )
