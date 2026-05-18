@@ -228,8 +228,8 @@ export function ContentScorePanel({
           aria-valuenow={pct}
           style={{
             width: '100%',
-            height: 10,
-            minHeight: 10,
+            height: 8,
+            minHeight: 8,
             borderRadius: 999,
             backgroundColor: '#E5E7EB',
           }}

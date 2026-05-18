@@ -11,6 +11,7 @@ import { Checkbox } from '@/app/components/ui/checkbox'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/app/components/ui/dropdown-menu'
 import { toast } from 'sonner'
 import type { Recommendation, BusinessMetrics, AeoSubScore, RecStatus } from './recTypes'
+import { scoreColor, scoreStrokeColor } from '@/app/components/content-hub/shared/scoreColors'
 
 // ── helpers ───────────────────────────────────────────────────────────────────
 
@@ -79,15 +80,15 @@ interface AeoLeftPanelProps {
 }
 
 function AeoLeftPanel({ score, subScores, lowScore = false }: AeoLeftPanelProps) {
-  const scoreColor = lowScore ? 'text-primary' : 'text-[#3d9e4a]'
-  const barColor = lowScore ? 'var(--color-primary)' : '#4cae3d'
+  const color = scoreColor(lowScore ? Math.min(score, 49) : score).text
+  const barFill = scoreStrokeColor(lowScore ? Math.min(score, 49) : score)
   const pct = Math.max(0, Math.min(score, 100))
 
   return (
     <div className="flex flex-col gap-4 px-5 py-5">
       {/* Large score number */}
       <div className="flex items-baseline gap-1.5">
-        <span className={cn('text-[32px] font-normal leading-[44px]', scoreColor)}>{score}</span>
+        <span className="text-[32px] font-normal leading-[44px]" style={{ color }}>{score}</span>
         <span className="text-[15px] text-muted-foreground font-medium leading-[32px]">/ 100</span>
       </div>
 
@@ -107,7 +108,7 @@ function AeoLeftPanel({ score, subScores, lowScore = false }: AeoLeftPanelProps)
         aria-valuenow={pct}
         style={{ width: '100%', height: 8, borderRadius: 999, backgroundColor: '#E5E7EB', overflow: 'hidden' }}
       >
-        <div style={{ width: `${pct}%`, height: '100%', borderRadius: 999, backgroundColor: barColor, transition: 'width 600ms ease' }} />
+        <div style={{ width: `${pct}%`, height: '100%', borderRadius: 999, backgroundColor: barFill, transition: 'width 600ms ease' }} />
       </div>
 
       {/* Sub-score breakdown — name + "Weights: X.X" + score/100 */}
