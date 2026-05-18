@@ -17,6 +17,7 @@ import {
   Table,
   Users,
   X,
+  Download,
 } from 'lucide-react';
 import {
   Dialog,
@@ -319,23 +320,33 @@ export function ContentShareModal({
 
           {activeTab === 'download' && (
             <div className="flex flex-col gap-2">
-              {DOWNLOAD_OPTIONS.map(option => (
-                <div
-                  key={option.id}
-                  className="group flex items-center gap-4 rounded-[8px] border border-border/70 px-4 py-3"
-                >
-                  <span className="flex-1 text-[13px] font-medium text-foreground">{option.label}</span>
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="outline"
-                    className="opacity-0 group-hover:opacity-100 transition-opacity"
-                    onClick={() => toast.success(`${option.label} download started`)}
+              {DOWNLOAD_OPTIONS.map(option => {
+                const Icon = option.icon;
+                return (
+                  <div
+                    key={option.id}
+                    className="group flex items-center gap-4 rounded-[8px] border border-border/70 px-4 py-3"
                   >
-                    Download
-                  </Button>
-                </div>
-              ))}
+                    <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+                      <Icon size={15} strokeWidth={1.6} absoluteStrokeWidth />
+                    </div>
+                    <span className="flex-1 text-[13px] font-medium text-foreground">{option.label}</span>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      className="opacity-0 group-hover:opacity-100 transition-opacity gap-1.5"
+                      onClick={() => toast.success(`${option.label} download started`, {
+                        duration: 5000,
+                        icon: <CheckCircle2 size={20} strokeWidth={1.6} absoluteStrokeWidth className="text-green-600" />,
+                      })}
+                    >
+                      <Download size={13} strokeWidth={1.6} absoluteStrokeWidth />
+                      Download
+                    </Button>
+                  </div>
+                );
+              })}
             </div>
           )}
 
