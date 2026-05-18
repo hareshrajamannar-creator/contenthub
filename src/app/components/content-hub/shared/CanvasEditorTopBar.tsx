@@ -29,6 +29,7 @@ interface CanvasEditorTopBarProps {
   onActivity?: () => void;
   onSave?: () => void;
   onChat?: () => void;
+  hideScore?: boolean;
 }
 
 function TopBarIconButton({
@@ -62,7 +63,7 @@ function TopBarIconButton({
   );
 }
 
-function ScoreProgressRing({ score }: { score: number }) {
+export function ScoreProgressRing({ score }: { score: number }) {
   const size = 20;
   const strokeWidth = 2.5;
   const radius = (size - strokeWidth) / 2;
@@ -114,25 +115,27 @@ export function CanvasEditorTopBar({
   onActivity,
   onSave,
   onChat,
+  hideScore = false,
 }: CanvasEditorTopBarProps) {
   return (
     <div className="flex h-[48px] flex-none items-center justify-between gap-4 rounded-lg border border-border/60 bg-background px-4">
-      <div className="flex min-w-0 items-center gap-2">
-        <button
-          type="button"
-          onClick={onScoreClick}
-          aria-pressed={scorePanelOpen}
-          className={cn(
-            'flex h-8 items-center gap-2 rounded-md px-2 text-left text-[13px] text-muted-foreground transition-colors hover:bg-muted/80',
-            scorePanelOpen && 'bg-muted text-foreground',
-          )}
-        >
-          <ScoreProgressRing score={score} />
-          <span className="font-medium text-foreground">{score}</span>
-          <span>/ 100 {scoreLabel}</span>
-        </button>
-
-      </div>
+      {!hideScore && (
+        <div className="flex min-w-0 items-center gap-2">
+          <button
+            type="button"
+            onClick={onScoreClick}
+            aria-pressed={scorePanelOpen}
+            className={cn(
+              'flex h-8 items-center gap-2 rounded-md px-2 text-left text-[13px] text-muted-foreground transition-colors hover:bg-muted/80',
+              scorePanelOpen && 'bg-muted text-foreground',
+            )}
+          >
+            <ScoreProgressRing score={score} />
+            <span className="font-medium text-foreground">{score}</span>
+            <span>/ 100 {scoreLabel}</span>
+          </button>
+        </div>
+      )}
 
       <div className="flex items-center gap-1">
         <TopBarIconButton title="Undo" onClick={onUndo} disabled={!canUndo}>

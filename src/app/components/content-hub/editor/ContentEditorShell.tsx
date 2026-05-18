@@ -67,7 +67,7 @@ import { BlogGenerationProgress } from '../blog/BlogGenerationProgress';
 import { BlogSectionCanvas } from '../blog/BlogSectionCanvas';
 import { ProjectGenerationProgress } from '../ProjectGenerationProgress';
 import { ContentFlowStepper, type ContentFlowStep } from '../shared/ContentFlowControls';
-import { CanvasEditorTopBar } from '../shared/CanvasEditorTopBar';
+import { CanvasEditorTopBar, ScoreProgressRing } from '../shared/CanvasEditorTopBar';
 import { ContentShareModal } from '../shared/ContentShareModal';
 import { ContentActivityDrawer } from '../shared/ContentActivityDrawer';
 import { ContentVersionHistory } from '../shared/ContentVersionHistory';
@@ -706,6 +706,8 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
   const [regenConfirmOpen, setRegenConfirmOpen] = useState(false);
   const [exportOpen, setExportOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
+  const [faqScore, setFaqScore] = useState(0);
+  const [faqScorePanelOpen, setFaqScorePanelOpen] = useState(false);
   const [commentsOpen, setCommentsOpen] = useState(false);
   const [activityOpen, setActivityOpen] = useState(false);
   const [versionHistoryOpen, setVersionHistoryOpen] = useState(false);
@@ -1237,6 +1239,21 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
               </>
             ) : (
               <>
+                {mode === 'faq' && faqScore > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setFaqScorePanelOpen(v => !v)}
+                    className={cn(
+                      'flex h-9 items-center gap-2 rounded-md border border-border px-3 text-[13px] text-muted-foreground transition-colors hover:bg-muted/60',
+                      faqScorePanelOpen && 'bg-muted text-foreground',
+                    )}
+                  >
+                    <ScoreProgressRing score={faqScore} />
+                    <span className="font-medium text-foreground">{faqScore}</span>
+                    <span>/ 100 Content score</span>
+                  </button>
+                )}
+
                 <Button
                   type="button"
                   variant="outline"
@@ -1344,6 +1361,9 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
           onVersionHistory={() => setVersionHistoryOpen(true)}
           initialQuestions={preloadedFAQs}
           initialScore={recAeoScore}
+          onScoreChange={setFaqScore}
+          scorePanelOpen={faqScorePanelOpen}
+          onScorePanelChange={setFaqScorePanelOpen}
         />
       )}
       {setupPhase === 'generating' && mode === 'blog' && blogFlowData && (

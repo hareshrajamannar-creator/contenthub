@@ -71,6 +71,12 @@ export interface FAQSectionCanvasProps {
   initialScore?: number;
   /** Story/demo hook for showing generation inside the document surface. */
   initialGenerating?: boolean;
+  /** Called whenever the displayed score changes — used to hoist score to the shell header. */
+  onScoreChange?: (score: number) => void;
+  /** Controlled open state for the score panel (passed from shell header toggle). */
+  scorePanelOpen?: boolean;
+  /** Called when the score panel open state changes internally. */
+  onScorePanelChange?: (open: boolean) => void;
 }
 
 // ── Build section data from preloaded questions ───────────────────────────────
@@ -1156,7 +1162,7 @@ function SectionBlock({
 
 // ── Main component ────────────────────────────────────────────────────────────
 
-export function FAQSectionCanvas({ sections, generationLabel, onVersionHistory, onGenerationComplete, initialQuestions, initialScore, initialGenerating = false }: FAQSectionCanvasProps) {
+export function FAQSectionCanvas({ sections, generationLabel, onVersionHistory, onGenerationComplete, initialQuestions, initialScore, initialGenerating = false, onScoreChange, scorePanelOpen: externalScorePanelOpen, onScorePanelChange }: FAQSectionCanvasProps) {
   const [sectionData, setSectionData] = useState<FAQSectionData[]>(() =>
     initialQuestions && initialQuestions.length > 0
       ? buildSectionDataFromQuestions(initialQuestions)
@@ -1164,7 +1170,13 @@ export function FAQSectionCanvas({ sections, generationLabel, onVersionHistory, 
   );
   const [leftTab, setLeftTab] = useState<'ai' | 'manual'>('ai');
   const [zoom, setZoom] = useState(1);
-  const [scorePanelOpen, setScorePanelOpen] = useState(true);
+  const [internalScorePanelOpen, setInternalScorePanelOpen] = useState(false);
+  const scorePanelOpen = externalScorePanelOpen !== undefined ? externalScorePanelOpen : internalScorePanelOpen;
+  const setScorePanelOpen = useCallback((v: boolean | ((prev: boolean) => boolean)) => {
+    const next = typeof v === 'function' ? v(scorePanelOpen) : v;
+    setInternalScorePanelOpen(next);
+    onScorePanelChange?.(next);
+  }, [scorePanelOpen, onScorePanelChange]);
   const [commentsOpen, setCommentsOpen] = useState(false);
   const [fixingAll, setFixingAll] = useState(false);
   const [panelBump, setPanelBump] = useState(0);
@@ -1351,6 +1363,8 @@ export function FAQSectionCanvas({ sections, generationLabel, onVersionHistory, 
   // When a rec score is provided, use it as the base; otherwise derive from Q&A health
   const canvasScore  = Math.round((readyCount / Math.max(1, totalQuestions)) * 78);
   const setScore     = Math.min(100, (baseScore !== undefined ? baseScore : canvasScore) + panelBump);
+
+  useEffect(() => { onScoreChange?.(setScore); }, [setScore, onScoreChange]);
 
   const faqConfig = EDITOR_CONFIGS['faq'];
   const visibleSections = sectionData.filter(section => !section.standalone);
@@ -1614,9 +1628,7 @@ export function FAQSectionCanvas({ sections, generationLabel, onVersionHistory, 
         >
           <CanvasEditorTopBar
             score={setScore}
-            scoreLabel="Content score"
-            scorePanelOpen={scorePanelOpen}
-            onScoreClick={() => { setScorePanelOpen(v => !v); setCommentsOpen(false); }}
+            hideScore
             canUndo={canUndo}
             canRedo={canRedo}
             onUndo={handleUndo}
