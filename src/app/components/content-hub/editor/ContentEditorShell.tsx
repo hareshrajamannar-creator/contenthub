@@ -1313,7 +1313,7 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
                 {mode === 'faq' && faqScore > 0 && (
                   <button
                     type="button"
-                    onClick={() => setFaqScorePanelOpen(v => !v)}
+                    onClick={() => { setFaqScorePanelOpen(v => !v); setActivityOpen(false); setCommentsOpen(false); setActiveScoreCardId(null); }}
                     className={cn(
                       'flex h-[34px] items-center gap-2 rounded-md px-3 text-[13px] text-muted-foreground transition-colors hover:bg-muted/60',
                       faqScorePanelOpen ? 'bg-muted text-foreground' : 'border border-border',
@@ -1328,7 +1328,7 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
                 {mode === 'blog' && blogScore > 0 && (
                   <button
                     type="button"
-                    onClick={() => setBlogScorePanelOpen(v => !v)}
+                    onClick={() => { setBlogScorePanelOpen(v => !v); setActivityOpen(false); setCommentsOpen(false); setActiveScoreCardId(null); }}
                     className={cn(
                       'flex h-[34px] items-center gap-2 rounded-md px-3 text-[13px] text-muted-foreground transition-colors hover:bg-muted/60',
                       blogScorePanelOpen ? 'bg-muted text-foreground' : 'border border-border',
@@ -1546,8 +1546,8 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
                 onRedo={handleRedo}
                 zoom={zoom}
                 onZoomChange={setZoom}
-                onActivity={() => { setActivityOpen(v => !v); setCommentsOpen(false); setActiveScoreCardId(null); }}
-                onChat={() => { setCommentsOpen(v => !v); setActivityOpen(false); setActiveScoreCardId(null); }}
+                onActivity={() => { setActivityOpen(v => !v); setCommentsOpen(false); setFaqScorePanelOpen(false); setBlogScorePanelOpen(false); setActiveScoreCardId(null); }}
+                onChat={() => { setCommentsOpen(v => !v); setActivityOpen(false); setFaqScorePanelOpen(false); setBlogScorePanelOpen(false); setActiveScoreCardId(null); }}
               />
               <div className="min-h-0 flex-1 overflow-hidden rounded-xl">
                 <BlockCanvas
