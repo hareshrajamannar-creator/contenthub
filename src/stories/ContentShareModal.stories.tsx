@@ -43,18 +43,6 @@ export const Open: Story = {
   ),
 };
 
-export const ShareLink: Story = {
-  name: 'Share link',
-  render: () => (
-    <ContentShareModal
-      open
-      onClose={() => {}}
-      contentTitle="Olive Garden FAQ"
-      initialTab="link"
-    />
-  ),
-};
-
 export const Download: Story = {
   render: () => (
     <ContentShareModal

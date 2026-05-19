@@ -125,14 +125,10 @@ export function ContentScorePanel({
   const pendingItems = ALL_IMPROVEMENTS.filter(item => !doneIds.has(item.id));
   const visibleItems = pendingItems.slice(0, maxImprovements ?? pendingItems.length);
 
-  // Display score = average of dimension scores + cumulative fix bumps
-  const dimAvg = dimensions.length > 0
-    ? Math.round(dimensions.reduce((s, d) => s + d.score, 0) / dimensions.length)
-    : score;
   const cumulativeBump = ALL_IMPROVEMENTS
     .filter(i => doneIds.has(i.id))
     .reduce((sum, i) => sum + i.scoreBump, 0);
-  const displayScore = Math.min(100, dimAvg + cumulativeBump);
+  const displayScore = Math.min(100, score + cumulativeBump);
 
   const pct = Math.max(0, Math.min(displayScore, 100));
   const color = scoreColor(displayScore).text;
@@ -277,7 +273,7 @@ export function ContentScorePanel({
                     type="button"
                     onClick={handleFixAll}
                     disabled={fixingAll}
-                    className="text-[12px] font-medium text-primary hover:underline disabled:opacity-50"
+                    className="text-[12px] font-medium text-primary disabled:opacity-50"
                   >
                     Fix all
                   </button>
@@ -309,7 +305,7 @@ export function ContentScorePanel({
                         <button
                           type="button"
                           onClick={() => handleFixItem(item.id)}
-                          className="self-start text-[11px] font-medium text-primary hover:underline mt-0.5"
+                          className="self-start text-[11px] font-medium text-primary mt-0.5"
                         >
                           {item.action}
                         </button>
