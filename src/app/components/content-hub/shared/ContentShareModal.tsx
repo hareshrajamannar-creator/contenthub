@@ -50,7 +50,7 @@ interface Member {
 
 const TABS: { id: ShareTab; label: string }[] = [
   { id: 'download', label: 'Download' },
-  { id: 'collaborate', label: 'Collaborate' },
+  { id: 'collaborate', label: 'Share' },
   { id: 'embed', label: 'Embed' },
 ];
 

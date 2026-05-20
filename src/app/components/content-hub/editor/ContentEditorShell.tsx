@@ -25,7 +25,7 @@ import {
   ArrowLeft, ChevronDown, Sparkles, Edit2,
   FileText, Share2, Mail, MessageSquare, Monitor, Video, FolderPlus,
   Plus, ChevronUp, Grid, List, Calendar, ZoomIn, ZoomOut,
-  Undo2, Redo2, ArrowDown, ArrowRight, CheckCircle2,
+  Undo2, Redo2, ArrowDown, ArrowRight, CheckCircle2, MoreHorizontal,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -1379,46 +1379,68 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
                   </button>
                 )}
 
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => { setShareInitialTab('collaborate'); setShareOpen(true); }}
-                >
-                  Share
-                </Button>
-
                 {mode === 'blog' ? (
-                  <Button
-                    type="button"
-                    onClick={() => setExportOpen(true)}
-                  >
-                    Publish
-                  </Button>
-                ) : (
-                  <div className="inline-flex">
+                  <>
                     <Button
                       type="button"
-                      onClick={handleSaveFaq}
-                      className="rounded-r-none"
+                      variant="outline"
+                      onClick={() => { setShareInitialTab('collaborate'); setShareOpen(true); }}
                     >
-                      Save
+                      Share
                     </Button>
+                    <Button
+                      type="button"
+                      onClick={() => setExportOpen(true)}
+                    >
+                      Publish
+                    </Button>
+                  </>
+                ) : (
+                  <div className="inline-flex items-center gap-2">
+                    <div className="inline-flex">
+                      <Button
+                        type="button"
+                        onClick={handleSaveFaq}
+                        className="rounded-r-none"
+                      >
+                        Save
+                      </Button>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            type="button"
+                            aria-label="Save options"
+                            className="rounded-l-none border-l border-primary-foreground/20 px-2"
+                          >
+                            <ChevronDown size={14} strokeWidth={1.6} absoluteStrokeWidth />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="min-w-[220px]">
+                          <DropdownMenuItem onClick={() => setSendForApprovalOpen(true)}>
+                            Send for approval
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={handleSaveAndAddToLibrary}>
+                            Save and add to library
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button
+                        <button
                           type="button"
-                          aria-label="Save options"
-                          className="rounded-l-none border-l border-primary-foreground/20 px-2"
+                          aria-label="More actions"
+                          className="flex h-[var(--button-height)] w-[var(--button-height)] items-center justify-center rounded-md border border-border bg-background text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                         >
-                          <ChevronDown size={14} strokeWidth={1.6} absoluteStrokeWidth />
-                        </Button>
+                          <MoreHorizontal size={16} strokeWidth={1.6} absoluteStrokeWidth />
+                        </button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="min-w-[220px]">
-                        <DropdownMenuItem onClick={() => setSendForApprovalOpen(true)}>
-                          Send for approval
+                      <DropdownMenuContent align="end" className="min-w-[180px]">
+                        <DropdownMenuItem onClick={() => { setShareInitialTab('collaborate'); setShareOpen(true); }}>
+                          Share
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={handleSaveAndAddToLibrary}>
-                          Save and add to library
+                        <DropdownMenuItem onClick={() => { setShareInitialTab('download'); setShareOpen(true); }}>
+                          Download
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
