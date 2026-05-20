@@ -716,8 +716,8 @@ const EDITOR_REPLIES_BLOG: Record<string, EditorReply> = {
 const EDITOR_REPLIES: Record<string, EditorReply> = {
   // Level 1 — initial chip choices
   'Strengthen answers': {
-    text: "Which sections feel weak? I can rewrite specific answers to be more direct, add evidence, or improve clarity.",
-    chips: ['Emergency basics', 'Appointments and costs', 'Special cases', 'All sections'],
+    text: "Which answers should I strengthen? I can rewrite them to be more direct, add evidence, or improve clarity.",
+    chips: ['Lowest scoring answers', 'Let me pick', 'All answers'],
   },
   'Add missing questions': {
     text: "What area should I focus on for missing coverage?",
@@ -740,8 +740,8 @@ const EDITOR_REPLIES: Record<string, EditorReply> = {
     chips: ['Professional', 'Friendly', 'Authoritative', 'Conversational', 'Empathetic'],
   },
   'Add examples': {
-    text: "Which sections should I add examples or analogies to?",
-    chips: ['Emergency basics', 'Appointments and costs', 'Special cases', 'All sections'],
+    text: "Which answers should I add examples or analogies to?",
+    chips: ['Lowest scoring answers', 'Let me pick', 'All answers'],
   },
   'Check against objective': {
     text: "What was the primary objective for this FAQ set?",
@@ -749,20 +749,15 @@ const EDITOR_REPLIES: Record<string, EditorReply> = {
   },
 
   // Level 2 — follow-up chip choices
-  'Emergency basics': {
-    text: "Got it. I'll focus on the Emergency basics section. Should I rewrite existing answers, add new questions, or both?",
-    chips: ['Rewrite existing', 'Add new questions', 'Both'],
+  'Lowest scoring answers': {
+    text: "I'll focus on the lowest-scoring answers. Should I rewrite them for clarity, add evidence, or both?",
+    chips: ['Rewrite for clarity', 'Add evidence', 'Both improvements'],
   },
-  'Appointments and costs': {
-    text: "Working on Appointments and costs. Want me to emphasize transparency on pricing, ease of booking, or both?",
-    chips: ['Emphasize pricing clarity', 'Emphasize booking ease', 'Both'],
+  'Let me pick': {
+    text: "Click any answer in the canvas to select it, then I'll apply the change to just that one.",
   },
-  'Special cases': {
-    text: "On it for Special cases. These often need more nuance — should I add caveats, specific examples, or expand the scope?",
-    chips: ['Add caveats', 'Add specific examples', 'Expand scope'],
-  },
-  'All sections': {
-    text: "I'll go through every section. Want a summary of suggested changes first, or should I apply them directly?",
+  'All answers': {
+    text: "I'll go through every answer. Want a summary of suggested changes first, or should I apply them directly?",
     chips: ['Show summary first', 'Apply directly'],
   },
   'Pricing and costs': {
@@ -810,24 +805,24 @@ const EDITOR_REPLIES: Record<string, EditorReply> = {
     chips: ['Great, proceed', 'Show what will be checked'],
   },
   'Professional': {
-    text: "I'll rewrite answers in a clear, formal, expert tone — no contractions, precise language. Apply to all or select sections?",
-    chips: ['All sections', 'Let me pick sections'],
+    text: "I'll rewrite answers in a clear, formal, expert tone — no contractions, precise language. Apply to all or let me pick?",
+    chips: ['Apply to all', 'Let me pick'],
   },
   'Friendly': {
     text: "Rewriting in a warm, approachable tone — using 'you', contractions, and conversational phrasing. Apply to all?",
-    chips: ['Apply to all', 'Select sections'],
+    chips: ['Apply to all', 'Let me pick'],
   },
   'Authoritative': {
     text: "I'll make answers sound confident and definitive — citing specifics, avoiding hedging language. Apply to all?",
-    chips: ['Apply to all', 'Select sections'],
+    chips: ['Apply to all', 'Let me pick'],
   },
   'Conversational': {
-    text: "Going for a natural, dialogue-like tone — as if answering face-to-face. Apply to all sections?",
-    chips: ['Apply to all', 'Select sections'],
+    text: "Going for a natural, dialogue-like tone — as if answering face-to-face. Apply to all answers?",
+    chips: ['Apply to all', 'Let me pick'],
   },
   'Empathetic': {
     text: "I'll lead answers with acknowledgment before the solution — ideal for sensitive topics like costs or wait times. Apply to all?",
-    chips: ['Apply to all', 'Select sections'],
+    chips: ['Apply to all', 'Let me pick'],
   },
   'Search visibility': {
     text: "Checking for question-answer alignment with high-volume search queries, schema validity, and featured snippet formatting.",
@@ -847,21 +842,16 @@ const EDITOR_REPLIES: Record<string, EditorReply> = {
   },
 
   // Terminal replies
-  'Both': { text: "Perfect. I'll rewrite existing answers for clarity and impact, then suggest 2–3 new questions for this section. Changes will appear in the canvas." },
-  'Rewrite existing': { text: "Rewriting answers in this section now. The updated versions will appear inline — you can accept or revert each one." },
-  'Add new questions': { text: "Generating 2–3 new questions with optimized answers for this section. They'll appear at the bottom of the section." },
-  'Emphasize pricing clarity': { text: "I'll make costs explicit in every relevant answer, including ranges, variables, and what's included. Applying now." },
-  'Emphasize booking ease': { text: "Highlighting ease-of-booking language — clear steps, instant confirmation, flexible scheduling. Applying now." },
-  'Add caveats': { text: "Adding appropriate nuance to special case answers so they set accurate expectations without being alarming." },
-  'Add specific examples': { text: "Grounding abstract answers with real-world scenarios makes them more useful and trustworthy. Adding examples now." },
-  'Expand scope': { text: "I'll broaden the Special cases section to cover more edge scenarios your customers might encounter." },
-  'Show summary first': { text: "Here's a summary of proposed changes across all sections. Approve each batch or apply them all at once." },
-  'Apply directly': { text: "Applying improvements across all sections now. You can undo any individual change from the canvas." },
-  'Yes, include payment and refunds': { text: "Adding 5 new questions covering pricing, payment methods, and refund policy. They'll appear in a new or existing section." },
-  'Pricing questions only': { text: "Adding 3 pricing-focused questions with transparent, direct answers. Placing them in your most relevant section." },
+  'Rewrite for clarity': { text: "Rewriting the flagged answers for clarity now. The updated versions will appear inline — you can accept or revert each one." },
+  'Add evidence': { text: "Adding concrete evidence — stats, examples, or quotes — to the flagged answers. Changes appear inline in the canvas." },
+  'Both improvements': { text: "Perfect. I'll rewrite the flagged answers for clarity and add supporting evidence. Changes will appear in the canvas." },
+  'Show summary first': { text: "Here's a summary of proposed changes across all answers. Approve each batch or apply them all at once." },
+  'Apply directly': { text: "Applying improvements across all answers now. You can undo any individual change from the canvas." },
+  'Yes, include payment and refunds': { text: "Adding 5 new questions covering pricing, payment methods, and refund policy. They'll appear at the bottom of the canvas." },
+  'Pricing questions only': { text: "Adding 3 pricing-focused questions with transparent, direct answers." },
   'Yes, add cancellation': { text: "Adding questions on booking, availability, and cancellation policy. These cover the most common pre-booking concerns." },
   'Booking only': { text: "Adding 3 questions focused on the booking flow and availability. Short, action-oriented answers." },
-  'Yes, include after-hours': { text: "Including after-hours contact details and protocol in the emergency section answers." },
+  'Yes, include after-hours': { text: "Including after-hours contact details and protocol in the emergency-related answers." },
   'Emergency questions only': { text: "Adding high-urgency questions with fast, scannable answers — no fluff, just actionable info." },
   'Yes, include cancellation policy': { text: "Covering guarantees, warranties, and cancellation policies in one consolidated set of questions." },
   'Guarantees and warranties only': { text: "Adding clear, specific guarantee and warranty questions that build trust and reduce pre-purchase anxiety." },
@@ -877,17 +867,14 @@ const EDITOR_REPLIES: Record<string, EditorReply> = {
   'Just validate structure': { text: "Structure looks good. All question-answer pairs are correctly formatted for FAQ rich results." },
   'Great, proceed': { text: "Running the full audit now. Results will appear as inline flags on individual questions in the canvas." },
   'Show what will be checked': { text: "The audit covers: (1) question phrasing vs search intent, (2) answer length, (3) schema validity, (4) heading structure." },
-  'Apply to all': { text: "Tone applied across all sections. You can revert individual answers from the canvas using the undo button." },
-  'Select sections': { text: "Which sections should I rewrite? You can click directly on a section in the canvas to select it, then confirm here." },
-  'Let me pick sections': { text: "Click on any section heading in the canvas to select it, then I'll apply the tone rewrite to just that section." },
+  'Apply to all': { text: "Tone applied across all answers. You can revert individual answers from the canvas using the undo button." },
   'Run check': { text: "Check complete. 2 answers need attention — I've flagged them in the canvas with specific improvement suggestions." },
   'Run full check': { text: "Full objective check complete. Most answers score well on visibility and support. 3 answers could improve conversion language." },
   'Prioritize one objective': { text: "Which objective matters most right now?", chips: ['Search visibility', 'Customer support', 'Drive conversions'] },
   'Show what to look for': { text: "I look for: question-keyword alignment, 40–60 word answers, presence of local signals, and direct answer-first phrasing." },
   'Show criteria': { text: "Criteria: complete self-serve answers, no dead ends, clear next steps, and coverage of the top 5 support call reasons." },
   'Looks good': { text: "Great. Your FAQ language is now clear and accessible. Want to check anything else?" },
-  'Undo changes': { text: "Changes reverted. Your original language is restored across all sections." },
-  'Run full check': { text: "Full check complete. Results are flagged inline on any answers that need work. 2 sections look strong, 1 needs attention." },
+  'Undo changes': { text: "Changes reverted. Your original language is restored across all answers." },
 };
 
 // ── Props ──────────────────────────────────────────────────────────────────────
