@@ -372,10 +372,10 @@ export const EDITOR_CONFIGS: Record<ContentMode, EditorConfig> = {
       { id: 'tone',      label: 'Tone',                  type: 'select',   options: ['Friendly & conversational', 'Professional', 'Concise & direct', 'Authoritative'] },
     ],
     scoreDimensions: [
-      { label: 'Clarity',      score: 88, color: 'green'  },
-      { label: 'Completeness', score: 82, color: 'green'  },
-      { label: 'AEO score',    score: 74, color: 'orange' },
-      { label: 'Reading level',score: 90, color: 'green'  },
+      { label: 'Brand alignment', score: 88, color: 'green'  },
+      { label: 'AEO score',       score: 74, color: 'orange' },
+      { label: 'Readability',     score: 90, color: 'green'  },
+      { label: 'Accuracy',        score: 82, color: 'green'  },
     ],
     quickWins: [
       { label: 'Add location keywords', description: 'Mention city names in 2–3 answers to lift local citation probability.', action: 'Make it local' },

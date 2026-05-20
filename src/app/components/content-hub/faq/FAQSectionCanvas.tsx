@@ -23,7 +23,7 @@ import { AiCopilot } from '../AiCopilot';
 import { SegmentedToggle } from '@/app/components/ui/segmented-toggle.v1';
 import { EditorScorePanel } from '../editor/EditorScorePanel';
 import { CommentPanel } from '../editor/CommentPanel';
-import { EDITOR_CONFIGS } from '../editor/editorConfig';
+import { EDITOR_CONFIGS, type ScoreDimension } from '../editor/editorConfig';
 import { CanvasEditorTopBar } from '../shared/CanvasEditorTopBar';
 import { ContentActivityDrawer } from '../shared/ContentActivityDrawer';
 import type { FAQSection } from './FAQInlineCreationFlow';
@@ -90,6 +90,35 @@ function buildSectionDataFromQuestions(questions: { question: string; answer: st
       status: 'ready' as QuestionStatus,
     })),
   }];
+}
+
+function clampScore(value: number) {
+  return Math.max(0, Math.min(100, value));
+}
+
+function buildFAQScoreDimensions(overallScore: number): ScoreDimension[] {
+  const score = clampScore(Math.round(overallScore));
+
+  if (score === 0 || score === 100) {
+    return [
+      { label: 'Brand alignment', score, color: 'green' },
+      { label: 'AEO score', score, color: 'green' },
+      { label: 'Readability', score, color: 'green' },
+      { label: 'Accuracy', score, color: 'green' },
+    ];
+  }
+
+  const brandAlignment = clampScore(score + 1);
+  const aeoScore = score;
+  const readability = clampScore(score - 1);
+  const accuracy = clampScore(score * 4 - brandAlignment - aeoScore - readability);
+
+  return [
+    { label: 'Brand alignment', score: brandAlignment, color: 'green' },
+    { label: 'AEO score', score: aeoScore, color: 'green' },
+    { label: 'Readability', score: readability, color: 'green' },
+    { label: 'Accuracy', score: accuracy, color: 'green' },
+  ];
 }
 
 // ── Mock FAQ generation ───────────────────────────────────────────────────────
@@ -1653,9 +1682,7 @@ export function FAQSectionCanvas({ sections, generationLabel, onVersionHistory, 
         open={scorePanelOpen && sectionData.length > 0 && !isGeneratingFromCopilot}
         onClose={() => setScorePanelOpen(false)}
         config={faqConfig}
-        dimensions={faqConfig.scoreDimensions.map(d =>
-          d.label === 'AEO score' ? { ...d, score: baseScore ?? d.score } : d
-        )}
+        dimensions={buildFAQScoreDimensions(setScore)}
         score={setScore}
         onItemFixed={handleItemFixed}
         onItemFixing={handleItemFixing}
