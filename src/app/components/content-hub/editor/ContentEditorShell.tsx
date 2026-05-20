@@ -20,11 +20,12 @@
  */
 
 import React, { useState, useCallback, useRef, useEffect } from 'react';
+import { toast } from 'sonner';
 import {
   ArrowLeft, ChevronDown, Sparkles, Edit2,
   FileText, Share2, Mail, MessageSquare, Monitor, Video, FolderPlus,
   Plus, ChevronUp, Grid, List, Calendar, ZoomIn, ZoomOut,
-  Undo2, Redo2, ArrowDown, ArrowRight,
+  Undo2, Redo2, ArrowDown, ArrowRight, CheckCircle2,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -60,6 +61,8 @@ import { Badge } from '@/app/components/ui/badge';
 import { FAQSectionCanvas } from '../faq/FAQSectionCanvas';
 import { FAQGenerationProgress } from '../faq/FAQGenerationProgress';
 import { FAQPublishModal } from '../faq/FAQPublishModal';
+import { FAQSendForApprovalModal } from '../faq/FAQSendForApprovalModal';
+import { addSavedBlock } from '../shared/savedBlocksStore';
 import { BlogPublishModal } from '../blog/BlogPublishModal';
 import { BlogInlineCreationFlow } from '../blog/BlogInlineCreationFlow';
 import type { BlogFlowData } from '../blog/BlogInlineCreationFlow';
@@ -769,6 +772,42 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
   const [exportOpen, setExportOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
   const [shareInitialTab, setShareInitialTab] = useState<'collaborate' | 'download'>('collaborate');
+  const [sendForApprovalOpen, setSendForApprovalOpen] = useState(false);
+
+  const handleSaveFaq = useCallback(() => {
+    toast.success('FAQ content saved to project', {
+      icon: <CheckCircle2 size={16} strokeWidth={1.6} absoluteStrokeWidth className="text-green-500 flex-none" />,
+    });
+    onBack();
+  }, [onBack]);
+
+  const handleSaveAndAddToLibrary = useCallback(() => {
+    const snippets = (preloadedFAQs ?? []).map(f => f.question).slice(0, 3);
+    addSavedBlock({
+      name: title || 'FAQ content',
+      createdBy: 'Haresh R.',
+      sourceType: 'faq-full',
+      preview: { title: title || 'FAQ content', snippets },
+    });
+    toast.success('FAQ saved to library', {
+      icon: <CheckCircle2 size={16} strokeWidth={1.6} absoluteStrokeWidth className="text-green-500 flex-none" />,
+    });
+    onBack();
+  }, [preloadedFAQs, title, onBack]);
+
+  const handleSendForApprovalSubmit = useCallback(
+    ({ approvalWorkflow, scheduleDate }: { approvalWorkflow: string; scheduleDate?: Date }) => {
+      const when = scheduleDate
+        ? ` · scheduled for ${new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).format(scheduleDate)}`
+        : '';
+      toast.success(`FAQ sent to ${approvalWorkflow}${when}`, {
+        icon: <CheckCircle2 size={16} strokeWidth={1.6} absoluteStrokeWidth className="text-green-500 flex-none" />,
+      });
+      setSendForApprovalOpen(false);
+      onBack();
+    },
+    [onBack],
+  );
   const [faqScore, setFaqScore] = useState(0);
   const [faqScorePanelOpen, setFaqScorePanelOpen] = useState(true);
   const [blogScore, setBlogScore] = useState(0);
@@ -1356,12 +1395,34 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
                     Publish
                   </Button>
                 ) : (
-                  <Button
-                    type="button"
-                    onClick={() => { setShareInitialTab('download'); setShareOpen(true); }}
-                  >
-                    Download
-                  </Button>
+                  <div className="inline-flex">
+                    <Button
+                      type="button"
+                      onClick={handleSaveFaq}
+                      className="rounded-r-none"
+                    >
+                      Save
+                    </Button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          type="button"
+                          aria-label="Save options"
+                          className="rounded-l-none border-l border-primary-foreground/20 px-2"
+                        >
+                          <ChevronDown size={14} strokeWidth={1.6} absoluteStrokeWidth />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="min-w-[220px]">
+                        <DropdownMenuItem onClick={() => setSendForApprovalOpen(true)}>
+                          Send for approval
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={handleSaveAndAddToLibrary}>
+                          Save and add to library
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
                 )}
 
               </>
@@ -1875,6 +1936,11 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
         onClose={() => setShareOpen(false)}
         contentTitle={title}
         initialTab={shareInitialTab}
+      />
+      <FAQSendForApprovalModal
+        open={sendForApprovalOpen}
+        onClose={() => setSendForApprovalOpen(false)}
+        onSubmit={handleSendForApprovalSubmit}
       />
       {/* Version history — full-screen overlay covering the entire editor */}
       {versionHistoryOpen && (
