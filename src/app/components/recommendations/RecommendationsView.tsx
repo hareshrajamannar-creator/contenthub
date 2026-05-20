@@ -297,7 +297,7 @@ export function RecommendationsView({ onNavigateToContentHub, onNavigateToBlogCa
             onNavigateToContentHub
               ? (questions) => {
                   if (selectedRec.status === 'pending') acceptRec(selectedRec.id, 'self')
-                  const aeoScore = selectedRec.aeoScore?.you ?? 92
+                  const aeoScore = selectedRec.aeoScore?.you ?? 95
                   onNavigateToContentHub(selectedRec.id, selectedRec.title, aeoScore, questions)
                 }
               : undefined
