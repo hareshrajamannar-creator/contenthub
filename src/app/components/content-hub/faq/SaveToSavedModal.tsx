@@ -14,7 +14,7 @@ import {
   DialogOverlay,
   DialogTitle,
 } from '@/app/components/ui/dialog';
-import { MessageSquare, HelpCircle, X } from 'lucide-react';
+import { X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -24,12 +24,8 @@ export interface SaveToSavedModalProps {
   onClose: () => void;
   /** Pre-filled name for the block (section title or "FAQ content"). */
   defaultName: string;
-  /** Shown in the preview card header. */
-  previewTitle: string;
-  /** First 2–3 question texts shown in the preview body. */
+  /** First 2–4 question texts shown in the preview, styled like the FAQ canvas. */
   previewSnippets: string[];
-  /** Whether saving one section or the full FAQ. */
-  sourceType: 'faq-section' | 'faq-full';
   /** Called with the trimmed name when the user clicks Save. */
   onSave: (name: string) => void;
 }
@@ -40,9 +36,7 @@ export function SaveToSavedModal({
   open,
   onClose,
   defaultName,
-  previewTitle,
   previewSnippets,
-  sourceType,
   onSave,
 }: SaveToSavedModalProps) {
   const [name, setName] = useState(defaultName);
@@ -90,37 +84,25 @@ export function SaveToSavedModal({
             </button>
           </div>
 
-          {/* Preview card */}
+          {/* Preview — mirrors the FAQ canvas (numbered, bold questions) */}
           <div className="px-6 pt-5">
-            <div className="rounded-xl border border-border bg-muted/20 overflow-hidden">
-              {/* Card header row */}
-              <div className="flex items-center gap-2 px-4 py-2.5 border-b border-border bg-muted/30">
-                <div className="size-5 rounded-md bg-primary/[0.08] flex items-center justify-center flex-none">
-                  {sourceType === 'faq-section'
-                    ? <HelpCircle size={11} strokeWidth={1.6} absoluteStrokeWidth className="text-foreground/60" />
-                    : <MessageSquare size={11} strokeWidth={1.6} absoluteStrokeWidth className="text-foreground/60" />
-                  }
+            <div className="rounded-xl border border-border bg-background px-5 py-4">
+              {previewSnippets.length === 0 ? (
+                <p className="text-[12px] text-muted-foreground italic">No questions yet.</p>
+              ) : (
+                <div className="flex flex-col gap-3">
+                  {previewSnippets.slice(0, 3).map((q, i) => (
+                    <div key={i} className="flex items-start gap-2.5">
+                      <span className="select-none text-[14px] font-semibold leading-snug text-foreground flex-none w-5 text-right">
+                        {i + 1}.
+                      </span>
+                      <p className="text-[13px] font-semibold leading-snug text-foreground line-clamp-2">
+                        {q}
+                      </p>
+                    </div>
+                  ))}
                 </div>
-                <span className="text-[12px] font-semibold text-foreground truncate">
-                  {previewTitle}
-                </span>
-              </div>
-              {/* Question snippets */}
-              <div className="px-4 py-3 flex flex-col gap-1.5">
-                {previewSnippets.slice(0, 3).map((q, i) => (
-                  <div key={i} className="flex items-start gap-2">
-                    <span className="text-[11px] text-muted-foreground font-medium mt-px flex-none">
-                      Q{i + 1}
-                    </span>
-                    <span className="text-[12px] text-foreground/70 leading-snug truncate">
-                      {q}
-                    </span>
-                  </div>
-                ))}
-                {previewSnippets.length === 0 && (
-                  <p className="text-[12px] text-muted-foreground italic">No questions yet.</p>
-                )}
-              </div>
+              )}
             </div>
           </div>
 

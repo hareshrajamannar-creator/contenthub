@@ -1658,9 +1658,7 @@ export function FAQSectionCanvas({ sections, generationLabel, onVersionHistory, 
             open
             onClose={() => setSavingTarget(null)}
             defaultName={defaultName}
-            previewTitle={previewTitle}
             previewSnippets={snippets}
-            sourceType={isFull ? 'faq-full' : 'faq-section'}
             onSave={name => {
               addSavedBlock({
                 name,
