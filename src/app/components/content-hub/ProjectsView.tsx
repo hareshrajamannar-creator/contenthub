@@ -34,16 +34,16 @@ import { CalendarView as ContentHubCalendarView } from './CalendarView';
 // ── Mock data ─────────────────────────────────────────────────────────────────
 
 const PROJECTS: ProjectRow[] = [
-  { id: 1,  name: 'Spring garden cleanup',             status: 'Draft',     channels: ['facebook','instagram','twitter','linkedin','youtube','web'],  locations: 500, updated: 'Nov 05, 2025', createdBy: 'Elijah M',  hue: 160 },
-  { id: 2,  name: 'Sustainable lawn care launch 🌱',   status: 'Running',   channels: ['web','blog','email'],                                          locations: 500, updated: 'Nov 04, 2025', createdBy: 'Jacob K',   hue: 210 },
-  { id: 3,  name: 'Before & after showcase',           status: 'Running',   channels: ['facebook','instagram','twitter','linkedin','youtube','email'], locations: 500, updated: 'Nov 03, 2025', createdBy: 'Ava T',     hue: 280 },
-  { id: 4,  name: 'Summer backyard bliss ☀️',          status: 'Running',   channels: ['web','blog','email'],                                          locations: 500, updated: 'Nov 01, 2025', createdBy: 'Emily S',   hue: 40  },
-  { id: 5,  name: 'Customer testimonial campaign',     status: 'Paused',    channels: ['facebook','instagram','twitter','linkedin','youtube','web'],   locations: 500, updated: 'Sep 05, 2025', createdBy: 'William S', hue: 20  },
-  { id: 6,  name: 'Fall planting season',              status: 'Completed', channels: ['web','blog','email'],                                          locations: 500, updated: 'Sep 05, 2025', createdBy: 'James K',   hue: 90  },
-  { id: 7,  name: 'Holiday outdoor lighting',          status: 'Completed', channels: ['facebook','instagram','twitter','linkedin','youtube','email'], locations: 500, updated: 'Sep 05, 2025', createdBy: 'Emma W',    hue: 320 },
-  { id: 8,  name: 'Local business partnership',        status: 'Completed', channels: ['web','blog','email'],                                          locations: 500, updated: 'Sep 05, 2025', createdBy: 'Mia S',     hue: 190 },
-  { id: 9,  name: 'Sustainable landscaping education', status: 'Completed', channels: ['facebook','instagram','web','blog'],                           locations: 500, updated: 'Sep 05, 2025', createdBy: 'Mia S',     hue: 130 },
-  { id: 10, name: 'Re-engagement offer',               status: 'Completed', channels: ['web','blog','email'],                                          locations: 500, updated: 'Sep 05, 2025', createdBy: 'Mia S',     hue: 260 },
+  { id: 1,  name: 'Spring garden cleanup',             status: 'Drafts',    channels: ['facebook','instagram','twitter','linkedin','youtube','web'],  locations: 500, updated: 'Nov 05, 2025', createdBy: 'Elijah M',  hue: 160 },
+  { id: 2,  name: 'Sustainable lawn care launch 🌱',   status: 'Scheduled', channels: ['web','blog','email'],                                          locations: 500, updated: 'Nov 04, 2025', createdBy: 'Jacob K',   hue: 210 },
+  { id: 3,  name: 'Before & after showcase',           status: 'Scheduled', channels: ['facebook','instagram','twitter','linkedin','youtube','email'], locations: 500, updated: 'Nov 03, 2025', createdBy: 'Ava T',     hue: 280 },
+  { id: 4,  name: 'Summer backyard bliss ☀️',          status: 'Scheduled', channels: ['web','blog','email'],                                          locations: 500, updated: 'Nov 01, 2025', createdBy: 'Emily S',   hue: 40  },
+  { id: 5,  name: 'Customer testimonial campaign',     status: 'Drafts',    channels: ['facebook','instagram','twitter','linkedin','youtube','web'],   locations: 500, updated: 'Sep 05, 2025', createdBy: 'William S', hue: 20  },
+  { id: 6,  name: 'Fall planting season',              status: 'Published', channels: ['web','blog','email'],                                          locations: 500, updated: 'Sep 05, 2025', createdBy: 'James K',   hue: 90  },
+  { id: 7,  name: 'Holiday outdoor lighting',          status: 'Published', channels: ['facebook','instagram','twitter','linkedin','youtube','email'], locations: 500, updated: 'Sep 05, 2025', createdBy: 'Emma W',    hue: 320 },
+  { id: 8,  name: 'Local business partnership',        status: 'Published', channels: ['web','blog','email'],                                          locations: 500, updated: 'Sep 05, 2025', createdBy: 'Mia S',     hue: 190 },
+  { id: 9,  name: 'Sustainable landscaping education', status: 'Published', channels: ['facebook','instagram','web','blog'],                           locations: 500, updated: 'Sep 05, 2025', createdBy: 'Mia S',     hue: 130 },
+  { id: 10, name: 'Re-engagement offer',               status: 'Published', channels: ['web','blog','email'],                                          locations: 500, updated: 'Sep 05, 2025', createdBy: 'Mia S',     hue: 260 },
 ];
 
 const TEMPLATE_CREATORS = ['BirdAI', 'Content team', 'Marketing team', 'SEO team'] as const;
@@ -97,7 +97,7 @@ const TYPE_THUMB: Record<ContentType, { iconBg: string; iconColor: string; Icon:
 const CONTENT_TYPE_OPTIONS = ['All', ...Object.values(TYPE_LABEL)];
 const PROJECT_CHANNEL_OPTIONS = ['All channels', 'Facebook', 'Instagram', 'Twitter', 'LinkedIn', 'YouTube', 'Web', 'Blog', 'Email'];
 const PROJECT_CREATOR_OPTIONS = ['All creators', ...Array.from(new Set(PROJECTS.map(project => project.createdBy)))];
-const PROJECT_STATUS_OPTIONS = ['All statuses', 'Draft', 'Running', 'Paused', 'Completed'];
+const PROJECT_STATUS_OPTIONS = ['All statuses', 'Drafts', 'Scheduled', 'Published'];
 const TEMPLATE_TAG_OPTIONS = ['All tags', ...Array.from(new Set(TEMPLATES.flatMap(template => template.useCases))).sort()];
 const TEMPLATE_CREATOR_OPTIONS = ['All creators', ...TEMPLATE_CREATORS];
 
@@ -217,10 +217,9 @@ function getProjectContentType(project: ProjectRow): ContentType {
 }
 
 const SAVED_STATUS_CLASS: Record<ProjectStatus, string> = {
-  Draft: 'bg-muted text-muted-foreground',
-  Running: 'bg-blue-50 text-blue-700',
-  Paused: 'bg-amber-50 text-amber-700',
-  Completed: 'bg-green-50 text-green-700',
+  Drafts: 'bg-muted text-muted-foreground',
+  Scheduled: 'bg-amber-50 text-amber-700',
+  Published: 'bg-green-50 text-green-700',
 };
 
 function SavedContentGridCard({ project, onOpen }: { project: ProjectRow; onOpen: () => void }) {

@@ -19,7 +19,7 @@ import {
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
-export type ProjectStatus = 'Draft' | 'Running' | 'Paused' | 'Completed';
+export type ProjectStatus = 'Drafts' | 'Scheduled' | 'Published';
 
 export type ChannelId =
   | 'facebook' | 'instagram' | 'twitter' | 'linkedin' | 'youtube'
@@ -40,13 +40,15 @@ export interface ProjectRow {
 // ── Status badge ──────────────────────────────────────────────────────────────
 
 export const STATUS_VARIANT: Record<ProjectStatus, 'outline' | 'success' | 'warning' | 'secondary'> = {
-  Draft:     'outline',
-  Running:   'success',
-  Paused:    'warning',
-  Completed: 'secondary',
+  Drafts:    'secondary',
+  Scheduled: 'warning',
+  Published: 'success',
 };
 
 export function StatusCell({ status }: { status: ProjectStatus }) {
+  if (status === 'Drafts') {
+    return <Badge className="bg-muted text-muted-foreground">{status}</Badge>;
+  }
   return <Badge variant={STATUS_VARIANT[status]}>{status}</Badge>;
 }
 
