@@ -211,7 +211,7 @@ export function ContentShareModal({
 
   return (
     <Dialog open={open} onOpenChange={isOpen => !isOpen && onClose()}>
-      <DialogContent className="!w-[960px] !max-w-[calc(100vw-32px)] flex flex-col gap-0 overflow-hidden p-0 h-[630px] !top-[50px] !translate-y-0">
+      <DialogContent className="!w-[960px] !max-w-[calc(100vw-32px)] flex flex-col gap-0 overflow-hidden p-0 h-[580px] !top-[50px] !translate-y-0">
         {/* Header */}
         <DialogHeader className="shrink-0 border-b border-border px-6 py-4">
           <DialogTitle className="text-[15px] font-semibold">Share content</DialogTitle>
@@ -392,7 +392,6 @@ export function ContentShareModal({
                     <span className="flex-1 text-[13px] font-medium text-foreground">{option.label}</span>
                     <Button
                       type="button"
-                      variant="outline"
                       className="h-[32px] px-3 text-[12px] opacity-0 group-hover:opacity-100 transition-opacity"
                       onClick={() => toast.success(`${option.label} download started`, {
                         duration: 5000,
