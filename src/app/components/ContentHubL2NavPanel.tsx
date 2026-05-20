@@ -65,7 +65,7 @@ const CREATE_ITEMS: {
 }[] = [
   { mode: 'project', label: 'Project',        icon: FolderPlus,    enabled: true },
   { mode: 'blog',    label: 'Blog post',       icon: FileText,      enabled: true },
-  { mode: 'faq',     label: 'FAQ page',        icon: MessageSquare, enabled: true },
+  { mode: 'faq',     label: 'FAQs',            icon: MessageSquare, enabled: true },
   { mode: 'social',  label: 'Social post',     icon: Share2 },
   { mode: 'email',   label: 'Email campaign',  icon: Mail },
   { mode: 'brief',   label: 'Landing page',    icon: Monitor },
