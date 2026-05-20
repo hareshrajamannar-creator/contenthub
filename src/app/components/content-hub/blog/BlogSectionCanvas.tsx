@@ -41,7 +41,7 @@ import type { BlogSection } from './BlogInlineCreationFlow';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
-export type BlockType = 'hero' | 'heading' | 'paragraph' | 'bullets' | 'image' | 'callout' | 'quote' | 'faq-section' | 'cta-banner';
+export type BlockType = 'hero' | 'heading' | 'paragraph' | 'bullets' | 'image' | 'callout' | 'quote' | 'faq-item' | 'cta-banner';
 
 export interface FaqQuestion {
   id: string;
@@ -80,8 +80,9 @@ export interface BlogBlock {
   // quote
   quoteText?: string;
   quoteAuthor?: string;
-  // faq-section
-  faqSection?: FaqSectionData;
+  // faq-item
+  faqQuestion?: string;
+  faqAnswer?: string;
   // cta-banner
   ctaHeadline?: string;
   ctaBody?: string;
@@ -339,7 +340,7 @@ const BLOCK_PALETTE = [
   { type: 'bullets' as BlockType, label: 'Bullet list', Icon: List },
   { type: 'paragraph' as BlockType, label: 'Divider', Icon: Minus },
   { type: 'paragraph' as BlockType, label: 'Spacer', Icon: Minus },
-  { type: 'faq-section' as BlockType, label: 'FAQ', Icon: HelpCircle },
+  { type: 'faq-item' as BlockType, label: 'FAQ', Icon: HelpCircle },
   { type: 'quote' as BlockType, label: 'Review', Icon: Star },
   { type: 'callout' as BlockType, label: 'Callout', Icon: Lightbulb },
   { type: 'callout' as BlockType, label: 'Footer', Icon: PanelBottom },
@@ -358,7 +359,7 @@ const BLOG_PREBUILT_TEMPLATES = [
     id: 'blog-template-local-seo',
     title: 'Local SEO post',
     description: 'Location intro, services, FAQs, and internal links',
-    types: ['heading', 'paragraph', 'bullets', 'faq-section'] as BlockType[],
+    types: ['heading', 'paragraph', 'bullets', 'faq-item'] as BlockType[],
   },
   {
     id: 'blog-template-thought-leadership',
@@ -563,7 +564,7 @@ function BlogManualContent({ onAddBlock, onDropFaqSection, onInsertSavedBlock }:
               description={template.description}
               previewTitle={template.types.map(type => type.replace('-', ' ')).join(' + ')}
               onClick={() => template.types.forEach(type => {
-                if (type === 'faq-section') {
+                if (type === 'faq-item') {
                   onDropFaqSection(LIBRARY_FAQ_SECTIONS[0]);
                   return;
                 }
@@ -619,6 +620,7 @@ interface BlockRowProps {
   block: BlogBlock;
   index: number;
   total: number;
+  faqIndex?: number;
   onUpdate: (patch: Partial<BlogBlock>) => void;
   onDelete: () => void;
   onMoveUp: () => void;
@@ -633,7 +635,7 @@ interface BlockRowProps {
   onDragEnd?: () => void;
 }
 
-function BlockRow({ block, index, total, onUpdate, onDelete, onMoveUp, onMoveDown, fixingAll, entranceDelay = 0, isDragging, isDragOver, onDragStart, onDragOver, onDrop, onDragEnd }: BlockRowProps) {
+function BlockRow({ block, index, total, faqIndex, onUpdate, onDelete, onMoveUp, onMoveDown, fixingAll, entranceDelay = 0, isDragging, isDragOver, onDragStart, onDragOver, onDrop, onDragEnd }: BlockRowProps) {
   const [fixing, setFixing] = useState(false);
   const isBeingFixed = fixing || (!!fixingAll && block.status !== 'ready');
 
@@ -735,7 +737,7 @@ function BlockRow({ block, index, total, onUpdate, onDelete, onMoveUp, onMoveDow
 
       {/* Block content */}
       <div className="pl-6 pr-8">
-        {renderBlockContent(block, onUpdate, isBeingFixed)}
+        {renderBlockContent(block, onUpdate, isBeingFixed, faqIndex)}
       </div>
 
       {/* Warning / blocked inline feedback */}
@@ -769,6 +771,7 @@ function renderBlockContent(
   block: BlogBlock,
   onUpdate: (patch: Partial<BlogBlock>) => void,
   isBeingFixed: boolean,
+  faqIndex?: number,
 ) {
   if (isBeingFixed) {
     return (
@@ -795,8 +798,8 @@ function renderBlockContent(
       return <CalloutBlock block={block} onUpdate={onUpdate} />;
     case 'quote':
       return <QuoteBlock block={block} onUpdate={onUpdate} />;
-    case 'faq-section':
-      return <FaqSectionBlock block={block} />;
+    case 'faq-item':
+      return <FaqItemBlock block={block} faqIndex={faqIndex ?? 0} onUpdate={onUpdate} />;
     case 'cta-banner':
       return <CtaBannerBlock block={block} onUpdate={onUpdate} />;
     default:
@@ -804,57 +807,67 @@ function renderBlockContent(
   }
 }
 
-// ── FAQ section block (dropped from library) ──────────────────────────────────
+// ── FAQ item block (one editable Q/A row, free-flowing in the canvas) ─────────
 
-function FaqSectionBlock({ block }: { block: BlogBlock }) {
-  const [collapsed, setCollapsed] = useState(false);
-  const section = block.faqSection;
-  if (!section) return null;
-
+function FaqItemBlock({
+  block,
+  faqIndex,
+  onUpdate,
+}: {
+  block: BlogBlock;
+  faqIndex: number;
+  onUpdate: (patch: Partial<BlogBlock>) => void;
+}) {
   return (
-    <div className="my-2 rounded-xl border border-border/60 bg-background overflow-hidden">
-      {/* Section header */}
-      <div className="flex items-center gap-2 px-4 py-2.5 bg-muted/30 border-b border-border">
-        <Layers size={13} strokeWidth={1.6} absoluteStrokeWidth className="text-muted-foreground/40 flex-none" />
-        <span className="flex-1 min-w-0 text-[13px] font-semibold text-foreground truncate">
-          {section.title}
-        </span>
-        <span className="text-[11px] text-muted-foreground flex-none">
-          {section.questions.length} questions
-        </span>
-        <button
-          type="button"
-          onClick={() => setCollapsed(v => !v)}
-          className="p-1 rounded hover:bg-muted transition-colors text-muted-foreground"
-        >
-          <ChevronDown
-            size={13}
-            strokeWidth={1.6}
-            absoluteStrokeWidth
-            className={cn('transition-transform', collapsed && '-rotate-90')}
-          />
-        </button>
+    <div className="flex items-start gap-4 py-4">
+      <span className="mt-0.5 w-9 flex-shrink-0 select-none text-right text-[24px] font-semibold leading-tight text-foreground">
+        {faqIndex + 1}.
+      </span>
+      <div className="flex-1 min-w-0 space-y-3">
+        <AutoGrowTextarea
+          value={block.faqQuestion ?? ''}
+          onChange={value => onUpdate({ faqQuestion: value })}
+          placeholder="Question"
+          className="w-full bg-transparent text-[24px] font-semibold leading-tight text-foreground outline-none resize-none border-b border-transparent focus:border-primary transition-colors"
+        />
+        <AutoGrowTextarea
+          value={block.faqAnswer ?? ''}
+          onChange={value => onUpdate({ faqAnswer: value })}
+          placeholder="Answer"
+          className="w-full bg-transparent text-[16px] leading-[1.55] text-foreground/90 outline-none resize-none border-b border-transparent focus:border-primary transition-colors"
+        />
       </div>
-
-      {/* Questions — matching FAQSectionCanvas QuestionRow style */}
-      {!collapsed && (
-        <div>
-          {section.questions.map((q, qi) => (
-            <div key={q.id} className="border-b border-border last:border-b-0">
-              <div className="flex items-start gap-4 px-4 py-4">
-                <span className="mt-0.5 w-9 flex-shrink-0 select-none text-right text-[24px] font-semibold leading-tight text-foreground">
-                  {qi + 1}.
-                </span>
-                <div className="flex-1 min-w-0 space-y-3">
-                  <p className="text-[24px] font-semibold leading-tight text-foreground">{q.question}</p>
-                  <p className="text-[16px] leading-[1.55] text-foreground/90">{q.answer}</p>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
     </div>
+  );
+}
+
+function AutoGrowTextarea({
+  value,
+  onChange,
+  placeholder,
+  className,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+  className?: string;
+}) {
+  const ref = useRef<HTMLTextAreaElement>(null);
+  useEffect(() => {
+    const node = ref.current;
+    if (!node) return;
+    node.style.height = 'auto';
+    node.style.height = `${node.scrollHeight}px`;
+  }, [value]);
+  return (
+    <textarea
+      ref={ref}
+      rows={1}
+      value={value}
+      onChange={e => onChange(e.target.value)}
+      placeholder={placeholder}
+      className={className}
+    />
   );
 }
 
@@ -1470,7 +1483,22 @@ export function BlogSectionCanvas({ sections, generationLabel, onVersionHistory,
     });
   }, [setBlocks]);
 
+  const addFaqSection = useCallback((section: FaqSectionData) => {
+    const items: BlogBlock[] = section.questions.map(q => ({
+      id: makeBlockId(),
+      type: 'faq-item',
+      faqQuestion: q.question,
+      faqAnswer: q.answer,
+      status: 'ready',
+    }));
+    setBlocks(prev => [...prev, ...items]);
+  }, [setBlocks]);
+
   const addBlock = useCallback((type: BlockType) => {
+    if (type === 'faq-item') {
+      addFaqSection(LIBRARY_FAQ_SECTIONS[0]);
+      return;
+    }
     const base: BlogBlock = { id: makeBlockId(), type, status: 'warning', warningText: 'New block added — review and edit content.' };
     switch (type) {
       case 'hero':       Object.assign(base, { heroTag: 'Blog post', heroTitle: 'New blog header', heroSubtitle: 'Add a clear summary for this article.' }); break;
@@ -1480,21 +1508,10 @@ export function BlogSectionCanvas({ sections, generationLabel, onVersionHistory,
       case 'image':      Object.assign(base, { alt: 'Image', caption: 'Add a caption for this image' }); break;
       case 'callout':    Object.assign(base, { calloutVariant: 'info', calloutTitle: 'Key point', calloutText: 'Add your callout content here.' }); break;
       case 'quote':      Object.assign(base, { quoteText: 'Add a compelling quote here.', quoteAuthor: 'Source' }); break;
-      case 'faq-section': Object.assign(base, { faqSection: LIBRARY_FAQ_SECTIONS[0], status: 'ready', warningText: undefined }); break;
       default: break;
     }
     setBlocks(prev => [...prev, base]);
-  }, [setBlocks]);
-
-  const addFaqSection = useCallback((section: FaqSectionData) => {
-    const block: BlogBlock = {
-      id: makeBlockId(),
-      type: 'faq-section',
-      faqSection: section,
-      status: 'ready',
-    };
-    setBlocks(prev => [...prev, block]);
-  }, [setBlocks]);
+  }, [setBlocks, addFaqSection]);
 
   const insertSavedBlock = useCallback((block: SavedBlock) => {
     const section: FaqSectionData = {
@@ -1637,30 +1654,37 @@ export function BlogSectionCanvas({ sections, generationLabel, onVersionHistory,
 
                 {/* Block list */}
                 <div>
-                  {blocks.map((block, idx) => (
-                    <BlockRow
-                      key={block.id}
-                      block={block}
-                      index={idx}
-                      total={blocks.length}
-                      onUpdate={patch => updateBlock(block.id, patch)}
-                      onDelete={() => deleteBlock(block.id)}
-                      onMoveUp={() => moveBlock(block.id, 'up')}
-                      onMoveDown={() => moveBlock(block.id, 'down')}
-                      fixingAll={fixingAll}
-                      entranceDelay={260 + idx * 60}
-                      isDragging={draggingBlockId === block.id}
-                      isDragOver={dragOverBlockId === block.id}
-                      onDragStart={() => setDraggingBlockId(block.id)}
-                      onDragOver={e => { e.preventDefault(); setDragOverBlockId(block.id); }}
-                      onDrop={e => {
-                        e.stopPropagation();
-                        const draggedId = e.dataTransfer.getData('application/blog-block-id');
-                        if (draggedId) handleReorderBlocks(draggedId, block.id);
-                      }}
-                      onDragEnd={() => { setDraggingBlockId(null); setDragOverBlockId(null); }}
-                    />
-                  ))}
+                  {(() => {
+                    let runningFaqIndex = 0;
+                    return blocks.map((block, idx) => {
+                      const faqIndex = block.type === 'faq-item' ? runningFaqIndex++ : undefined;
+                      return (
+                        <BlockRow
+                          key={block.id}
+                          block={block}
+                          index={idx}
+                          total={blocks.length}
+                          faqIndex={faqIndex}
+                          onUpdate={patch => updateBlock(block.id, patch)}
+                          onDelete={() => deleteBlock(block.id)}
+                          onMoveUp={() => moveBlock(block.id, 'up')}
+                          onMoveDown={() => moveBlock(block.id, 'down')}
+                          fixingAll={fixingAll}
+                          entranceDelay={260 + idx * 60}
+                          isDragging={draggingBlockId === block.id}
+                          isDragOver={dragOverBlockId === block.id}
+                          onDragStart={() => setDraggingBlockId(block.id)}
+                          onDragOver={e => { e.preventDefault(); setDragOverBlockId(block.id); }}
+                          onDrop={e => {
+                            e.stopPropagation();
+                            const draggedId = e.dataTransfer.getData('application/blog-block-id');
+                            if (draggedId) handleReorderBlocks(draggedId, block.id);
+                          }}
+                          onDragEnd={() => { setDraggingBlockId(null); setDragOverBlockId(null); }}
+                        />
+                      );
+                    });
+                  })()}
                 </div>
 
                 {/* Add block footer */}
