@@ -45,6 +45,28 @@ export const GeneratingFAQ: Story = {
   },
 };
 
+export const RecommendationFAQ: Story = {
+  name: 'Recommendation FAQ',
+  args: {
+    mode: 'faq',
+    skipSetupPhase: true,
+    hideHeaderContext: true,
+    initialTitle: 'Add Rental FAQ Section to Raine & Horne Dubbo Property Management Page',
+    preloadedFAQs: [
+      {
+        question: 'What is a property appraisal and why do I need one?',
+        answer: "A property appraisal is a professional assessment of your property's current market value.",
+      },
+      {
+        question: 'How much does a property appraisal in Dubbo cost?',
+        answer: 'A standard market appraisal from a local agency is typically free of charge.',
+      },
+    ],
+    recAeoScore: 95,
+    onBack: () => console.log('back to recommendation'),
+  },
+};
+
 export const GeneratingBlogPost: Story = {
   name: 'Generating Blog post',
   args: {

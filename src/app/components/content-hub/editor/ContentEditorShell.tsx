@@ -119,6 +119,8 @@ export interface ContentEditorShellProps {
   preloadedBlogSections?: { heading?: string; body?: string; listItems?: string[]; image?: string; imageAlt?: string }[];
   /** AEO score from the recommendation — seeds the content score in the editor */
   recAeoScore?: number;
+  /** Hide brand/location context in the header for recommendation-driven review flows */
+  hideHeaderContext?: boolean;
 }
 
 interface CanvasCardLayout {
@@ -706,7 +708,7 @@ function AddContentButton({ mode, onAdd }: { mode: ContentMode; onAdd: (t: Conte
 
 // ── Main shell ────────────────────────────────────────────────────────────────
 
-export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupPhase = false, initialTitle, preloadedFAQs, preloadedBlogSections, recAeoScore }: ContentEditorShellProps) {
+export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupPhase = false, initialTitle, preloadedFAQs, preloadedBlogSections, recAeoScore, hideHeaderContext = false }: ContentEditorShellProps) {
   const config = EDITOR_CONFIGS[mode];
 
   // ── Header state
@@ -1294,14 +1296,15 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
                     )}
                     {mode !== 'faq' && <Badge variant="secondary">Draft</Badge>}
                   </div>
-                  {/* Subtitle row — clickable to reopen edit settings */}
-                  <button
-                    type="button"
-                    onClick={handleEditSettings}
-                    className="text-xs text-primary hover:underline text-left"
-                  >
-                    {brandKitLabel} · 10 locations
-                  </button>
+                  {!hideHeaderContext && (
+                    <button
+                      type="button"
+                      onClick={handleEditSettings}
+                      className="text-xs text-primary hover:underline text-left"
+                    >
+                      {brandKitLabel} · 10 locations
+                    </button>
+                  )}
                 </>
               )}
             </div>

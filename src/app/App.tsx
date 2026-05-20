@@ -723,6 +723,7 @@ export default function App() {
                   initialTitle={createViewRecTitle ?? undefined}
                   preloadedFAQs={createViewPreloadedQuestions}
                   recAeoScore={createViewRecAeoScore}
+                  hideHeaderContext
                   onBack={() => {
                     setCreateViewInitialMode(undefined);
                     setCreateViewStartAtFAQCanvas(false);
@@ -740,6 +741,7 @@ export default function App() {
                   initialTitle={createViewRecTitle ?? undefined}
                   recAeoScore={createViewRecAeoScore}
                   preloadedBlogSections={createViewPreloadedBlogSections}
+                  hideHeaderContext
                   onBack={() => {
                     setCreateViewStartAtBlogCanvas(false);
                     setCreateViewRecId(undefined);
