@@ -26,6 +26,8 @@ interface EditorScorePanelProps {
   score: number;
   /** Called when an improvement item resolves — parent adds bump to score */
   onItemFixed?: (bump: number) => void;
+  /** Called immediately when an item's action is clicked — triggers canvas shimmer */
+  onItemFixing?: () => void;
   /** Called immediately when "Fix all" is clicked — triggers canvas shimmer */
   onFixAll?: () => void;
   /** Override the auto-derived score label */
@@ -43,6 +45,7 @@ export function EditorScorePanel({
   dimensions,
   score,
   onItemFixed,
+  onItemFixing,
   onFixAll,
   scoreLabel,
   maxImprovements,
@@ -70,6 +73,7 @@ export function EditorScorePanel({
           showClose
           onClose={onClose}
           onItemFixed={onItemFixed}
+          onItemFixing={onItemFixing}
           onFixAll={onFixAll}
           maxImprovements={maxImprovements}
         />

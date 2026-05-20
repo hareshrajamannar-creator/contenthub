@@ -755,14 +755,15 @@ interface QuestionRowProps {
   onDragOver?: (e: React.DragEvent) => void;
   onDrop?: (e: React.DragEvent) => void;
   onDragEnd?: () => void;
+  isImprovementPreviewing?: boolean;
 }
 
-function QuestionRow({ question, index, totalInSection, onUpdate, onDelete, onMoveUp, onMoveDown, fixingAll, isDragging, isDragOver, onDragStart, onDragOver, onDrop, onDragEnd }: QuestionRowProps) {
+function QuestionRow({ question, index, totalInSection, onUpdate, onDelete, onMoveUp, onMoveDown, fixingAll, isDragging, isDragOver, onDragStart, onDragOver, onDrop, onDragEnd, isImprovementPreviewing }: QuestionRowProps) {
   const [editingQ, setEditingQ] = useState(false);
   const [editingA, setEditingA] = useState(false);
   const [fixing, setFixing] = useState(false);
 
-  const isBeingFixed = fixing || (!!fixingAll && question.status !== 'ready');
+  const isBeingFixed = fixing || isImprovementPreviewing || (!!fixingAll && question.status !== 'ready');
 
   function handleFixThis() {
     setFixing(true);
@@ -819,32 +820,45 @@ function QuestionRow({ question, index, totalInSection, onUpdate, onDelete, onMo
 
         {/* Content */}
         <div className="flex-1 min-w-0 space-y-3">
-          <EditableFAQField
-            value={question.question}
-            onChange={value => onUpdate({ question: value })}
-            editing={editingQ}
-            onEditingChange={setEditingQ}
-            variant="question"
-          />
-
-          {/* Answer — shimmer while fixing, editable otherwise */}
-          <div>
-            {isBeingFixed ? (
-              <div className="space-y-2.5 py-1 animate-pulse">
+          {isImprovementPreviewing ? (
+            <div className="space-y-3 py-1 animate-pulse" aria-label="Updating question and answer">
+              <div className="h-6 w-3/4 rounded-full bg-muted" />
+              <div className="space-y-2.5">
                 <div className="h-4 w-full rounded-full bg-muted" />
                 <div className="h-4 w-5/6 rounded-full bg-muted" />
                 <div className="h-4 w-4/5 rounded-full bg-muted" />
               </div>
-            ) : (
+            </div>
+          ) : (
+            <>
               <EditableFAQField
-                value={question.answer}
-                onChange={value => onUpdate({ answer: value })}
-                editing={editingA}
-                onEditingChange={setEditingA}
-                variant="answer"
+                value={question.question}
+                onChange={value => onUpdate({ question: value })}
+                editing={editingQ}
+                onEditingChange={setEditingQ}
+                variant="question"
               />
-            )}
-          </div>
+
+              {/* Answer — shimmer while fixing, editable otherwise */}
+              <div>
+                {isBeingFixed ? (
+                  <div className="space-y-2.5 py-1 animate-pulse">
+                    <div className="h-4 w-full rounded-full bg-muted" />
+                    <div className="h-4 w-5/6 rounded-full bg-muted" />
+                    <div className="h-4 w-4/5 rounded-full bg-muted" />
+                  </div>
+                ) : (
+                  <EditableFAQField
+                    value={question.answer}
+                    onChange={value => onUpdate({ answer: value })}
+                    editing={editingA}
+                    onEditingChange={setEditingA}
+                    variant="answer"
+                  />
+                )}
+              </div>
+            </>
+          )}
 
           {/* Warning / blocked — inline text + "Fix this" blue link */}
           {question.warningText && !isBeingFixed && (
@@ -1101,6 +1115,8 @@ export function FAQSectionCanvas({ sections, generationLabel, onVersionHistory, 
   }, [scorePanelOpen, onScorePanelChange]);
   const [commentsOpen, setCommentsOpen] = useState(false);
   const [fixingAll, setFixingAll] = useState(false);
+  const [previewingScoreImprovement, setPreviewingScoreImprovement] = useState(false);
+  const previewingScoreImprovementTimerRef = useRef<number | null>(null);
   const [panelBump, setPanelBump] = useState(0);
   const baseScore = initialScore;
   const [isGeneratingFromCopilot, setIsGeneratingFromCopilot] = useState(initialGenerating);
@@ -1113,6 +1129,12 @@ export function FAQSectionCanvas({ sections, generationLabel, onVersionHistory, 
       setCommentsOpen(false);
     }
   }, [scorePanelOpen]);
+
+  useEffect(() => () => {
+    if (previewingScoreImprovementTimerRef.current !== null) {
+      window.clearTimeout(previewingScoreImprovementTimerRef.current);
+    }
+  }, []);
 
   const [draggingQId, setDraggingQId] = useState<string | null>(null);
   const [dragOverQId, setDragOverQId] = useState<string | null>(null);
@@ -1322,8 +1344,24 @@ export function FAQSectionCanvas({ sections, generationLabel, onVersionHistory, 
     setPanelBump(p => p + bump);
   }, []);
 
+  const handleItemFixing = useCallback(() => {
+    if (previewingScoreImprovementTimerRef.current !== null) {
+      window.clearTimeout(previewingScoreImprovementTimerRef.current);
+    }
+    setPreviewingScoreImprovement(true);
+    previewingScoreImprovementTimerRef.current = window.setTimeout(() => {
+      setPreviewingScoreImprovement(false);
+      previewingScoreImprovementTimerRef.current = null;
+    }, 1200);
+  }, []);
+
   const handleFixAll = useCallback(() => {
+    if (previewingScoreImprovementTimerRef.current !== null) {
+      window.clearTimeout(previewingScoreImprovementTimerRef.current);
+      previewingScoreImprovementTimerRef.current = null;
+    }
     setFixingAll(true);
+    setPreviewingScoreImprovement(true);
     setTimeout(() => {
       setData(prev => prev.map(section => ({
         ...section,
@@ -1334,6 +1372,7 @@ export function FAQSectionCanvas({ sections, generationLabel, onVersionHistory, 
         ),
       })));
       setFixingAll(false);
+      setPreviewingScoreImprovement(false);
     }, 1800);
   }, [setData]);
 
@@ -1577,6 +1616,7 @@ export function FAQSectionCanvas({ sections, generationLabel, onVersionHistory, 
                       fixingAll={fixingAll}
                       isDragging={draggingQId === question.id}
                       isDragOver={dragOverQId === question.id}
+                      isImprovementPreviewing={previewingScoreImprovement && index < 2}
                       onDragStart={() => setDraggingQId(question.id)}
                       onDragOver={e => { e.preventDefault(); setDragOverQId(question.id); }}
                       onDrop={e => {
@@ -1618,6 +1658,7 @@ export function FAQSectionCanvas({ sections, generationLabel, onVersionHistory, 
         )}
         score={setScore}
         onItemFixed={handleItemFixed}
+        onItemFixing={handleItemFixing}
         onFixAll={handleFixAll}
         scoreLabel="Content score"
         maxImprovements={baseScore !== undefined ? 1 : undefined}

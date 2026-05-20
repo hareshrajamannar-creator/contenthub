@@ -41,6 +41,8 @@ export interface ContentScorePanelProps {
   onClose?: () => void;
   /** Called when an item fix resolves — parent adds bump to its score state */
   onItemFixed?: (bump: number) => void;
+  /** Called immediately when an item's action is clicked — triggers canvas shimmer */
+  onItemFixing?: () => void;
   /** Called immediately when "Fix all" is clicked — triggers canvas shimmer */
   onFixAll?: () => void;
   className?: string;
@@ -114,6 +116,7 @@ export function ContentScorePanel({
   showClose = false,
   onClose,
   onItemFixed,
+  onItemFixing,
   onFixAll,
   className,
   maxImprovements,
@@ -122,8 +125,14 @@ export function ContentScorePanel({
   const [fixingIds, setFixingIds] = useState<Set<string>>(new Set());
   const [fixingAll, setFixingAll] = useState(false);
 
+  // When the parent caps the visible list (e.g. recommendation flow shows
+  // exactly one improvement), retire the whole section once the cap of fixes
+  // has been reached — don't pull a replacement card in.
+  const reachedFixCap = maxImprovements !== undefined && doneIds.size >= maxImprovements;
   const pendingItems = ALL_IMPROVEMENTS.filter(item => !doneIds.has(item.id));
-  const visibleItems = pendingItems.slice(0, maxImprovements ?? pendingItems.length);
+  const visibleItems = reachedFixCap
+    ? []
+    : pendingItems.slice(0, maxImprovements ?? pendingItems.length);
 
   const cumulativeBump = ALL_IMPROVEMENTS
     .filter(i => doneIds.has(i.id))
@@ -138,6 +147,7 @@ export function ContentScorePanel({
     if (fixingIds.has(id) || doneIds.has(id)) return;
     const item = ALL_IMPROVEMENTS.find(i => i.id === id)!;
     setFixingIds(prev => new Set([...prev, id]));
+    onItemFixing?.();
     setTimeout(() => {
       setFixingIds(prev => { const next = new Set(prev); next.delete(id); return next; });
       setDoneIds(prev => new Set([...prev, id]));

@@ -69,6 +69,30 @@ export const GeneratingInDocument: Story = {
   },
 };
 
+export const RecommendationImprovement: Story = {
+  name: 'Recommendation improvement',
+  args: {
+    sections: [],
+    generationLabel: 'AEO optimized · 5 FAQs',
+    initialScore: 95,
+    initialQuestions: [
+      {
+        question: 'What is a property appraisal and why do I need one?',
+        answer: "A property appraisal is a professional assessment of your property's current market value based on comparable sales, location, condition, and local demand.",
+      },
+      {
+        question: 'How much does a property appraisal in Dubbo cost?',
+        answer: 'A standard market appraisal from a local agency is typically free of charge. Formal bank valuations usually carry a separate fee.',
+      },
+      {
+        question: 'How long does a property appraisal take?',
+        answer: 'An in-person appraisal walk-through generally takes 20-40 minutes, followed by a written report within 24-48 hours.',
+      },
+    ],
+    onEditSettings: () => console.log('Edit settings'),
+  },
+};
+
 export const TextEditingToolbar: Story = {
   name: 'Text editing toolbar',
   args: {
