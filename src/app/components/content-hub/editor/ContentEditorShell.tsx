@@ -25,7 +25,7 @@ import {
   ArrowLeft, ChevronDown, Sparkles, Edit2,
   FileText, Share2, Mail, MessageSquare, Monitor, Video, FolderPlus,
   Plus, ChevronUp, Grid, List, Calendar, ZoomIn, ZoomOut,
-  Undo2, Redo2, ArrowDown, ArrowRight, CheckCircle2, MoreHorizontal,
+  Undo2, Redo2, ArrowDown, ArrowRight, CheckCircle2, MoreVertical,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -1432,7 +1432,7 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
                           aria-label="More actions"
                           className="flex h-[var(--button-height)] w-[var(--button-height)] items-center justify-center rounded-md border border-border bg-background text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                         >
-                          <MoreHorizontal size={16} strokeWidth={1.6} absoluteStrokeWidth />
+                          <MoreVertical size={16} strokeWidth={1.6} absoluteStrokeWidth />
                         </button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="min-w-[180px]">
