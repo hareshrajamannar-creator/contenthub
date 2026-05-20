@@ -14,7 +14,7 @@
 import React, { useState, useCallback, useRef, useEffect, useLayoutEffect } from 'react';
 import {
   GripVertical, GripHorizontal, ChevronDown, ChevronRight, Trash2, Plus,
-  AlertTriangle, XCircle, CheckCircle2,
+  AlertTriangle, XCircle,
   ArrowUp, ArrowDown, Sparkles,
   Bookmark, MessageSquare, CircleHelp,
 } from 'lucide-react';
@@ -873,14 +873,6 @@ function QuestionRow({ question, index, totalInSection, onUpdate, onDelete, onMo
 
         {/* Right side actions */}
         <div className="flex flex-shrink-0 items-center gap-1 rounded-md bg-background/95 p-1 opacity-0 shadow-sm ring-1 ring-border/60 transition-opacity group-hover:opacity-100 mt-0.5">
-          {question.status !== 'ready' && (
-            question.status === 'warning'
-              ? <AlertTriangle size={13} strokeWidth={1.6} absoluteStrokeWidth className="text-amber-500" />
-              : <XCircle size={13} strokeWidth={1.6} absoluteStrokeWidth className="text-destructive" />
-          )}
-          {question.status === 'ready' && (
-            <CheckCircle2 size={13} strokeWidth={1.6} absoluteStrokeWidth className="text-[#1D9E75]" />
-          )}
           <button
             type="button"
             onClick={onMoveUp}

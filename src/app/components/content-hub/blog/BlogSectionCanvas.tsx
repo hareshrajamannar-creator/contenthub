@@ -15,7 +15,7 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import {
   GripVertical, GripHorizontal, ChevronDown, Trash2, Plus,
-  AlertTriangle, XCircle, CheckCircle2,
+  AlertTriangle, XCircle,
   ArrowUp, ArrowDown, Sparkles, Layers,
   FileText,
   AlignLeft, Type, List, Image as ImageIcon, Lightbulb, Quote,
@@ -698,15 +698,6 @@ function BlockRow({ block, index, total, faqIndex, onUpdate, onDelete, onMoveUp,
         <GripVertical size={14} strokeWidth={1.6} absoluteStrokeWidth className="text-muted-foreground/40 cursor-grab" />
       </div>
       <div className="absolute right-2 top-3 opacity-0 group-hover:opacity-100 transition-opacity z-10 flex items-center gap-1 bg-background/90 rounded-lg border border-border px-1.5 py-1 shadow-sm">
-        {block.status === 'warning' && (
-          <AlertTriangle size={12} strokeWidth={1.6} absoluteStrokeWidth className="text-amber-500" />
-        )}
-        {block.status === 'blocked' && (
-          <XCircle size={12} strokeWidth={1.6} absoluteStrokeWidth className="text-destructive" />
-        )}
-        {block.status === 'ready' && (
-          <CheckCircle2 size={12} strokeWidth={1.6} absoluteStrokeWidth className="text-[#1D9E75]" />
-        )}
         <button
           type="button"
           onClick={onMoveUp}
