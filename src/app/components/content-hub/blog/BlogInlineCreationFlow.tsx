@@ -9,15 +9,13 @@
  *  3. brief     — Review / edit the content brief
  */
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Check, Paperclip, X, FileText as FileIcon } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   CONTENT_FLOW_STEP_TITLE_CLASS,
-  ContentFlowCountStepper,
   ContentFlowInfoLabel,
   ContentFlowLocationFlatList,
-  ContentFlowMultiSelect,
   ContentFlowRadioCard,
   ContentFlowSelect,
   ContentFlowTextarea,
@@ -107,7 +105,6 @@ const BLOG_TEMPLATES = [
   { id: 'listicle',  label: 'Listicle',                   description: 'Scannable numbered or bulleted list of tips, tools, or ideas' },
   { id: 'casestudy', label: 'Case study / success story', description: 'Real-world results and outcomes that build trust and credibility' },
   { id: 'spotlight', label: 'Product / service spotlight', description: 'Deep-dive into a specific offer, feature, or service you provide' },
-  { id: 'custom',    label: 'Custom',                     description: 'Configure the blog post type manually with your own parameters' },
 ];
 
 const WORD_COUNT_OPTIONS: { label: string; value: number }[] = [
@@ -115,15 +112,6 @@ const WORD_COUNT_OPTIONS: { label: string; value: number }[] = [
   { label: 'Medium (~1,200 words)',   value: 1200 },
   { label: 'Long (~2,000 words)',     value: 2000 },
   { label: 'In-depth (~3,500 words)', value: 3500 },
-];
-
-const SIGNAL_SOURCES = [
-  { id: 'reviews',    label: 'Reviews data' },
-  { id: 'website',    label: 'Website content' },
-  { id: 'tickets',    label: 'Ticketing data' },
-  { id: 'helpcenter', label: 'Help center articles' },
-  { id: 'social',     label: 'Social media posts' },
-  { id: 'keywords',   label: 'Keyword research' },
 ];
 
 const PUBLISH_DESTINATIONS = [
@@ -247,25 +235,10 @@ interface Step2Props {
   topic: string;
   keywords: string;
   wordTarget: number;
-  signalSources: string[];
-  attachments: string[];
-  blogCount: number;
-  onChange: (patch: Partial<Pick<BlogFlowData, 'blogType' | 'topic' | 'keywords' | 'wordTarget' | 'signalSources' | 'attachments' | 'blogCount'>>) => void;
+  onChange: (patch: Partial<Pick<BlogFlowData, 'blogType' | 'topic' | 'keywords' | 'wordTarget'>>) => void;
 }
 
-function Step2Setup({ blogType, topic, keywords, wordTarget, signalSources, attachments, blogCount, onChange }: Step2Props) {
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const handleFiles = (files: FileList | null) => {
-    if (!files) return;
-    const names = Array.from(files).filter(f => f.type === 'application/pdf').map(f => f.name);
-    if (names.length) onChange({ attachments: [...attachments, ...names] });
-  };
-
-  const removeAttachment = (name: string) => {
-    onChange({ attachments: attachments.filter(a => a !== name) });
-  };
-
+function Step2Setup({ blogType, topic, keywords, wordTarget, onChange }: Step2Props) {
   const selectedWordCount = WORD_COUNT_OPTIONS.find(o => o.value === wordTarget);
 
   return (
@@ -313,22 +286,6 @@ function Step2Setup({ blogType, topic, keywords, wordTarget, signalSources, atta
         />
       </div>
 
-      {/* Blog count */}
-      <div className="flex items-center justify-between gap-4 rounded-[8px] border border-border bg-background px-4 py-3">
-        <div>
-          <ContentFlowInfoLabel tooltip="Each post will be generated as a separate piece of content.">
-            How many blog posts do you want?
-          </ContentFlowInfoLabel>
-        </div>
-        <ContentFlowCountStepper
-          value={blogCount}
-          min={1}
-          max={10}
-          ariaLabel="blog posts"
-          onChange={value => onChange({ blogCount: value })}
-        />
-      </div>
-
       {/* Word count target */}
       <div className="space-y-1.5">
         <label className="text-[13px] font-medium text-foreground">Word count target</label>
@@ -338,49 +295,6 @@ function Step2Setup({ blogType, topic, keywords, wordTarget, signalSources, atta
           onChange={val => onChange({ wordTarget: Number(val) })}
           placeholder="Select word count"
         />
-      </div>
-
-      {/* Pull signals from */}
-      <div className="space-y-2">
-        <label className="text-[13px] font-medium text-foreground">Pull signals from</label>
-        <ContentFlowMultiSelect
-          values={signalSources}
-          onChange={values => onChange({ signalSources: values })}
-          options={SIGNAL_SOURCES.map(src => ({ value: src.id, label: src.label }))}
-          placeholder="Select signal sources"
-        />
-      </div>
-
-      {/* Attachments */}
-      <div className="space-y-2">
-        <ContentFlowInfoLabel tooltip="Attach PDFs for more context.">
-          Attachments
-        </ContentFlowInfoLabel>
-        <input ref={fileInputRef} type="file" accept=".pdf" multiple className="hidden" onChange={e => handleFiles(e.target.files)} />
-        <button
-          type="button"
-          onClick={() => fileInputRef.current?.click()}
-          onDragOver={e => e.preventDefault()}
-          onDrop={e => { e.preventDefault(); handleFiles(e.dataTransfer.files); }}
-          className="flex w-full flex-col items-center gap-2 rounded-[8px] border border-dashed border-border bg-background px-4 py-5 text-center transition-colors hover:border-primary/50 hover:bg-muted/25"
-        >
-          <Paperclip size={18} strokeWidth={1.6} absoluteStrokeWidth className="text-muted-foreground" />
-          <span className="text-[13px] text-muted-foreground">Attach PDFs for more context</span>
-          <span className="text-[11px] text-muted-foreground/70">Drag and drop or click to browse</span>
-        </button>
-        {attachments.length > 0 && (
-          <div className="space-y-1.5">
-            {attachments.map(name => (
-              <div key={name} className="flex items-center gap-2 rounded-[8px] border border-border bg-background px-3 py-2">
-                <FileIcon size={14} strokeWidth={1.6} absoluteStrokeWidth className="text-muted-foreground shrink-0" />
-                <span className="text-[13px] text-foreground flex-1 truncate">{name}</span>
-                <button type="button" onClick={() => removeAttachment(name)} className="text-muted-foreground hover:text-foreground transition-colors shrink-0">
-                  <X size={14} strokeWidth={1.6} absoluteStrokeWidth />
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
       </div>
 
     </div>
@@ -569,9 +483,6 @@ export function BlogInlineCreationFlow({ onComplete, onCancel, controlRef, onNav
               topic={topic}
               keywords={keywords}
               wordTarget={wordTarget}
-              signalSources={signalSources}
-              attachments={attachments}
-              blogCount={blogCount}
               onChange={handleStep2Change}
             />
           )}
