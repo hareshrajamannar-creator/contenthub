@@ -24,7 +24,6 @@ import { SegmentedToggle } from '@/app/components/ui/segmented-toggle.v1';
 import { EditorScorePanel } from '../editor/EditorScorePanel';
 import { CommentPanel } from '../editor/CommentPanel';
 import { EDITOR_CONFIGS } from '../editor/editorConfig';
-import { EditorChromeToolbar, type EditorToolbarPosition } from '../shared/EditorChromeToolbar';
 import { CanvasEditorTopBar } from '../shared/CanvasEditorTopBar';
 import { ContentActivityDrawer } from '../shared/ContentActivityDrawer';
 import type { FAQSection } from './FAQInlineCreationFlow';
@@ -680,7 +679,6 @@ function EditableFAQField({
 }) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const placedCaretRef = useRef(false);
-  const [richStyle, setRichStyle] = useState<React.CSSProperties>({});
   const isQuestion = variant === 'question';
   const textClass = isQuestion
     ? 'text-[24px] font-semibold leading-tight text-foreground'
@@ -689,17 +687,6 @@ function EditableFAQField({
     'w-full border-b bg-transparent px-0 py-0.5 text-left tracking-normal transition-colors',
     textClass,
   );
-
-  // Persist rich styles (font size, color, etc.) applied by EditorChromeToolbar
-  useEffect(() => {
-    const el = textareaRef.current;
-    if (!el) return;
-    const handler = (e: Event) => {
-      setRichStyle(prev => ({ ...prev, ...(e as CustomEvent<React.CSSProperties>).detail }));
-    };
-    el.addEventListener('richstylechange', handler);
-    return () => el.removeEventListener('richstylechange', handler);
-  }, [editing]);
 
   useLayoutEffect(() => {
     const node = textareaRef.current;
@@ -722,7 +709,6 @@ function EditableFAQField({
       <textarea
         ref={textareaRef}
         rows={1}
-        style={richStyle}
         className={cn(
           sharedClass,
           'overflow-hidden border-primary outline-none resize-none',
@@ -743,7 +729,6 @@ function EditableFAQField({
   return (
     <button
       type="button"
-      style={richStyle}
       onClick={() => onEditingChange(true)}
       className={cn(
         sharedClass,
@@ -1137,13 +1122,9 @@ export function FAQSectionCanvas({ sections, generationLabel, onVersionHistory, 
     }
   }, [scorePanelOpen]);
 
-  const [richTextVisible, setRichTextVisible] = useState(false);
   const [draggingQId, setDraggingQId] = useState<string | null>(null);
   const [dragOverQId, setDragOverQId] = useState<string | null>(null);
-  const [canvasToolbarPosition, setCanvasToolbarPosition] = useState<EditorToolbarPosition>({ top: 96, left: 640 });
-  const [richTextPosition, setRichTextPosition] = useState<EditorToolbarPosition | undefined>();
   const canvasRef = useRef<HTMLDivElement>(null);
-  const activeTextTargetRef = useRef<HTMLElement | null>(null);
   const generationCompleteRef = useRef(onGenerationComplete);
 
   // Card metadata state
@@ -1198,83 +1179,6 @@ export function FAQSectionCanvas({ sections, generationLabel, onVersionHistory, 
     el.addEventListener('wheel', handler, { passive: false });
     return () => el.removeEventListener('wheel', handler);
   }, []);
-
-  const updateCanvasToolbarPosition = useCallback(() => {
-    const el = canvasRef.current;
-    if (!el) return;
-    const rect = el.getBoundingClientRect();
-    setCanvasToolbarPosition({
-      top: Math.max(64, rect.top + 16),
-      left: rect.left + rect.width / 2,
-    });
-  }, []);
-
-  const updateRichTextPosition = useCallback((target?: HTMLElement | null) => {
-    const activeTarget = target ?? activeTextTargetRef.current;
-    if (!activeTarget) return;
-    const selection = window.getSelection();
-    const selectionRect = selection && selection.rangeCount > 0 && !selection.isCollapsed
-      ? selection.getRangeAt(0).getBoundingClientRect()
-      : null;
-    const rect = selectionRect && selectionRect.width > 0
-      ? selectionRect
-      : activeTarget.getBoundingClientRect();
-    setRichTextPosition({
-      top: Math.max(64, rect.top - 56),
-      left: rect.left + rect.width / 2,
-    });
-  }, []);
-
-  useEffect(() => {
-    const el = canvasRef.current;
-    if (!el) return;
-
-    function isTextEditor(target: EventTarget | null) {
-      if (!(target instanceof HTMLElement)) return false;
-      return Boolean(target.closest('input, textarea, [contenteditable="true"]'));
-    }
-
-    function handleFocusIn(event: FocusEvent) {
-      if (!isTextEditor(event.target)) return;
-      activeTextTargetRef.current = event.target as HTMLElement;
-      updateRichTextPosition(event.target as HTMLElement);
-      setRichTextVisible(true);
-    }
-
-    function handleFocusOut() {
-      window.setTimeout(() => {
-        if (isTextEditor(document.activeElement)) return;
-        activeTextTargetRef.current = null;
-        setRichTextVisible(false);
-      }, 0);
-    }
-
-    function handleSelectionChange() {
-      if (!isTextEditor(document.activeElement)) return;
-      updateRichTextPosition(document.activeElement as HTMLElement);
-    }
-
-    function handleScrollOrResize() {
-      updateCanvasToolbarPosition();
-      if (isTextEditor(document.activeElement)) {
-        updateRichTextPosition(document.activeElement as HTMLElement);
-      }
-    }
-
-    updateCanvasToolbarPosition();
-    el.addEventListener('focusin', handleFocusIn);
-    el.addEventListener('focusout', handleFocusOut);
-    el.addEventListener('scroll', handleScrollOrResize);
-    window.addEventListener('resize', handleScrollOrResize);
-    document.addEventListener('selectionchange', handleSelectionChange);
-    return () => {
-      el.removeEventListener('focusin', handleFocusIn);
-      el.removeEventListener('focusout', handleFocusOut);
-      el.removeEventListener('scroll', handleScrollOrResize);
-      window.removeEventListener('resize', handleScrollOrResize);
-      document.removeEventListener('selectionchange', handleSelectionChange);
-    };
-  }, [updateCanvasToolbarPosition, updateRichTextPosition]);
 
   // ── Undo / redo history ────────────────────────────────────────────────────
   const historyRef    = useRef<FAQSectionData[][]>([]);
@@ -1634,25 +1538,6 @@ export function FAQSectionCanvas({ sections, generationLabel, onVersionHistory, 
             onChat={() => { setCommentsOpen(v => !v); setScorePanelOpen(false); setActivityOpen(false); }}
           />
         </div>
-
-        {richTextVisible && (
-          <div className="relative z-10 animate-in fade-in slide-in-from-top-1 duration-150 fill-mode-both">
-            <EditorChromeToolbar
-              canUndo={canUndo}
-              canRedo={canRedo}
-              onUndo={handleUndo}
-              onRedo={handleRedo}
-              zoom={zoom}
-              onZoomOut={() => setZoom(z => Math.max(0.5, +(z - 0.1).toFixed(2)))}
-              onZoomIn={() => setZoom(z => Math.min(2, +(z + 0.1).toFixed(2)))}
-              richTextVisible={true}
-              canvasPosition={canvasToolbarPosition}
-              richTextPosition={richTextPosition}
-              inlineMode
-              mode="faq"
-            />
-          </div>
-        )}
 
         <div
           ref={canvasRef}
