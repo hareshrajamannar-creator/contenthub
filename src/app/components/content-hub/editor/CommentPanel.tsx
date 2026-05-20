@@ -5,8 +5,6 @@
  * Mirrors EditorScorePanel in structure (zero-width when closed, 300px when open).
  *
  * Features:
- *  - Filter by: Current page, All, For you, Unread, Suggestions, Your comments, Resolved
- *  - Sort by: Page, Recent
  *  - Comment cards with resolve, reply, and more actions (Edit, Delete, Copy link, Report)
  *  - New comment input at the bottom
  */
@@ -14,13 +12,11 @@
 import React, { useState, useRef, useEffect } from 'react';
 import {
   Check,
-  ChevronDown,
   Copy,
   Edit2,
   Flag,
   MoreHorizontal,
   Send,
-  SlidersHorizontal,
   Trash2,
   X,
   CornerDownRight,
@@ -33,24 +29,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/app/components/ui/dropdown-menu';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/app/components/ui/popover';
 
 // ── Types ──────────────────────────────────────────────────────────────────────
-
-type FilterOption =
-  | 'current-page'
-  | 'all'
-  | 'for-you'
-  | 'unread'
-  | 'suggestions'
-  | 'your-comments'
-  | 'resolved';
-
-type SortOption = 'page' | 'recent';
 
 interface Reply {
   id: string;
@@ -129,31 +109,6 @@ const INITIAL_COMMENTS: Comment[] = [
     replies: [],
   },
 ];
-
-const FILTER_OPTIONS: { id: FilterOption; label: string }[] = [
-  { id: 'current-page', label: 'Current page' },
-  { id: 'all', label: 'All' },
-  { id: 'for-you', label: 'For you' },
-  { id: 'unread', label: 'Unread' },
-  { id: 'suggestions', label: 'Suggestions' },
-  { id: 'your-comments', label: 'Your comments' },
-  { id: 'resolved', label: 'Resolved' },
-];
-
-const SORT_OPTIONS: { id: SortOption; label: string }[] = [
-  { id: 'page', label: 'Page' },
-  { id: 'recent', label: 'Recent' },
-];
-
-const FILTER_LABELS: Record<FilterOption, string> = {
-  'current-page': 'Current page',
-  all: 'All',
-  'for-you': 'For you',
-  unread: 'Unread',
-  suggestions: 'Suggestions',
-  'your-comments': 'Your comments',
-  resolved: 'Resolved',
-};
 
 // ── Avatar ─────────────────────────────────────────────────────────────────────
 
@@ -422,21 +377,12 @@ function CommentCard({
 
 function CommentPanelContent({ onClose }: { onClose: () => void }) {
   const [comments, setComments] = useState<Comment[]>(INITIAL_COMMENTS);
-  const [filterBy, setFilterBy] = useState<FilterOption>('current-page');
-  const [sortBy, setSortBy] = useState<SortOption>('page');
-  const [filterOpen, setFilterOpen] = useState(false);
   const [newText, setNewText] = useState('');
   const newCommentIdRef = useRef(100);
 
-  const visibleComments = comments.filter(c => {
-    if (filterBy === 'resolved') return c.resolved;
-    if (filterBy === 'unread') return !c.resolved;
-    if (filterBy === 'your-comments') return c.author === 'You';
-    return !c.resolved;
-  }).sort((a, b) => {
-    if (sortBy === 'recent') return 0;
-    return (a.anchor ?? '').localeCompare(b.anchor ?? '');
-  });
+  const visibleComments = comments
+    .filter(c => !c.resolved)
+    .sort((a, b) => (a.anchor ?? '').localeCompare(b.anchor ?? ''));
 
   const handleResolve = (id: string) => {
     setComments(prev => prev.map(c => c.id === id ? { ...c, resolved: !c.resolved } : c));
@@ -488,7 +434,7 @@ function CommentPanelContent({ onClose }: { onClose: () => void }) {
   return (
     <div className="flex h-full flex-col">
       {/* Header */}
-      <div className="flex shrink-0 items-center justify-between border-b border-border px-4 py-3">
+      <div className="flex shrink-0 items-center justify-between border-b border-white px-4 py-3">
         <div className="flex items-center gap-2">
           <span className="text-[14px] font-semibold text-foreground">Comments</span>
           {unresolvedCount > 0 && (
@@ -498,50 +444,6 @@ function CommentPanelContent({ onClose }: { onClose: () => void }) {
           )}
         </div>
         <div className="flex items-center gap-1">
-          {/* Filter dropdown */}
-          <Popover open={filterOpen} onOpenChange={setFilterOpen}>
-            <PopoverTrigger asChild>
-              <button
-                type="button"
-                className="flex h-7 items-center gap-1 rounded-md bg-muted px-2 text-[12px] font-medium text-foreground transition-colors hover:bg-muted/80"
-              >
-                <SlidersHorizontal size={12} strokeWidth={1.6} absoluteStrokeWidth />
-                {FILTER_LABELS[filterBy]}
-                <ChevronDown size={11} strokeWidth={1.6} absoluteStrokeWidth className={cn('transition-transform', filterOpen && 'rotate-180')} />
-              </button>
-            </PopoverTrigger>
-            <PopoverContent align="start" className="w-[192px] p-0">
-              <div className="p-2">
-                <p className="px-2 pb-1 pt-1 text-[11px] font-semibold text-muted-foreground">Filter by</p>
-                {FILTER_OPTIONS.map(opt => (
-                  <button
-                    key={opt.id}
-                    type="button"
-                    onClick={() => { setFilterBy(opt.id); setFilterOpen(false); }}
-                    className="flex h-8 w-full items-center justify-between rounded-md px-2 text-[13px] text-foreground transition-colors hover:bg-muted"
-                  >
-                    {opt.label}
-                    {filterBy === opt.id && <Check size={13} strokeWidth={1.6} absoluteStrokeWidth className="text-primary" />}
-                  </button>
-                ))}
-              </div>
-              <div className="border-t border-border p-2">
-                <p className="px-2 pb-1 pt-1 text-[11px] font-semibold text-muted-foreground">Sort by</p>
-                {SORT_OPTIONS.map(opt => (
-                  <button
-                    key={opt.id}
-                    type="button"
-                    onClick={() => setSortBy(opt.id)}
-                    className="flex h-8 w-full items-center justify-between rounded-md px-2 text-[13px] text-foreground transition-colors hover:bg-muted"
-                  >
-                    {opt.label}
-                    {sortBy === opt.id && <Check size={13} strokeWidth={1.6} absoluteStrokeWidth className="text-primary" />}
-                  </button>
-                ))}
-              </div>
-            </PopoverContent>
-          </Popover>
-
           {/* Close */}
           <button
             type="button"
@@ -560,7 +462,7 @@ function CommentPanelContent({ onClose }: { onClose: () => void }) {
           <div className="flex flex-col items-center gap-2 py-12 text-center">
             <p className="text-[13px] font-medium text-foreground">No comments</p>
             <p className="text-[12px] text-muted-foreground">
-              {filterBy === 'resolved' ? 'No resolved comments yet.' : 'Be the first to leave a comment.'}
+              Be the first to leave a comment.
             </p>
           </div>
         ) : (
