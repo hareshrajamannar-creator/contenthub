@@ -1,19 +1,12 @@
 /**
  * BlockSettingsPanel
  *
- * Right-side slide-in settings panel for the selected block.
- * Renders type-specific settings (alignment, URL, etc.) and for FAQ Q&A
- * shows text-area editing + Generate with AI options — matching the existing
- * FAQEditPanel pattern.
- *
- * Reads/writes through the BlockEditorContext so no prop-drilling is needed.
+ * Schema-driven right pane for the selected block. The panel stays generic:
+ * blockDefinitions.ts owns which controls appear for each block type.
  */
 
-import React, { useState } from 'react';
-import {
-  X, AlignLeft, AlignCenter, AlignRight, Sparkles, RefreshCw,
-  ChevronDown,
-} from 'lucide-react';
+import React, { useRef } from 'react';
+import { AlignCenter, AlignLeft, AlignRight, ImageIcon, Plus, Trash2, Upload, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   Select,
@@ -22,60 +15,225 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/app/components/ui/select';
-import { type Block, type BlockType } from './blockTypes';
+import { type Block } from './blockTypes';
+import { type InspectorField, getBlockDefinition } from './blockDefinitions';
 import { useBlockEditorContext } from './BlockEditorContext';
-
-// ── Label for block type ──────────────────────────────────────────────────────
-
-const TYPE_LABEL: Partial<Record<BlockType, string>> = {
-  heading:       'Heading',
-  paragraph:     'Paragraph',
-  list:          'List',
-  quote:         'Quote',
-  cta:           'CTA button',
-  image:         'Image',
-  divider:       'Divider',
-  'author-bar':  'Author bar',
-  code:          'Code block',
-  'video-embed': 'Video embed',
-  hero:          'Hero section',
-  'feature-grid':'Feature grid',
-  'stats-row':   'Stats row',
-  'image-text':  'Image + text',
-  testimonials:  'Testimonials',
-  'faq-qa':      'Q&A pair',
-  'faq-section': 'FAQ section',
-};
-
-// ── Generic settings group ────────────────────────────────────────────────────
 
 function SettingsGroup({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="space-y-2">
-      <p className="text-[11px] font-semibold text-muted-foreground/70 uppercase tracking-wider">{label}</p>
+      <p className="text-[11px] font-semibold text-muted-foreground/70 uppercase">{label}</p>
       {children}
     </div>
   );
 }
 
-function AlignButtons({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
+}
+
+function getAtPath(source: unknown, path: string): unknown {
+  return path.split('.').reduce<unknown>((current, key) => {
+    if (!isRecord(current)) return undefined;
+    return current[key];
+  }, source);
+}
+
+function setAtPath(path: string, value: unknown): Record<string, unknown> {
+  const [root, ...parts] = path.split('.');
+  if (!root) return {};
+
+  if (parts.length === 0) return { [root]: value };
+
+  const nested: Record<string, unknown> = {};
+  let cursor = nested;
+  parts.forEach((part, index) => {
+    if (index === parts.length - 1) {
+      cursor[part] = value;
+      return;
+    }
+    cursor[part] = {};
+    cursor = cursor[part] as Record<string, unknown>;
+  });
+
+  return { [root]: nested };
+}
+
+function primitiveFieldValue(field: InspectorField): unknown {
+  if (field.control === 'toggle') return false;
+  if (field.control === 'number' || field.control === 'slider') return field.min ?? 0;
+  return '';
+}
+
+function defaultRepeaterItem(field: InspectorField): unknown {
+  const itemFields = field.itemFields ?? [];
+  if (itemFields.length === 1 && itemFields[0]?.path === 'value') {
+    return primitiveFieldValue(itemFields[0]);
+  }
+  return itemFields.reduce<Record<string, unknown>>((item, itemField) => {
+    item[itemField.path] = primitiveFieldValue(itemField);
+    return item;
+  }, {});
+}
+
+function FieldLabel({ field }: { field: InspectorField }) {
+  return <label className="text-[12px] font-medium text-foreground">{field.label}</label>;
+}
+
+function TextControl({
+  field,
+  value,
+  onChange,
+}: {
+  field: InspectorField;
+  value: unknown;
+  onChange: (value: unknown) => void;
+}) {
+  if (field.control === 'textarea') {
+    return (
+      <textarea
+        value={String(value ?? '')}
+        onChange={event => onChange(event.target.value)}
+        placeholder={field.placeholder}
+        rows={3}
+        className="w-full rounded-lg border border-border bg-background px-4 py-2 text-[12px] leading-relaxed text-foreground outline-none transition-colors resize-none focus:border-primary"
+      />
+    );
+  }
+
   return (
-    <div className="flex items-center gap-1">
-      {(['left', 'center', 'right'] as const).map(a => {
-        const Icon = a === 'left' ? AlignLeft : a === 'center' ? AlignCenter : AlignRight;
+    <input
+      type={field.control === 'url' ? 'url' : 'text'}
+      value={String(value ?? '')}
+      onChange={event => onChange(event.target.value)}
+      placeholder={field.placeholder}
+      className="w-full rounded-lg border border-border bg-background px-4 py-2 text-[12px] text-foreground outline-none transition-colors focus:border-primary"
+    />
+  );
+}
+
+function ImageControl({
+  field,
+  value,
+  onChange,
+}: {
+  field: InspectorField;
+  value: unknown;
+  onChange: (value: unknown) => void;
+}) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const src = String(value ?? '');
+
+  function handleFile(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    onChange(URL.createObjectURL(file));
+    event.target.value = '';
+  }
+
+  return (
+    <div className="space-y-2">
+      {src ? (
+        <div className="overflow-hidden rounded-lg border border-border bg-muted/20">
+          <img src={src} alt="" className="h-28 w-full object-cover" />
+        </div>
+      ) : (
+        <div className="flex h-24 items-center justify-center rounded-lg border border-dashed border-border bg-muted/20">
+          <ImageIcon size={20} strokeWidth={1.6} absoluteStrokeWidth className="text-muted-foreground" />
+        </div>
+      )}
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={() => inputRef.current?.click()}
+          className="flex h-8 flex-1 items-center justify-center gap-2 rounded-lg border border-border bg-background text-[12px] font-medium text-foreground transition-colors hover:bg-muted"
+        >
+          <Upload size={13} strokeWidth={1.6} absoluteStrokeWidth />
+          {src ? 'Replace image' : 'Upload image'}
+        </button>
+        {src && (
+          <button
+            type="button"
+            onClick={() => onChange('')}
+            className="h-8 rounded-lg border border-border bg-background px-3 text-[12px] font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-destructive"
+          >
+            Remove
+          </button>
+        )}
+      </div>
+      <input ref={inputRef} type="file" accept="image/*" className="sr-only" onChange={handleFile} />
+      <input
+        type="url"
+        value={src}
+        onChange={event => onChange(event.target.value)}
+        placeholder={field.placeholder ?? 'https://example.com/image.jpg'}
+        className="w-full rounded-lg border border-border bg-background px-4 py-2 text-[12px] text-foreground outline-none transition-colors focus:border-primary"
+      />
+    </div>
+  );
+}
+
+function SegmentedControl({
+  field,
+  value,
+  onChange,
+}: {
+  field: InspectorField;
+  value: unknown;
+  onChange: (value: unknown) => void;
+}) {
+  return (
+    <div className="flex items-center gap-1 rounded-lg bg-muted p-1">
+      {(field.options ?? []).map(option => (
+        <button
+          key={String(option.value)}
+          type="button"
+          onClick={() => onChange(option.value)}
+          className={cn(
+            'flex-1 rounded-md px-2 py-1.5 text-[11px] font-medium transition-colors',
+            value === option.value
+              ? 'bg-background text-foreground shadow-sm'
+              : 'text-muted-foreground hover:text-foreground',
+          )}
+        >
+          {option.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function AlignmentControl({
+  value,
+  onChange,
+}: {
+  value: unknown;
+  onChange: (value: unknown) => void;
+}) {
+  const options = [
+    { value: 'left', icon: AlignLeft, label: 'Left' },
+    { value: 'center', icon: AlignCenter, label: 'Center' },
+    { value: 'right', icon: AlignRight, label: 'Right' },
+  ];
+
+  return (
+    <div className="flex items-center gap-1 rounded-lg bg-muted p-1">
+      {options.map(option => {
+        const Icon = option.icon;
         return (
           <button
-            key={a}
+            key={option.value}
             type="button"
-            onClick={() => onChange(a)}
+            title={option.label}
+            onClick={() => onChange(option.value)}
             className={cn(
-              'flex-1 flex items-center justify-center py-1.5 rounded-md text-[11px] border transition-colors capitalize',
-              value === a
-                ? 'bg-primary text-primary-foreground border-primary'
-                : 'border-border text-muted-foreground hover:bg-muted',
+              'flex h-8 flex-1 items-center justify-center rounded-md transition-colors',
+              value === option.value
+                ? 'bg-background text-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground',
             )}
           >
-            <Icon size={13} strokeWidth={1.6} absoluteStrokeWidth />
+            <Icon size={14} strokeWidth={1.6} absoluteStrokeWidth />
           </button>
         );
       })}
@@ -83,444 +241,309 @@ function AlignButtons({ value, onChange }: { value: string; onChange: (v: string
   );
 }
 
-function ToggleGroup({ options, value, onChange }: { options: string[]; value: string; onChange: (v: string) => void }) {
+function SelectControl({
+  field,
+  value,
+  onChange,
+}: {
+  field: InspectorField;
+  value: unknown;
+  onChange: (value: unknown) => void;
+}) {
+  const options = field.options ?? [];
   return (
-    <div className="flex items-center gap-1">
-      {options.map(opt => (
-        <button
-          key={opt}
-          type="button"
-          onClick={() => onChange(opt)}
+    <Select value={String(value ?? options[0]?.value ?? '')} onValueChange={onChange}>
+      <SelectTrigger size="sm" className="h-8 rounded-lg border-border bg-background text-[12px]">
+        <SelectValue placeholder="Choose" />
+      </SelectTrigger>
+      <SelectContent align="start">
+        {options.map(option => (
+          <SelectItem key={String(option.value)} value={String(option.value)}>
+            {option.label}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  );
+}
+
+function ToggleControl({
+  value,
+  onChange,
+}: {
+  value: unknown;
+  onChange: (value: unknown) => void;
+}) {
+  const checked = Boolean(value);
+  return (
+    <button
+      type="button"
+      onClick={() => onChange(!checked)}
+      className={cn(
+        'flex w-full items-center justify-between rounded-lg border border-border px-4 py-2 text-[12px] transition-colors',
+        checked ? 'bg-primary/8 text-foreground' : 'bg-background text-muted-foreground hover:bg-muted',
+      )}
+    >
+      <span>{checked ? 'Enabled' : 'Disabled'}</span>
+      <span
+        className={cn(
+          'relative h-4 w-7 rounded-full transition-colors',
+          checked ? 'bg-primary' : 'bg-muted-foreground/30',
+        )}
+      >
+        <span
           className={cn(
-            'flex-1 py-1.5 rounded-md text-[11px] border transition-colors capitalize text-center',
-            value === opt
-              ? 'bg-primary text-primary-foreground border-primary'
-              : 'border-border text-muted-foreground hover:bg-muted',
+            'absolute top-0.5 h-3 w-3 rounded-full bg-background transition-transform',
+            checked ? 'translate-x-3.5' : 'translate-x-0.5',
+          )}
+        />
+      </span>
+    </button>
+  );
+}
+
+function RangeControl({
+  field,
+  value,
+  onChange,
+}: {
+  field: InspectorField;
+  value: unknown;
+  onChange: (value: unknown) => void;
+}) {
+  const numericValue = Number(value ?? field.min ?? 0);
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center gap-2">
+        <input
+          type="range"
+          min={field.min}
+          max={field.max}
+          step={field.step}
+          value={numericValue}
+          onChange={event => onChange(Number(event.target.value))}
+          className="w-full accent-primary"
+        />
+        <input
+          type="number"
+          min={field.min}
+          max={field.max}
+          step={field.step}
+          value={numericValue}
+          onChange={event => onChange(Number(event.target.value))}
+          className="h-8 w-16 rounded-lg border border-border bg-background px-2 text-[12px] text-foreground outline-none focus:border-primary"
+        />
+      </div>
+    </div>
+  );
+}
+
+function ColorControl({
+  field,
+  value,
+  onChange,
+}: {
+  field: InspectorField;
+  value: unknown;
+  onChange: (value: unknown) => void;
+}) {
+  return (
+    <div className="grid grid-cols-2 gap-2">
+      {(field.options ?? []).map(option => (
+        <button
+          key={String(option.value)}
+          type="button"
+          onClick={() => onChange(option.value)}
+          className={cn(
+            'flex items-center gap-2 rounded-lg border px-2 py-2 text-left text-[12px] transition-colors',
+            value === option.value
+              ? 'border-primary bg-primary/8 text-foreground'
+              : 'border-border bg-background text-muted-foreground hover:bg-muted',
           )}
         >
-          {opt}
+          <span
+            className={cn(
+              'size-3 rounded-full border border-border',
+              option.value === 'primary' && 'bg-primary',
+              option.value === 'muted' && 'bg-muted-foreground/30',
+              option.value === 'accent' && 'bg-blue-500',
+              option.value === 'dark' && 'bg-foreground',
+              option.value === '' && 'bg-background',
+            )}
+          />
+          <span>{option.label}</span>
         </button>
       ))}
     </div>
   );
 }
 
-// ── FAQ Q&A settings (special panel) ─────────────────────────────────────────
+function RepeaterControl({
+  field,
+  value,
+  onChange,
+}: {
+  field: InspectorField;
+  value: unknown;
+  onChange: (value: unknown) => void;
+}) {
+  const items = Array.isArray(value) ? value : [];
 
-function FAQQASettings({ block, onUpdate }: { block: Block; onUpdate: (p: Record<string, unknown>) => void }) {
-  const { question, answer } = block.content as { question: string; answer: string };
-  const [generating, setGenerating] = useState(false);
-  const [prompt, setPrompt] = useState('');
+  function updateItem(index: number, itemField: InspectorField, nextValue: unknown) {
+    const next = [...items];
+    const current = next[index];
+    if (!isRecord(current)) {
+      next[index] = nextValue;
+    } else {
+      next[index] = { ...current, [itemField.path]: nextValue };
+    }
+    onChange(next);
+  }
 
-  function handleGenerate() {
-    if (!prompt.trim() && !question.trim()) return;
-    setGenerating(true);
-    // Simulate AI generation
-    setTimeout(() => {
-      onUpdate({
-        answer: `${question ? `Based on "${question}", here's a comprehensive answer:` : ''} Our team provides exceptional service with attention to detail. We ensure every customer experience exceeds expectations through personalized care and prompt responses.`,
-      });
-      setGenerating(false);
-    }, 1200);
+  function itemValue(item: unknown, itemField: InspectorField): unknown {
+    if (isRecord(item)) return item[itemField.path];
+    return itemField.path === 'value' ? item : undefined;
   }
 
   return (
-    <div className="space-y-4">
-      {/* Question */}
-      <SettingsGroup label="Question">
-        <textarea
-          value={question as string}
-          onChange={e => onUpdate({ question: e.target.value })}
-          placeholder="Type your question…"
-          rows={3}
-          className="w-full text-[13px] border border-border rounded-lg px-3 py-2 outline-none focus:border-primary transition-colors bg-background text-foreground resize-none leading-relaxed"
-        />
-      </SettingsGroup>
-
-      {/* Answer */}
-      <SettingsGroup label="Answer">
-        <textarea
-          value={answer as string}
-          onChange={e => onUpdate({ answer: e.target.value })}
-          placeholder="Write a clear, helpful answer…"
-          rows={5}
-          className="w-full text-[13px] border border-border rounded-lg px-3 py-2 outline-none focus:border-primary transition-colors bg-background text-foreground resize-none leading-relaxed"
-        />
-      </SettingsGroup>
-
-      {/* Generate with AI */}
-      <div className="rounded-xl border border-primary/20 bg-primary/[0.03] p-3 space-y-2">
-        <div className="flex items-center gap-1.5">
-          <Sparkles size={12} strokeWidth={1.6} absoluteStrokeWidth className="text-primary flex-none" />
-          <span className="text-[12px] font-semibold text-primary">Generate with AI</span>
+    <div className="space-y-2">
+      {items.map((item, index) => (
+        <div key={index} className="space-y-2 rounded-lg border border-border bg-muted/20 p-2">
+          <div className="flex items-center justify-between">
+            <p className="text-[11px] font-semibold text-muted-foreground">
+              {field.itemLabel ?? 'Item'} {index + 1}
+            </p>
+            <button
+              type="button"
+              onClick={() => onChange(items.filter((_, itemIndex) => itemIndex !== index))}
+              className="flex size-7 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-destructive"
+              aria-label={`Remove ${field.itemLabel ?? 'item'} ${index + 1}`}
+            >
+              <Trash2 size={13} strokeWidth={1.6} absoluteStrokeWidth />
+            </button>
+          </div>
+          {(field.itemFields ?? []).map(itemField => (
+            <InspectorFieldControl
+              key={itemField.id}
+              field={itemField}
+              value={itemValue(item, itemField)}
+              onChange={nextValue => updateItem(index, itemField, nextValue)}
+            />
+          ))}
         </div>
-        <p className="text-[11px] text-muted-foreground leading-relaxed">
-          Describe what this answer should cover, or leave blank to generate from the question.
-        </p>
-        <textarea
-          value={prompt}
-          onChange={e => setPrompt(e.target.value)}
-          placeholder="e.g. Include hours, pricing, and booking link…"
-          rows={2}
-          className="w-full text-[12px] border border-border rounded-lg px-2.5 py-2 outline-none focus:border-primary transition-colors bg-background text-foreground resize-none"
-        />
-        <button
-          type="button"
-          onClick={handleGenerate}
-          disabled={generating}
-          className="w-full flex items-center justify-center gap-1.5 py-2 rounded-lg bg-primary text-primary-foreground text-[12px] font-medium hover:bg-primary/90 disabled:opacity-60 transition-colors"
-        >
-          {generating ? (
-            <><RefreshCw size={12} strokeWidth={1.6} absoluteStrokeWidth className="animate-spin" />Generating…</>
-          ) : (
-            <><Sparkles size={12} strokeWidth={1.6} absoluteStrokeWidth />Generate answer</>
-          )}
-        </button>
-      </div>
+      ))}
+      <button
+        type="button"
+        onClick={() => onChange([...items, defaultRepeaterItem(field)])}
+        className="flex h-8 w-full items-center justify-center gap-2 rounded-lg border border-dashed border-border text-[12px] font-medium text-muted-foreground transition-colors hover:border-primary hover:text-primary"
+      >
+        <Plus size={13} strokeWidth={1.6} absoluteStrokeWidth />
+        Add {field.itemLabel?.toLowerCase() ?? 'item'}
+      </button>
     </div>
   );
 }
 
-// ── FAQ Section settings ──────────────────────────────────────────────────────
+function InspectorFieldControl({
+  field,
+  value,
+  onChange,
+}: {
+  field: InspectorField;
+  value: unknown;
+  onChange: (value: unknown) => void;
+}) {
+  let control: React.ReactNode;
 
-function FAQSectionSettings({ block, onUpdate }: { block: Block; onUpdate: (p: Record<string, unknown>) => void }) {
-  const { title } = block.content as { title: string };
-  const [generating, setGenerating] = useState(false);
-
-  function handleGenerate() {
-    setGenerating(true);
-    setTimeout(() => {
-      onUpdate({
-        items: [
-          { id: crypto.randomUUID(), question: 'What are your hours of operation?', answer: 'We are open Monday–Saturday 10am–9pm and Sunday 11am–6pm.' },
-          { id: crypto.randomUUID(), question: 'Do you offer reservations?', answer: 'Yes, reservations are available online or by phone.' },
-          { id: crypto.randomUUID(), question: 'Is there parking available?', answer: 'Free parking is available in our lot behind the building.' },
-        ],
-      });
-      setGenerating(false);
-    }, 1400);
-  }
-
-  return (
-    <div className="space-y-4">
-      <SettingsGroup label="Section title">
-        <input
-          type="text"
-          value={title as string}
-          onChange={e => onUpdate({ title: e.target.value })}
-          placeholder="e.g. General questions"
-          className="w-full text-[13px] border border-border rounded-lg px-3 py-2 outline-none focus:border-primary transition-colors bg-background text-foreground"
-        />
-      </SettingsGroup>
-
-      <div className="rounded-xl border border-primary/20 bg-primary/[0.03] p-3 space-y-2">
-        <div className="flex items-center gap-1.5">
-          <Sparkles size={12} strokeWidth={1.6} absoluteStrokeWidth className="text-primary flex-none" />
-          <span className="text-[12px] font-semibold text-primary">Generate Q&amp;As with AI</span>
-        </div>
-        <p className="text-[11px] text-muted-foreground leading-relaxed">
-          AI will generate relevant Q&amp;A pairs from your business data and reviews.
-        </p>
-        <button
-          type="button"
-          onClick={handleGenerate}
-          disabled={generating}
-          className="w-full flex items-center justify-center gap-1.5 py-2 rounded-lg bg-primary text-primary-foreground text-[12px] font-medium hover:bg-primary/90 disabled:opacity-60 transition-colors"
-        >
-          {generating ? (
-            <><RefreshCw size={12} strokeWidth={1.6} absoluteStrokeWidth className="animate-spin" />Generating…</>
-          ) : (
-            <><Sparkles size={12} strokeWidth={1.6} absoluteStrokeWidth />Generate Q&amp;As</>
-          )}
-        </button>
-      </div>
-    </div>
-  );
-}
-
-// ── Type-specific settings ────────────────────────────────────────────────────
-
-function BlockTypeSettings({ block, onUpdate }: { block: Block; onUpdate: (p: Record<string, unknown>) => void }) {
-  const c = block.content as Record<string, unknown>;
-
-  switch (block.type) {
-
-    case 'heading':
-      return (
-        <div className="space-y-4">
-          <SettingsGroup label="Level">
-            <ToggleGroup
-              options={['h1', 'h2', 'h3']}
-              value={String(c.level ?? 'h2')}
-              onChange={v => onUpdate({ level: v })}
-            />
-          </SettingsGroup>
-          <SettingsGroup label="Alignment">
-            <AlignButtons value={String(c.align ?? 'left')} onChange={v => onUpdate({ align: v })} />
-          </SettingsGroup>
-        </div>
-      );
-
-    case 'paragraph':
-      return (
-        <SettingsGroup label="Alignment">
-          <AlignButtons value={String(c.align ?? 'left')} onChange={v => onUpdate({ align: v })} />
-        </SettingsGroup>
-      );
-
-    case 'list':
-      return (
-        <SettingsGroup label="List style">
-          <ToggleGroup
-            options={['• Bullets', '1. Numbers']}
-            value={c.ordered ? '1. Numbers' : '• Bullets'}
-            onChange={v => onUpdate({ ordered: v === '1. Numbers' })}
-          />
-        </SettingsGroup>
-      );
-
-    case 'quote':
-      return (
-        <SettingsGroup label="Alignment">
-          <AlignButtons value={String(c.align ?? 'left')} onChange={v => onUpdate({ align: v })} />
-        </SettingsGroup>
-      );
-
-    case 'cta':
-      return (
-        <div className="space-y-4">
-          <SettingsGroup label="Variant">
-            <ToggleGroup
-              options={['primary', 'secondary', 'outline']}
-              value={String(c.variant ?? 'primary')}
-              onChange={v => onUpdate({ variant: v })}
-            />
-          </SettingsGroup>
-          <SettingsGroup label="Button URL">
-            <input
-              type="url"
-              value={String(c.url ?? '')}
-              onChange={e => onUpdate({ url: e.target.value })}
-              placeholder="https://…"
-              className="w-full text-[12px] border border-border rounded-lg px-3 py-2 outline-none focus:border-primary transition-colors bg-background text-foreground"
-            />
-          </SettingsGroup>
-          <SettingsGroup label="Alignment">
-            <AlignButtons value={String(c.align ?? 'left')} onChange={v => onUpdate({ align: v })} />
-          </SettingsGroup>
-        </div>
-      );
-
+  switch (field.control) {
+    case 'textarea':
+    case 'text':
+    case 'url':
+    case 'link':
+      control = <TextControl field={field} value={value} onChange={onChange} />;
+      break;
     case 'image':
-      return (
-        <div className="space-y-4">
-          <SettingsGroup label="Image URL">
-            <input
-              type="url"
-              value={String(c.src ?? '')}
-              onChange={e => onUpdate({ src: e.target.value })}
-              placeholder="https://example.com/image.jpg"
-              className="w-full text-[12px] border border-border rounded-lg px-3 py-2 outline-none focus:border-primary transition-colors bg-background text-foreground"
-            />
-          </SettingsGroup>
-          <SettingsGroup label="Alt text">
-            <input
-              type="text"
-              value={String(c.alt ?? '')}
-              onChange={e => onUpdate({ alt: e.target.value })}
-              placeholder="Describe the image…"
-              className="w-full text-[12px] border border-border rounded-lg px-3 py-2 outline-none focus:border-primary transition-colors bg-background text-foreground"
-            />
-          </SettingsGroup>
-          <SettingsGroup label="Object fit">
-            <ToggleGroup
-              options={['cover', 'contain', 'fill']}
-              value={String(c.objectFit ?? 'cover')}
-              onChange={v => onUpdate({ objectFit: v })}
-            />
-          </SettingsGroup>
-          {c.src && (
-            <div className="rounded-lg overflow-hidden border border-border">
-              <img src={String(c.src)} alt="" className="w-full h-[100px] object-cover" />
-              <button
-                type="button"
-                onClick={() => onUpdate({ src: '' })}
-                className="w-full py-1.5 text-[11px] text-muted-foreground hover:text-destructive bg-muted/40 hover:bg-muted transition-colors"
-              >
-                Remove image
-              </button>
-            </div>
-          )}
-        </div>
-      );
-
-    case 'hero':
-      return (
-        <div className="space-y-4">
-          <SettingsGroup label="Headline">
-            <textarea
-              value={String(c.headline ?? '')}
-              onChange={e => onUpdate({ headline: e.target.value })}
-              placeholder="Main headline…"
-              rows={2}
-              className="w-full text-[12px] border border-border rounded-lg px-3 py-2 outline-none focus:border-primary transition-colors bg-background text-foreground resize-none"
-            />
-          </SettingsGroup>
-          <SettingsGroup label="Subheadline">
-            <textarea
-              value={String(c.subheadline ?? '')}
-              onChange={e => onUpdate({ subheadline: e.target.value })}
-              placeholder="Supporting text…"
-              rows={2}
-              className="w-full text-[12px] border border-border rounded-lg px-3 py-2 outline-none focus:border-primary transition-colors bg-background text-foreground resize-none"
-            />
-          </SettingsGroup>
-          <SettingsGroup label="CTA label">
-            <input
-              type="text"
-              value={String(c.ctaLabel ?? '')}
-              onChange={e => onUpdate({ ctaLabel: e.target.value })}
-              placeholder="Get started"
-              className="w-full text-[12px] border border-border rounded-lg px-3 py-2 outline-none focus:border-primary transition-colors bg-background text-foreground"
-            />
-          </SettingsGroup>
-          <SettingsGroup label="CTA URL">
-            <input
-              type="url"
-              value={String(c.ctaUrl ?? '')}
-              onChange={e => onUpdate({ ctaUrl: e.target.value })}
-              placeholder="https://…"
-              className="w-full text-[12px] border border-border rounded-lg px-3 py-2 outline-none focus:border-primary transition-colors bg-background text-foreground"
-            />
-          </SettingsGroup>
-        </div>
-      );
-
-    case 'image-text':
-      return (
-        <SettingsGroup label="Image position">
-          <ToggleGroup
-            options={['left', 'right']}
-            value={String(c.imagePosition ?? 'left')}
-            onChange={v => onUpdate({ imagePosition: v })}
-          />
-        </SettingsGroup>
-      );
-
-    case 'faq-qa':
-      return <FAQQASettings block={block} onUpdate={onUpdate} />;
-
-    case 'faq-section':
-      return <FAQSectionSettings block={block} onUpdate={onUpdate} />;
-
-    case 'video-embed':
-      return (
-        <SettingsGroup label="Video URL">
-          <input
-            type="url"
-            value={String(c.url ?? '')}
-            onChange={e => onUpdate({ url: e.target.value })}
-            placeholder="YouTube or Vimeo URL…"
-            className="w-full text-[12px] border border-border rounded-lg px-3 py-2 outline-none focus:border-primary transition-colors bg-background text-foreground"
-          />
-        </SettingsGroup>
-      );
-
-    case 'code':
-      return (
-        <SettingsGroup label="Language">
-          <Select
-            value={String(c.language ?? 'javascript')}
-            onValueChange={value => onUpdate({ language: value })}
-          >
-            <SelectTrigger size="sm" className="h-8 rounded-lg border-border bg-background text-[12px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent align="start">
-              {['javascript','typescript','python','html','css','json','bash','sql'].map(l => (
-                <SelectItem key={l} value={l}>{l}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </SettingsGroup>
-      );
-
-    case 'divider':
-      return <p className="text-[12px] text-muted-foreground text-center py-4">No settings for this block.</p>;
-
+      control = <ImageControl field={field} value={value} onChange={onChange} />;
+      break;
+    case 'select':
+      control = <SelectControl field={field} value={value} onChange={onChange} />;
+      break;
+    case 'segmented':
+    case 'spacing':
+      control = <SegmentedControl field={field} value={value} onChange={onChange} />;
+      break;
+    case 'alignment':
+      control = <AlignmentControl value={value ?? 'left'} onChange={onChange} />;
+      break;
+    case 'color':
+      control = <ColorControl field={field} value={value ?? ''} onChange={onChange} />;
+      break;
+    case 'number':
+    case 'slider':
+      control = <RangeControl field={field} value={value} onChange={onChange} />;
+      break;
+    case 'toggle':
+      control = <ToggleControl value={value} onChange={onChange} />;
+      break;
+    case 'repeater':
+      control = <RepeaterControl field={field} value={value} onChange={onChange} />;
+      break;
     default:
-      return <p className="text-[12px] text-muted-foreground text-center py-4">Select a block to see its settings.</p>;
+      control = null;
   }
-}
 
-// ── Block settings panel wrapper ──────────────────────────────────────────────
-
-// Generic block-level settings (padding, background)
-function GenericSettings({ block, onUpdate }: { block: Block; onUpdate: (p: Record<string, unknown>) => void }) {
-  const s = block.settings;
   return (
-    <div className="space-y-4 border-t border-border pt-4">
-      <SettingsGroup label="Padding top">
-        <ToggleGroup
-          options={['sm', 'md', 'lg']}
-          value={s.paddingTop ?? 'md'}
-          onChange={v => onUpdate({ settings: { ...s, paddingTop: v } })}
-        />
-      </SettingsGroup>
-      <SettingsGroup label="Padding bottom">
-        <ToggleGroup
-          options={['sm', 'md', 'lg']}
-          value={s.paddingBottom ?? 'md'}
-          onChange={v => onUpdate({ settings: { ...s, paddingBottom: v } })}
-        />
-      </SettingsGroup>
+    <div className="space-y-1">
+      <FieldLabel field={field} />
+      {control}
     </div>
   );
 }
-
-// ── Main component ─────────────────────────────────────────────────────────────
 
 export function BlockSettingsPanel() {
   const { blocks, focusedId, updateBlock, focusBlock } = useBlockEditorContext();
-  const block = blocks.find(b => b.id === focusedId) ?? null;
+  const block = blocks.find(item => item.id === focusedId) ?? null;
   const isOpen = focusedId !== null;
+  const definition = block ? getBlockDefinition(block.type) : null;
 
   return (
     <div
       className={cn(
-        'flex-none flex flex-col transition-all duration-200 overflow-hidden rounded-xl bg-background shadow-sm',
-        isOpen ? 'w-[300px]' : 'w-0',
+        'flex-none flex flex-col overflow-hidden rounded-xl bg-background shadow-sm transition-all duration-200',
+        isOpen ? 'w-[320px]' : 'w-0',
       )}
       aria-hidden={!isOpen}
     >
-      <div className="w-[300px] h-full flex flex-col overflow-hidden">
-        {block && (
+      <div className="flex h-full w-[320px] flex-col overflow-hidden">
+        {block && definition && (
           <>
-            {/* Header */}
-            <div className="flex-none flex items-center justify-between px-4 h-12 border-b border-border">
-              <span className="text-[13px] font-semibold text-foreground">
-                {TYPE_LABEL[block.type] ?? 'Block'}
-              </span>
+            <div className="flex h-12 flex-none items-center justify-between border-b border-border px-4">
+              <span className="text-[13px] font-semibold text-foreground">{definition.label}</span>
               <button
                 type="button"
                 onClick={() => focusBlock(null)}
                 aria-label="Close settings"
-                className="flex items-center justify-center size-7 rounded text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                className="flex size-7 items-center justify-center rounded text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
               >
                 <X size={14} strokeWidth={1.6} absoluteStrokeWidth />
               </button>
             </div>
 
-            {/* Settings body */}
-            <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
-              <BlockTypeSettings
-                block={block}
-                onUpdate={patch => updateBlock(block.id, patch)}
-              />
-              <GenericSettings
-                block={block}
-                onUpdate={patch => updateBlock(block.id, (patch as { settings: Record<string, unknown> }).settings ?? patch)}
-              />
+            <div className="flex-1 space-y-6 overflow-y-auto px-4 py-4">
+              {definition.inspector.map(group => (
+                <SettingsGroup key={group.id} label={group.label}>
+                  <div className="space-y-3">
+                    {group.fields.map(field => (
+                      <InspectorFieldControl
+                        key={field.id}
+                        field={field}
+                        value={getAtPath(block, field.path)}
+                        onChange={value => updateBlock(block.id, setAtPath(field.path, value))}
+                      />
+                    ))}
+                  </div>
+                </SettingsGroup>
+              ))}
             </div>
           </>
         )}

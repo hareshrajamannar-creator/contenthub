@@ -1,12 +1,14 @@
 import React, { useRef } from 'react';
-import { Plus, Minus } from 'lucide-react';
+import { Check, Plus, Minus } from 'lucide-react';
 import { type BlockComponentProps } from '../blockTypes';
 
 interface ListContent { items: string[]; ordered: boolean }
 
-export function ListBlock({ content, focused, onChange }: BlockComponentProps<ListContent>) {
+export function ListBlock({ content, style, focused, onChange }: BlockComponentProps<ListContent>) {
   const { items, ordered } = content;
   const refs = useRef<(HTMLDivElement | null)[]>([]);
+  const iconStyle = style?.iconStyle === 'checks' ? 'checks' : style?.iconStyle === 'numbers' ? 'numbers' : 'bullets';
+  const useOrdered = ordered || iconStyle === 'numbers';
 
   function updateItem(idx: number, text: string) {
     const next = [...items];
@@ -37,8 +39,6 @@ export function ListBlock({ content, focused, onChange }: BlockComponentProps<Li
     }
   }
 
-  const Tag = ordered ? 'ol' : 'ul';
-
   return (
     <div className="w-full">
       {/* Ordered / Unordered toggle */}
@@ -61,10 +61,13 @@ export function ListBlock({ content, focused, onChange }: BlockComponentProps<Li
         </div>
       )}
 
-      <Tag className={`w-full space-y-1 ${ordered ? 'list-decimal' : 'list-disc'} pl-5`}>
+      <div className="w-full space-y-1">
         {items.map((item, idx) => (
-          <li key={idx} className="group/item text-[14px] text-foreground leading-relaxed">
-            <div className="flex items-start gap-1">
+          <div key={idx} className="group/item flex items-start gap-2 text-[14px] leading-relaxed text-foreground">
+            <span className="mt-[3px] flex w-4 flex-none items-center justify-center text-[12px] text-muted-foreground">
+              {useOrdered ? `${idx + 1}.` : iconStyle === 'checks' ? <Check size={13} strokeWidth={1.6} absoluteStrokeWidth /> : '•'}
+            </span>
+            <div className="flex flex-1 items-start gap-1">
               <div
                 ref={el => { refs.current[idx] = el; }}
                 contentEditable
@@ -86,9 +89,9 @@ export function ListBlock({ content, focused, onChange }: BlockComponentProps<Li
                 </button>
               )}
             </div>
-          </li>
+          </div>
         ))}
-      </Tag>
+      </div>
 
       {focused && (
         <button

@@ -6,9 +6,59 @@
  */
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Plus, Search } from 'lucide-react';
+import {
+  Plus, Search, Type, Pilcrow, MousePointerClick, Image as ImageIcon,
+  PlaySquare, List, Minus, Quote, Code2, GalleryHorizontal, Star, Megaphone,
+  UserRound, ListTree, CheckSquare, Newspaper, Share2, Mail, SearchCode,
+  LayoutTemplate, Grid3X3, BarChart3, Columns2, BadgeDollarSign, FormInput,
+  Phone, MapPin, GitCompare, Workflow, Users, Bell, PanelBottom, Navigation,
+  HelpCircle, MessageSquare,
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { type BlockEditorMode, type BlockType, BLOCK_CATALOG, catalogForMode } from './blockTypes';
+
+const BLOCK_ICON_MAP: Partial<Record<BlockType, React.ElementType>> = {
+  heading: Type,
+  paragraph: Pilcrow,
+  cta: MousePointerClick,
+  image: ImageIcon,
+  'video-embed': PlaySquare,
+  list: List,
+  divider: Minus,
+  spacer: Minus,
+  'faq-section': HelpCircle,
+  quote: Quote,
+  'custom-embed': Code2,
+  gallery: GalleryHorizontal,
+  review: Star,
+  'cta-section': Megaphone,
+  'author-bar': UserRound,
+  'table-of-contents': ListTree,
+  'key-takeaways': CheckSquare,
+  code: Code2,
+  'related-posts': Newspaper,
+  'social-share': Share2,
+  'newsletter-signup': Mail,
+  'seo-meta': SearchCode,
+  'header-nav': Navigation,
+  hero: LayoutTemplate,
+  'feature-grid': Grid3X3,
+  benefits: CheckSquare,
+  'stats-row': BarChart3,
+  'image-text': Columns2,
+  'logo-strip': PanelBottom,
+  'pricing-table': BadgeDollarSign,
+  'lead-form': FormInput,
+  'contact-block': Phone,
+  'map-block': MapPin,
+  testimonials: MessageSquare,
+  'review-wall': Star,
+  'comparison-table': GitCompare,
+  'process-steps': Workflow,
+  'team-grid': Users,
+  'announcement-bar': Bell,
+  footer: PanelBottom,
+};
 
 interface BlockPickerProps {
   mode: BlockEditorMode;
@@ -127,22 +177,25 @@ export function BlockPicker({ mode, onAdd, primary = false }: BlockPickerProps) 
                   <p className="px-3 pt-2 pb-1 text-[10px] font-semibold text-muted-foreground/70 uppercase tracking-wider">
                     {categoryLabel[category] ?? category}
                   </p>
-                  {blocks.map(b => (
-                    <button
-                      key={b.type}
-                      type="button"
-                      onClick={() => handleAdd(b.type)}
-                      className="w-full flex items-center gap-3 px-3 py-2 hover:bg-muted/60 transition-colors text-left"
-                    >
-                      <span className="flex items-center justify-center size-8 rounded-lg bg-muted text-[14px] flex-none">
-                        {b.icon}
-                      </span>
-                      <div className="flex flex-col min-w-0">
-                        <span className="text-[13px] font-medium text-foreground">{b.label}</span>
-                        <span className="text-[11px] text-muted-foreground truncate">{b.description}</span>
-                      </div>
-                    </button>
-                  ))}
+                  {blocks.map(b => {
+                    const Icon = BLOCK_ICON_MAP[b.type] ?? LayoutTemplate;
+                    return (
+                      <button
+                        key={b.type}
+                        type="button"
+                        onClick={() => handleAdd(b.type)}
+                        className="flex w-full items-center gap-3 px-3 py-2 text-left transition-colors hover:bg-muted/60"
+                      >
+                        <span className="flex size-8 flex-none items-center justify-center rounded-lg bg-muted text-muted-foreground">
+                          <Icon size={16} strokeWidth={1.6} absoluteStrokeWidth />
+                        </span>
+                        <div className="flex min-w-0 flex-col">
+                          <span className="text-[13px] font-medium text-foreground">{b.label}</span>
+                          <span className="truncate text-[11px] text-muted-foreground">{b.description}</span>
+                        </div>
+                      </button>
+                    );
+                  })}
                 </div>
               ))
             )}

@@ -14,14 +14,15 @@
 
 import React, { createContext, useContext } from 'react';
 import { useBlockStore } from './blockStore';
+import { type Block } from './blockTypes';
 
 type BlockStoreCtx = ReturnType<typeof useBlockStore>;
 
 const BlockEditorContext = createContext<BlockStoreCtx | null>(null);
 
 /** Owns the block store and shares it via context. */
-export function BlockEditorProvider({ children }: { children: React.ReactNode }) {
-  const store = useBlockStore();
+export function BlockEditorProvider({ children, initialBlocks = [] }: { children: React.ReactNode; initialBlocks?: Block[] }) {
+  const store = useBlockStore(initialBlocks);
   return (
     <BlockEditorContext.Provider value={store}>
       {children}

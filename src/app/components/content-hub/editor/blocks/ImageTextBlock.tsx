@@ -7,9 +7,10 @@ interface ImageTextContent {
   imagePosition: 'left' | 'right';
 }
 
-export function ImageTextBlock({ content, focused, onChange }: BlockComponentProps<ImageTextContent>) {
+export function ImageTextBlock({ content, style, focused, onChange }: BlockComponentProps<ImageTextContent>) {
   const { src, alt, headline, body, imagePosition } = content;
   const fileRef = useRef<HTMLInputElement>(null);
+  const imageRadius = Number(style?.imageRadius ?? 8);
 
   function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -20,12 +21,24 @@ export function ImageTextBlock({ content, focused, onChange }: BlockComponentPro
   const imageSlot = (
     <div className="flex-1 min-w-0">
       {src ? (
-        <img src={src} alt={alt} className="w-full h-[240px] object-cover rounded-lg" />
+        <div className="group/image-text relative overflow-hidden" style={{ borderRadius: imageRadius }}>
+          <img src={src} alt={alt} className="h-[240px] w-full object-cover" />
+          {focused && (
+            <button
+              type="button"
+              onClick={() => fileRef.current?.click()}
+              className="absolute right-2 top-2 rounded border border-border bg-background/90 px-2 py-1 text-[11px] text-foreground opacity-0 transition-opacity group-hover/image-text:opacity-100"
+            >
+              Replace
+            </button>
+          )}
+        </div>
       ) : (
         <button
           type="button"
           onClick={() => fileRef.current?.click()}
-          className="w-full h-[240px] rounded-lg border-2 border-dashed border-border bg-muted/30 flex flex-col items-center justify-center gap-2 hover:border-primary/40 transition-colors"
+          className="flex h-[240px] w-full flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-border bg-muted/30 transition-colors hover:border-primary/40"
+          style={{ borderRadius: imageRadius }}
         >
           <ImageIcon size={20} strokeWidth={1.6} absoluteStrokeWidth className="text-muted-foreground" />
           <span className="text-[12px] text-muted-foreground">Upload image</span>

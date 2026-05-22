@@ -1,12 +1,19 @@
 import React, { useRef } from 'react';
 import { ImageIcon, Upload } from 'lucide-react';
 import { type BlockComponentProps } from '../blockTypes';
+import { cn } from '@/lib/utils';
 
-interface ImageContent { src: string; alt: string; caption: string }
+interface ImageContent { src: string; alt: string; caption: string; objectFit?: 'cover' | 'contain' | 'fill' }
 
-export function ImageBlock({ content, focused, onChange }: BlockComponentProps<ImageContent>) {
-  const { src, alt, caption } = content;
+export function ImageBlock({ content, style, focused, onChange }: BlockComponentProps<ImageContent>) {
+  const { src, alt, caption, objectFit = 'cover' } = content;
   const fileRef = useRef<HTMLInputElement>(null);
+  const align = style?.align === 'center' || style?.align === 'right' ? style.align : 'left';
+  const width = style?.width === 'contained' ? 'contained' : 'full';
+  const radius = Number(style?.radius ?? 8);
+  const aspectRatio = typeof style?.aspectRatio === 'string' && style.aspectRatio !== 'auto'
+    ? style.aspectRatio
+    : undefined;
 
   function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -16,29 +23,54 @@ export function ImageBlock({ content, focused, onChange }: BlockComponentProps<I
   }
 
   return (
-    <div className="w-full space-y-2">
+    <div
+      className={cn(
+        'w-full space-y-2',
+        align === 'center' && 'text-center',
+        align === 'right' && 'text-right',
+      )}
+    >
       {src ? (
-        <div className="relative group/img">
+        <div
+          className={cn(
+            'relative group/img overflow-hidden',
+            width === 'contained' && 'max-w-[720px]',
+            align === 'center' && 'mx-auto',
+            align === 'right' && 'ml-auto',
+          )}
+          style={{ borderRadius: radius, aspectRatio }}
+        >
           <img
             src={src}
             alt={alt}
-            className="w-full rounded-lg object-cover max-h-[400px]"
+            className="h-full max-h-[400px] w-full"
+            style={{ objectFit }}
           />
           {focused && (
-            <button
-              type="button"
-              onClick={() => onChange({ src: '' })}
-              className="absolute top-2 right-2 bg-background/90 border border-border text-[11px] px-2 py-1 rounded text-muted-foreground hover:text-destructive opacity-0 group-hover/img:opacity-100 transition-opacity"
-            >
-              Remove
-            </button>
+            <div className="absolute right-2 top-2 flex items-center gap-1 opacity-0 transition-opacity group-hover/img:opacity-100">
+              <button
+                type="button"
+                onClick={() => fileRef.current?.click()}
+                className="rounded border border-border bg-background/90 px-2 py-1 text-[11px] text-foreground"
+              >
+                Replace
+              </button>
+              <button
+                type="button"
+                onClick={() => onChange({ src: '' })}
+                className="rounded border border-border bg-background/90 px-2 py-1 text-[11px] text-muted-foreground hover:text-destructive"
+              >
+                Remove
+              </button>
+            </div>
           )}
         </div>
       ) : (
         <button
           type="button"
           onClick={() => fileRef.current?.click()}
-          className="w-full h-[180px] rounded-lg border-2 border-dashed border-border hover:border-primary/40 bg-muted/30 flex flex-col items-center justify-center gap-2 transition-colors"
+          className="flex h-[180px] w-full flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-border bg-muted/30 transition-colors hover:border-primary/40"
+          style={{ borderRadius: radius }}
         >
           <div className="size-10 rounded-full bg-muted flex items-center justify-center">
             <ImageIcon size={18} strokeWidth={1.6} absoluteStrokeWidth className="text-muted-foreground" />

@@ -1,10 +1,13 @@
 import React from 'react';
 import { type BlockComponentProps } from '../blockTypes';
+import { cn } from '@/lib/utils';
 
-interface HeadingContent { text: string; level: 'h1' | 'h2' | 'h3' }
+interface HeadingContent { text: string; level: 'h1' | 'h2' | 'h3'; align?: 'left' | 'center' | 'right' }
 
-export function HeadingBlock({ content, focused, onChange }: BlockComponentProps<HeadingContent>) {
+export function HeadingBlock({ content, style, focused, onChange }: BlockComponentProps<HeadingContent>) {
   const { text, level } = content;
+  const align = content.align ?? (style?.align as string | undefined) ?? 'left';
+  const maxWidth = style?.maxWidth === 'sm' ? 'max-w-[440px]' : style?.maxWidth === 'md' ? 'max-w-[640px]' : style?.maxWidth === 'lg' ? 'max-w-[800px]' : '';
 
   const sizeClass =
     level === 'h1' ? 'text-[28px] font-bold' :
@@ -12,7 +15,13 @@ export function HeadingBlock({ content, focused, onChange }: BlockComponentProps
                      'text-[18px] font-semibold';
 
   return (
-    <div className="w-full">
+    <div
+      className={cn(
+        'w-full',
+        align === 'center' && 'text-center',
+        align === 'right' && 'text-right',
+      )}
+    >
       {/* Level picker — only visible when focused */}
       {focused && (
         <div className="flex items-center gap-1 mb-2">
@@ -37,7 +46,13 @@ export function HeadingBlock({ content, focused, onChange }: BlockComponentProps
         suppressContentEditableWarning
         data-placeholder={`${level.toUpperCase()} heading…`}
         onInput={e => onChange({ text: (e.target as HTMLElement).innerText })}
-        className={`w-full outline-none text-foreground leading-snug empty:before:content-[attr(data-placeholder)] empty:before:text-muted-foreground/50 ${sizeClass}`}
+        className={cn(
+          'w-full leading-snug text-foreground outline-none empty:before:content-[attr(data-placeholder)] empty:before:text-muted-foreground/50',
+          sizeClass,
+          maxWidth,
+          align === 'center' && 'mx-auto',
+          align === 'right' && 'ml-auto',
+        )}
       >
         {text || undefined}
       </div>

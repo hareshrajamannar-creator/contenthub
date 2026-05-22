@@ -8,7 +8,14 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { Search, BookmarkX, Sparkles, GripVertical, Trash2, HelpCircle, MessageSquare } from 'lucide-react';
+import {
+  Search, BookmarkX, GripHorizontal, GripVertical, Trash2, HelpCircle, MessageSquare,
+  Type, Pilcrow, MousePointerClick, Image as ImageIcon, PlaySquare, List,
+  Minus, Quote, Code2, GalleryHorizontal, Star, Megaphone, UserRound,
+  ListTree, CheckSquare, Newspaper, Share2, Mail, SearchCode, LayoutTemplate,
+  Grid3X3, BarChart3, Columns2, BadgeDollarSign, FormInput, Phone, MapPin,
+  GitCompare, Workflow, Users, Bell, PanelBottom, Navigation, FileText,
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { catalogForMode, type BlockEditorMode, type BlockType, BLOCK_CATALOG } from './blockTypes';
 import { useBlockEditorContext } from './BlockEditorContext';
@@ -19,6 +26,49 @@ import {
   type SavedBlock,
 } from '../shared/savedBlocksStore';
 
+const BLOCK_ICON_MAP: Partial<Record<BlockType, React.ElementType>> = {
+  heading: Type,
+  paragraph: Pilcrow,
+  cta: MousePointerClick,
+  image: ImageIcon,
+  'video-embed': PlaySquare,
+  list: List,
+  divider: Minus,
+  spacer: Minus,
+  'faq-section': HelpCircle,
+  quote: Quote,
+  'custom-embed': Code2,
+  gallery: GalleryHorizontal,
+  review: Star,
+  'cta-section': Megaphone,
+  'author-bar': UserRound,
+  'table-of-contents': ListTree,
+  'key-takeaways': CheckSquare,
+  code: Code2,
+  'related-posts': Newspaper,
+  'social-share': Share2,
+  'newsletter-signup': Mail,
+  'seo-meta': SearchCode,
+  'header-nav': Navigation,
+  hero: LayoutTemplate,
+  'feature-grid': Grid3X3,
+  benefits: CheckSquare,
+  'stats-row': BarChart3,
+  'image-text': Columns2,
+  'logo-strip': PanelBottom,
+  'pricing-table': BadgeDollarSign,
+  'lead-form': FormInput,
+  'contact-block': Phone,
+  'map-block': MapPin,
+  testimonials: MessageSquare,
+  'review-wall': Star,
+  'comparison-table': GitCompare,
+  'process-steps': Workflow,
+  'team-grid': Users,
+  'announcement-bar': Bell,
+  footer: PanelBottom,
+};
+
 // ── Pre-built Birdeye-specific combinations ───────────────────────────────────
 
 interface PrebuiltBlock {
@@ -27,6 +77,7 @@ interface PrebuiltBlock {
   description: string;
   emoji: string;
   aiPowered?: boolean;
+  score?: number;
   types: BlockType[];
 }
 
@@ -38,6 +89,7 @@ const PREBUILT_BLOCKS: Record<BlockEditorMode, PrebuiltBlock[]> = {
       description: 'AI summary of recent customer reviews',
       emoji: '⭐',
       aiPowered: true,
+      score: 92,
       types: ['heading', 'paragraph', 'quote'],
     },
     {
@@ -45,6 +97,7 @@ const PREBUILT_BLOCKS: Record<BlockEditorMode, PrebuiltBlock[]> = {
       label: 'Intro + author',
       description: 'Author bar followed by intro paragraph',
       emoji: '✍️',
+      score: 88,
       types: ['author-bar', 'heading', 'paragraph'],
     },
     {
@@ -52,6 +105,7 @@ const PREBUILT_BLOCKS: Record<BlockEditorMode, PrebuiltBlock[]> = {
       label: 'CTA section',
       description: 'Heading, description and button',
       emoji: '🎯',
+      score: 86,
       types: ['heading', 'paragraph', 'cta'],
     },
     {
@@ -59,6 +113,7 @@ const PREBUILT_BLOCKS: Record<BlockEditorMode, PrebuiltBlock[]> = {
       label: 'Image story',
       description: 'Full-width image with heading and body',
       emoji: '🖼️',
+      score: 90,
       types: ['image', 'heading', 'paragraph'],
     },
   ],
@@ -68,6 +123,7 @@ const PREBUILT_BLOCKS: Record<BlockEditorMode, PrebuiltBlock[]> = {
       label: 'Hero + features',
       description: 'Hero block followed by feature grid',
       emoji: '🚀',
+      score: 91,
       types: ['hero', 'feature-grid'],
     },
     {
@@ -75,6 +131,7 @@ const PREBUILT_BLOCKS: Record<BlockEditorMode, PrebuiltBlock[]> = {
       label: 'Social proof',
       description: 'Stats row and testimonials',
       emoji: '💬',
+      score: 89,
       types: ['stats-row', 'testimonials'],
     },
     {
@@ -83,6 +140,7 @@ const PREBUILT_BLOCKS: Record<BlockEditorMode, PrebuiltBlock[]> = {
       description: 'AI-curated customer testimonials',
       emoji: '⭐',
       aiPowered: true,
+      score: 92,
       types: ['heading', 'testimonials'],
     },
     {
@@ -90,6 +148,7 @@ const PREBUILT_BLOCKS: Record<BlockEditorMode, PrebuiltBlock[]> = {
       label: 'Closing CTA',
       description: 'Divider, headline, and action button',
       emoji: '🎯',
+      score: 87,
       types: ['divider', 'heading', 'cta'],
     },
   ],
@@ -100,6 +159,7 @@ const PREBUILT_BLOCKS: Record<BlockEditorMode, PrebuiltBlock[]> = {
       description: 'Section header + 5 Q&A pairs',
       emoji: '📋',
       aiPowered: true,
+      score: 92,
       types: ['faq-section'],
     },
     {
@@ -108,6 +168,7 @@ const PREBUILT_BLOCKS: Record<BlockEditorMode, PrebuiltBlock[]> = {
       description: 'AI-generated from your reviews',
       emoji: '🤖',
       aiPowered: true,
+      score: 94,
       types: ['heading', 'faq-qa', 'faq-qa', 'faq-qa'],
     },
     {
@@ -115,10 +176,72 @@ const PREBUILT_BLOCKS: Record<BlockEditorMode, PrebuiltBlock[]> = {
       label: 'Intro + FAQ',
       description: 'Short intro paragraph before Q&As',
       emoji: '💡',
+      score: 90,
       types: ['heading', 'paragraph', 'faq-section'],
     },
   ],
 };
+
+function describePrebuiltStructure(pb: PrebuiltBlock) {
+  const labels = pb.types
+    .slice(0, 4)
+    .map(type => {
+      const catalogItem = BLOCK_CATALOG.find(item => item.type === type);
+      return (catalogItem?.label ?? type).toLowerCase();
+    });
+
+  return labels.join(' + ');
+}
+
+function PrebuiltTemplateCard({
+  block,
+  onInsert,
+}: {
+  block: PrebuiltBlock;
+  onInsert: () => void;
+}) {
+  const score = block.score ?? (block.aiPowered ? 92 : 88);
+
+  return (
+    <button
+      type="button"
+      onClick={onInsert}
+      className="w-full overflow-hidden rounded-xl border border-border bg-muted/35 text-left transition-all hover:border-primary/40 hover:shadow-sm"
+    >
+      <div className="p-4">
+        <div className="overflow-hidden rounded-lg border border-border bg-background">
+          <div className="flex items-center gap-2 border-b border-border px-2 py-1.5">
+            <span className="flex size-6 items-center justify-center rounded-md bg-primary/10">
+              <FileText size={14} strokeWidth={1.6} absoluteStrokeWidth className="text-primary" />
+            </span>
+            <span className="flex-1 text-[12px] font-medium text-foreground">Blog template</span>
+            <span className="h-1.5 w-10 rounded-full bg-muted">
+              <span className="block h-full w-8 rounded-full bg-emerald-600" />
+            </span>
+            <span className="rounded-md bg-emerald-50 px-1.5 py-0.5 text-[11px] font-medium text-emerald-700">
+              {score}
+            </span>
+          </div>
+
+          <div className="px-2 py-2">
+            <p className="mb-2 text-[12px] text-foreground">{describePrebuiltStructure(block)}</p>
+            <div className="space-y-2">
+              <span className="block h-1 rounded-full bg-muted" />
+              <span className="block h-1 w-4/5 rounded-full bg-muted" />
+              <span className="block h-1 w-2/3 rounded-full bg-muted" />
+              <span className="block h-1 w-11/12 rounded-full bg-muted" />
+              <span className="block h-1 w-3/5 rounded-full bg-muted" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="border-t border-border bg-background px-4 py-4">
+        <p className="text-[15px] font-medium text-foreground">{block.label}</p>
+      </div>
+    </button>
+  );
+}
 
 // ── SavedBlockCard ────────────────────────────────────────────────────────────
 
@@ -198,10 +321,15 @@ export function BlockLibraryPanel({ mode }: BlockLibraryPanelProps) {
 
   // Category labels
   const categoryLabel: Record<string, string> = {
+    basic:   'Basic',
     text:    'Text',
     media:   'Media',
     layout:  'Layout',
     content: 'Content',
+    conversion: 'Conversion',
+    'social-proof': 'Social proof',
+    blog: 'Blog',
+    landing: 'Landing',
   };
 
   // Filter basic blocks by search
@@ -237,22 +365,24 @@ export function BlockLibraryPanel({ mode }: BlockLibraryPanelProps) {
   return (
     <div className="flex flex-col h-full overflow-hidden">
       {/* Sub-tabs */}
-      <div className="flex-none flex border-b border-border">
+      <div className="flex-none border-b border-border px-4 py-3">
+        <div className="flex rounded-lg border border-border bg-background p-1">
         {(['basic', 'prebuilt', 'saved'] as const).map(t => (
           <button
             key={t}
             type="button"
             onClick={() => setTab(t)}
             className={cn(
-              'flex-1 py-2 text-[12px] font-medium capitalize transition-colors',
+              'flex-1 rounded-md py-2 text-[13px] font-medium capitalize transition-colors',
               tab === t
-                ? 'text-foreground border-b-2 border-primary'
+                ? 'bg-muted text-foreground'
                 : 'text-muted-foreground hover:text-foreground',
             )}
           >
             {t === 'prebuilt' ? 'Pre-built' : t.charAt(0).toUpperCase() + t.slice(1)}
           </button>
         ))}
+        </div>
       </div>
 
       {/* Content */}
@@ -272,85 +402,44 @@ export function BlockLibraryPanel({ mode }: BlockLibraryPanelProps) {
               />
             </div>
 
-            {Object.entries(groups).length === 0 ? (
+            {filtered.length === 0 ? (
               <p className="text-center text-[12px] text-muted-foreground py-6">
                 No blocks match "{query}"
               </p>
             ) : (
-              Object.entries(groups).map(([cat, blocks]) => (
-                <div key={cat}>
-                  <p className="text-[10px] font-semibold text-muted-foreground/70 uppercase tracking-wider mb-2">
-                    {categoryLabel[cat] ?? cat}
-                  </p>
-                  <div className="grid grid-cols-3 gap-2">
-                    {blocks.map(b => (
-                      <button
-                        key={b.type}
-                        type="button"
-                        onClick={() => insertBlock(b.type)}
-                        title={b.description}
-                        className="flex flex-col items-center gap-1.5 p-2 rounded-lg border border-border bg-background hover:border-primary/40 hover:bg-primary/[0.03] transition-all group/blk"
-                      >
-                        {/* 6-dot drag indicator (visual only) */}
-                        <span className="text-muted-foreground/30 text-[8px] leading-none group-hover/blk:text-muted-foreground/60 transition-colors select-none">
-                          ⠿
-                        </span>
-                        {/* Icon */}
-                        <span className="text-[18px] leading-none">{b.icon}</span>
-                        {/* Label */}
-                        <span className="text-[10px] text-muted-foreground text-center leading-tight group-hover/blk:text-foreground transition-colors">
-                          {b.label}
-                        </span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              ))
+              <div className="grid [grid-template-columns:repeat(3,minmax(0,1fr))] gap-2">
+                {filtered.map(b => {
+                  const Icon = BLOCK_ICON_MAP[b.type] ?? LayoutTemplate;
+                  return (
+                    <button
+                      key={b.type}
+                      type="button"
+                      onClick={() => insertBlock(b.type)}
+                      title={b.description}
+                      className="group/blk flex aspect-square min-h-[84px] flex-col items-center justify-center gap-1.5 rounded-lg border border-border bg-background p-2 transition-all hover:border-primary/40 hover:bg-primary/[0.03]"
+                    >
+                      <GripHorizontal size={12} strokeWidth={1.6} absoluteStrokeWidth className="text-muted-foreground/30 transition-colors group-hover/blk:text-muted-foreground/60" />
+                      <Icon size={18} strokeWidth={1.6} absoluteStrokeWidth className="text-muted-foreground transition-colors group-hover/blk:text-primary" />
+                      <span className="text-center text-[12px] font-medium leading-tight text-muted-foreground transition-colors group-hover/blk:text-foreground">
+                        {b.label}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
             )}
           </div>
         )}
 
         {/* ── Pre-built ──────────────────────────────────────────────────────── */}
         {tab === 'prebuilt' && (
-          <div className="p-3 space-y-3">
-            {/* Search */}
-            <div className="flex items-center gap-2 border border-border rounded-lg px-2.5 py-1.5 bg-background">
-              <Search size={13} strokeWidth={1.6} absoluteStrokeWidth className="text-muted-foreground flex-none" />
-              <input
-                type="text"
-                placeholder="Search pre-built…"
-                className="flex-1 text-[12px] bg-transparent outline-none text-foreground placeholder:text-muted-foreground/60"
-              />
-            </div>
-
+          <div className="p-4 space-y-4">
             {prebuiltBlocks.map(pb => (
-              <button
+              <PrebuiltTemplateCard
                 key={pb.id}
-                type="button"
-                onClick={() => insertPrebuilt(pb)}
-                className="w-full flex flex-col gap-1 p-3 rounded-xl border border-border bg-background hover:border-primary/40 hover:shadow-sm transition-all text-left group/pb"
-              >
-                {/* Header */}
-                <div className="flex items-center gap-2">
-                  <span className="text-[16px]">{pb.emoji}</span>
-                  <span className="text-[12px] font-medium text-foreground flex-1">{pb.label}</span>
-                  {pb.aiPowered && (
-                    <span className="flex items-center gap-0.5 text-[10px] font-medium text-primary bg-primary/8 px-1.5 py-0.5 rounded-full">
-                      <Sparkles size={9} strokeWidth={1.6} absoluteStrokeWidth />
-                      AI
-                    </span>
-                  )}
-                </div>
-                <p className="text-[11px] text-muted-foreground">{pb.description}</p>
-                {/* Block type chips */}
-                <div className="flex flex-wrap gap-1 mt-0.5">
-                  {pb.types.slice(0, 4).map((t, i) => (
-                    <span key={i} className="text-[9px] bg-muted text-muted-foreground px-1.5 py-0.5 rounded capitalize">
-                      {t.replace('-', ' ')}
-                    </span>
-                  ))}
-                </div>
-              </button>
+                block={pb}
+                onInsert={() => insertPrebuilt(pb)}
+              />
             ))}
           </div>
         )}

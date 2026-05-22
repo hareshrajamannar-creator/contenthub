@@ -26,6 +26,7 @@ interface BlockShellProps {
   isFirst: boolean;
   isLast: boolean;
   children: React.ReactNode;
+  surface?: 'card' | 'page';
   /** For drag-and-drop */
   onDragStart?: (e: React.DragEvent) => void;
   onDragOver?: (e: React.DragEvent) => void;
@@ -46,6 +47,7 @@ export function BlockShell({
   isFirst,
   isLast,
   children,
+  surface = 'card',
   onDragStart,
   onDragOver,
   onDrop,
@@ -66,9 +68,13 @@ export function BlockShell({
       onClick={onFocus}
       className={cn(
         'group/shell relative rounded-xl transition-all',
-        focused
-          ? 'ring-2 ring-primary/30 bg-background'
-          : 'hover:ring-1 hover:ring-border bg-background',
+        surface === 'card'
+          ? focused
+            ? 'ring-2 ring-primary/30 bg-background'
+            : 'hover:ring-1 hover:ring-border bg-background'
+          : focused
+            ? 'ring-2 ring-primary/30'
+            : 'hover:ring-1 hover:ring-border',
         isDragOver && 'ring-2 ring-primary',
       )}
     >
@@ -125,7 +131,7 @@ export function BlockShell({
       </div>
 
       {/* Block content */}
-      <div className="px-5 py-4" onBlur={onBlur}>
+      <div className={cn(surface === 'card' ? 'px-5 py-4' : 'px-4 py-3')} onBlur={onBlur}>
         {children}
       </div>
     </div>

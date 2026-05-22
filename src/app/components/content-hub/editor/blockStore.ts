@@ -35,7 +35,64 @@ function makeBlock(blockType: BlockType): Block {
     id: crypto.randomUUID(),
     type: blockType,
     content: defaultContent(blockType),
-    settings: { alignment: 'left', width: 'contained' },
+    style: {},
+    behavior: {},
+    settings: {
+      alignment: 'left',
+      width: 'contained',
+      visibility: { desktop: true, tablet: true, mobile: true },
+    },
+  };
+}
+
+function cloneValue<T>(value: T): T {
+  if (typeof structuredClone === 'function') return structuredClone(value);
+  return JSON.parse(JSON.stringify(value)) as T;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
+}
+
+function deepMerge<T extends Record<string, unknown>>(base: T, patch: Record<string, unknown>): T {
+  const next: Record<string, unknown> = { ...base };
+  Object.entries(patch).forEach(([key, value]) => {
+    const current = next[key];
+    next[key] = isRecord(current) && isRecord(value)
+      ? deepMerge(current, value)
+      : value;
+  });
+  return next as T;
+}
+
+export function applyBlockPatch(block: Block, patch: Record<string, unknown>): Block {
+  const hasStructuredPatch =
+    'content' in patch ||
+    'style' in patch ||
+    'behavior' in patch ||
+    'settings' in patch;
+
+  if (!hasStructuredPatch) {
+    return {
+      ...block,
+      content: { ...block.content, ...patch },
+    };
+  }
+
+  return {
+    ...block,
+    content: isRecord(patch.content)
+      ? deepMerge(block.content, patch.content)
+      : block.content,
+    style: isRecord(patch.style)
+      ? deepMerge(block.style ?? {}, patch.style)
+      : block.style,
+    behavior: isRecord(patch.behavior)
+      ? deepMerge(block.behavior ?? {}, patch.behavior)
+      : block.behavior,
+    settings: isRecord(patch.settings)
+      ? deepMerge(block.settings as unknown as Record<string, unknown>, patch.settings) as Block['settings']
+      : block.settings,
   };
 }
 
@@ -58,7 +115,7 @@ function reducer(state: BlockState, action: BlockAction): BlockState {
         ...state,
         blocks: state.blocks.map(b =>
           b.id === action.id
-            ? { ...b, content: { ...b.content, ...action.patch } }
+            ? applyBlockPatch(b, action.patch)
             : b,
         ),
       };
@@ -99,7 +156,10 @@ function reducer(state: BlockState, action: BlockAction): BlockState {
       const clone: Block = {
         ...state.blocks[idx],
         id: crypto.randomUUID(),
-        content: { ...state.blocks[idx].content },
+        content: cloneValue(state.blocks[idx].content),
+        style: cloneValue(state.blocks[idx].style ?? {}),
+        behavior: cloneValue(state.blocks[idx].behavior ?? {}),
+        settings: cloneValue(state.blocks[idx].settings),
       };
       const next = [...state.blocks];
       next.splice(idx + 1, 0, clone);

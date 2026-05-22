@@ -19,7 +19,7 @@
  *  └────────────┴─────────────────────────────────────┴───────────────┘
  */
 
-import React, { useState, useCallback, useRef, useEffect } from 'react';
+import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { toast } from 'sonner';
 import {
   ArrowLeft, ChevronDown, Sparkles, Edit2,
@@ -75,11 +75,13 @@ import { ContentShareModal } from '../shared/ContentShareModal';
 import { ContentActivityDrawer } from '../shared/ContentActivityDrawer';
 import { ContentVersionHistory } from '../shared/ContentVersionHistory';
 import { CommentPanel } from './CommentPanel';
+import { type Block as EditorBlock } from './blockTypes';
 // Note: FAQCanvas is kept for the project review canvas path (UnifiedReviewCanvas)
 import {
   type ContentMode,
   type ContentItemType,
   type EditorTemplate,
+  type ScoreDimension,
   EDITOR_CONFIGS,
   ITEM_TYPE_LABEL,
   ITEM_TYPE_ICON,
@@ -87,6 +89,33 @@ import {
 
 /** Modes that use the block-based WYSIWYG canvas */
 const BLOCK_MODES = new Set<ContentMode>(['blog', 'landing', 'faq']);
+
+function scoreColorFor(value: number): ScoreDimension['color'] {
+  if (value >= 80) return 'green';
+  if (value >= 60) return 'orange';
+  return 'red';
+}
+
+function buildBlogScoreDimensions(overallScore: number): ScoreDimension[] {
+  const score = Math.max(0, Math.min(100, Math.round(overallScore)));
+  const values = [
+    Math.max(0, Math.min(100, score + 1)),
+    score,
+    Math.max(0, Math.min(100, score - 1)),
+  ];
+  values.push(Math.max(0, Math.min(100, score * 4 - values.reduce((sum, value) => sum + value, 0))));
+
+  return [
+    'Brand alignment',
+    'AEO score',
+    'Readability',
+    'Accuracy',
+  ].map((label, index) => ({
+    label,
+    score: values[index] ?? score,
+    color: scoreColorFor(values[index] ?? score),
+  }));
+}
 
 const BRAND_KIT_LABELS: Record<string, string> = {
   'olive-garden':  'Olive Garden corporate',
@@ -170,6 +199,140 @@ const DEFAULT_REC_BLOG_FLOW_DATA: BlogFlowData = {
     { id: 'blog-sec-5', heading: 'How to get started',                       description: '', wordCount: 150 },
   ],
 };
+
+function createEditorBlock(
+  id: string,
+  type: EditorBlock['type'],
+  content: Record<string, unknown>,
+): EditorBlock {
+  return {
+    id,
+    type,
+    content,
+    style: {},
+    behavior: {},
+    settings: {
+      alignment: 'left',
+      width: 'contained',
+      visibility: { desktop: true, tablet: true, mobile: true },
+    },
+  };
+}
+
+function buildBlogEditorBlocks({
+  title,
+  sections,
+  preloadedSections,
+}: {
+  title?: string;
+  sections: BlogFlowData['sections'];
+  preloadedSections?: ContentEditorShellProps['preloadedBlogSections'];
+}): EditorBlock[] {
+  const articleTitle = title || 'How local businesses can win more customers with better online visibility';
+  const articleTopic = articleTitle.replace(/^create\s+/i, '').replace(/\s+/g, ' ').trim();
+  const today = new Date().toISOString().split('T')[0];
+  const heroImage = 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1400&q=80';
+
+  const blocks: EditorBlock[] = [
+    createEditorBlock('blog-hero', 'hero', {
+      headline: articleTitle,
+      subheadline: `A practical guide to ${articleTopic.toLowerCase()} with examples, local context, and clear next steps for customers.`,
+      ctaLabel: 'Talk to an expert',
+      ctaUrl: '',
+    }),
+    createEditorBlock('blog-author', 'author-bar', {
+      name: 'Birdeye content team',
+      date: today,
+      readingTime: '6 min read',
+      tags: ['Local SEO', 'Customer experience'],
+    }),
+  ];
+
+  if (preloadedSections && preloadedSections.length > 0) {
+    preloadedSections.forEach((section, index) => {
+      if (section.heading) {
+        blocks.push(createEditorBlock(`blog-preloaded-heading-${index}`, 'heading', { text: section.heading, level: 'h2' }));
+      }
+      if (section.body) {
+        blocks.push(createEditorBlock(`blog-preloaded-paragraph-${index}`, 'paragraph', { text: section.body }));
+      }
+      if (section.listItems && section.listItems.length > 0) {
+        blocks.push(createEditorBlock(`blog-preloaded-list-${index}`, 'list', { items: section.listItems, ordered: false }));
+      }
+      if (section.image) {
+        blocks.push(createEditorBlock(`blog-preloaded-image-${index}`, 'image', {
+          src: section.image,
+          alt: section.imageAlt ?? section.heading ?? '',
+          caption: '',
+        }));
+      }
+    });
+    return blocks;
+  }
+
+  blocks.push(createEditorBlock('blog-hero-image', 'image', {
+    src: heroImage,
+    alt: 'Modern city buildings representing local business growth',
+    caption: 'Strong local content helps customers understand services before they reach out.',
+  }));
+
+  blocks.push(createEditorBlock('blog-intro', 'paragraph', {
+    text: `When customers search for ${articleTopic.toLowerCase()}, they are usually trying to make a confident decision quickly. A strong blog post should explain the issue in plain language, connect it to the local market, and give readers enough detail to know what to do next.`,
+  }));
+  blocks.push(createEditorBlock('blog-key-takeaways', 'list', {
+    items: [
+      'Start with the customer question, not the business pitch.',
+      'Add local details, examples, and proof points to make the advice credible.',
+      'Use structured sections so readers and AI answer engines can scan the content easily.',
+    ],
+    ordered: false,
+  }));
+
+  sections.forEach((section, index) => {
+    const sectionTitle = section.heading || (index === 0 ? 'Why this matters' : `Step ${index + 1}`);
+    blocks.push(createEditorBlock(`blog-heading-${section.id || index}`, 'heading', {
+      text: sectionTitle,
+      level: 'h2',
+    }));
+    blocks.push(createEditorBlock(`blog-paragraph-${section.id || index}`, 'paragraph', {
+      text: section.description
+        ? `${section.description}. For a customer, the useful version of this advice includes what to compare, what warning signs to watch for, and what outcome they should expect after taking action.`
+        : `This section should help readers understand ${sectionTitle.toLowerCase()} through a practical example, a simple explanation, and one clear recommendation they can use right away.`,
+    }));
+    if (index === 0) {
+      blocks.push(createEditorBlock('blog-mid-article-image', 'image', {
+        src: 'https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=1400&q=80',
+        alt: 'Team reviewing local marketing performance',
+        caption: 'Clear local content turns research moments into confident customer actions.',
+      }));
+    }
+    if (index === 1) {
+      blocks.push(createEditorBlock('blog-practical-list', 'list', {
+        items: [
+          'Answer the most common customer question in the first few paragraphs.',
+          'Use location-specific details where they genuinely help the reader.',
+          'Support claims with examples, service standards, or customer outcomes.',
+          'Make the next step obvious before the reader leaves the page.',
+        ],
+        ordered: false,
+      }));
+    }
+  });
+
+  blocks.push(createEditorBlock('blog-expert-quote', 'quote', {
+    text: 'The best content does not just rank. It helps a customer feel ready to choose.',
+    attribution: 'Birdeye content strategy team',
+  }));
+
+  blocks.push(createEditorBlock('blog-closing-cta', 'cta-section', {
+    headline: 'Ready to improve your local content?',
+    body: 'Turn search intent, customer questions, and review insights into pages that are useful for people and easy for AI answer engines to understand.',
+    ctaLabel: 'Plan my content',
+    ctaUrl: '',
+  }));
+
+  return blocks;
+}
 
 
 // ── Icon map ──────────────────────────────────────────────────────────────────
@@ -753,6 +916,16 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
   const [blogFlowData, setBlogFlowData] = useState<BlogFlowData | null>(
     skipSetupPhase && mode === 'blog' ? DEFAULT_REC_BLOG_FLOW_DATA : null
   );
+  const initialBlogEditorBlocks = useMemo(
+    () => blogFlowData
+      ? buildBlogEditorBlocks({
+        title: initialTitle ?? blogFlowData.topic,
+        sections: blogFlowData.sections,
+        preloadedSections: preloadedBlogSections,
+      })
+      : [],
+    [blogFlowData, initialTitle, preloadedBlogSections],
+  );
 
   // ── Wizard navigation state (drives the setup-phase header)
   const flowNavRef = useRef<FlowNavControls | null>(null);
@@ -812,7 +985,7 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
   );
   const [faqScore, setFaqScore] = useState(0);
   const [faqScorePanelOpen, setFaqScorePanelOpen] = useState(true);
-  const [blogScore, setBlogScore] = useState(0);
+  const [blogScore, setBlogScore] = useState(mode === 'blog' ? (recAeoScore ?? 92) : 0);
   const [blogScorePanelOpen, setBlogScorePanelOpen] = useState(true);
   const [commentsOpen, setCommentsOpen] = useState(false);
   const [activityOpen, setActivityOpen] = useState(false);
@@ -1573,36 +1746,18 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
         </div>
       )}
 
-      {/* ── Blog section canvas (done phase, blog mode) ───────────────── */}
-      {setupPhase === 'done' && mode === 'blog' && blogFlowData && (
-        isQuickShimmering
-          ? (
-            <div className="flex flex-1 min-h-0 gap-2 bg-[var(--color-canvas,#F7F8FA)] p-2">
-              <LeftPanelSkeleton />
-              <CanvasShimmer mode="blog" />
-              <ScorePanelSkeleton />
-            </div>
-          )
-          : (
-            <BlogSectionCanvas
-              sections={blogFlowData.sections}
-              generationLabel={generationInfo?.label}
-              onEditSettings={handleEditSettings}
-              onVersionHistory={() => setVersionHistoryOpen(true)}
-              initialScore={recAeoScore}
-              preloadedBlogSections={preloadedBlogSections}
-              title={initialTitle}
-              onScoreChange={setBlogScore}
-              scorePanelOpen={blogScorePanelOpen}
-              onScorePanelChange={setBlogScorePanelOpen}
-            />
-          )
+      {setupPhase === 'done' && mode === 'blog' && blogFlowData && isQuickShimmering && (
+        <div className="flex flex-1 min-h-0 gap-2 bg-[var(--color-canvas,#F7F8FA)] p-2">
+          <LeftPanelSkeleton />
+          <CanvasShimmer mode="blog" />
+          <ScorePanelSkeleton />
+        </div>
       )}
 
-      {/* ── Body (left + center + right) — only when done (non-FAQ, non-blog) ── */}
-      {setupPhase === 'done' && mode !== 'faq' && mode !== 'blog' && (BLOCK_MODES.has(mode) ? (
+      {/* ── Body (left + center + right) — block editor modes ── */}
+      {setupPhase === 'done' && mode !== 'faq' && !(mode === 'blog' && isQuickShimmering) && (BLOCK_MODES.has(mode) ? (
         /* ── Block editor — wraps all 3 panels in a shared store context ── */
-        <BlockEditorProvider>
+        <BlockEditorProvider initialBlocks={mode === 'blog' ? initialBlogEditorBlocks : []}>
           <div className="flex flex-1 min-h-0 gap-2 bg-[var(--color-canvas,#F7F8FA)] p-2">
             {/* Left panel */}
             <div className="flex-shrink-0 flex flex-col overflow-hidden rounded-xl border border-border/60 bg-background" style={{ width: 300 }}>
@@ -1624,8 +1779,9 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
             {/* Center — block canvas with zoom toolbar */}
             <div className="flex flex-1 min-w-0 flex-col gap-2 overflow-hidden">
               <CanvasEditorTopBar
-                score={cards[0]?.score ?? 40}
+                score={mode === 'blog' ? blogScore : cards[0]?.score ?? 40}
                 scoreLabel="Content score"
+                hideScore={mode === 'blog'}
                 canUndo={canUndo}
                 canRedo={canRedo}
                 onUndo={handleUndo}
@@ -1640,12 +1796,25 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
                   mode={mode as 'blog' | 'landing' | 'faq'}
                   zoom={zoom}
                   onZoomChange={setZoom}
+                  onBlockFocus={() => {
+                    if (mode === 'blog') setBlogScorePanelOpen(false);
+                  }}
                 />
               </div>
             </div>
 
-            {/* Right — block settings panel (slides in when a block is selected) */}
-            <BlockSettingsPanel />
+            {/* Right — blog score panel or block settings panel */}
+            {mode === 'blog' && (
+              <EditorScorePanel
+                open={blogScorePanelOpen}
+                onClose={() => setBlogScorePanelOpen(false)}
+                config={EDITOR_CONFIGS.blog}
+                dimensions={buildBlogScoreDimensions(blogScore)}
+                score={blogScore}
+                scoreLabel="Content score"
+              />
+            )}
+            {!(mode === 'blog' && blogScorePanelOpen) && <BlockSettingsPanel />}
 
             {/* Activity panel */}
             <ContentActivityDrawer

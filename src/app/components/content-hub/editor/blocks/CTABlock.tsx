@@ -1,10 +1,14 @@
 import React from 'react';
 import { type BlockComponentProps } from '../blockTypes';
+import { cn } from '@/lib/utils';
 
-interface CTAContent { label: string; url: string; variant: 'primary' | 'secondary' | 'outline' }
+interface CTAContent { label: string; url: string; variant: 'primary' | 'secondary' | 'outline'; align?: 'left' | 'center' | 'right' }
 
-export function CTABlock({ content, focused, onChange }: BlockComponentProps<CTAContent>) {
+export function CTABlock({ content, style, focused, onChange }: BlockComponentProps<CTAContent>) {
   const { label, url, variant } = content;
+  const align = content.align ?? (style?.align as string | undefined) ?? 'left';
+  const sizeClass = style?.size === 'sm' ? 'px-4 py-2 text-[13px]' : style?.size === 'lg' ? 'px-6 py-3 text-[15px]' : 'px-5 py-2.5 text-[14px]';
+  const radius = Number(style?.radius ?? 8);
 
   const btnClass =
     variant === 'primary'   ? 'bg-primary text-primary-foreground hover:bg-primary/90' :
@@ -12,7 +16,12 @@ export function CTABlock({ content, focused, onChange }: BlockComponentProps<CTA
                               'border border-border text-foreground hover:bg-muted';
 
   return (
-    <div className="w-full flex flex-col items-start gap-3">
+    <div
+      className={cn(
+        'flex w-full flex-col gap-3',
+        align === 'center' ? 'items-center' : align === 'right' ? 'items-end' : 'items-start',
+      )}
+    >
       {/* Variant picker */}
       {focused && (
         <div className="flex items-center gap-1">
@@ -34,7 +43,7 @@ export function CTABlock({ content, focused, onChange }: BlockComponentProps<CTA
       )}
 
       {/* Button preview — editable label */}
-      <div className={`inline-flex items-center px-5 py-2.5 rounded-lg text-[14px] font-medium transition-colors ${btnClass}`}>
+      <div className={cn('inline-flex items-center font-medium transition-colors', sizeClass, btnClass)} style={{ borderRadius: radius }}>
         <span
           contentEditable
           suppressContentEditableWarning

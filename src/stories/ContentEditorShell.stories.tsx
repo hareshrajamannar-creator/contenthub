@@ -35,6 +35,14 @@ export const CreateBlogPost: Story = {
   },
 };
 
+export const CreateLandingPage: Story = {
+  name: 'Create landing page',
+  args: {
+    mode: 'landing',
+    onBack: () => console.log('cancel create landing page'),
+  },
+};
+
 export const GeneratingFAQ: Story = {
   name: 'Generating FAQ inside editor',
   args: {

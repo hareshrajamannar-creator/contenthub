@@ -12,7 +12,7 @@
 import React, { useRef, useCallback, useState, useEffect } from 'react';
 import { FileText, Layers, MessageSquare } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { type BlockEditorMode, type Block } from './blockTypes';
+import { type BlockEditorMode, type Block, type BlockComponentProps, type BlockType } from './blockTypes';
 import { useBlockEditorContext } from './BlockEditorContext';
 import { BlockShell } from './BlockShell';
 import { BlockPicker } from './BlockPicker';
@@ -37,6 +37,134 @@ import { TestimonialsBlock } from './blocks/TestimonialsBlock';
 import { FAQQABlock }        from './blocks/FAQQABlock';
 import { FAQSectionBlock }   from './blocks/FAQSectionBlock';
 
+function text(value: unknown, fallback = ''): string {
+  return typeof value === 'string' && value.trim() ? value : fallback;
+}
+
+function list(value: unknown): unknown[] {
+  return Array.isArray(value) ? value : [];
+}
+
+function GenericMarketingBlock({
+  type,
+  content,
+}: BlockComponentProps & { type: BlockType }) {
+  if (type === 'spacer') {
+    return (
+      <div
+        className="rounded-lg border border-dashed border-border bg-muted/20"
+        style={{ height: Number(content.height ?? 48) }}
+      />
+    );
+  }
+
+  if (type === 'header-nav') {
+    return (
+      <div className="flex items-center justify-between gap-4 rounded-lg border border-border bg-background px-6 py-4">
+        <p className="text-[15px] font-semibold text-foreground">{text(content.logo, 'Brand')}</p>
+        <div className="flex items-center gap-4 text-[12px] text-muted-foreground">
+          {list(content.links).map((item, index) => (
+            <span key={index}>{String(item)}</span>
+          ))}
+        </div>
+        <span className="rounded-md bg-primary px-4 py-2 text-[12px] font-semibold text-primary-foreground">
+          {text(content.ctaLabel, 'Book now')}
+        </span>
+      </div>
+    );
+  }
+
+  if (type === 'lead-form') {
+    return (
+      <section className="rounded-lg border border-border bg-background p-6">
+        <div className="space-y-2">
+          <h2 className="text-[24px] font-semibold text-foreground">{text(content.headline, 'Request a consultation')}</h2>
+          <p className="text-[14px] leading-relaxed text-muted-foreground">{text(content.helperText, 'We will get back to you within one business day.')}</p>
+        </div>
+        <div className="mt-6 grid gap-3">
+          {list(content.fields).map((field, index) => {
+            const item = field as Record<string, unknown>;
+            return (
+              <div key={index} className="space-y-1">
+                <p className="text-[12px] font-medium text-foreground">{text(item.label, `Field ${index + 1}`)}</p>
+                <div className="h-10 rounded-lg border border-border bg-muted/30" />
+              </div>
+            );
+          })}
+          <div className="mt-2 inline-flex h-10 w-fit items-center rounded-md bg-primary px-5 text-[13px] font-semibold text-primary-foreground">
+            {text(content.buttonLabel, 'Submit')}
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (type === 'pricing-table') {
+    return (
+      <section className="space-y-4">
+        <h2 className="text-[24px] font-semibold text-foreground">{text(content.title, 'Pricing')}</h2>
+        <div className="grid gap-4 md:grid-cols-3">
+          {list(content.plans).map((plan, index) => {
+            const item = plan as Record<string, unknown>;
+            return (
+              <div key={index} className="rounded-lg border border-border bg-background p-4">
+                <p className="text-[15px] font-semibold text-foreground">{text(item.name, 'Plan')}</p>
+                <p className="mt-2 text-[28px] font-semibold text-foreground">{text(item.price, '$99')}</p>
+                <ul className="mt-4 space-y-2 text-[13px] text-muted-foreground">
+                  {list(item.features).map((feature, featureIndex) => (
+                    <li key={featureIndex}>{String(feature)}</li>
+                  ))}
+                </ul>
+                <div className="mt-4 rounded-md bg-primary px-4 py-2 text-center text-[12px] font-semibold text-primary-foreground">
+                  {text(item.ctaLabel, 'Choose plan')}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+    );
+  }
+
+  if (type === 'gallery') {
+    return (
+      <section className="grid gap-3 md:grid-cols-3">
+        {list(content.images).map((image, index) => {
+          const item = image as Record<string, unknown>;
+          return (
+            <div key={index} className="overflow-hidden rounded-lg border border-border bg-muted/30">
+              {item.src ? (
+                <img src={String(item.src)} alt={text(item.alt)} className="h-32 w-full object-cover" />
+              ) : (
+                <div className="flex h-32 items-center justify-center text-[12px] text-muted-foreground">Image</div>
+              )}
+              {item.caption ? <p className="px-3 py-2 text-[12px] text-muted-foreground">{String(item.caption)}</p> : null}
+            </div>
+          );
+        })}
+      </section>
+    );
+  }
+
+  const title = text(content.title, text(content.headline, text(content.message, 'New block')));
+  const body = text(content.body, text(content.description, text(content.helperText)));
+
+  return (
+    <section className="rounded-lg border border-border bg-background p-6">
+      <div className="space-y-2">
+        <p className="text-[11px] font-semibold uppercase text-muted-foreground">{type.replaceAll('-', ' ')}</p>
+        <h2 className="text-[24px] font-semibold text-foreground">{title}</h2>
+        {body ? <p className="text-[14px] leading-relaxed text-muted-foreground">{body}</p> : null}
+      </div>
+      {'ctaLabel' in content ? (
+        <div className="mt-5 inline-flex h-10 items-center rounded-md bg-primary px-5 text-[13px] font-semibold text-primary-foreground">
+          {text(content.ctaLabel, 'Learn more')}
+        </div>
+      ) : null}
+    </section>
+  );
+}
+
 // ── Block renderer map ────────────────────────────────────────────────────────
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -58,6 +186,30 @@ const BLOCK_COMPONENTS: Record<string, React.FC<any>> = {
   testimonials:  TestimonialsBlock,
   'faq-qa':      FAQQABlock,
   'faq-section': FAQSectionBlock,
+  spacer:        GenericMarketingBlock,
+  'header-nav':  GenericMarketingBlock,
+  'custom-embed':GenericMarketingBlock,
+  gallery:       GenericMarketingBlock,
+  review:        GenericMarketingBlock,
+  'cta-section': GenericMarketingBlock,
+  'table-of-contents': GenericMarketingBlock,
+  'key-takeaways': GenericMarketingBlock,
+  'related-posts': GenericMarketingBlock,
+  'social-share': GenericMarketingBlock,
+  'newsletter-signup': GenericMarketingBlock,
+  'seo-meta': GenericMarketingBlock,
+  benefits: GenericMarketingBlock,
+  'logo-strip': GenericMarketingBlock,
+  'pricing-table': GenericMarketingBlock,
+  'lead-form': GenericMarketingBlock,
+  'contact-block': GenericMarketingBlock,
+  'map-block': GenericMarketingBlock,
+  'review-wall': GenericMarketingBlock,
+  'comparison-table': GenericMarketingBlock,
+  'process-steps': GenericMarketingBlock,
+  'team-grid': GenericMarketingBlock,
+  'announcement-bar': GenericMarketingBlock,
+  footer: GenericMarketingBlock,
 };
 
 // ── Text block types — these show the rich text toolbar when focused ──────────
@@ -101,11 +253,13 @@ interface BlockCanvasProps {
   zoom?: number;
   /** Called when trackpad/Ctrl+scroll changes zoom */
   onZoomChange?: (zoom: number) => void;
+  /** Called when a block is selected on the canvas */
+  onBlockFocus?: () => void;
 }
 
 // ── Canvas ────────────────────────────────────────────────────────────────────
 
-export function BlockCanvas({ mode, zoom = 1, onZoomChange }: BlockCanvasProps) {
+export function BlockCanvas({ mode, zoom = 1, onZoomChange, onBlockFocus }: BlockCanvasProps) {
   const {
     blocks, focusedId,
     addBlock, updateBlock, removeBlock,
@@ -179,7 +333,7 @@ export function BlockCanvas({ mode, zoom = 1, onZoomChange }: BlockCanvasProps) 
   return (
     <div
       ref={canvasRef}
-      className="flex flex-col flex-1 min-h-0 overflow-hidden"
+      className="flex h-full min-h-0 flex-1 flex-col overflow-hidden"
       onWheel={handleWheel}
     >
       {/* Rich text toolbar — fixed at top, fades in when text is selected */}
@@ -187,16 +341,22 @@ export function BlockCanvas({ mode, zoom = 1, onZoomChange }: BlockCanvasProps) 
 
       {/* Scrollable canvas body */}
       <div
-        className="flex-1 overflow-y-auto bg-[var(--color-canvas,#F7F8FA)]"
+        className="min-h-0 flex-1 overflow-y-auto overscroll-contain bg-[var(--color-canvas,#F7F8FA)]"
         onClick={handleCanvasClick}
       >
         {blocks.length === 0 ? (
           <EmptyState mode={mode} onAdd={type => addBlock(type, null)} />
         ) : (
           <div
-            className="max-w-[760px] mx-auto px-12 py-8"
+            className={cn(
+              'mx-auto px-12 py-8',
+              mode === 'blog' ? 'max-w-[1040px]' : 'max-w-[760px]',
+            )}
             style={{ zoom }}
           >
+            <div className={cn(
+              mode === 'blog' && 'rounded-xl bg-background px-[30px] py-[30px] shadow-sm ring-[0.5px] ring-border/20',
+            )}>
             {blocks.map((block: Block, idx: number) => {
               const BlockComponent = BLOCK_COMPONENTS[block.type];
               const isFocused = focusedId === block.id;
@@ -212,7 +372,10 @@ export function BlockCanvas({ mode, zoom = 1, onZoomChange }: BlockCanvasProps) 
                   <BlockShell
                     blockId={block.id}
                     focused={isFocused}
-                    onFocus={() => focusBlock(block.id)}
+                    onFocus={() => {
+                      onBlockFocus?.();
+                      focusBlock(block.id);
+                    }}
                     onBlur={() => {}}
                     onMoveUp={() => moveUp(block.id)}
                     onMoveDown={() => moveDown(block.id)}
@@ -220,6 +383,7 @@ export function BlockCanvas({ mode, zoom = 1, onZoomChange }: BlockCanvasProps) 
                     onRemove={() => removeBlock(block.id)}
                     isFirst={idx === 0}
                     isLast={idx === blocks.length - 1}
+                    surface={mode === 'blog' ? 'page' : 'card'}
                     onDragStart={e => handleDragStart(e, idx)}
                     onDragOver={handleDragOver}
                     onDrop={e => handleDrop(e, idx)}
@@ -229,8 +393,11 @@ export function BlockCanvas({ mode, zoom = 1, onZoomChange }: BlockCanvasProps) 
                       <BlockComponent
                         blockId={block.id}
                         content={block.content}
+                        style={block.style}
+                        behavior={block.behavior}
                         settings={block.settings}
                         focused={isFocused}
+                        type={block.type}
                         onChange={(patch: Record<string, unknown>) => updateBlock(block.id, patch)}
                       />
                     )}
@@ -244,6 +411,7 @@ export function BlockCanvas({ mode, zoom = 1, onZoomChange }: BlockCanvasProps) 
               mode={mode}
               onAdd={type => addBlock(type, blocks[blocks.length - 1]?.id ?? null)}
             />
+            </div>
 
             {/* Bottom breathing room */}
             <div className="h-24" />

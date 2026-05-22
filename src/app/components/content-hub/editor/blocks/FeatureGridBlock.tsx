@@ -1,12 +1,15 @@
 import React from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import { type BlockComponentProps } from '../blockTypes';
+import { cn } from '@/lib/utils';
 
 interface Feature { icon: string; title: string; description: string }
 interface FeatureGridContent { features: Feature[] }
 
-export function FeatureGridBlock({ content, focused, onChange }: BlockComponentProps<FeatureGridContent>) {
+export function FeatureGridBlock({ content, style, focused, onChange }: BlockComponentProps<FeatureGridContent>) {
   const { features } = content;
+  const configuredColumns = Number(style?.columns ?? 0);
+  const cardStyle = style?.cardStyle === 'elevated' ? 'elevated' : style?.cardStyle === 'outlined' ? 'outlined' : 'subtle';
 
   function updateFeature(idx: number, patch: Partial<Feature>) {
     onChange({ features: features.map((f, i) => i === idx ? { ...f, ...patch } : f) });
@@ -21,13 +24,22 @@ export function FeatureGridBlock({ content, focused, onChange }: BlockComponentP
     onChange({ features: features.filter((_, i) => i !== idx) });
   }
 
-  const cols = features.length <= 2 ? 'grid-cols-2' : features.length === 3 ? 'grid-cols-3' : 'grid-cols-4';
+  const columnCount = configuredColumns || (features.length <= 2 ? 2 : features.length === 3 ? 3 : 4);
+  const cols = columnCount === 2 ? 'grid-cols-2' : columnCount === 3 ? 'grid-cols-3' : 'grid-cols-4';
 
   return (
     <div className="w-full space-y-3">
       <div className={`grid ${cols} gap-4`}>
         {features.map((feat, idx) => (
-          <div key={idx} className="group/feat relative flex flex-col gap-2 p-4 rounded-xl border border-border bg-muted/30 hover:border-primary/20 transition-colors">
+          <div
+            key={idx}
+            className={cn(
+              'group/feat relative flex flex-col gap-2 rounded-xl border p-4 transition-colors hover:border-primary/20',
+              cardStyle === 'elevated' && 'border-transparent bg-background shadow-sm',
+              cardStyle === 'outlined' && 'border-border bg-background',
+              cardStyle === 'subtle' && 'border-border bg-muted/30',
+            )}
+          >
             {/* Delete */}
             {focused && (
               <button
