@@ -15,9 +15,10 @@ export const StartWithSocial: Story = { args: { initialContentType: 'social' } }
 /** Editing mode — shown in the left panel after content has been generated.
  *  Focuses on content quality rather than setup questions. */
 export const EditorMode: Story = {
-  name: 'Editor mode (post-generation)',
+  name: 'FAQ editor mode',
   args: {
     editorContext: 'editing',
+    initialContentType: 'faq',
     wizardSummary: 'AEO template · Professional · 12 FAQs',
   },
   decorators: [
@@ -27,4 +28,14 @@ export const EditorMode: Story = {
       </div>
     ),
   ],
+};
+
+export const BlogEditorMode: Story = {
+  name: 'Blog editor mode',
+  args: {
+    editorContext: 'editing',
+    initialContentType: 'blog',
+    wizardSummary: 'Blog post · Professional · 1,000 words',
+  },
+  decorators: EditorMode.decorators,
 };

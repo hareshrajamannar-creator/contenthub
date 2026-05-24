@@ -785,12 +785,7 @@ export function EditorChromeToolbar({
 
   if (inlineMode) {
     return (
-      <div
-        className={cn(
-          'flex items-center gap-1 rounded-xl border border-border bg-background px-2 shadow-sm shadow-black/5',
-          richTextVisible ? 'min-h-11' : 'h-11',
-        )}
-      >
+      <div className="flex h-[48px] w-full flex-none items-center gap-1 overflow-x-auto rounded-lg border border-border/60 bg-background px-4">
         {richTextVisible ? richTextContent : nonRichContent}
       </div>
     );
@@ -801,12 +796,7 @@ export function EditorChromeToolbar({
       className="fixed z-50 -translate-x-1/2"
       style={{ top: position.top, left: position.left }}
     >
-      <div
-        className={cn(
-          'flex items-center gap-1 rounded-xl border border-border bg-background px-2 shadow-lg shadow-black/10',
-          richTextVisible ? 'min-h-11' : 'h-11',
-        )}
-      >
+      <div className="flex h-[48px] items-center gap-1 rounded-lg border border-border/60 bg-background px-4">
         {richTextVisible ? richTextContent : nonRichContent}
       </div>
     </div>

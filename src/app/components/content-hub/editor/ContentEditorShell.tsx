@@ -200,6 +200,87 @@ const DEFAULT_REC_BLOG_FLOW_DATA: BlogFlowData = {
   ],
 };
 
+const DEFAULT_SEARCH_AI_BLOG_TITLE = 'Free Property Appraisal in Dubbo | Raine & Horne';
+const DEFAULT_SEARCH_AI_BLOG_HERO_IMAGE = 'https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=900&q=80';
+const DEFAULT_SEARCH_AI_BLOG_SECTIONS: NonNullable<ContentEditorShellProps['preloadedBlogSections']> = [
+  {
+    body: "If you've been wondering what your property is worth in today's market, getting a professional appraisal is one of the smartest first steps. Whether you're thinking of selling, renting, refinancing, or simply planning ahead, a local property appraisal gives you a clear understanding of your home's current value. At Raine & Horne Dubbo, we help homeowners across Dubbo and surrounding areas with accurate, obligation-free property appraisals backed by local market knowledge and real buyer demand.",
+  },
+  {
+    heading: 'Why Get a Property Appraisal?',
+    body: 'A professional appraisal can help you:',
+    listItems: [
+      "Understand your home's likely sale price in the current market",
+      'Estimate potential rental returns',
+      'Decide whether now is the right time to sell',
+      'Plan renovations that may increase value',
+      'Compare your property against recent local sales',
+      'Make informed financial decisions',
+    ],
+    image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=900&q=80',
+    imageAlt: 'Suburban house exterior',
+  },
+  {
+    heading: 'Free Property Appraisals in Dubbo',
+    body: 'We offer free property appraisals for homeowners throughout Dubbo and nearby communities. Our team assesses factors such as:',
+    listItems: [
+      'Property size and land area',
+      'Location and street appeal',
+      'Number of bedrooms and bathrooms',
+      'Renovations and overall presentation',
+      'Comparable recent sales nearby',
+      'Current market demand in your suburb',
+    ],
+    image: 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=900&q=80',
+    imageAlt: 'Property for sale',
+  },
+  {
+    heading: 'Areas We Service',
+    body: 'We cover all major suburbs and surrounding areas, including:',
+    listItems: [
+      'Central Dubbo',
+      'South Dubbo',
+      'West Dubbo',
+      'East Dubbo',
+      'North Dubbo',
+      'Delroy Park',
+      'Keswick Estate',
+      'Grangewood',
+      'Brocklehurst',
+      'Wongarbon',
+      'Eumungerie and nearby regions',
+    ],
+    image: 'https://images.unsplash.com/photo-1600047509807-ba8f99d2cdde?w=900&q=80',
+    imageAlt: 'Dubbo neighbourhood',
+  },
+  {
+    heading: 'Fast Turnaround Times',
+    body: 'We understand timing matters. Most property appraisals are completed within 24-48 hours, depending on location and property type.',
+  },
+  {
+    heading: 'Thinking of Selling?',
+    body: 'Many homeowners request an appraisal before deciding whether to list. A professional market estimate can help you understand:',
+    listItems: [
+      'If current market conditions suit your goals',
+      'What buyers may pay today',
+      'How to prepare your home for sale',
+      'Whether small improvements could boost price',
+    ],
+  },
+  {
+    heading: 'Request Your Free Dubbo Property Appraisal Today',
+    body: "If you'd like to know what your property could be worth, the team at Raine & Horne Dubbo is here to help. Get in touch today to book your free, no-obligation appraisal and receive expert local advice you can trust.",
+  },
+];
+
+function isUsefulBlogTitle(title?: string) {
+  if (!title) return false;
+  const normalized = title.trim();
+  if (!normalized || /^new blog post$/i.test(normalized)) return false;
+  const words = normalized.split(/\s+/).filter(Boolean);
+  return normalized.length >= 18 && words.length >= 3;
+}
+
 function createEditorBlock(
   id: string,
   type: EditorBlock['type'],
@@ -228,15 +309,15 @@ function buildBlogEditorBlocks({
   sections: BlogFlowData['sections'];
   preloadedSections?: ContentEditorShellProps['preloadedBlogSections'];
 }): EditorBlock[] {
-  const articleTitle = title || 'How local businesses can win more customers with better online visibility';
-  const articleTopic = articleTitle.replace(/^create\s+/i, '').replace(/\s+/g, ' ').trim();
+  const hasPreloadedSections = (preloadedSections?.length ?? 0) > 0;
+  const articleTitle = isUsefulBlogTitle(title) ? title!.trim() : DEFAULT_SEARCH_AI_BLOG_TITLE;
   const today = new Date().toISOString().split('T')[0];
-  const heroImage = 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1400&q=80';
+  const contentSections = hasPreloadedSections ? preloadedSections! : DEFAULT_SEARCH_AI_BLOG_SECTIONS;
 
   const blocks: EditorBlock[] = [
     createEditorBlock('blog-hero', 'hero', {
       headline: articleTitle,
-      subheadline: `A practical guide to ${articleTopic.toLowerCase()} with examples, local context, and clear next steps for customers.`,
+      subheadline: "If you've been wondering what your property is worth in today's market, this guide explains how a local appraisal helps you make a confident next decision.",
       ctaLabel: 'Talk to an expert',
       ctaUrl: '',
     }),
@@ -248,88 +329,33 @@ function buildBlogEditorBlocks({
     }),
   ];
 
-  if (preloadedSections && preloadedSections.length > 0) {
-    preloadedSections.forEach((section, index) => {
-      if (section.heading) {
-        blocks.push(createEditorBlock(`blog-preloaded-heading-${index}`, 'heading', { text: section.heading, level: 'h2' }));
-      }
-      if (section.body) {
-        blocks.push(createEditorBlock(`blog-preloaded-paragraph-${index}`, 'paragraph', { text: section.body }));
-      }
-      if (section.listItems && section.listItems.length > 0) {
-        blocks.push(createEditorBlock(`blog-preloaded-list-${index}`, 'list', { items: section.listItems, ordered: false }));
-      }
-      if (section.image) {
-        blocks.push(createEditorBlock(`blog-preloaded-image-${index}`, 'image', {
-          src: section.image,
-          alt: section.imageAlt ?? section.heading ?? '',
-          caption: '',
-        }));
-      }
-    });
-    return blocks;
+  if (!hasPreloadedSections) {
+    blocks.push(createEditorBlock('blog-preview-hero-image', 'image', {
+      src: DEFAULT_SEARCH_AI_BLOG_HERO_IMAGE,
+      alt: 'Property appraisal home exterior',
+      caption: '',
+    }));
   }
 
-  blocks.push(createEditorBlock('blog-hero-image', 'image', {
-    src: heroImage,
-    alt: 'Modern city buildings representing local business growth',
-    caption: 'Strong local content helps customers understand services before they reach out.',
-  }));
-
-  blocks.push(createEditorBlock('blog-intro', 'paragraph', {
-    text: `When customers search for ${articleTopic.toLowerCase()}, they are usually trying to make a confident decision quickly. A strong blog post should explain the issue in plain language, connect it to the local market, and give readers enough detail to know what to do next.`,
-  }));
-  blocks.push(createEditorBlock('blog-key-takeaways', 'list', {
-    items: [
-      'Start with the customer question, not the business pitch.',
-      'Add local details, examples, and proof points to make the advice credible.',
-      'Use structured sections so readers and AI answer engines can scan the content easily.',
-    ],
-    ordered: false,
-  }));
-
-  sections.forEach((section, index) => {
-    const sectionTitle = section.heading || (index === 0 ? 'Why this matters' : `Step ${index + 1}`);
-    blocks.push(createEditorBlock(`blog-heading-${section.id || index}`, 'heading', {
-      text: sectionTitle,
-      level: 'h2',
-    }));
-    blocks.push(createEditorBlock(`blog-paragraph-${section.id || index}`, 'paragraph', {
-      text: section.description
-        ? `${section.description}. For a customer, the useful version of this advice includes what to compare, what warning signs to watch for, and what outcome they should expect after taking action.`
-        : `This section should help readers understand ${sectionTitle.toLowerCase()} through a practical example, a simple explanation, and one clear recommendation they can use right away.`,
-    }));
-    if (index === 0) {
-      blocks.push(createEditorBlock('blog-mid-article-image', 'image', {
-        src: 'https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=1400&q=80',
-        alt: 'Team reviewing local marketing performance',
-        caption: 'Clear local content turns research moments into confident customer actions.',
-      }));
+  contentSections.forEach((section, index) => {
+    const prefix = hasPreloadedSections ? 'blog-preloaded' : 'blog-search-preview';
+    if (section.heading) {
+      blocks.push(createEditorBlock(`${prefix}-heading-${index}`, 'heading', { text: section.heading, level: 'h2' }));
     }
-    if (index === 1) {
-      blocks.push(createEditorBlock('blog-practical-list', 'list', {
-        items: [
-          'Answer the most common customer question in the first few paragraphs.',
-          'Use location-specific details where they genuinely help the reader.',
-          'Support claims with examples, service standards, or customer outcomes.',
-          'Make the next step obvious before the reader leaves the page.',
-        ],
-        ordered: false,
+    if (section.body) {
+      blocks.push(createEditorBlock(`${prefix}-paragraph-${index}`, 'paragraph', { text: section.body }));
+    }
+    if (section.listItems && section.listItems.length > 0) {
+      blocks.push(createEditorBlock(`${prefix}-list-${index}`, 'list', { items: section.listItems, ordered: false }));
+    }
+    if (section.image) {
+      blocks.push(createEditorBlock(`${prefix}-image-${index}`, 'image', {
+        src: section.image,
+        alt: section.imageAlt ?? section.heading ?? '',
+        caption: '',
       }));
     }
   });
-
-  blocks.push(createEditorBlock('blog-expert-quote', 'quote', {
-    text: 'The best content does not just rank. It helps a customer feel ready to choose.',
-    attribution: 'Birdeye content strategy team',
-  }));
-
-  blocks.push(createEditorBlock('blog-closing-cta', 'cta-section', {
-    headline: 'Ready to improve your local content?',
-    body: 'Turn search intent, customer questions, and review insights into pages that are useful for people and easy for AI answer engines to understand.',
-    ctaLabel: 'Plan my content',
-    ctaUrl: '',
-  }));
 
   return blocks;
 }
@@ -1768,6 +1794,7 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
                 {leftTab === 'ai' ? (
                   <AiCopilot
                     editorContext="editing"
+                    initialContentType={mode === 'blog' ? 'blog' : undefined}
                     wizardSummary={generationInfo?.label}
                   />
                 ) : (

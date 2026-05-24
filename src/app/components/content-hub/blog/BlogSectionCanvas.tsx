@@ -1573,6 +1573,7 @@ export function BlogSectionCanvas({ sections, generationLabel, onVersionHistory,
           {leftTab === 'ai' ? (
             <AiCopilot
               editorContext="editing"
+              initialContentType="blog"
               wizardSummary={generationLabel}
             />
           ) : (

@@ -3,7 +3,7 @@
  *
  * Main WYSIWYG block canvas for Blog, Landing, and FAQ.
  * - Reads/writes block state through BlockEditorContext
- * - Shows FAQRichToolbar at canvas top when a text element is focused
+ * - Shows the shared editor chrome toolbar when a text element is focused
  * - Pinch-to-zoom (trackpad + Ctrl+scroll)
  * - Click-outside deselect
  * - Drag-to-reorder blocks
@@ -16,7 +16,7 @@ import { type BlockEditorMode, type Block, type BlockComponentProps, type BlockT
 import { useBlockEditorContext } from './BlockEditorContext';
 import { BlockShell } from './BlockShell';
 import { BlockPicker } from './BlockPicker';
-import { FAQRichToolbar } from '../faq/FAQRichToolbar';
+import { EditorChromeToolbar } from '../shared/EditorChromeToolbar';
 
 // Block component registry
 import { HeadingBlock }      from './blocks/HeadingBlock';
@@ -270,6 +270,7 @@ export function BlockCanvas({ mode, zoom = 1, onZoomChange, onBlockFocus }: Bloc
   const [toolbarVisible, setToolbarVisible] = useState(false);
   const canvasRef = useRef<HTMLDivElement>(null);
   const dragSrcIdx = useRef<number | null>(null);
+  const editorToolbarMode = mode === 'faq' ? 'faq' : 'blog';
 
   // ── Track contentEditable focus for rich text toolbar
   useEffect(() => {
@@ -304,6 +305,14 @@ export function BlockCanvas({ mode, zoom = 1, onZoomChange, onBlockFocus }: Bloc
     }
   }, [zoom, onZoomChange]);
 
+  const handleZoomOut = useCallback(() => {
+    onZoomChange?.(Math.max(0.25, +(zoom - 0.1).toFixed(2)));
+  }, [zoom, onZoomChange]);
+
+  const handleZoomIn = useCallback(() => {
+    onZoomChange?.(Math.min(3, +(zoom + 0.1).toFixed(2)));
+  }, [zoom, onZoomChange]);
+
   // ── Drag-and-drop
   const handleDragStart = useCallback((e: React.DragEvent, idx: number) => {
     dragSrcIdx.current = idx;
@@ -336,8 +345,23 @@ export function BlockCanvas({ mode, zoom = 1, onZoomChange, onBlockFocus }: Bloc
       className="flex h-full min-h-0 flex-1 flex-col overflow-hidden"
       onWheel={handleWheel}
     >
-      {/* Rich text toolbar — fixed at top, fades in when text is selected */}
-      <FAQRichToolbar visible={toolbarVisible} />
+      {toolbarVisible && (
+        <div className="flex-none">
+          <EditorChromeToolbar
+            canUndo={false}
+            canRedo={false}
+            onUndo={() => {}}
+            onRedo={() => {}}
+            zoom={zoom}
+            onZoomOut={handleZoomOut}
+            onZoomIn={handleZoomIn}
+            richTextVisible
+            canvasPosition={{ top: 0, left: 0 }}
+            inlineMode
+            mode={editorToolbarMode}
+          />
+        </div>
+      )}
 
       {/* Scrollable canvas body */}
       <div

@@ -366,16 +366,16 @@ export function BlockLibraryPanel({ mode }: BlockLibraryPanelProps) {
     <div className="flex flex-col h-full overflow-hidden">
       {/* Sub-tabs */}
       <div className="flex-none border-b border-border px-4 py-3">
-        <div className="flex rounded-lg border border-border bg-background p-1">
+        <div className="flex h-[var(--button-height)] rounded-md bg-[#f0f1f5] p-[2px] dark:bg-[#262b35]">
         {(['basic', 'prebuilt', 'saved'] as const).map(t => (
           <button
             key={t}
             type="button"
             onClick={() => setTab(t)}
             className={cn(
-              'flex-1 rounded-md py-2 text-[13px] font-medium capitalize transition-colors',
+              'flex-1 rounded-md px-3 text-[12px] capitalize transition-all duration-200',
               tab === t
-                ? 'bg-muted text-foreground'
+                ? 'bg-background text-foreground dark:bg-[#333a47] dark:text-[#e4e4e4]'
                 : 'text-muted-foreground hover:text-foreground',
             )}
           >
@@ -407,7 +407,7 @@ export function BlockLibraryPanel({ mode }: BlockLibraryPanelProps) {
                 No blocks match "{query}"
               </p>
             ) : (
-              <div className="grid [grid-template-columns:repeat(3,minmax(0,1fr))] gap-2">
+              <div className="grid grid-cols-2 gap-2">
                 {filtered.map(b => {
                   const Icon = BLOCK_ICON_MAP[b.type] ?? LayoutTemplate;
                   return (

@@ -267,7 +267,7 @@ function EditorCopilot({ mode = 'faq' }: { mode?: EditorMode }) {
     ]);
     const replyDef = repliesMap[chip];
     const fallbackChips = mode === 'blog'
-      ? ['Improve SEO structure', 'Strengthen the hook', 'Add examples or data']
+      ? ['Update the headline', 'Rewrite the intro', 'Add SEO keywords']
       : ['Strengthen answers', 'Add missing questions', 'Improve SEO structure'];
     const reply: ChatMessage = replyDef
       ? {
@@ -437,32 +437,48 @@ const EDITOR_OPENING: ChatMessage = {
 const EDITOR_OPENING_BLOG: ChatMessage = {
   id: 'editor-0',
   role: 'ai',
-  text: "What would you like to improve?",
+  text: "What would you like to update in this blog?",
   chips: [
-    'Improve the headline',
-    'Strengthen the hook',
-    'Add more depth',
-    'Simplify language',
-    'Improve SEO structure',
-    'Rewrite in different tone',
+    'Update the headline',
+    'Rewrite the intro',
+    'Improve section flow',
+    'Add SEO keywords',
+    'Expand thin sections',
+    'Tighten the CTA',
+    'Change the tone',
     'Add examples or data',
-    'Improve the conclusion',
   ],
 };
 
 const EDITOR_REPLIES_BLOG: Record<string, EditorReply> = {
   // Level 1
-  'Improve the headline': {
-    text: "What should the new headline prioritize?",
+  'Update the headline': {
+    text: "What should the updated headline prioritize?",
     chips: ['SEO keyword placement', 'Emotional pull', 'Clarity and directness', 'All three'],
   },
-  'Strengthen the hook': {
-    text: "What's the current intro missing?",
+  'Rewrite the intro': {
+    text: "How should we reshape the opening?",
     chips: ['A bold claim', 'A story or anecdote', 'A surprising statistic', 'A direct question', 'Show examples first'],
   },
-  'Add more depth': {
-    text: "Which section needs more substance?",
+  'Improve section flow': {
+    text: "Where does the blog structure need cleanup?",
     chips: ['Introduction', 'Main body sections', 'Examples and case studies', 'The conclusion', 'Whole post'],
+  },
+  'Add SEO keywords': {
+    text: "Where should I work the target keywords into the blog?",
+    chips: ['Keyword placement', 'Heading hierarchy (H2/H3)', 'Internal linking', 'Meta description', 'Full SEO audit'],
+  },
+  'Expand thin sections': {
+    text: "Which part needs more useful detail?",
+    chips: ['Introduction', 'Main body sections', 'Examples and case studies', 'The conclusion', 'Whole post'],
+  },
+  'Tighten the CTA': {
+    text: "What should the CTA do for this blog?",
+    chips: ['Stronger call to action', 'Key takeaway summary', 'Next steps for the reader', 'Emotional resonance'],
+  },
+  'Change the tone': {
+    text: "What tone should the edited blog use?",
+    chips: ['Professional', 'Conversational', 'Authoritative', 'Storytelling', 'Educational'],
   },
   'Simplify language': {
     text: "How should I handle simplification?",
@@ -479,10 +495,6 @@ const EDITOR_REPLIES_BLOG: Record<string, EditorReply> = {
   'Add examples or data': {
     text: "What kind of supporting content would help?",
     chips: ['Industry statistics', 'Customer examples', 'Case studies', 'Analogies and comparisons', 'All of the above'],
-  },
-  'Improve the conclusion': {
-    text: "What should the conclusion accomplish?",
-    chips: ['Stronger call to action', 'Key takeaway summary', 'Next steps for the reader', 'Emotional resonance'],
   },
 
   // Level 2 — headline

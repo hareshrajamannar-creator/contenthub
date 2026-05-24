@@ -94,7 +94,7 @@ export const RecommendationImprovement: Story = {
 };
 
 export const TextEditingToolbar: Story = {
-  name: 'Text editing toolbar',
+  name: 'Shared text editing toolbar',
   args: {
     sections: THREE_SECTIONS,
     generationLabel: 'AEO optimized · 14 FAQs · 3 sections',
