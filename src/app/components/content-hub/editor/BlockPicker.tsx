@@ -132,22 +132,21 @@ export function BlockPicker({ mode, onAdd, primary = false }: BlockPickerProps) 
           Add your first block
         </button>
       ) : (
-        /* Between-blocks insertion line */
-        <div className="group/ins flex items-center gap-2 w-full py-1">
-          <div className="flex-1 h-px bg-transparent group-hover/ins:bg-border transition-colors" />
+        /* Left-anchored insertion point — 6px visual height, button floats left */
+        <div className="group/ins relative h-1.5 w-full overflow-visible">
           <button
             type="button"
             onClick={() => setOpen(v => !v)}
             className={cn(
-              'flex items-center justify-center size-5 rounded-full border transition-all',
+              'absolute -left-6 top-1/2 -translate-y-1/2 z-10 flex items-center justify-center size-5 rounded-full border bg-background transition-all',
               open
-                ? 'bg-primary border-primary text-primary-foreground'
-                : 'border-border text-muted-foreground bg-background opacity-0 group-hover/ins:opacity-100 hover:border-primary hover:text-primary',
+                ? 'border-primary text-primary opacity-100'
+                : 'border-border text-muted-foreground opacity-0 group-hover/ins:opacity-100 hover:border-primary hover:text-primary',
             )}
+            aria-label="Add block"
           >
             <Plus size={11} strokeWidth={2} />
           </button>
-          <div className="flex-1 h-px bg-transparent group-hover/ins:bg-border transition-colors" />
         </div>
       )}
 

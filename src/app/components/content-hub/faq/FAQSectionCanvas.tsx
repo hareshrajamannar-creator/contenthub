@@ -16,7 +16,7 @@ import {
   GripVertical, GripHorizontal, ChevronDown, ChevronRight, Trash2, Plus,
   AlertTriangle, XCircle,
   ArrowUp, ArrowDown, Sparkles,
-  Bookmark, MessageSquare, CircleHelp,
+  Bookmark, MessageSquare, CircleHelp, Type,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { AiCopilot } from '../AiCopilot';
@@ -48,6 +48,12 @@ export interface FAQQuestion {
   warningText?: string;
 }
 
+// Flat document model — a doc is an ordered list of title blocks and question blocks
+export type FAQDocItem =
+  | { kind: 'title'; id: string; text: string }
+  | (FAQQuestion & { kind: 'question' });
+
+// Legacy — kept for compatibility with external consumers
 export interface FAQSectionData {
   id: string;
   title: string;
@@ -68,6 +74,8 @@ export interface FAQSectionCanvasProps {
   initialScore?: number;
   /** Story/demo hook for showing generation inside the document surface. */
   initialGenerating?: boolean;
+  /** Override the derived page title shown at the top of the FAQ document. */
+  initialTitle?: string;
   /** Called whenever the displayed score changes — used to hoist score to the shell header. */
   onScoreChange?: (score: number) => void;
   /** Controlled open state for the score panel (passed from shell header toggle). */
@@ -76,21 +84,36 @@ export interface FAQSectionCanvasProps {
   onScorePanelChange?: (open: boolean) => void;
 }
 
+// ── Derive a meaningful FAQ page title from section topics ────────────────────
+
+function deriveFAQPageTitle(sections: FAQSection[]): string {
+  const combined = sections.map(s => s.title.toLowerCase()).join(' ');
+  if (combined.includes('restaurant') || combined.includes('menu') || combined.includes('dining')) {
+    return 'Restaurant Frequently Asked Questions';
+  }
+  if (combined.includes('healthcare') || combined.includes('insurance') || combined.includes('patient')) {
+    return 'Patient Frequently Asked Questions';
+  }
+  if (combined.includes('property') || combined.includes('real estate') || combined.includes('apprais')) {
+    return 'Real Estate Frequently Asked Questions';
+  }
+  if (combined.includes('appointment') || combined.includes('pric') || combined.includes('book') || combined.includes('emergency')) {
+    return 'Service Frequently Asked Questions';
+  }
+  return 'Frequently Asked Questions';
+}
+
 // ── Build section data from preloaded questions ───────────────────────────────
 
-function buildSectionDataFromQuestions(questions: { question: string; answer: string }[]): FAQSectionData[] {
-  return [{
-    id: 'sec-preloaded-1',
-    title: 'AI-generated FAQs',
-    collapsed: false,
-    questions: questions.map((q, i) => ({
-      id: makeQId(),
-      question: q.question,
-      answer: q.answer,
-      expanded: i === 0,
-      status: 'ready' as QuestionStatus,
-    })),
-  }];
+function buildDocItemsFromQuestions(questions: { question: string; answer: string }[]): FAQDocItem[] {
+  return questions.map(q => ({
+    kind: 'question' as const,
+    id: makeQId(),
+    question: q.question,
+    answer: q.answer,
+    expanded: true,
+    status: 'ready' as QuestionStatus,
+  }));
 }
 
 function clampScore(value: number) {
@@ -98,28 +121,15 @@ function clampScore(value: number) {
 }
 
 function buildFAQScoreDimensions(overallScore: number): ScoreDimension[] {
-  const score = clampScore(Math.round(overallScore));
-
-  if (score === 0 || score === 100) {
-    return [
-      { label: 'Brand alignment', score, color: 'green' },
-      { label: 'AEO score', score, color: 'green' },
-      { label: 'Readability', score, color: 'green' },
-      { label: 'Accuracy', score, color: 'green' },
-    ];
-  }
-
-  const brandAlignment = clampScore(score + 1);
-  const aeoScore = score;
-  const readability = clampScore(score - 1);
-  const accuracy = clampScore(score * 4 - brandAlignment - aeoScore - readability);
-
-  return [
-    { label: 'Brand alignment', score: brandAlignment, color: 'green' },
-    { label: 'AEO score', score: aeoScore, color: 'green' },
-    { label: 'Readability', score: readability, color: 'green' },
-    { label: 'Accuracy', score: accuracy, color: 'green' },
-  ];
+  const s = clampScore(Math.round(overallScore));
+  const offsets = [2, -4, 1, -1, 2];
+  const values = offsets.map(o => clampScore(s + o));
+  const labels = ['Intent Match', 'Search Visibility', 'Content Depth', 'Brand Alignment', 'Publishing Readiness'];
+  return labels.map((label, i) => ({
+    label,
+    score: values[i],
+    color: values[i] >= 80 ? 'green' : values[i] >= 60 ? 'orange' : 'red',
+  }));
 }
 
 // ── Mock FAQ generation ───────────────────────────────────────────────────────
@@ -127,81 +137,81 @@ function buildFAQScoreDimensions(overallScore: number): ScoreDimension[] {
 const MOCK_QA: Record<string, { question: string; answer: string; status: QuestionStatus; warningText?: string }[]> = {
   default: [
     {
-      question: 'How quickly can you respond to an emergency?',
-      answer: 'Our team is available 24/7 and typically responds to emergency calls within 30–60 minutes. We prioritize urgent situations to minimize disruption and ensure your safety.',
+      question: 'What is the first step in buying a property in Dubbo?',
+      answer: 'The best starting point is getting pre-approved for finance so you know your budget, then booking a free consultation with one of our Dubbo sales agents. We\'ll walk you through the current market, shortlist properties that match your criteria, and guide you through every step from inspection to settlement.',
       status: 'ready',
     },
     {
-      question: 'Do you offer same-day service?',
-      answer: 'Yes, we offer same-day service for most requests submitted before 2 PM local time. Availability may vary during peak periods or holidays.',
+      question: 'How long does it typically take to sell a property in Dubbo?',
+      answer: 'Most residential properties in Dubbo sell within 30–60 days of listing, depending on price point, location, and presentation. Our team uses targeted digital marketing and local buyer networks to achieve strong results efficiently. We\'ll give you a realistic timeline during your appraisal.',
       status: 'ready',
     },
     {
-      question: 'Are you licensed and insured?',
-      answer: 'We are fully licensed, bonded, and insured. Our technicians carry all required certifications and our work is backed by a 1-year service guarantee.',
-      status: 'ready',
-    },
-    {
-      question: 'What areas do you serve?',
-      answer: 'We currently serve the greater metropolitan area and surrounding suburbs within a 50-mile radius. Contact us to confirm service availability for your location.',
+      question: 'What management fees do you charge for rental properties in Dubbo?',
+      answer: 'Our property management fees are competitive and transparent — there are no hidden charges. Contact us for a fee schedule specific to your property type and location. We\'ll explain every fee upfront so you can make an informed decision before signing a management agreement.',
       status: 'warning',
-      warningText: 'Answer may be too generic — add location-specific detail for AEO.',
+      warningText: 'Add specific fee percentage for stronger AEO performance.',
     },
     {
-      question: 'What happens if the issue recurs after service?',
-      answer: 'We stand behind our work. If the same issue recurs within 30 days of service, we will return and resolve it at no additional charge.',
+      question: 'Which areas of Dubbo do you service for property management?',
+      answer: 'We manage properties across all Dubbo suburbs including Central Dubbo, South Dubbo, West Dubbo, East Dubbo, North Dubbo, Delroy Park, Keswick Estate, Grangewood, Brocklehurst, Wongarbon, and surrounding communities. Contact us if you\'re unsure whether your property falls within our service area.',
+      status: 'ready',
+    },
+    {
+      question: 'Do you handle both property sales and rental management in Dubbo?',
+      answer: 'Yes — Raine & Horne Dubbo offers a full range of real estate services including residential sales, rental property management, sales and rental appraisals, and landlord advisory. Whether you\'re selling, investing, or both, our team can support you with specialist knowledge of the local Dubbo market.',
       status: 'ready',
     },
   ],
   appointments: [
     {
-      question: 'How do I book an appointment?',
-      answer: 'You can book online at our website, call us directly, or use our app. Online bookings are available 24/7 and confirmed instantly.',
+      question: 'How do I book a free property appraisal in Dubbo?',
+      answer: 'You can request a free appraisal through our website, by calling our Dubbo office directly, or by submitting an enquiry form. We typically confirm appraisal appointments within one business day and can accommodate most property types, including rentals, residential sales, and investment properties.',
       status: 'ready',
     },
     {
-      question: 'How much does a standard service call cost?',
-      answer: 'Standard service calls start at $85 for the first hour, with materials billed separately. We provide a detailed estimate before any work begins.',
+      question: 'How much does property management cost for a Dubbo rental?',
+      answer: 'Our property management fees cover rent collection, routine inspections, maintenance coordination, and tenant communication. We offer clear fee structures with no surprises — request a management proposal and we\'ll provide a complete cost breakdown tailored to your property.',
       status: 'ready',
     },
     {
-      question: 'Do you offer free estimates?',
-      answer: 'Yes, we offer free estimates for all new projects. Estimates are provided within 24 hours of your initial inquiry.',
+      question: 'Do you offer free rental appraisals in Dubbo?',
+      answer: 'Yes, we offer obligation-free rental appraisals for landlords considering leasing their property. Our appraisers assess comparable rental listings, local demand, and your property\'s condition to provide a realistic and competitive rent estimate.',
       status: 'ready',
     },
     {
-      question: 'What payment methods do you accept?',
-      answer: 'We accept all major credit cards, cash, check, and digital payments including Apple Pay and Google Pay.',
+      question: 'How are property management fees collected?',
+      answer: 'Management fees are deducted directly from rental income each month before funds are disbursed to the landlord. You\'ll receive a monthly statement showing all income and disbursements. We use a trust account in line with NSW Fair Trading requirements.',
       status: 'ready',
     },
     {
-      question: 'Can I reschedule or cancel my appointment?',
-      answer: 'Yes, appointments can be rescheduled or cancelled up to 24 hours in advance at no charge. Same-day cancellations may incur a $25 fee.',
+      question: 'Can I get a property appraisal outside business hours?',
+      answer: 'We try to accommodate flexible appraisal times, including early evenings, to suit working owners. Contact our Dubbo office to arrange a time that works for you — we\'ll do our best to find an appointment that fits your schedule.',
       status: 'warning',
       warningText: 'Consider adding a direct booking link for better AEO performance.',
     },
   ],
   special: [
     {
-      question: 'Do you service commercial properties?',
-      answer: 'Yes, we serve both residential and commercial clients. For commercial properties, we offer volume pricing and dedicated account managers.',
+      question: 'Do you manage commercial and investment properties in Dubbo?',
+      answer: 'Yes, we manage both residential investment properties and selected commercial properties in the Dubbo region. For investment portfolios, we offer tailored reporting, periodic market rent reviews, and proactive maintenance scheduling to protect and grow asset value.',
       status: 'ready',
     },
     {
-      question: 'Can you handle large or complex jobs?',
-      answer: 'Absolutely. Our team is equipped for projects of all sizes. For large-scale work, we perform a site visit before providing a comprehensive proposal.',
+      question: 'Can you manage a large residential portfolio or multiple Dubbo properties?',
+      answer: 'Absolutely. We regularly manage portfolios for investors with multiple Dubbo properties. You\'ll have a dedicated property manager as your point of contact, and we can provide consolidated reporting across all properties to simplify your record-keeping.',
       status: 'ready',
     },
     {
-      question: 'What if I need service outside normal hours?',
-      answer: 'We offer after-hours and weekend service at a premium rate. Contact us directly to arrange and confirm availability.',
+      question: 'What happens if a tenant damages my rental property?',
+      answer: 'We conduct detailed ingoing and outgoing condition reports to document property condition. If damage occurs beyond fair wear and tear, we manage the bond claim process on your behalf and coordinate repairs through our trusted local trades network. Landlord insurance is recommended — we can advise on suitable providers.',
       status: 'ready',
     },
     {
-      question: 'Do you provide written warranties?',
-      answer: 'Yes, all work comes with a written warranty. Terms vary by service type — ask your technician for details when work is completed.',
+      question: 'Do you provide written property management agreements in Dubbo?',
+      answer: 'Yes, all property management arrangements are formalised with a written management authority agreement that clearly outlines our obligations, your rights, fees, and notice periods. We\'ll walk you through the agreement before signing so you understand exactly what\'s included.',
       status: 'blocked',
-      warningText: 'Missing: specific warranty duration and what is covered. This may hurt trust signals.',
+      warningText: 'Consider adding: specific agreement term length and exit notice period for stronger AEO trust signals.',
     },
   ],
 };
@@ -231,12 +241,13 @@ function createNewFAQQuestion(): FAQQuestion {
   };
 }
 
-function generateMockFAQs(sections: FAQSection[]): FAQSectionData[] {
-  return sections.map(section => {
+function generateDocItems(sections: FAQSection[]): FAQDocItem[] {
+  return sections.flatMap(section => {
     const pool = getQAPool(section.title);
-    const questions: FAQQuestion[] = Array.from({ length: section.count }, (_, i) => {
+    return Array.from({ length: section.count }, (_, i) => {
       const qa = pool[i % pool.length];
       return {
+        kind: 'question' as const,
         id: makeQId(),
         question: qa.question,
         answer: qa.answer,
@@ -245,12 +256,6 @@ function generateMockFAQs(sections: FAQSection[]): FAQSectionData[] {
         warningText: qa.warningText,
       };
     });
-    return {
-      id: section.id,
-      title: section.title,
-      questions,
-      collapsed: false,
-    };
   });
 }
 
@@ -499,46 +504,46 @@ const LEFT_TAB_ITEMS = [
 const FAQ_PREBUILT_SECTIONS = [
   {
     id: 'faq-prebuilt-emergency',
-    title: 'Emergency service FAQ',
-    description: 'Response time, same-day service, and urgent requests',
+    title: 'Rental maintenance and emergencies',
+    description: 'Urgent repairs, after-hours issues, and maintenance response',
     questions: [
       {
-        question: 'How quickly can you respond to an emergency?',
-        answer: 'Our team is available 24/7 and prioritizes urgent requests. Most emergency calls receive a response within 30-60 minutes depending on location and technician availability.',
+        question: 'How do you handle urgent maintenance requests for rental properties?',
+        answer: 'We have a 24/7 emergency maintenance line for tenants. For genuine emergencies — like burst pipes, electrical faults, or security issues — we contact approved trades immediately and notify the landlord as soon as possible.',
       },
       {
-        question: 'Do you offer same-day service?',
-        answer: 'Yes, same-day service is available for many requests submitted before 2 PM local time. Availability may vary by service area and appointment volume.',
+        question: 'How quickly are routine maintenance requests actioned?',
+        answer: 'Routine maintenance requests are acknowledged within one business day. We obtain owner approval for repairs above the agreed limit and coordinate with qualified local tradespeople to complete work efficiently.',
       },
     ],
   },
   {
     id: 'faq-prebuilt-pricing',
-    title: 'Pricing and appointments',
-    description: 'Booking, estimates, payment, and service fees',
+    title: 'Fees and appraisals',
+    description: 'Management fees, rental appraisals, and cost transparency',
     questions: [
       {
-        question: 'How do I book an appointment?',
-        answer: 'You can book online, call our team, or request a callback. We confirm appointment windows and service details before dispatching a technician.',
+        question: 'How do I get a rental appraisal for my Dubbo property?',
+        answer: 'Contact our Dubbo office to arrange a free, obligation-free rental appraisal. We\'ll assess your property, review comparable rentals in the area, and provide a realistic rent estimate backed by current market data.',
       },
       {
-        question: 'Do you provide estimates before work begins?',
-        answer: 'Yes. We review the issue, explain the recommended service, and provide an estimate before any billable work begins.',
+        question: 'Are there any fees beyond the management percentage?',
+        answer: 'We provide a full fee schedule upfront. Common additional fees may include letting fees, lease renewal fees, and maintenance coordination. Everything is disclosed in your management agreement before you sign.',
       },
     ],
   },
   {
     id: 'faq-prebuilt-local',
-    title: 'Local coverage FAQ',
-    description: 'Service areas, nearby locations, and availability',
+    title: 'Dubbo coverage and local expertise',
+    description: 'Service areas, local knowledge, and suburb coverage',
     questions: [
       {
-        question: 'What areas do you serve?',
-        answer: 'We serve the primary metro area and nearby communities. Contact us with your address to confirm availability for your specific location.',
+        question: 'Which Dubbo suburbs do you cover for property management?',
+        answer: 'We cover all Dubbo suburbs and surrounding communities including South Dubbo, West Dubbo, Delroy Park, Keswick Estate, Grangewood, Brocklehurst, Wongarbon, and more. Contact us to confirm availability for your address.',
       },
       {
-        question: 'Can I choose a nearby location?',
-        answer: 'Yes. If multiple locations serve your area, we can route your request to the location with the best availability.',
+        question: 'How long has Raine & Horne been managing properties in Dubbo?',
+        answer: 'Raine & Horne has been part of the Dubbo community for decades, with deep local market knowledge and established relationships with trusted local tradespeople, tenants, and investors throughout the region.',
       },
     ],
   },
@@ -668,13 +673,22 @@ function FAQSuggestedStyleCard({
 
 function FAQManualContent({
   onAddQuestion,
+  onAddTitle,
 }: {
   onAddQuestion: () => void;
+  onAddTitle: () => void;
 }) {
   return (
     <div className="flex h-full flex-col overflow-hidden">
       <div className="flex-1 min-h-0 overflow-y-auto px-4 py-4">
         <div className="grid grid-cols-2 gap-2">
+          <FAQManualActionCard
+            label="Title"
+            icon={<Type size={20} strokeWidth={1.6} absoluteStrokeWidth />}
+            onClick={onAddTitle}
+            dragType="application/faq-add-title"
+            dragPayload="new"
+          />
           <FAQManualActionCard
             label="Question"
             icon={<CircleHelp size={20} strokeWidth={1.6} absoluteStrokeWidth />}
@@ -683,6 +697,72 @@ function FAQManualContent({
             dragPayload="new"
           />
         </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Inline title block ────────────────────────────────────────────────────────
+
+function FAQDocTitleBlock({
+  text,
+  onUpdate,
+  onDelete,
+  onMoveUp,
+  onMoveDown,
+  isFirst,
+  isLast,
+}: {
+  text: string;
+  onUpdate: (text: string) => void;
+  onDelete: () => void;
+  onMoveUp: () => void;
+  onMoveDown: () => void;
+  isFirst: boolean;
+  isLast: boolean;
+}) {
+  return (
+    <div className="group relative mt-8 mb-2 flex items-start gap-2">
+      <GripVertical
+        size={14}
+        strokeWidth={1.6}
+        absoluteStrokeWidth
+        className="absolute -left-5 top-2 text-muted-foreground/30 cursor-grab opacity-0 group-hover:opacity-100 transition-opacity"
+      />
+      <input
+        type="text"
+        value={text}
+        onChange={e => onUpdate(e.target.value)}
+        placeholder="Section title…"
+        className="flex-1 min-w-0 bg-transparent text-[22px] font-semibold text-foreground border-b border-transparent outline-none hover:border-border/40 focus:border-primary/40 pb-1 transition-colors placeholder:text-muted-foreground/30"
+      />
+      <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity mt-1">
+        <button
+          type="button"
+          onClick={onMoveUp}
+          disabled={isFirst}
+          title="Move up"
+          className="p-1 rounded hover:bg-muted transition-colors text-muted-foreground disabled:opacity-25"
+        >
+          <ArrowUp size={13} strokeWidth={1.6} absoluteStrokeWidth />
+        </button>
+        <button
+          type="button"
+          onClick={onMoveDown}
+          disabled={isLast}
+          title="Move down"
+          className="p-1 rounded hover:bg-muted transition-colors text-muted-foreground disabled:opacity-25"
+        >
+          <ArrowDown size={13} strokeWidth={1.6} absoluteStrokeWidth />
+        </button>
+        <button
+          type="button"
+          onClick={onDelete}
+          title="Remove title"
+          className="p-1 rounded hover:bg-muted hover:text-destructive transition-colors text-muted-foreground"
+        >
+          <Trash2 size={13} strokeWidth={1.6} absoluteStrokeWidth />
+        </button>
       </div>
     </div>
   );
@@ -834,17 +914,17 @@ function QuestionRow({ question, index, totalInSection, onUpdate, onDelete, onMo
         isDragOver && 'ring-2 ring-inset ring-primary/50 bg-primary/[0.02]',
       )}
     >
-      <div className="flex items-start gap-4 px-4 py-4">
-        {/* Drag handle */}
-        <GripVertical
-          size={14}
-          strokeWidth={1.6}
-          absoluteStrokeWidth
-          className="text-muted-foreground/30 mt-2 flex-shrink-0 cursor-grab opacity-0 group-hover:opacity-100 transition-opacity"
-        />
+      {/* Drag handle */}
+      <GripVertical
+        size={14}
+        strokeWidth={1.6}
+        absoluteStrokeWidth
+        className="absolute -left-5 top-5 text-muted-foreground/30 cursor-grab opacity-0 group-hover:opacity-100 transition-opacity"
+      />
 
+      <div className="flex items-start gap-3 py-4">
         {/* Number */}
-        <span className="mt-0.5 w-9 flex-shrink-0 select-none text-right text-[24px] font-semibold leading-tight text-foreground">
+        <span className="mt-0.5 w-7 flex-none select-none text-right text-[22px] font-semibold leading-tight text-foreground">
           {index + 1}.
         </span>
 
@@ -1128,12 +1208,14 @@ function SectionBlock({
 
 // ── Main component ────────────────────────────────────────────────────────────
 
-export function FAQSectionCanvas({ sections, generationLabel, onVersionHistory, onGenerationComplete, initialQuestions, initialScore, initialGenerating = false, onScoreChange, scorePanelOpen: externalScorePanelOpen, onScorePanelChange }: FAQSectionCanvasProps) {
-  const [sectionData, setSectionData] = useState<FAQSectionData[]>(() =>
+export function FAQSectionCanvas({ sections, generationLabel, onVersionHistory, onGenerationComplete, initialQuestions, initialScore, initialGenerating = false, initialTitle, onScoreChange, scorePanelOpen: externalScorePanelOpen, onScorePanelChange }: FAQSectionCanvasProps) {
+  const [docItems, setDocItems] = useState<FAQDocItem[]>(() =>
     initialQuestions && initialQuestions.length > 0
-      ? buildSectionDataFromQuestions(initialQuestions)
-      : generateMockFAQs(sections)
+      ? buildDocItemsFromQuestions(initialQuestions)
+      : generateDocItems(sections)
   );
+  const [pageTitle, setPageTitle] = useState(() => initialTitle ?? deriveFAQPageTitle(sections));
+  const titleInputRef = useRef<HTMLInputElement>(null);
   const [leftTab, setLeftTab] = useState<'ai' | 'manual'>('ai');
   const [zoom, setZoom] = useState(0.85);
   const [internalScorePanelOpen, setInternalScorePanelOpen] = useState(false);
@@ -1178,8 +1260,7 @@ export function FAQSectionCanvas({ sections, generationLabel, onVersionHistory, 
   // Card metadata state
   const [publishModalOpen, setPublishModalOpen] = useState(false);
 
-  // Save to Saved — null = closed, 'all' = save full FAQ, FAQSectionData = save one section
-  const [savingTarget, setSavingTarget] = useState<FAQSectionData | 'all' | null>(null);
+  const [savingTarget, setSavingTarget] = useState<'all' | null>(null);
 
   useEffect(() => {
     generationCompleteRef.current = onGenerationComplete;
@@ -1306,21 +1387,21 @@ export function FAQSectionCanvas({ sections, generationLabel, onVersionHistory, 
   }, [updateCanvasToolbarPosition, updateRichTextPosition]);
 
   // ── Undo / redo history ────────────────────────────────────────────────────
-  const historyRef    = useRef<FAQSectionData[][]>([]);
+  const historyRef    = useRef<FAQDocItem[][]>([]);
   const historyIdxRef = useRef(-1);
   const [, setHistoryVersion] = useState(0);
   const canUndo = historyIdxRef.current > 0;
   const canRedo = historyIdxRef.current < historyRef.current.length - 1;
 
-  const pushHistory = useCallback((snapshot: FAQSectionData[]) => {
+  const pushHistory = useCallback((snapshot: FAQDocItem[]) => {
     historyRef.current = historyRef.current.slice(0, historyIdxRef.current + 1);
     historyRef.current.push(snapshot);
     historyIdxRef.current = historyRef.current.length - 1;
     setHistoryVersion(v => v + 1);
   }, []);
 
-  const setData = useCallback((updater: FAQSectionData[] | ((prev: FAQSectionData[]) => FAQSectionData[])) => {
-    setSectionData(prev => {
+  const setData = useCallback((updater: FAQDocItem[] | ((prev: FAQDocItem[]) => FAQDocItem[])) => {
+    setDocItems(prev => {
       const next = typeof updater === 'function' ? updater(prev) : updater;
       pushHistory(next);
       return next;
@@ -1330,125 +1411,55 @@ export function FAQSectionCanvas({ sections, generationLabel, onVersionHistory, 
   const handleUndo = useCallback(() => {
     if (historyIdxRef.current <= 0) return;
     historyIdxRef.current -= 1;
-    setSectionData(historyRef.current[historyIdxRef.current]);
+    setDocItems(historyRef.current[historyIdxRef.current]);
     setHistoryVersion(v => v + 1);
   }, []);
 
   const handleRedo = useCallback(() => {
     if (historyIdxRef.current >= historyRef.current.length - 1) return;
     historyIdxRef.current += 1;
-    setSectionData(historyRef.current[historyIdxRef.current]);
+    setDocItems(historyRef.current[historyIdxRef.current]);
     setHistoryVersion(v => v + 1);
   }, []);
 
   // Derived stats
-  const totalQuestions = sectionData.reduce((s, sec) => s + sec.questions.length, 0);
-  const readyCount     = sectionData.flatMap(s => s.questions).filter(q => q.status === 'ready').length;
-  // When a rec score is provided, use it as the base; otherwise derive from Q&A health
+  const questionItems = docItems.filter((i): i is FAQQuestion & { kind: 'question' } => i.kind === 'question');
+  const totalQuestions = questionItems.length;
+  const readyCount     = questionItems.filter(q => q.status === 'ready').length;
   const canvasScore  = Math.round((readyCount / Math.max(1, totalQuestions)) * 78);
   const setScore     = Math.min(100, (baseScore !== undefined ? baseScore : canvasScore) + panelBump);
 
   useEffect(() => { onScoreChange?.(setScore); }, [setScore, onScoreChange]);
 
   const faqConfig = EDITOR_CONFIGS['faq'];
-  const visibleSections = sectionData.filter(section => !section.standalone);
-  const flatQuestions = sectionData.flatMap(section =>
-    section.questions.map(question => ({ section, question }))
-  );
   const generationQuestionCount = Math.max(
     1,
     totalQuestions || sections.reduce((sum, section) => sum + section.count, 0) || 10,
   );
 
-  const updateSection = useCallback((sId: string, patch: Partial<FAQSectionData>) => {
-    setData(prev => prev.map(s => s.id === sId ? { ...s, ...patch } : s));
+  // ── Flat-list operations ──────────────────────────────────────────────────
+
+  const updateDocItem = useCallback((id: string, patch: Partial<FAQQuestion>) => {
+    setData(prev => prev.map(item => item.id === id ? { ...item, ...patch } : item));
   }, [setData]);
 
-  const updateQuestionInSection = useCallback((sId: string, qId: string, patch: Partial<FAQQuestion>) => {
-    setData(prev => prev.map(section =>
-      section.id === sId
-        ? { ...section, questions: section.questions.map(q => q.id === qId ? { ...q, ...patch } : q) }
-        : section,
-    ));
+  const deleteDocItem = useCallback((id: string) => {
+    setData(prev => prev.filter(item => item.id !== id));
   }, [setData]);
 
-  const deleteQuestionFromSection = useCallback((sId: string, qId: string) => {
-    setData(prev => prev
-      .map(section =>
-        section.id === sId
-          ? { ...section, questions: section.questions.filter(q => q.id !== qId) }
-          : section,
-      )
-      .filter(section => !section.standalone || section.questions.length > 0));
-  }, [setData]);
-
-  const moveQuestionInSection = useCallback((sId: string, qId: string, dir: 'up' | 'down') => {
-    setData(prev => prev.map(section => {
-      if (section.id !== sId) return section;
-      const idx = section.questions.findIndex(q => q.id === qId);
-      if (dir === 'up' && idx === 0) return section;
-      if (dir === 'down' && idx === section.questions.length - 1) return section;
-      const next = [...section.questions];
+  const moveDocItem = useCallback((id: string, dir: 'up' | 'down') => {
+    setData(prev => {
+      const idx = prev.findIndex(item => item.id === id);
       const swap = dir === 'up' ? idx - 1 : idx + 1;
-      [next[idx], next[swap]] = [next[swap], next[idx]];
-      return { ...section, questions: next };
-    }));
-  }, [setData]);
-
-  const moveQuestionInDocument = useCallback((sId: string, qId: string, dir: 'up' | 'down') => {
-    setData(prev => {
-      const flat = prev.flatMap(section =>
-        section.questions.map(question => ({ sectionId: section.id, question }))
-      );
-      const index = flat.findIndex(item => item.sectionId === sId && item.question.id === qId);
-      const swap = dir === 'up' ? index - 1 : index + 1;
-      if (index < 0 || swap < 0 || swap >= flat.length) return prev;
-
-      const nextFlat = [...flat];
-      [nextFlat[index], nextFlat[swap]] = [nextFlat[swap], nextFlat[index]];
-      const queues = new Map<string, FAQQuestion[]>();
-      nextFlat.forEach(item => {
-        const queue = queues.get(item.sectionId) ?? [];
-        queue.push(item.question);
-        queues.set(item.sectionId, queue);
-      });
-
-      return prev.map(section => ({
-        ...section,
-        questions: queues.get(section.id) ?? [],
-      }));
-    });
-  }, [setData]);
-
-  const deleteSection = useCallback((sId: string) => {
-    setData(prev => prev.filter(s => s.id !== sId));
-  }, [setData]);
-
-  const moveSection = useCallback((sId: string, dir: 'up' | 'down') => {
-    setData(prev => {
-      const idx = prev.findIndex(s => s.id === sId);
-      if (dir === 'up' && idx === 0) return prev;
-      if (dir === 'down' && idx === prev.length - 1) return prev;
+      if (idx < 0 || swap < 0 || swap >= prev.length) return prev;
       const next = [...prev];
-      const swap = dir === 'up' ? idx - 1 : idx + 1;
       [next[idx], next[swap]] = [next[swap], next[idx]];
       return next;
     });
   }, [setData]);
 
-  const addSection = useCallback(() => {
-    const id = `sec-${Date.now()}`;
-    setData(prev => [
-      ...prev,
-      { id, title: 'New section', questions: [], collapsed: false },
-    ]);
-  }, [setData]);
-
-  const addQuestionToSection = useCallback((sId: string) => {
-    const newQ = createNewFAQQuestion();
-    setData(prev => prev.map(s =>
-      s.id === sId ? { ...s, questions: [...s.questions, newQ] } : s
-    ));
+  const updateTitleText = useCallback((id: string, text: string) => {
+    setData(prev => prev.map(item => item.id === id && item.kind === 'title' ? { ...item, text } : item));
   }, [setData]);
 
   const handleItemFixed = useCallback((bump: number) => {
@@ -1474,106 +1485,73 @@ export function FAQSectionCanvas({ sections, generationLabel, onVersionHistory, 
     setFixingAll(true);
     setPreviewingScoreImprovement(true);
     setTimeout(() => {
-      setData(prev => prev.map(section => ({
-        ...section,
-        questions: section.questions.map(q =>
-          q.status !== 'ready'
-            ? { ...q, status: 'ready' as QuestionStatus, warningText: undefined }
-            : q
-        ),
-      })));
+      setData(prev => prev.map(item =>
+        item.kind === 'question' && item.status !== 'ready'
+          ? { ...item, status: 'ready' as QuestionStatus, warningText: undefined }
+          : item
+      ));
       setFixingAll(false);
       setPreviewingScoreImprovement(false);
     }, 1800);
   }, [setData]);
 
-  // Manual panel callback — standalone Q&As are not forced into a section.
+  const handleManualAddTitle = useCallback(() => {
+    setData(prev => [
+      ...prev,
+      { kind: 'title' as const, id: makeQId(), text: '' },
+    ]);
+  }, [setData]);
+
   const handleManualAddQuestion = useCallback(() => {
     const newQ = createNewFAQQuestion();
-    setData(prev => {
-      const standaloneIndex = prev.findIndex(section => section.standalone);
-      if (standaloneIndex >= 0) {
-        return prev.map((section, index) =>
-          index === standaloneIndex
-            ? { ...section, questions: [...section.questions, newQ] }
-            : section,
-        );
-      }
-      return [
-        {
-          id: `standalone-${Date.now()}`,
-          title: 'Standalone questions',
-          questions: [newQ],
-          collapsed: false,
-          standalone: true,
-        },
-        ...prev,
-      ];
-    });
+    setData(prev => [...prev, { kind: 'question' as const, ...newQ }]);
   }, [setData]);
 
   const handleAddPrebuiltSection = useCallback((template: typeof FAQ_PREBUILT_SECTIONS[number]) => {
     setData(prev => [
       ...prev,
-      {
-        id: `${template.id}-${Date.now()}`,
-        title: template.title,
-        collapsed: false,
-        questions: template.questions.map(item => ({
-          id: makeQId(),
-          question: item.question,
-          answer: item.answer,
-          expanded: true,
-          status: 'ready' as QuestionStatus,
-        })),
-      },
+      ...template.questions.map(item => ({
+        kind: 'question' as const,
+        id: makeQId(),
+        question: item.question,
+        answer: item.answer,
+        expanded: true,
+        status: 'ready' as QuestionStatus,
+      })),
     ]);
   }, [setData]);
 
   const handleInsertSavedBlock = useCallback((block: SavedBlock) => {
     setData(prev => [
       ...prev,
-      {
-        id: `${block.id}-${Date.now()}`,
-        title: block.preview.title || block.name,
-        collapsed: false,
-        questions: block.preview.snippets.map((question, index) => ({
-          id: makeQId(),
-          question,
-          answer: 'Review and update this saved answer for the current page.',
-          expanded: true,
-          status: index === 0 ? 'warning' as QuestionStatus : 'ready' as QuestionStatus,
-          warningText: index === 0 ? 'Saved block inserted — review answer for this page.' : undefined,
-        })),
-      },
+      ...block.preview.snippets.map((question, index) => ({
+        kind: 'question' as const,
+        id: makeQId(),
+        question,
+        answer: 'Review and update this saved answer for the current page.',
+        expanded: true,
+        status: index === 0 ? 'warning' as QuestionStatus : 'ready' as QuestionStatus,
+        warningText: index === 0 ? 'Saved block inserted — review answer for this page.' : undefined,
+      })),
     ]);
   }, [setData]);
 
   const handleSelectTemplate = useCallback((templateId: string) => {
     const tmpl = FAQ_CANVAS_TEMPLATES.find(t => t.id === templateId);
     if (!tmpl) return;
-    setSectionData(generateMockFAQs(tmpl.sections));
+    setDocItems(generateDocItems(tmpl.sections));
   }, []);
 
-  const handleReorderQuestions = useCallback((draggedId: string, targetId: string) => {
+  const handleReorderItems = useCallback((draggedId: string, targetId: string) => {
     if (draggedId === targetId) return;
     setData(prev => {
-      const flat = prev.flatMap(section =>
-        section.questions.map(question => ({ sectionId: section.id, question }))
-      );
-      const fromIdx = flat.findIndex(item => item.question.id === draggedId);
-      const toIdx = flat.findIndex(item => item.question.id === targetId);
+      const fromIdx = prev.findIndex(item => item.id === draggedId);
+      const toIdx = prev.findIndex(item => item.id === targetId);
       if (fromIdx < 0 || toIdx < 0) return prev;
-      const next = [...flat];
+      const next = [...prev];
       const [removed] = next.splice(fromIdx, 1);
       next.splice(toIdx, 0, removed);
-      const queues = new Map<string, FAQQuestion[]>();
-      next.forEach(item => {
-        const queue = queues.get(item.sectionId) ?? [];
-        queue.push(item.question);
-        queues.set(item.sectionId, queue);
-      });
-      return prev.map(section => ({ ...section, questions: queues.get(section.id) ?? [] }));
+      return next;
     });
     setDraggingQId(null);
     setDragOverQId(null);
@@ -1581,9 +1559,12 @@ export function FAQSectionCanvas({ sections, generationLabel, onVersionHistory, 
 
   const handleCanvasDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
-    const addQuestion = e.dataTransfer.getData('application/faq-add-question');
-    if (addQuestion === 'new') {
+    if (e.dataTransfer.getData('application/faq-add-question') === 'new') {
       handleManualAddQuestion();
+      return;
+    }
+    if (e.dataTransfer.getData('application/faq-add-title') === 'new') {
+      handleManualAddTitle();
       return;
     }
     const sectionJson = e.dataTransfer.getData('application/faq-add-section');
@@ -1593,7 +1574,7 @@ export function FAQSectionCanvas({ sections, generationLabel, onVersionHistory, 
         handleAddPrebuiltSection(template);
       } catch { /* invalid JSON — ignore */ }
     }
-  }, [handleManualAddQuestion, handleAddPrebuiltSection]);
+  }, [handleManualAddQuestion, handleManualAddTitle, handleAddPrebuiltSection]);
 
   const handleCopilotStartGenerating = useCallback(() => {
     setIsGeneratingFromCopilot(true);
@@ -1607,7 +1588,7 @@ export function FAQSectionCanvas({ sections, generationLabel, onVersionHistory, 
         { id: `ai-${Date.now()}-2`, title: 'Pricing and appointments', description: '', count: 5 },
         { id: `ai-${Date.now()}-3`, title: 'Special cases', description: '', count: 4 },
       ];
-      setSectionData(generateMockFAQs(copilotSections));
+      setDocItems(generateDocItems(copilotSections));
       setIsRevealingGeneratedContent(true);
       window.setTimeout(() => {
         setIsGeneratingFromCopilot(false);
@@ -1619,7 +1600,7 @@ export function FAQSectionCanvas({ sections, generationLabel, onVersionHistory, 
   }, []);
 
   const showGenerationLayer = isGeneratingFromCopilot || isRevealingGeneratedContent;
-  const showDocumentContent = flatQuestions.length > 0 && (!isGeneratingFromCopilot || isRevealingGeneratedContent);
+  const showDocumentContent = docItems.length > 0 && (!isGeneratingFromCopilot || isRevealingGeneratedContent);
   const showStarterContent = !showGenerationLayer && !showDocumentContent;
 
   return (
@@ -1639,7 +1620,7 @@ export function FAQSectionCanvas({ sections, generationLabel, onVersionHistory, 
         </div>
         <div className="flex-1 min-h-0 overflow-hidden">
           {leftTab === 'ai' ? (
-            sectionData.length === 0 ? (
+            docItems.length === 0 ? (
               <AiCopilot
                 editorContext="setup"
                 initialContentType="faq"
@@ -1654,6 +1635,7 @@ export function FAQSectionCanvas({ sections, generationLabel, onVersionHistory, 
           ) : (
             <FAQManualContent
               onAddQuestion={handleManualAddQuestion}
+              onAddTitle={handleManualAddTitle}
             />
           )}
         </div>
@@ -1710,6 +1692,15 @@ export function FAQSectionCanvas({ sections, generationLabel, onVersionHistory, 
           <div className="px-8 py-6 pb-10">
             <div style={{ zoom }}>
             <div className="mx-auto min-h-[calc(100vh-160px)] max-w-[1040px] rounded-lg bg-background px-[30px] pt-[30px] pb-14 shadow-[0_2px_12px_rgba(15,23,42,0.06)] ring-[0.5px] ring-border/20">
+              {/* Page title */}
+              <input
+                ref={titleInputRef}
+                type="text"
+                value={pageTitle}
+                onChange={e => setPageTitle(e.target.value)}
+                placeholder="Add a page title…"
+                className="mb-8 w-full border-b border-transparent bg-transparent pb-2 text-[32px] font-bold leading-tight text-foreground outline-none transition-colors placeholder:text-muted-foreground/30 hover:border-border/40 focus:border-primary/40"
+              />
               <div className="grid min-h-[640px]">
                 <div
                   aria-hidden={!showGenerationLayer}
@@ -1727,36 +1718,56 @@ export function FAQSectionCanvas({ sections, generationLabel, onVersionHistory, 
                 <div
                   aria-hidden={!showDocumentContent}
                   className={cn(
-                    'col-start-1 row-start-1 space-y-6 transition-opacity duration-500 ease-out',
+                    'col-start-1 row-start-1 transition-opacity duration-500 ease-out',
                     showDocumentContent
                       ? 'opacity-100'
                       : 'pointer-events-none opacity-0',
                   )}
                 >
-                  {flatQuestions.map(({ section, question }, index) => (
-                    <QuestionRow
-                      key={question.id}
-                      question={question}
-                      index={index}
-                      totalInSection={flatQuestions.length}
-                      onUpdate={patch => updateQuestionInSection(section.id, question.id, patch)}
-                      onDelete={() => deleteQuestionFromSection(section.id, question.id)}
-                      onMoveUp={() => moveQuestionInDocument(section.id, question.id, 'up')}
-                      onMoveDown={() => moveQuestionInDocument(section.id, question.id, 'down')}
-                      fixingAll={fixingAll}
-                      isDragging={draggingQId === question.id}
-                      isDragOver={dragOverQId === question.id}
-                      isImprovementPreviewing={previewingScoreImprovement && index < 2}
-                      onDragStart={() => setDraggingQId(question.id)}
-                      onDragOver={e => { e.preventDefault(); setDragOverQId(question.id); }}
-                      onDrop={e => {
-                        e.stopPropagation();
-                        const draggedId = e.dataTransfer.getData('application/faq-question-id');
-                        if (draggedId) handleReorderQuestions(draggedId, question.id);
-                      }}
-                      onDragEnd={() => { setDraggingQId(null); setDragOverQId(null); }}
-                    />
-                  ))}
+                  {(() => {
+                    let qIndex = 0;
+                    return docItems.map((item, idx) => {
+                      if (item.kind === 'title') {
+                        return (
+                          <FAQDocTitleBlock
+                            key={item.id}
+                            text={item.text}
+                            onUpdate={text => updateTitleText(item.id, text)}
+                            onDelete={() => deleteDocItem(item.id)}
+                            onMoveUp={() => moveDocItem(item.id, 'up')}
+                            onMoveDown={() => moveDocItem(item.id, 'down')}
+                            isFirst={idx === 0}
+                            isLast={idx === docItems.length - 1}
+                          />
+                        );
+                      }
+                      const questionIndex = qIndex++;
+                      return (
+                        <QuestionRow
+                          key={item.id}
+                          question={item}
+                          index={questionIndex}
+                          totalInSection={totalQuestions}
+                          onUpdate={patch => updateDocItem(item.id, patch)}
+                          onDelete={() => deleteDocItem(item.id)}
+                          onMoveUp={() => moveDocItem(item.id, 'up')}
+                          onMoveDown={() => moveDocItem(item.id, 'down')}
+                          fixingAll={fixingAll}
+                          isDragging={draggingQId === item.id}
+                          isDragOver={dragOverQId === item.id}
+                          isImprovementPreviewing={previewingScoreImprovement && questionIndex < 2}
+                          onDragStart={() => setDraggingQId(item.id)}
+                          onDragOver={e => { e.preventDefault(); setDragOverQId(item.id); }}
+                          onDrop={e => {
+                            e.stopPropagation();
+                            const draggedId = e.dataTransfer.getData('application/faq-question-id');
+                            if (draggedId) handleReorderItems(draggedId, item.id);
+                          }}
+                          onDragEnd={() => { setDraggingQId(null); setDragOverQId(null); }}
+                        />
+                      );
+                    });
+                  })()}
                 </div>
 
                 <div
@@ -1780,7 +1791,7 @@ export function FAQSectionCanvas({ sections, generationLabel, onVersionHistory, 
 
       {/* ── Right score panel ─────────────────────────────────────────── */}
       <EditorScorePanel
-        open={scorePanelOpen && sectionData.length > 0 && !isGeneratingFromCopilot}
+        open={scorePanelOpen && docItems.length > 0 && !isGeneratingFromCopilot}
         onClose={() => setScorePanelOpen(false)}
         config={faqConfig}
         dimensions={buildFAQScoreDimensions(setScore)}
@@ -1807,25 +1818,19 @@ export function FAQSectionCanvas({ sections, generationLabel, onVersionHistory, 
 
       {/* ── Save to Saved modal ──────────────────────────────────────── */}
       {savingTarget !== null && (() => {
-        const isFull = savingTarget === 'all';
-        const previewTitle = isFull ? 'Full FAQ page' : (savingTarget as FAQSectionData).title;
-        const snippets = isFull
-          ? sectionData.flatMap(s => s.questions.map(q => q.question)).slice(0, 3)
-          : (savingTarget as FAQSectionData).questions.map(q => q.question).slice(0, 3);
-        const defaultName = isFull ? 'FAQ content' : (savingTarget as FAQSectionData).title;
-
+        const snippets = questionItems.map(q => q.question).slice(0, 3);
         return (
           <SaveToSavedModal
             open
             onClose={() => setSavingTarget(null)}
-            defaultName={defaultName}
+            defaultName="FAQ content"
             previewSnippets={snippets}
             onSave={name => {
               addSavedBlock({
                 name,
                 createdBy: 'Haresh R.',
-                sourceType: isFull ? 'faq-full' : 'faq-section',
-                preview: { title: previewTitle, snippets },
+                sourceType: 'faq-full',
+                preview: { title: 'Full FAQ page', snippets },
               });
               setSavingTarget(null);
             }}
@@ -1837,20 +1842,18 @@ export function FAQSectionCanvas({ sections, generationLabel, onVersionHistory, 
       <FAQPublishModal
         open={publishModalOpen}
         onClose={() => setPublishModalOpen(false)}
-        faqs={sectionData.flatMap(sec =>
-          sec.questions.map(q => ({
-            faq_id: q.id,
-            question: q.question,
-            answer: q.answer,
-            intent: 'informational' as const,
-            funnel_stage: 'awareness' as const,
-            editorialScore: q.status === 'ready' ? 82 : 45,
-            lowestDimension: q.status === 'ready' ? '' : 'Answer depth',
-            status: q.status === 'ready' ? 'ready' : ('needs-work' as const),
-            warnings: q.warningText ? [q.warningText] : [],
-            hardBlock: q.status === 'blocked',
-          }))
-        )}
+        faqs={questionItems.map(q => ({
+          faq_id: q.id,
+          question: q.question,
+          answer: q.answer,
+          intent: 'informational' as const,
+          funnel_stage: 'awareness' as const,
+          editorialScore: q.status === 'ready' ? 82 : 45,
+          lowestDimension: q.status === 'ready' ? '' : 'Answer depth',
+          status: q.status === 'ready' ? 'ready' : ('needs-work' as const),
+          warnings: q.warningText ? [q.warningText] : [],
+          hardBlock: q.status === 'blocked',
+        }))}
         overallScore={setScore}
       />
     </div>

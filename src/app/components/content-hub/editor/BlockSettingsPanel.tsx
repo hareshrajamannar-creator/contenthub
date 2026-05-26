@@ -6,7 +6,7 @@
  */
 
 import React, { useRef } from 'react';
-import { AlignCenter, AlignLeft, AlignRight, ImageIcon, Plus, Trash2, Upload, X } from 'lucide-react';
+import { AlignCenter, AlignLeft, AlignRight, ImageIcon, Trash2, Upload, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   Select,
@@ -155,7 +155,7 @@ function ImageControl({
           <button
             type="button"
             onClick={() => onChange('')}
-            className="h-8 rounded-lg border border-border bg-background px-3 text-[12px] font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-destructive"
+            className="h-8 rounded-lg border border-border bg-background px-4 text-[12px] font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-destructive"
           >
             Remove
           </button>
@@ -347,33 +347,27 @@ function ColorControl({
   value: unknown;
   onChange: (value: unknown) => void;
 }) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const colorValue = String(value ?? '');
+  const displayColor = colorValue.startsWith('#') ? colorValue : (colorValue || '#ffffff');
+
   return (
-    <div className="grid grid-cols-2 gap-2">
-      {(field.options ?? []).map(option => (
-        <button
-          key={String(option.value)}
-          type="button"
-          onClick={() => onChange(option.value)}
-          className={cn(
-            'flex items-center gap-2 rounded-lg border px-2 py-2 text-left text-[12px] transition-colors',
-            value === option.value
-              ? 'border-primary bg-primary/8 text-foreground'
-              : 'border-border bg-background text-muted-foreground hover:bg-muted',
-          )}
-        >
-          <span
-            className={cn(
-              'size-3 rounded-full border border-border',
-              option.value === 'primary' && 'bg-primary',
-              option.value === 'muted' && 'bg-muted-foreground/30',
-              option.value === 'accent' && 'bg-blue-500',
-              option.value === 'dark' && 'bg-foreground',
-              option.value === '' && 'bg-background',
-            )}
-          />
-          <span>{option.label}</span>
-        </button>
-      ))}
+    <div className="flex items-center justify-between">
+      <span className="text-[12px] font-medium text-foreground">{field.label}</span>
+      <button
+        type="button"
+        onClick={() => inputRef.current?.click()}
+        title={colorValue || 'Choose color'}
+        className="size-8 rounded-full border border-border/50 shadow-sm transition-transform hover:scale-110 active:scale-95"
+        style={{ backgroundColor: displayColor }}
+      />
+      <input
+        ref={inputRef}
+        type="color"
+        value={displayColor}
+        onChange={e => onChange(e.target.value)}
+        className="sr-only"
+      />
     </div>
   );
 }
@@ -476,8 +470,8 @@ function InspectorFieldControl({
       control = <AlignmentControl value={value ?? 'left'} onChange={onChange} />;
       break;
     case 'color':
-      control = <ColorControl field={field} value={value ?? ''} onChange={onChange} />;
-      break;
+      return <ColorControl field={field} value={value ?? ''} onChange={onChange} />;
+
     case 'number':
     case 'slider':
       control = <RangeControl field={field} value={value} onChange={onChange} />;

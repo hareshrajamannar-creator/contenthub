@@ -6,26 +6,26 @@ import type { BlogSection } from "@/app/components/content-hub/blog/BlogInlineCr
 // ── Mock data helpers ─────────────────────────────────────────────────────────
 
 const DEFAULT_SECTIONS: BlogSection[] = [
-  { id: "b1", heading: "Introduction", description: "Set the scene and introduce the main topic", wordCount: 200 },
-  { id: "b2", heading: "Why this matters in 2024", description: "Context and urgency for the reader", wordCount: 300 },
-  { id: "b3", heading: "Key strategies and best practices", description: "Core actionable advice with examples", wordCount: 500 },
-  { id: "b4", heading: "Real-world examples", description: "Case studies and proof points", wordCount: 400 },
-  { id: "b5", heading: "How to get started", description: "Step-by-step action plan for readers", wordCount: 300 },
+  { id: "b1", heading: "How search has changed in 2026", description: "AI search now delivers one citation-backed answer — not a ranked list of links", wordCount: 200 },
+  { id: "b2", heading: "The AI trust stack", description: "How AI engines decide which brands to cite: owned content, profiles, citations, and reviews", wordCount: 300 },
+  { id: "b3", heading: "What content gets you cited", description: "FAQ pages, location pages, and structured service content consistently outperform generic copy", wordCount: 500 },
+  { id: "b4", heading: "Five actions for enterprise brands", description: "The highest-leverage steps to improve AI citation share across all locations", wordCount: 400 },
+  { id: "b5", heading: "How to measure AI search visibility", description: "Tracking answer presence, citation share, and coverage gaps across ChatGPT, Gemini, and Perplexity", wordCount: 300 },
 ];
 
 const SHORT_SECTIONS: BlogSection[] = [
-  { id: "s1", heading: "Overview", description: "A short introduction to the topic", wordCount: 150 },
-  { id: "s2", heading: "Key takeaways", description: "The main points readers should remember", wordCount: 200 },
+  { id: "s1", heading: "What is AI search optimization?", description: "The shift from ranking in links to being cited in synthesized answers", wordCount: 150 },
+  { id: "s2", heading: "Three steps to get started", description: "The most actionable starting points for multi-location brands", wordCount: 200 },
 ];
 
 const LONG_SECTIONS: BlogSection[] = [
-  { id: "l1", heading: "The state of customer experience in 2024", description: "Industry landscape and key trends", wordCount: 400 },
-  { id: "l2", heading: "The psychology of loyalty", description: "Why customers return and what drives defection", wordCount: 350 },
-  { id: "l3", heading: "Building a customer-first culture", description: "Organisational change and leadership alignment", wordCount: 450 },
-  { id: "l4", heading: "Technology and personalisation at scale", description: "AI-powered tools and automation strategies", wordCount: 400 },
-  { id: "l5", heading: "Measuring what matters", description: "Metrics, KPIs, and reporting frameworks", wordCount: 300 },
-  { id: "l6", heading: "Case studies from leading brands", description: "Concrete examples of CX transformations", wordCount: 500 },
-  { id: "l7", heading: "Your 90-day roadmap", description: "An actionable plan to start immediately", wordCount: 350 },
+  { id: "l1", heading: "The state of AI search in 2026", description: "Industry landscape: who is being cited, who is invisible, and why it matters now", wordCount: 400 },
+  { id: "l2", heading: "How AI platforms select citations", description: "The signals LLMs use to choose which brands appear in generated answers", wordCount: 350 },
+  { id: "l3", heading: "Building owned content that AI trusts", description: "Website structure, FAQ pages, and service pages written for answer engines", wordCount: 450 },
+  { id: "l4", heading: "Profile and citation consistency at scale", description: "Google Business Profile, Apple Business Connect, and directory accuracy across all locations", wordCount: 400 },
+  { id: "l5", heading: "How reviews influence AI recommendations", description: "Ratings, sentiment, and review volume as trust signals in AI search", wordCount: 300 },
+  { id: "l6", heading: "Measuring AI search visibility", description: "Answer presence, citation share, and gap analysis across ChatGPT, Gemini, and Perplexity", wordCount: 500 },
+  { id: "l7", heading: "Your 30-day AEO action plan", description: "A practical roadmap to start improving AI search citation share immediately", wordCount: 350 },
 ];
 
 // ── Meta ──────────────────────────────────────────────────────────────────────
@@ -59,7 +59,7 @@ type Story = StoryObj<typeof BlogSectionCanvas>;
 export const Default: Story = {
   args: {
     sections: DEFAULT_SECTIONS,
-    generationLabel: "Customer experience guide — Olive Garden brand identity",
+    generationLabel: "State of AI Search 2026 — Birdeye brand identity",
   },
 };
 
@@ -67,7 +67,7 @@ export const Short_post: Story = {
   name: "Short post",
   args: {
     sections: SHORT_SECTIONS,
-    generationLabel: "Brief overview post",
+    generationLabel: "AI search intro post",
   },
 };
 
@@ -75,7 +75,7 @@ export const Long_form: Story = {
   name: "Long-form post",
   args: {
     sections: LONG_SECTIONS,
-    generationLabel: "In-depth CX guide — 3,500 words",
+    generationLabel: "In-depth AI search guide — 3,500 words",
   },
 };
 
@@ -90,11 +90,11 @@ export const Text_editing_toolbar: Story = {
   name: "Text editing toolbar",
   args: {
     sections: DEFAULT_SECTIONS,
-    generationLabel: "Customer experience guide — Olive Garden brand identity",
+    generationLabel: "State of AI Search 2026 — Birdeye brand identity",
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
-    await userEvent.click(canvas.getByText("The Complete Guide to Building Exceptional Customer Experiences"));
+    await userEvent.click(canvas.getByText("How search has changed in 2026"));
   },
 };
 
@@ -102,7 +102,7 @@ export const Manual_block_tabs: Story = {
   name: "Manual block tabs",
   args: {
     sections: DEFAULT_SECTIONS,
-    generationLabel: "Customer experience guide — Olive Garden brand identity",
+    generationLabel: "State of AI Search 2026 — Birdeye brand identity",
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);

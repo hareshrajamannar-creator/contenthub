@@ -17,7 +17,7 @@ import {
   GripVertical, GripHorizontal, ChevronDown, Trash2, Plus,
   AlertTriangle, XCircle,
   ArrowUp, ArrowDown, Sparkles, Layers,
-  FileText,
+  FileText, Settings2, X as XIcon,
   AlignLeft, Type, List, Image as ImageIcon, Lightbulb, Quote,
   BookmarkX, HelpCircle, MousePointerClick, Minus, Star, Code2,
   Share2, PanelBottom, SquarePlay,
@@ -62,8 +62,11 @@ export interface BlogBlock {
   heroTitle?: string;
   heroSubtitle?: string;
   heroTag?: string;
+  heroAuthor?: string;
+  heroReadTime?: number;
+  heroImage?: string;
   // heading
-  level?: 2 | 3;
+  level?: 1 | 2 | 3;
   headingText?: string;
   // paragraph
   body?: string;
@@ -127,29 +130,66 @@ function makeBlockId() { return `blk${blockIdCounter++}`; }
 
 function buildBlogBlocksFromSections(heroTitle: string, sections: PreloadedSection[]): BlogBlock[] {
   const blocks: BlogBlock[] = [];
-  blocks.push({
-    id: makeBlockId(), type: 'hero',
-    heroTag: 'Blog post', heroTitle, heroSubtitle: '', status: 'ready',
-  });
+
+  // Article title as H1
+  blocks.push({ id: makeBlockId(), type: 'heading', level: 1, headingText: heroTitle, status: 'ready' });
+
+  // Hero image — use first section image or default
+  const heroImg = sections.find(s => s.image)?.image
+    ?? 'https://images.unsplash.com/photo-1677442135703-1787eea5ce01?w=900&q=80';
+  blocks.push({ id: makeBlockId(), type: 'image', src: heroImg, alt: heroTitle, status: 'ready' });
+
+  // Body sections — split content from FAQ Q&As
+  let inFaqSection = false;
+  const faqBlocks: BlogBlock[] = [];
+
   for (const s of sections) {
+    if (s.heading?.toLowerCase().includes('frequently asked question')) {
+      inFaqSection = true;
+      continue;
+    }
+    if (inFaqSection) {
+      if (s.heading && s.body) {
+        faqBlocks.push({
+          id: makeBlockId(), type: 'faq-item',
+          faqQuestion: s.heading, faqAnswer: s.body, status: 'ready',
+        });
+      }
+      continue;
+    }
     if (s.heading) blocks.push({ id: makeBlockId(), type: 'heading', level: 2, headingText: s.heading, status: 'ready' });
     if (s.body)    blocks.push({ id: makeBlockId(), type: 'paragraph', body: s.body, status: 'ready' });
     if (s.listItems && s.listItems.length > 0) blocks.push({ id: makeBlockId(), type: 'bullets', items: s.listItems, status: 'ready' });
     if (s.image)   blocks.push({ id: makeBlockId(), type: 'image', src: s.image, alt: s.imageAlt ?? s.heading ?? '', status: 'ready' });
   }
+
+  // FAQ section at the bottom
+  if (faqBlocks.length > 0) {
+    blocks.push({ id: makeBlockId(), type: 'heading', level: 2, headingText: 'Frequently Asked Questions', status: 'ready' });
+    blocks.push(...faqBlocks);
+  }
+
   return blocks;
 }
 
 function generateBlogBlocks(sections: BlogSection[]): BlogBlock[] {
   const blocks: BlogBlock[] = [];
 
-  // Hero block
+  // Article title as H1
   blocks.push({
     id: makeBlockId(),
-    type: 'hero',
-    heroTag: 'Blog post',
-    heroTitle: 'The Complete Guide to Building Exceptional Customer Experiences',
-    heroSubtitle: 'Proven strategies that leading brands use to turn every interaction into a loyalty-building moment',
+    type: 'heading',
+    level: 1,
+    headingText: 'Dubbo Property Market 2026: What Buyers, Sellers and Landlords Need to Know',
+    status: 'ready',
+  });
+
+  // Hero image
+  blocks.push({
+    id: makeBlockId(),
+    type: 'image',
+    src: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=900&q=80',
+    alt: 'Dubbo property market 2026',
     status: 'ready',
   });
 
@@ -157,13 +197,12 @@ function generateBlogBlocks(sections: BlogSection[]): BlogBlock[] {
   blocks.push({
     id: makeBlockId(),
     type: 'paragraph',
-    body: 'In today\'s hyper-competitive landscape, the quality of your customer experience is the single greatest differentiator available to any business. Customers who feel genuinely valued don\'t just return — they become advocates, recommending your brand to friends, family, and colleagues without any prompting. This guide distills the tactics that high-performing businesses use every day to create those moments.',
+    body: 'The Dubbo property market in 2026 continues to attract strong interest from owner-occupiers, upsizers, and investors across regional NSW. With relatively affordable entry prices, tight rental vacancy, and ongoing infrastructure investment in the region, Dubbo remains one of the most active property markets outside Australia\'s major capital cities. Whether you are thinking of selling, buying, or maximising the return on a rental property, understanding current local conditions is the essential first step.',
     status: 'ready',
   });
 
-  // Generate blocks per section
-  sections.forEach((section, sectionIdx) => {
-    // H2 heading for main sections, H3 for sub-content variety
+  // One block group per section: H2 + paragraph + bullets
+  sections.forEach(section => {
     blocks.push({
       id: makeBlockId(),
       type: 'heading',
@@ -171,146 +210,47 @@ function generateBlogBlocks(sections: BlogSection[]): BlogBlock[] {
       headingText: section.heading,
       status: 'ready',
     });
-
-    // Section intro paragraph from description
     blocks.push({
       id: makeBlockId(),
       type: 'paragraph',
       body: section.description.length > 60
-        ? section.description + '. Understanding this area deeply allows businesses to make targeted improvements that customers immediately notice and appreciate.'
-        : `${section.description}. Every customer interaction is an opportunity to reinforce your brand promise and deepen the relationship. Businesses that consistently deliver on this create compounding loyalty effects that protect them from competitive pressure.`,
+        ? section.description + '. Getting this right is one of the highest-leverage improvements a multi-location brand can make to its AI search citation share.'
+        : `${section.description}. Taking action on this now will give your Dubbo property listing a clear advantage in the current market.`,
       status: 'ready',
     });
-
-    // Vary the third block type based on section index
-    const blockVariant = sectionIdx % 4;
-
-    if (blockVariant === 0) {
-      // Bullets block
-      blocks.push({
-        id: makeBlockId(),
-        type: 'bullets',
-        items: [
-          'Acknowledge the customer within the first 30 seconds of any interaction',
-          'Use their name at least once during the conversation',
-          'Confirm their needs before proposing solutions',
-          'Follow up proactively after service is delivered',
-          'Make it easy to escalate if the first resolution does not satisfy',
-        ],
-        status: 'ready',
-      });
-    } else if (blockVariant === 1) {
-      // Callout info block
-      blocks.push({
-        id: makeBlockId(),
-        type: 'callout',
-        calloutVariant: 'info',
-        calloutTitle: 'Key insight',
-        calloutText: 'According to research across thousands of service interactions, customers who receive a proactive follow-up are 3× more likely to leave a five-star review than those who do not — even when the original service was identical in quality.',
-        status: 'ready',
-      });
-    } else if (blockVariant === 2) {
-      // Quote block
-      blocks.push({
-        id: makeBlockId(),
-        type: 'quote',
-        quoteText: 'The customer experience is the next competitive battleground. Companies that invest in genuine connection with their customers today will be the ones standing five years from now.',
-        quoteAuthor: 'Customer Experience Research Institute',
-        status: 'ready',
-      });
-    } else {
-      // Image placeholder
-      blocks.push({
-        id: makeBlockId(),
-        type: 'image',
-        alt: `Illustration for ${section.heading}`,
-        caption: `Visual overview of ${section.heading.toLowerCase()} strategies and their impact on customer retention.`,
-        status: 'ready',
-      });
-    }
-
-    // Add a sub-section heading + content for longer sections
-    if (sectionIdx % 3 === 0 && sectionIdx > 0) {
-      blocks.push({
-        id: makeBlockId(),
-        type: 'heading',
-        level: 3,
-        headingText: 'Practical application in your business',
-        status: 'ready',
-      });
-      blocks.push({
-        id: makeBlockId(),
-        type: 'paragraph',
-        body: 'Translating strategy into daily operations requires clear ownership and measurable checkpoints. Start by identifying the top three moments in your customer journey where expectations frequently go unmet. These are your highest-leverage improvement opportunities.',
-        status: sectionIdx === 3 ? 'warning' : 'ready',
-        warningText: sectionIdx === 3 ? 'This section lacks specific metrics — add 1–2 measurable outcomes to strengthen credibility.' : undefined,
-      });
-    }
+    blocks.push({
+      id: makeBlockId(),
+      type: 'bullets',
+      items: [
+        'Book a free appraisal to establish a realistic price range based on current comparable sales in your suburb',
+        'Present your property at its best — clean, decluttered, and with any minor maintenance addressed before listing',
+        'Work with a local Dubbo agent who knows your suburb and has a track record of results in your price range',
+        'Review the marketing plan carefully — quality photography and digital advertising reach make a measurable difference',
+      ],
+      status: 'ready',
+    });
   });
 
-  // Callout success block — action plan
+  // FAQ section at the bottom
   blocks.push({
     id: makeBlockId(),
-    type: 'callout',
-    calloutVariant: 'success',
-    calloutTitle: '30-day action plan',
-    calloutText: 'Week 1: Audit your top three customer touchpoints. Week 2: Implement at least one improvement per touchpoint. Week 3: Collect feedback systematically. Week 4: Review results and set targets for the next cycle.',
+    type: 'heading',
+    level: 2,
+    headingText: 'Frequently Asked Questions',
     status: 'ready',
   });
-
-  // CTA banner — mid-article
-  blocks.push({
+  [
+    { q: 'Is now a good time to sell my property in Dubbo?', a: 'Current conditions in Dubbo — low listing stock, active buyer enquiry, and shorter average days on market — are generally favourable for sellers. A free appraisal with a local Raine & Horne agent will give you a clear, suburb-specific view of what your property could achieve right now.' },
+    { q: 'How do I know what rent to charge for my Dubbo investment property?', a: 'A free rental appraisal compares your property against current Dubbo listings and recent leasing outcomes in your suburb, factoring in size, condition, location, and tenant demand. The goal is to recommend a competitive weekly rent that minimises vacancy while maximising your return.' },
+    { q: 'How long does it take to sell a house in Dubbo?', a: 'Most well-presented Dubbo properties sell within 30–60 days of listing when priced correctly and marketed effectively. Properties that are overpriced tend to sit longer, which can negatively affect buyer perception. An honest appraisal and a strong marketing plan are the two most important factors.' },
+    { q: 'What does a Dubbo property manager do and is it worth the cost?', a: 'A professional property manager handles tenant sourcing, lease preparation, rent collection, routine inspections, maintenance coordination, and NSW tenancy compliance. For most Dubbo landlords the cost is outweighed by the time saved, reduced vacancy, and risk mitigation it provides.' },
+  ].forEach(({ q, a }) => blocks.push({
     id: makeBlockId(),
-    type: 'cta-banner',
-    ctaHeadline: 'Take your customer experience to the next level',
-    ctaBody: 'See how thousands of businesses use our platform to build loyalty and drive growth.',
-    ctaButtonText: 'Start free trial',
-    ctaBgColor: 'linear-gradient(135deg, #1e3a5f 0%, #2563eb 100%)',
+    type: 'faq-item',
+    faqQuestion: q,
+    faqAnswer: a,
     status: 'ready',
-  });
-
-  // Bullets — common mistakes
-  blocks.push({
-    id: makeBlockId(),
-    type: 'bullets',
-    items: [
-      'Treating customer experience as a department rather than a company-wide commitment',
-      'Collecting feedback without closing the loop with customers',
-      'Optimising for satisfaction scores at the expense of genuine relationships',
-      'Underinvesting in frontline staff training and empowerment',
-    ],
-    status: 'warning',
-    warningText: 'These points need supporting evidence or statistics to meet publishing standards.',
-  });
-
-  // Closing paragraph
-  blocks.push({
-    id: makeBlockId(),
-    type: 'paragraph',
-    body: 'Building an exceptional customer experience is not a project with an end date — it is a continuous operating discipline. The businesses that commit to this mindset see measurable improvements in retention, referrals, and lifetime customer value within the first 90 days. Start with one section from this guide, implement it thoroughly, then build from there.',
-    status: 'ready',
-  });
-
-  // Closing quote
-  blocks.push({
-    id: makeBlockId(),
-    type: 'quote',
-    quoteText: 'Your most unhappy customers are your greatest source of learning — but your most loyal customers are your greatest source of growth.',
-    quoteAuthor: 'Adapted from service excellence research',
-    status: 'blocked',
-    warningText: 'Attribution source is missing. Add a verifiable citation or replace with an internal case study.',
-  });
-
-  // CTA banner — end of article
-  blocks.push({
-    id: makeBlockId(),
-    type: 'cta-banner',
-    ctaHeadline: 'Ready to transform your business?',
-    ctaBody: 'Join over 100,000 businesses that trust our platform to deliver exceptional experiences at scale.',
-    ctaButtonText: 'Book a demo',
-    ctaBgColor: 'linear-gradient(135deg, #0f172a 0%, #7c3aed 100%)',
-    status: 'ready',
-  });
+  }));
 
   return blocks;
 }
@@ -378,28 +318,28 @@ const BLOG_PREBUILT_TEMPLATES = [
 const LIBRARY_FAQ_SECTIONS: FaqSectionData[] = [
   {
     id: 'lib-sec-1',
-    title: 'Emergency basics',
+    title: 'AI search basics',
     questions: [
-      { id: 'lq1', question: 'How quickly can you respond to an emergency?', answer: 'Our team is available 24/7 and typically responds to emergency calls within 30–60 minutes. We prioritize urgent situations to minimize disruption and ensure your safety.' },
-      { id: 'lq2', question: 'Do you offer same-day service?', answer: 'Yes, we offer same-day service for most requests submitted before 2 PM local time. Availability may vary during peak periods or holidays.' },
-      { id: 'lq3', question: 'Are you licensed and insured?', answer: 'We are fully licensed, bonded, and insured. Our technicians carry all required certifications and our work is backed by a 1-year service guarantee.' },
+      { id: 'lq1', question: 'What is the difference between SEO and AI search optimization?', answer: 'SEO improves your position in a ranked list of links. AI search optimization — often called AEO — focuses on being selected and cited in a single synthesized answer. The goal shifts from ranking on page one to being the trusted source an AI platform cites.' },
+      { id: 'lq2', question: 'Which AI platforms should I optimize for?', answer: 'The three platforms with the highest query volume in 2026 are ChatGPT, Gemini, and Perplexity. Each uses slightly different citation signals, but the fundamentals — complete profiles, structured content, and consistent citations — apply to all three.' },
+      { id: 'lq3', question: 'How do I know if my brand is being cited in AI search?', answer: 'Traditional analytics tools do not capture AI citation data. You need dedicated AI visibility monitoring that tracks answer presence across AI platforms at the query and location level. Birdeye Search AI provides this visibility across all your locations.' },
     ],
   },
   {
     id: 'lib-sec-2',
-    title: 'Appointments and costs',
+    title: 'Content and optimization',
     questions: [
-      { id: 'lq4', question: 'How do I book an appointment?', answer: 'You can book online at our website, call us directly, or use our app. Online bookings are available 24/7 and confirmed instantly.' },
-      { id: 'lq5', question: 'How much does a standard service call cost?', answer: 'Standard service calls start at $85 for the first hour, with materials billed separately. We provide a detailed estimate before any work begins.' },
-      { id: 'lq6', question: 'Do you offer free estimates?', answer: 'Yes, we offer free estimates for all new projects. Estimates are provided within 24 hours of your initial inquiry.' },
+      { id: 'lq4', question: 'What content types perform best in AI search?', answer: 'FAQ pages, location-specific service pages, pricing pages, and comparison content consistently outperform generic brand copy. Content written to directly answer customer questions — in the language customers use — is cited more often than promotional copy.' },
+      { id: 'lq5', question: 'How important is location-level content for multi-location brands?', answer: 'Critical. AI platforms respond to local intent and require detailed, location-specific information to cite a business for geographic queries. A generic national page does not satisfy a local query — a location-specific page with accurate details does.' },
+      { id: 'lq6', question: 'How often should I update my content to stay visible in AI search?', answer: 'AI platforms factor in content freshness when selecting citations. Review your high-priority location pages and FAQ sections at least quarterly. Update any information that has changed, and add new questions as customer behavior evolves.' },
     ],
   },
   {
     id: 'lib-sec-3',
-    title: 'Special cases',
+    title: 'Reviews and trust signals',
     questions: [
-      { id: 'lq7', question: 'Do you service commercial properties?', answer: 'Yes, we serve both residential and commercial clients. For commercial properties, we offer volume pricing and dedicated account managers.' },
-      { id: 'lq8', question: 'What if I need service outside normal hours?', answer: 'We offer after-hours and weekend service at a premium rate. Contact us directly to arrange and confirm availability.' },
+      { id: 'lq7', question: 'How do reviews influence AI-generated answers?', answer: 'Reviews act as trust signals. LLMs analyze overall ratings, sentiment consistency, and the specificity of review content to validate brand recommendations. A business with a high volume of detailed, positive reviews is cited more reliably than one with sparse or mixed feedback.' },
+      { id: 'lq8', question: 'Does my Google Business Profile affect AI search visibility?', answer: 'Yes. Google Business Profile is one of the primary data sources AI platforms use to verify business information. An incomplete or inconsistent profile reduces citation confidence and lowers the likelihood that AI platforms will cite your business.' },
     ],
   },
 ];
@@ -633,9 +573,10 @@ interface BlockRowProps {
   onDragOver?: (e: React.DragEvent) => void;
   onDrop?: (e: React.DragEvent) => void;
   onDragEnd?: () => void;
+  onOpenHeroSettings?: () => void;
 }
 
-function BlockRow({ block, index, total, faqIndex, onUpdate, onDelete, onMoveUp, onMoveDown, fixingAll, entranceDelay = 0, isDragging, isDragOver, onDragStart, onDragOver, onDrop, onDragEnd }: BlockRowProps) {
+function BlockRow({ block, index, total, faqIndex, onUpdate, onDelete, onMoveUp, onMoveDown, fixingAll, entranceDelay = 0, isDragging, isDragOver, onDragStart, onDragOver, onDrop, onDragEnd, onOpenHeroSettings }: BlockRowProps) {
   const [fixing, setFixing] = useState(false);
   const isBeingFixed = fixing || (!!fixingAll && block.status !== 'ready');
 
@@ -728,7 +669,7 @@ function BlockRow({ block, index, total, faqIndex, onUpdate, onDelete, onMoveUp,
 
       {/* Block content */}
       <div className="pl-6 pr-8">
-        {renderBlockContent(block, onUpdate, isBeingFixed, faqIndex)}
+        {renderBlockContent(block, onUpdate, isBeingFixed, faqIndex, onOpenHeroSettings)}
       </div>
 
       {/* Warning / blocked inline feedback */}
@@ -763,6 +704,7 @@ function renderBlockContent(
   onUpdate: (patch: Partial<BlogBlock>) => void,
   isBeingFixed: boolean,
   faqIndex?: number,
+  onOpenHeroSettings?: () => void,
 ) {
   if (isBeingFixed) {
     return (
@@ -776,7 +718,7 @@ function renderBlockContent(
 
   switch (block.type) {
     case 'hero':
-      return <HeroBlock block={block} onUpdate={onUpdate} />;
+      return <HeroBlock block={block} onUpdate={onUpdate} onOpenSettings={onOpenHeroSettings ?? (() => {})} />;
     case 'heading':
       return <HeadingBlock block={block} onUpdate={onUpdate} />;
     case 'paragraph':
@@ -864,88 +806,157 @@ function AutoGrowTextarea({
 
 // ── Hero block ────────────────────────────────────────────────────────────────
 
-function HeroBlock({ block, onUpdate }: { block: BlogBlock; onUpdate: (p: Partial<BlogBlock>) => void }) {
+interface HeroBlockProps {
+  block: BlogBlock;
+  onUpdate: (p: Partial<BlogBlock>) => void;
+  onOpenSettings: () => void;
+}
+
+function HeroBlock({ block, onUpdate, onOpenSettings }: HeroBlockProps) {
   const [editingTitle, setEditingTitle] = useState(false);
-  const [editingSubtitle, setEditingSubtitle] = useState(false);
 
   return (
-    <div
-      className="rounded-xl overflow-hidden mb-4 mt-4 relative"
-      style={{ background: 'linear-gradient(135deg, #0f2540 0%, #1a3d6b 50%, #15543a 100%)' }}
-    >
-      {/* Grid overlay */}
-      <svg
-        className="absolute inset-0 w-full h-full pointer-events-none"
-        style={{ opacity: 0.07 }}
-        xmlns="http://www.w3.org/2000/svg"
+    <div className="relative px-6 pb-6 pt-6 group">
+      {/* Settings button */}
+      <button
+        type="button"
+        onClick={onOpenSettings}
+        className="absolute right-4 top-4 flex h-7 w-7 items-center justify-center rounded-md border border-border bg-background text-muted-foreground opacity-0 transition-opacity hover:text-foreground group-hover:opacity-100"
+        title="Hero settings"
       >
-        <defs>
-          <pattern id="hero-grid" width="32" height="32" patternUnits="userSpaceOnUse">
-            <path d="M 32 0 L 0 0 0 32" fill="none" stroke="white" strokeWidth="0.5" />
-          </pattern>
-        </defs>
-        <rect width="100%" height="100%" fill="url(#hero-grid)" />
-      </svg>
+        <Settings2 size={13} strokeWidth={1.6} absoluteStrokeWidth />
+      </button>
 
-      <div className="relative px-8 py-10">
-        {/* Tag chip */}
-        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/15 border border-white/20 mb-4">
-          <FileText size={11} strokeWidth={1.6} absoluteStrokeWidth className="text-white/80" />
-          <span className="text-[11px] font-semibold text-white/90 uppercase tracking-wide">
-            {block.heroTag ?? 'Blog post'}
-          </span>
+      {/* Title */}
+      {editingTitle ? (
+        <input
+          autoFocus
+          className="mb-3 w-full border-0 border-b border-border bg-transparent pb-1 text-[26px] font-bold leading-tight tracking-tight text-foreground outline-none"
+          value={block.heroTitle ?? ''}
+          onChange={e => onUpdate({ heroTitle: e.target.value })}
+          onBlur={e => { if (shouldCloseTextEditor(e)) setEditingTitle(false); }}
+          onKeyDown={e => { if (e.key === 'Enter' || e.key === 'Escape') setEditingTitle(false); }}
+        />
+      ) : (
+        <h1
+          className="mb-3 cursor-text text-[26px] font-bold leading-tight tracking-tight text-foreground hover:text-foreground/80 transition-colors"
+          onClick={() => setEditingTitle(true)}
+        >
+          {block.heroTitle || 'Add a title'}
+        </h1>
+      )}
+
+      {/* Author row */}
+      <div className="mb-5 flex items-center gap-2">
+        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[10px] font-bold text-primary">
+          {(block.heroAuthor ?? 'A').slice(0, 2).toUpperCase()}
         </div>
+        <span className="text-sm font-medium text-foreground">{block.heroAuthor ?? 'Birdeye AI'}</span>
+        <span className="text-muted-foreground">·</span>
+        <span className="text-sm text-muted-foreground">{block.heroReadTime ?? 15} min read</span>
+      </div>
 
-        {/* Title */}
-        {editingTitle ? (
-          <input
-            autoFocus
-            className="w-full text-[22px] font-bold text-white bg-transparent border-b border-white/40 outline-none pb-1 mb-3"
-            value={block.heroTitle ?? ''}
-            onChange={e => onUpdate({ heroTitle: e.target.value })}
-            onBlur={e => { if (shouldCloseTextEditor(e)) setEditingTitle(false); }}
-            onKeyDown={e => { if (e.key === 'Enter' || e.key === 'Escape') setEditingTitle(false); }}
-          />
-        ) : (
-          <h1
-            className="text-[22px] font-bold text-white leading-tight mb-3 cursor-text hover:text-white/80 transition-colors"
-            onClick={() => setEditingTitle(true)}
-          >
-            {block.heroTitle}
-          </h1>
-        )}
+      {/* Hero image */}
+      {block.heroImage ? (
+        <img
+          src={block.heroImage}
+          alt={block.heroTitle ?? 'Hero'}
+          className="h-[260px] w-full rounded-xl object-cover"
+        />
+      ) : (
+        <button
+          type="button"
+          onClick={onOpenSettings}
+          className="flex h-[260px] w-full items-center justify-center rounded-xl border-2 border-dashed border-border bg-muted/30 text-sm text-muted-foreground hover:border-primary/40 hover:bg-muted/50 transition-colors"
+        >
+          <ImageIcon size={16} strokeWidth={1.6} absoluteStrokeWidth className="mr-2" />
+          Add hero image
+        </button>
+      )}
+    </div>
+  );
+}
 
-        {/* Subtitle */}
-        {editingSubtitle ? (
-          <textarea
-            autoFocus
-            rows={2}
-            className="w-full text-sm text-white/70 bg-transparent border border-white/20 rounded-lg p-2 outline-none resize-none"
-            value={block.heroSubtitle ?? ''}
-            onChange={e => onUpdate({ heroSubtitle: e.target.value })}
-            onBlur={e => { if (shouldCloseTextEditor(e)) setEditingSubtitle(false); }}
-          />
-        ) : (
-          block.heroSubtitle ? (
-            <p
-              className="text-sm text-white/70 leading-relaxed max-w-2xl cursor-text hover:text-white/90 transition-colors mb-6"
-              onClick={() => setEditingSubtitle(true)}
-            >
-              {block.heroSubtitle}
-            </p>
-          ) : null
-        )}
+// ── Hero settings panel ───────────────────────────────────────────────────────
 
-        {/* Author / metadata row */}
-        <div className="flex items-center gap-2 mt-4">
-          <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
-            <span className="text-[10px] text-white font-semibold">AI</span>
+function HeroSettingsPanel({
+  block,
+  onUpdate,
+  onClose,
+}: {
+  block: BlogBlock;
+  onUpdate: (p: Partial<BlogBlock>) => void;
+  onClose: () => void;
+}) {
+  return (
+    <div className="flex h-full w-[280px] shrink-0 flex-col border-l border-border bg-background transition-all">
+      <div className="flex shrink-0 items-center justify-between px-4 py-3 border-b border-border">
+        <span className="text-sm font-semibold text-foreground">Hero settings</span>
+        <button
+          type="button"
+          onClick={onClose}
+          className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
+        >
+          <XIcon size={14} strokeWidth={1.6} absoluteStrokeWidth />
+        </button>
+      </div>
+
+      <div className="flex-1 overflow-y-auto px-4 py-4">
+        <div className="flex flex-col gap-6">
+          {/* Title */}
+          <div className="flex flex-col gap-1">
+            <label className="text-xs font-medium text-muted-foreground">Title</label>
+            <textarea
+              rows={3}
+              className="w-full resize-none rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-primary/60 transition-colors"
+              value={block.heroTitle ?? ''}
+              onChange={e => onUpdate({ heroTitle: e.target.value })}
+              placeholder="Enter article title"
+            />
           </div>
-          <span className="text-[12px] text-white/60">Birdeye AI</span>
-          <span className="text-white/30 text-[12px]">·</span>
-          <span className="text-[12px] text-white/60">5 min read</span>
-          <span className="text-white/30 text-[12px]">·</span>
-          <span className="text-[11px] px-2 py-0.5 rounded-full bg-white/10 text-white/70 font-medium">AI-generated</span>
+
+          {/* Author */}
+          <div className="flex flex-col gap-1">
+            <label className="text-xs font-medium text-muted-foreground">Author</label>
+            <input
+              type="text"
+              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-primary/60 transition-colors"
+              value={block.heroAuthor ?? ''}
+              onChange={e => onUpdate({ heroAuthor: e.target.value })}
+              placeholder="e.g. Birdeye AI"
+            />
+          </div>
+
+          {/* Read time */}
+          <div className="flex flex-col gap-1">
+            <label className="text-xs font-medium text-muted-foreground">Read time (minutes)</label>
+            <input
+              type="number"
+              min={1}
+              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-primary/60 transition-colors"
+              value={block.heroReadTime ?? 15}
+              onChange={e => onUpdate({ heroReadTime: parseInt(e.target.value, 10) || 1 })}
+            />
+          </div>
+
+          {/* Hero image URL */}
+          <div className="flex flex-col gap-1">
+            <label className="text-xs font-medium text-muted-foreground">Hero image URL</label>
+            <input
+              type="url"
+              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-primary/60 transition-colors"
+              value={block.heroImage ?? ''}
+              onChange={e => onUpdate({ heroImage: e.target.value })}
+              placeholder="https://..."
+            />
+            {block.heroImage && (
+              <img
+                src={block.heroImage}
+                alt="Hero preview"
+                className="mt-2 h-24 w-full rounded-lg object-cover"
+              />
+            )}
+          </div>
         </div>
       </div>
     </div>
@@ -958,7 +969,15 @@ function HeadingBlock({ block, onUpdate }: { block: BlogBlock; onUpdate: (p: Par
   const [editing, setEditing] = useState(false);
   const [richStyle, setRichStyle] = useState<React.CSSProperties>({});
   const inputRef = useRef<HTMLInputElement>(null);
-  const isH2 = block.level === 2;
+  const level = block.level ?? 2;
+
+  const textClass = level === 1
+    ? 'text-[26px] font-bold tracking-tight leading-tight text-foreground'
+    : level === 2
+      ? 'text-[18px] font-bold tracking-tight text-foreground'
+      : 'text-[15px] font-semibold text-foreground';
+
+  const topPad = level === 1 ? 'pt-6 pb-4' : 'pt-6 pb-2';
 
   useEffect(() => {
     const el = inputRef.current;
@@ -971,16 +990,13 @@ function HeadingBlock({ block, onUpdate }: { block: BlogBlock; onUpdate: (p: Par
   }, [editing]);
 
   return (
-    <div className="pt-6 pb-2">
+    <div className={topPad}>
       {editing ? (
         <input
           ref={inputRef}
           autoFocus
           style={richStyle}
-          className={cn(
-            'w-full bg-transparent border-b border-primary outline-none',
-            isH2 ? 'text-[18px] font-bold tracking-tight text-foreground' : 'text-[15px] font-semibold text-foreground',
-          )}
+          className={cn('w-full bg-transparent border-b border-primary outline-none', textClass)}
           value={block.headingText ?? ''}
           onChange={e => onUpdate({ headingText: e.target.value })}
           onBlur={e => { if (shouldCloseTextEditor(e)) setEditing(false); }}
@@ -989,10 +1005,7 @@ function HeadingBlock({ block, onUpdate }: { block: BlogBlock; onUpdate: (p: Par
       ) : (
         <p
           style={richStyle}
-          className={cn(
-            'cursor-text hover:text-primary transition-colors',
-            isH2 ? 'text-[18px] font-bold tracking-tight text-foreground' : 'text-[15px] font-semibold text-foreground',
-          )}
+          className={cn('cursor-text hover:text-primary transition-colors', textClass)}
           onClick={() => setEditing(true)}
         >
           {block.headingText}
@@ -1298,6 +1311,8 @@ export function BlogSectionCanvas({ sections, generationLabel, onVersionHistory,
   const [fixingAll, setFixingAll] = useState(false);
   const [panelBump, setPanelBump] = useState(0);
   const [activityOpen, setActivityOpen] = useState(false);
+  const [heroSettingsOpen, setHeroSettingsOpen] = useState(false);
+  const heroBlock = blocks.find(b => b.type === 'hero') ?? null;
 
   useEffect(() => {
     if (scorePanelOpen) {
@@ -1673,6 +1688,7 @@ export function BlogSectionCanvas({ sections, generationLabel, onVersionHistory,
                             if (draggedId) handleReorderBlocks(draggedId, block.id);
                           }}
                           onDragEnd={() => { setDraggingBlockId(null); setDragOverBlockId(null); }}
+                          onOpenHeroSettings={block.type === 'hero' ? () => { setHeroSettingsOpen(true); setScorePanelOpen(false); } : undefined}
                         />
                       );
                     });
@@ -1702,13 +1718,22 @@ export function BlogSectionCanvas({ sections, generationLabel, onVersionHistory,
         onClose={() => setScorePanelOpen(false)}
         config={blogConfig}
         dimensions={blogConfig.scoreDimensions.map(d =>
-          d.label === 'AEO score' ? { ...d, score: initialScore ?? d.score } : d
+          d.label === 'Search Visibility' ? { ...d, score: initialScore ?? d.score } : d
         )}
         score={finalScore}
         onItemFixed={handleItemFixed}
         onFixAll={handleFixAll}
         maxImprovements={initialScore !== undefined ? 1 : undefined}
       />
+
+      {/* ── Hero settings panel ───────────────────────────────────────── */}
+      {heroSettingsOpen && heroBlock && (
+        <HeroSettingsPanel
+          block={heroBlock}
+          onUpdate={patch => updateBlock(heroBlock.id, patch)}
+          onClose={() => setHeroSettingsOpen(false)}
+        />
+      )}
 
       {/* ── Comment panel ─────────────────────────────────────────────── */}
       <CommentPanel

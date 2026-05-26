@@ -32,19 +32,19 @@ function getMetricForCategory(category: string): { label: string; key: MetricsKe
 // Weighted sums: You = 89×10.2+94×16.3+91×8.5+90×30.5+96×11.5+93×22.9 ≈ 92
 //                Comp = 77×10.2+79×16.3+85×8.5+82×30.5+82×11.5+82×22.9 ≈ 81
 const DEFAULT_BLOG_SUBSCORES: AeoSubScore[] = [
-  { name: 'Readability',             weight: 10.2, you: 89, competitor: 77, delta: 12 },
-  { name: 'Content freshness',       weight: 16.3, you: 94, competitor: 79, delta: 15 },
-  { name: 'Click-through structure', weight: 8.5,  you: 91, competitor: 85, delta:  6 },
-  { name: 'Information density',     weight: 30.5, you: 90, competitor: 82, delta:  8 },
-  { name: 'Machine readability',     weight: 11.5, you: 96, competitor: 82, delta: 14 },
-  { name: 'Answerability signals',   weight: 22.9, you: 93, competitor: 82, delta: 11 },
+  { name: 'Intent Match',          weight: 20, you: 89, competitor: 75, delta: 14 },
+  { name: 'Search Visibility',     weight: 25, you: 94, competitor: 79, delta: 15 },
+  { name: 'Content Depth',         weight: 20, you: 91, competitor: 82, delta:  9 },
+  { name: 'Brand Alignment',       weight: 20, you: 90, competitor: 77, delta: 13 },
+  { name: 'Publishing Readiness',  weight: 15, you: 96, competitor: 82, delta: 14 },
 ]
 
 const DEFAULT_FAQ_SUBSCORES: AeoSubScore[] = [
-  { name: 'Brand voice',          weight: 30,   you: 96, competitor: 75, delta: 21 },
-  { name: 'Factual accuracy',     weight: 30,   you: 95, competitor: 78, delta: 17 },
-  { name: 'Content readability',  weight: 25,   you: 94, competitor: 72, delta: 22 },
-  { name: 'Originality',          weight: 15,   you: 93, competitor: 65, delta: 28 },
+  { name: 'Intent Match',          weight: 25, you: 96, competitor: 75, delta: 21 },
+  { name: 'Search Visibility',     weight: 25, you: 95, competitor: 78, delta: 17 },
+  { name: 'Content Depth',         weight: 20, you: 94, competitor: 72, delta: 22 },
+  { name: 'Brand Alignment',       weight: 20, you: 93, competitor: 73, delta: 20 },
+  { name: 'Publishing Readiness',  weight: 10, you: 92, competitor: 65, delta: 27 },
 ]
 
 // ── AEO score box (mini, in-card thumbnail) ───────────────────────────────────
@@ -209,60 +209,54 @@ function BlogPreviewModal({ rec, onClose, onAccept, onNavigateToBlogCanvas, stat
           {/* Right panel: real blog layout */}
           <div className="flex-1 min-w-0 border border-border rounded-lg overflow-y-auto flex flex-col">
 
-            {/* Hero banner */}
-            <div className="relative flex-shrink-0 h-[180px] overflow-hidden flex items-end"
-                 style={{ background: 'linear-gradient(135deg, #0f2540 0%, #1a3d6b 50%, #15543a 100%)' }}>
-              {/* Subtle grid */}
-              <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ opacity: 0.07 }}>
-                <defs>
-                  <pattern id="blog-grid" width="28" height="28" patternUnits="userSpaceOnUse">
-                    <path d="M 28 0 L 0 0 0 28" fill="none" stroke="white" strokeWidth="0.8" />
-                  </pattern>
-                </defs>
-                <rect width="100%" height="100%" fill="url(#blog-grid)" />
-              </svg>
-              {/* Category chip */}
-              <div className="absolute top-4 left-6">
-                <span className="text-[10px] text-white/70 uppercase tracking-[0.8px] font-medium bg-white/10 px-2 py-1 rounded">
-                  Content strategy
-                </span>
-              </div>
-              <div className="relative z-10 px-8 pb-8">
-                <h1 className="text-[28px] text-white font-semibold leading-[36px] max-w-[520px]">
-                  {rec.title}
-                </h1>
+            {/* Article header */}
+            <div className="px-10 pt-8 pb-5 flex-shrink-0">
+              <h1 className="text-[26px] font-bold leading-tight tracking-tight text-foreground mb-4">
+                {rec.title}
+              </h1>
+              {/* Author row */}
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-full bg-primary flex items-center justify-center text-[10px] text-primary-foreground font-bold flex-shrink-0">
+                  AI
+                </div>
+                <span className="text-sm font-medium text-foreground">Birdeye AI</span>
+                <span className="text-muted-foreground text-sm">·</span>
+                <span className="text-sm text-muted-foreground">15 min read</span>
               </div>
             </div>
 
-            {/* Author / meta row */}
-            <div className="flex items-center gap-3 px-8 py-3 border-b border-border flex-shrink-0">
-              <div className="w-7 h-7 rounded-full bg-primary flex items-center justify-center text-[11px] text-primary-foreground font-semibold flex-shrink-0">
-                B
-              </div>
-              <div className="flex items-center gap-2 text-[12px] text-muted-foreground">
-                <span className="text-foreground font-medium">Birdeye AI</span>
-                <span>·</span>
-                <span>May 2025</span>
-                <span>·</span>
-                <span>6 min read</span>
-              </div>
-              <div className="ml-auto">
-                <span className="text-[11px] bg-primary/10 text-primary px-2 py-0.5 rounded-full font-medium">
-                  AI-generated
-                </span>
-              </div>
+            {/* Hero image */}
+            <div className="px-10 pb-6 flex-shrink-0">
+              <img
+                src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=900&q=80"
+                alt={rec.title}
+                className="w-full h-[220px] object-cover rounded-xl"
+              />
             </div>
 
             {/* Article body */}
-            <article className="flex flex-col gap-8 flex-1" style={{ paddingLeft: 50, paddingRight: 37, paddingTop: 38, paddingBottom: 24 }}>
+            <article className="flex flex-col flex-1" style={{ paddingLeft: 40, paddingRight: 37, paddingBottom: 24 }}>
 
-              {dynamicSections ? (
-                dynamicSections.map((s, i) => (
-                  <div key={i} className="flex flex-col gap-2">
-                    {s.heading && <h2 className="text-[20px] text-foreground font-semibold leading-[28px]">{s.heading}</h2>}
+              {(dynamicSections ?? []).map((s, i) => {
+                const isFaqHeading = !s.body && !s.listItems && !s.image && s.heading?.toLowerCase().includes('frequently asked question');
+                const isFaqItem = !s.listItems && !s.image && s.heading && s.body;
+                if (isFaqHeading) {
+                  return <h2 key={i} className="mt-8 text-[18px] font-bold tracking-tight text-foreground">{s.heading}</h2>;
+                }
+                if (isFaqItem && dynamicSections && i > 0 && dynamicSections[i - 1] && !dynamicSections[i - 1].listItems) {
+                  return (
+                    <div key={i} className="mt-4">
+                      <p className="text-[14px] font-semibold text-foreground leading-[22px] mb-1">{s.heading}</p>
+                      <p className="text-[14px] text-foreground leading-[24px]">{s.body}</p>
+                    </div>
+                  );
+                }
+                return (
+                  <div key={i} className={s.heading ? "mt-8" : "mt-2"}>
+                    {s.heading && <h2 className="mb-2 text-[18px] font-semibold text-foreground leading-[26px]">{s.heading}</h2>}
                     {s.body && <p className="text-[14px] text-foreground leading-[24px]">{s.body}</p>}
                     {s.listItems && s.listItems.length > 0 && (
-                      <ul className="flex flex-col gap-2 mt-1">
+                      <ul className="mt-2 flex flex-col gap-1.5">
                         {s.listItems.map((item, j) => (
                           <li key={j} className="flex items-start gap-2.5 text-[14px] text-foreground leading-[22px]">
                             <span className="mt-[9px] w-[4px] h-[4px] rounded-full bg-primary flex-shrink-0" />
@@ -272,36 +266,13 @@ function BlogPreviewModal({ rec, onClose, onAccept, onNavigateToBlogCanvas, stat
                       </ul>
                     )}
                     {s.image && (
-                      <div className="w-full rounded-xl overflow-hidden flex-shrink-0 mt-2" style={{ height: 200 }}>
+                      <div className="w-full rounded-xl overflow-hidden flex-shrink-0 mt-4" style={{ height: 200 }}>
                         <img src={s.image} alt={s.imageAlt ?? s.heading ?? ''} className="w-full h-full object-cover" />
                       </div>
                     )}
                   </div>
-                ))
-              ) : (
-                <>
-                  <p className="text-[15px] text-foreground leading-[26px]">{rec.description}</p>
-                  <div className="w-full rounded-xl overflow-hidden flex-shrink-0" style={{ height: 200 }}>
-                    <img src="https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=900&h=200&fit=crop&crop=center&q=80" alt="Suburban property exterior" className="w-full h-full object-cover" />
-                  </div>
-                  <p className="text-[11px] text-muted-foreground -mt-3 text-center">Suburb-level pages signal geographic precision to AI retrieval systems</p>
-                  <div className="flex flex-col gap-2 pt-1">
-                    <h2 className="text-[20px] text-foreground font-semibold leading-[28px]">Why location-specific pages win more AI citations</h2>
-                    <p className="text-[14px] text-foreground leading-[24px]">Search AI platforms — including ChatGPT, Gemini, and Perplexity — surface results that are geographically precise. Competitors who publish suburb-level pages are capturing citation share you're currently missing.</p>
-                  </div>
-                  <div className="border-l-[3px] border-primary bg-primary/5 pl-4 pr-4 py-3 rounded-r-lg">
-                    <p className="text-[14px] text-foreground leading-[22px] italic">"AI models cite pages that directly answer hyper-local queries. A suburb-level service page converts 3× better than a city-level equivalent."</p>
-                    <p className="text-[12px] text-muted-foreground mt-1.5">— Birdeye Search AI analysis, 2025</p>
-                  </div>
-                  <div className="w-full rounded-xl overflow-hidden flex-shrink-0" style={{ height: 200 }}>
-                    <img src="https://images.unsplash.com/photo-1582268611958-ebfd161ef9cf?w=900&h=200&fit=crop&crop=center&q=80" alt="Real estate agent" className="w-full h-full object-cover" />
-                  </div>
-                  <div className="flex flex-col gap-2 pt-1 pb-2">
-                    <h2 className="text-[20px] text-foreground font-semibold leading-[28px]">Getting started</h2>
-                    <p className="text-[14px] text-foreground leading-[24px]">Review the AI-generated draft, customise the tone to match your agency's voice, and publish it to your website.</p>
-                  </div>
-                </>
-              )}
+                );
+              })}
             </article>
 
             {/* SEO metadata */}
@@ -357,43 +328,43 @@ interface FAQItem {
 const FAQ_ITEMS_PROPERTY_APPRAISAL: FAQItem[] = [
   {
     question: 'What is a property appraisal and why do I need one?',
-    answer: 'A property appraisal is a professional assessment of your property\'s current market value based on comparable sales, location, condition, and local demand. In Dubbo, it\'s the essential first step before listing — it helps you price competitively and avoid leaving money on the table.',
+    answer: 'A property appraisal is a professional assessment of your property\'s current market value, based on comparable sales, location, condition, and local demand. In Dubbo, it\'s the essential first step before listing for sale or setting a rental price — it ensures you enter the market with confidence and accurate expectations.',
   },
   {
     question: 'How much does a property appraisal in Dubbo cost?',
-    answer: 'A standard market appraisal from a local agency is typically free of charge — it\'s part of the service we offer to help you understand your property\'s value before you commit to selling or renting. Formal bank valuations, ordered by lenders, carry a separate fee usually between $300–$600.',
+    answer: 'Our sales and rental appraisals are completely free and come with no obligation to list or lease with us. It\'s part of the service we provide to help Dubbo homeowners and landlords make informed decisions. Formal bank valuations ordered by lenders are a separate process and carry their own fee.',
   },
   {
     question: 'How long does a property appraisal take?',
-    answer: 'An in-person appraisal walk-through generally takes 20–40 minutes. Following the inspection, you\'ll receive a written report within 24–48 hours that outlines the estimated market value, comparable sales data, and our recommended listing strategy.',
+    answer: 'An in-person appraisal typically takes 20–40 minutes. You\'ll receive a written report within 24–48 hours covering the estimated market or rental value, comparable data, and our recommended next steps — whether that\'s listing for sale, leasing, or holding.',
   },
   {
     question: 'What factors affect my property\'s value in Dubbo?',
-    answer: 'Key factors include land size, number of bedrooms and bathrooms, build quality, recent renovations, proximity to Dubbo schools and the CBD, street appeal, and recent sales of comparable homes in your suburb. Regional economic conditions and interest rate movements also play a role.',
+    answer: 'Key factors include land size, the number of bedrooms and bathrooms, build quality and age, recent renovations, proximity to Dubbo\'s CBD, schools, and amenities, street appeal, and recent comparable sales in your suburb. Regional infrastructure activity and current buyer or tenant demand also influence the final estimate.',
   },
   {
-    question: 'How does a Dubbo market appraisal differ from a formal valuation?',
-    answer: 'A market appraisal is an agent\'s expert opinion of likely sale price — it\'s free and non-binding. A formal valuation is a certified report prepared by a licensed valuer, often required by banks for mortgage purposes. Both use comparable sales data, but only a formal valuation carries legal weight for lending decisions.',
+    question: 'What is a rental appraisal and how does it differ from a sales appraisal?',
+    answer: 'A rental appraisal estimates the weekly rent your property could achieve in the current Dubbo rental market. A sales appraisal estimates the price a buyer would pay. Both are free services we offer — some landlords request both to compare the returns from selling versus continuing to rent.',
   },
   {
-    question: 'Can I use a property appraisal to set my listing price?',
-    answer: 'Yes — and you should. Our appraisal gives you a realistic price range based on what buyers in Dubbo are actually paying right now. Pricing within or slightly below the appraised range typically attracts more enquiries and can lead to stronger competition at auction or during private treaty negotiations.',
+    question: 'How do you determine the right rent for my Dubbo rental property?',
+    answer: 'We review current vacancy rates across Dubbo suburbs, comparable rental listings, your property\'s size, condition, and features, and recent leasing outcomes in your area. The goal is to set a rent that is competitive enough to minimise vacancy while maximising your return as a landlord.',
   },
   {
-    question: 'How often should I get my property appraised?',
-    answer: 'The Dubbo market moves, so we recommend a fresh appraisal every 12–18 months if you\'re considering selling or refinancing. If there have been significant infrastructure announcements, new developments nearby, or you\'ve completed renovations, an updated appraisal sooner makes sense.',
+    question: 'What does Raine & Horne Dubbo\'s property management service include?',
+    answer: 'Our property management service covers tenant sourcing and screening, lease preparation, rent collection, routine and emergency maintenance coordination, regular property inspections, disbursements and monthly statements, bond management, and end-of-tenancy processes — all handled by a dedicated local property manager.',
   },
   {
-    question: 'What should I prepare before an appraisal appointment?',
-    answer: 'Gather any recent council rates notices (for land size confirmation), a list of improvements and their approximate costs, and any strata or body corporate documents if applicable. Presenting a clean, decluttered property allows our appraiser to assess it at its best.',
+    question: 'How quickly can you find a tenant for my Dubbo rental property?',
+    answer: 'Most well-presented Dubbo rental properties are leased within 1–3 weeks of listing. We market your property across major rental platforms, leverage our active tenant database, and conduct open inspections to minimise vacancy periods and find quality, long-term tenants.',
   },
   {
-    question: 'Will renovations increase my appraisal value?',
-    answer: 'They can, but not all renovations deliver equal returns in Dubbo. Kitchen and bathroom updates, fresh paint, new flooring, and improved street appeal tend to yield the strongest uplift. Highly personalised or overcapitalised improvements may not be fully reflected in the appraised value.',
+    question: 'What are your property management fees in Dubbo?',
+    answer: 'Our fees are transparent and competitive. We charge a management percentage of the weekly rent, plus a letting fee when a new tenant is placed. All fees are disclosed upfront in your management agreement — there are no hidden charges. Contact us for a full fee schedule tailored to your property.',
   },
   {
-    question: 'How do I choose the right agency for a Dubbo property appraisal?',
-    answer: 'Look for an agency with a proven track record of sales in your specific suburb, local market knowledge, transparent communication, and verifiable results. Ask about their average days on market and sale-to-appraisal ratio — these numbers tell you whether their estimates are realistic or optimistic.',
+    question: 'How do I switch to Raine & Horne Dubbo from my current property manager?',
+    answer: 'Switching is straightforward. We handle the transition on your behalf — including notifying your current manager, transferring tenant and lease documentation, and ensuring no disruption to your rental income. Most landlords are fully transitioned within two weeks of signing a new management authority with us.',
   },
 ]
 

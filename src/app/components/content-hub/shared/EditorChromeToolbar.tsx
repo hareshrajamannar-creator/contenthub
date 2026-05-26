@@ -785,7 +785,7 @@ export function EditorChromeToolbar({
 
   if (inlineMode) {
     return (
-      <div className="flex h-[48px] w-full flex-none items-center gap-1 overflow-x-auto rounded-lg border border-border/60 bg-background px-4">
+      <div className="relative flex h-[48px] w-full flex-none items-center gap-1 rounded-lg border border-border/60 bg-background px-4">
         {richTextVisible ? richTextContent : nonRichContent}
       </div>
     );

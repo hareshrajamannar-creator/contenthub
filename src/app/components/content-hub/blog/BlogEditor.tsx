@@ -43,25 +43,51 @@ const BLOG_QUICK_WINS: QuickWin[] = [
   },
 ];
 
-const MOCK_TITLE = 'How Local Businesses Are Winning With AI-Powered Review Responses';
+const MOCK_TITLE = 'Dubbo Property Market 2026: What Buyers, Sellers and Landlords Need to Know';
 
-const MOCK_BODY = `Online reviews shape purchasing decisions more than ever. According to a 2024 BrightLocal survey, 93% of consumers read reviews before visiting a local business, and 89% say they're more likely to choose a business that responds to all reviews.
+const MOCK_BODY = `The Dubbo property market in 2026 continues to attract strong interest from owner-occupiers, upsizers, and investors across regional NSW. With relatively affordable entry prices, tight rental vacancy, and ongoing infrastructure investment in the region, Dubbo remains one of the most active property markets outside Australia's major capital cities.
 
-## The AI Advantage
+## Market Conditions for Sellers in Dubbo
 
-AI-powered response tools help local businesses respond faster and more consistently — without sacrificing personalization. Rather than templated copy-paste replies, modern AI can:
+Sellers in Dubbo are currently benefiting from limited available stock and consistent buyer enquiry. Well-presented properties priced within the appraised range are achieving strong results and spending fewer days on market than in previous years.
 
-- **Personalize** each response based on the reviewer's specific feedback
-- **Match your brand voice** across thousands of locations
-- **Escalate** negative reviews to the right team member automatically
+Key trends for Dubbo vendors in 2026:
 
-## Getting Started
+- Median house prices across Dubbo suburbs have held firm with steady growth in popular family areas
+- Three and four bedroom homes in South Dubbo, Keswick Estate, and Delroy Park are attracting multiple buyer enquiries
+- Properties priced at or below the appraised range are typically selling within 30–45 days of listing
 
-The most effective approach is to start with your most common review scenarios — 5-star compliments, 3-star mixed reviews, and 1-star complaints. Training your AI on these three patterns covers 85% of real-world cases.
+## Rental Market Update for Landlords
 
-## What Results to Expect
+Dubbo's rental market remains tight heading into 2026, with vacancy rates well below the state average. Landlords with well-maintained properties are achieving competitive weekly rents and experiencing minimal downtime between tenancies.
 
-Businesses using AI review response tools typically see a **23% increase in review volume** within 60 days, as customers feel more acknowledged and are more likely to leave follow-up feedback.`;
+- Three bedroom houses in West Dubbo and Grangewood are among the most in-demand rental categories
+- Tenants are prioritising properties with ducted air conditioning, updated bathrooms, and secure parking
+- Annual rent reviews are recommended to ensure your return keeps pace with current market rates
+
+## What Buyers Need to Know in 2026
+
+For buyers, Dubbo continues to offer meaningful value relative to major metropolitan markets, alongside strong community infrastructure, quality schools, and growing local employment.
+
+- Finance pre-approval is essential — well-priced properties are moving quickly
+- Suburbs like Brocklehurst and Wongarbon offer more affordable entry points for first home buyers
+- Investors should target properties near Dubbo Base Hospital and established schools for consistent tenant demand
+
+## Five Steps Before Selling Your Dubbo Property
+
+**1. Book a free appraisal.** Establish a realistic price range based on current comparable sales in your specific suburb.
+
+**2. Address minor maintenance.** Fresh paint, repaired gutters, and clean gardens create a strong first impression.
+
+**3. Invest in location-level depth.** Generic national content consistently loses to location-specific pages that include service areas, local context, and staff information.
+
+**4. Strengthen validation layers.** Directory listings, profiles, and third-party citations must be consistent across all locations.
+
+**5. Track answer presence continuously.** Monitor which queries cite your brand and which locations are missing from AI-generated answers.
+
+## The Bottom Line
+
+Brands that appear in AI-generated answers capture demand at the moment of decision. Brands that do not appear lose visibility at that same moment — and unlike traditional search, there is no page two to fall back on. The window for building AI search presence is open now, before the market consolidates around the brands that move first.`;
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -91,9 +117,9 @@ function AIModePanel({ onGenerate }: { onGenerate: (prompt: string) => void }) {
   const [isGenerating, setIsGenerating] = useState(false);
 
   const suggestions = [
-    'How AI is changing reputation management for local businesses',
-    'Top 5 ways to improve your Google Maps ranking',
-    'What the Google SGE update means for local SEO',
+    'Dubbo property market 2026: what buyers, sellers and landlords need to know',
+    'How professional property management protects your Dubbo investment',
+    'Free property appraisal in Dubbo: what to expect and how to prepare',
   ];
 
   const handleGenerate = () => {

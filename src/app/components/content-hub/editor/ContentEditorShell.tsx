@@ -97,24 +97,13 @@ function scoreColorFor(value: number): ScoreDimension['color'] {
 }
 
 function buildBlogScoreDimensions(overallScore: number): ScoreDimension[] {
-  const score = Math.max(0, Math.min(100, Math.round(overallScore)));
-  const values = [
-    Math.max(0, Math.min(100, score + 1)),
-    score,
-    Math.max(0, Math.min(100, score - 1)),
-  ];
-  values.push(Math.max(0, Math.min(100, score * 4 - values.reduce((sum, value) => sum + value, 0))));
-
-  return [
-    'Brand alignment',
-    'AEO score',
-    'Readability',
-    'Accuracy',
-  ].map((label, index) => ({
-    label,
-    score: values[index] ?? score,
-    color: scoreColorFor(values[index] ?? score),
-  }));
+  const s = Math.max(0, Math.min(100, Math.round(overallScore)));
+  const offsets = [1, -3, 2, 3, -4];
+  const labels = ['Intent Match', 'Search Visibility', 'Content Depth', 'Brand Alignment', 'Publishing Readiness'];
+  return labels.map((label, i) => {
+    const v = Math.max(0, Math.min(100, s + offsets[i]));
+    return { label, score: v, color: scoreColorFor(v) };
+  });
 }
 
 const BRAND_KIT_LABELS: Record<string, string> = {
@@ -185,91 +174,98 @@ const DEFAULT_REC_BLOG_FLOW_DATA: BlogFlowData = {
   contentName: '',
   brandKit: 'olive-garden',
   locations: ['loc-1001', 'loc-1002', 'loc-1003', 'loc-1004', 'loc-1005', 'loc-1006', 'loc-1007', 'loc-1008', 'loc-1009', 'loc-1010', 'loc-1011', 'loc-1012', 'loc-1013', 'loc-1014', 'loc-1015', 'loc-1016', 'loc-1017', 'loc-1018', 'loc-1019', 'loc-1020'],
-  topic: 'Dubbo property appraisal guide 2025',
-  keywords: 'property appraisal Dubbo, house valuation, real estate Dubbo',
-  tone: 'professional',
-  audience: 'homeowners',
-  wordTarget: 1200,
+  topic: 'Dubbo property market 2026 — what buyers, sellers and landlords need to know',
+  keywords: 'Dubbo property, property management Dubbo, rental appraisal Dubbo, sell property Dubbo, Raine & Horne Dubbo',
+  audience: 'Dubbo homeowners, landlords, and property buyers',
+  wordTarget: 2500,
   publishTo: [],
   sections: [
-    { id: 'blog-sec-1', heading: 'Introduction',                             description: '', wordCount: 150 },
-    { id: 'blog-sec-2', heading: 'Why property appraisals matter in Dubbo',  description: '', wordCount: 200 },
-    { id: 'blog-sec-3', heading: 'Key factors that affect property value',   description: '', wordCount: 250 },
-    { id: 'blog-sec-4', heading: 'How to choose a qualified appraiser',      description: '', wordCount: 200 },
-    { id: 'blog-sec-5', heading: 'How to get started',                       description: '', wordCount: 150 },
+    { id: 'blog-sec-1', heading: 'Dubbo market conditions for sellers',       description: 'Low listing volumes and consistent buyer enquiry — what sellers need to know right now', wordCount: 300 },
+    { id: 'blog-sec-2', heading: 'Rental market update for landlords',        description: 'Tight vacancy rates, strong demand, and how to maximise your rental yield in Dubbo', wordCount: 350 },
+    { id: 'blog-sec-3', heading: 'What buyers need to know in 2026',          description: 'Finance pre-approval, best-value suburbs, and how to move quickly in a competitive market', wordCount: 400 },
+    { id: 'blog-sec-4', heading: 'Five steps before selling your Dubbo home', description: 'From appraisal to presentation — the highest-return actions before going to market', wordCount: 400 },
+    { id: 'blog-sec-5', heading: 'Free appraisal and next steps',             description: 'How to book a free sales or rental appraisal with Raine & Horne Dubbo', wordCount: 300 },
   ],
 };
 
-const DEFAULT_SEARCH_AI_BLOG_TITLE = 'Free Property Appraisal in Dubbo | Raine & Horne';
-const DEFAULT_SEARCH_AI_BLOG_HERO_IMAGE = 'https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=900&q=80';
+const DEFAULT_SEARCH_AI_BLOG_TITLE = 'Dubbo Property Market 2026: What Buyers, Sellers and Landlords Need to Know';
+const DEFAULT_SEARCH_AI_BLOG_HERO_IMAGE = 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=900&q=80';
 const DEFAULT_SEARCH_AI_BLOG_SECTIONS: NonNullable<ContentEditorShellProps['preloadedBlogSections']> = [
   {
-    body: "If you've been wondering what your property is worth in today's market, getting a professional appraisal is one of the smartest first steps. Whether you're thinking of selling, renting, refinancing, or simply planning ahead, a local property appraisal gives you a clear understanding of your home's current value. At Raine & Horne Dubbo, we help homeowners across Dubbo and surrounding areas with accurate, obligation-free property appraisals backed by local market knowledge and real buyer demand.",
+    body: "The Dubbo property market in 2026 continues to attract strong interest from owner-occupiers, upsizers, and investors across regional NSW. With relatively affordable entry prices, tight rental vacancy, and ongoing infrastructure investment in the region, Dubbo remains one of the most active property markets outside of Australia's capital cities. Whether you are planning to sell, buy, or maximise the return on a rental property, understanding current local conditions is the essential first step.",
   },
   {
-    heading: 'Why Get a Property Appraisal?',
-    body: 'A professional appraisal can help you:',
+    heading: 'Market Conditions for Sellers in Dubbo',
+    body: 'Sellers in Dubbo are currently benefiting from limited available stock and consistent buyer enquiry. Well-presented properties priced within the appraised range are achieving strong results and spending fewer days on market than in previous years.',
     listItems: [
-      "Understand your home's likely sale price in the current market",
-      'Estimate potential rental returns',
-      'Decide whether now is the right time to sell',
-      'Plan renovations that may increase value',
-      'Compare your property against recent local sales',
-      'Make informed financial decisions',
-    ],
-    image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=900&q=80',
-    imageAlt: 'Suburban house exterior',
-  },
-  {
-    heading: 'Free Property Appraisals in Dubbo',
-    body: 'We offer free property appraisals for homeowners throughout Dubbo and nearby communities. Our team assesses factors such as:',
-    listItems: [
-      'Property size and land area',
-      'Location and street appeal',
-      'Number of bedrooms and bathrooms',
-      'Renovations and overall presentation',
-      'Comparable recent sales nearby',
-      'Current market demand in your suburb',
+      'Median house prices across Dubbo suburbs have held firm with steady growth in popular family areas',
+      'Three and four bedroom homes in South Dubbo, Keswick Estate, and Delroy Park are attracting multiple buyer enquiries',
+      'Properties priced at or below the appraised range are typically selling within 30–45 days of listing',
+      'Street appeal, updated kitchens, and outdoor entertaining areas are the features buyers value most right now',
     ],
     image: 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=900&q=80',
-    imageAlt: 'Property for sale',
+    imageAlt: 'Residential property for sale in Dubbo',
   },
   {
-    heading: 'Areas We Service',
-    body: 'We cover all major suburbs and surrounding areas, including:',
+    heading: 'Rental Market Update for Dubbo Landlords',
+    body: 'Dubbo\'s rental market remains tight heading into 2026, with vacancy rates well below the state average. Landlords with well-maintained properties are achieving competitive weekly rents and experiencing minimal downtime between tenancies.',
     listItems: [
-      'Central Dubbo',
-      'South Dubbo',
-      'West Dubbo',
-      'East Dubbo',
-      'North Dubbo',
-      'Delroy Park',
-      'Keswick Estate',
-      'Grangewood',
-      'Brocklehurst',
-      'Wongarbon',
-      'Eumungerie and nearby regions',
+      'Rental vacancy in Dubbo is low — quality properties in good condition are leasing quickly',
+      'Three bedroom houses in West Dubbo and Grangewood are among the most in-demand rental categories',
+      'Tenants are prioritising properties with ducted air conditioning, updated bathrooms, and secure parking',
+      'Annual rent reviews are recommended to ensure your return keeps pace with current market rates',
     ],
     image: 'https://images.unsplash.com/photo-1600047509807-ba8f99d2cdde?w=900&q=80',
-    imageAlt: 'Dubbo neighbourhood',
+    imageAlt: 'Rental property in Dubbo suburb',
   },
   {
-    heading: 'Fast Turnaround Times',
-    body: 'We understand timing matters. Most property appraisals are completed within 24-48 hours, depending on location and property type.',
-  },
-  {
-    heading: 'Thinking of Selling?',
-    body: 'Many homeowners request an appraisal before deciding whether to list. A professional market estimate can help you understand:',
+    heading: 'What Buyers Need to Know in 2026',
+    body: 'For buyers, Dubbo continues to offer meaningful value relative to major metropolitan markets, alongside strong community infrastructure, quality schools, and growing local employment. Both first home buyers and investors are active in the current market.',
     listItems: [
-      'If current market conditions suit your goals',
-      'What buyers may pay today',
-      'How to prepare your home for sale',
-      'Whether small improvements could boost price',
+      'Finance pre-approval is essential — well-priced properties are moving quickly and competition is real',
+      'Suburbs like Brocklehurst and Wongarbon offer more affordable entry points for first home buyers',
+      'Investors should focus on properties near Dubbo Base Hospital, the CBD, and established schools for consistent tenant demand',
+      'A free buyer consultation with a local agent will give you a realistic picture of current value ranges before you start inspecting',
     ],
   },
   {
-    heading: 'Request Your Free Dubbo Property Appraisal Today',
-    body: "If you'd like to know what your property could be worth, the team at Raine & Horne Dubbo is here to help. Get in touch today to book your free, no-obligation appraisal and receive expert local advice you can trust.",
+    heading: 'Five Steps to Take Before Selling Your Dubbo Property',
+    body: 'Preparation before listing has a measurable impact on sale price and time on market. These are the five highest-return steps Dubbo vendors can take before going live.',
+    listItems: [
+      'Book a free appraisal — establish a realistic price range based on current comparable sales in your specific suburb',
+      'Address minor maintenance — fresh paint, repaired gutters, and clean gardens create a strong first impression',
+      'Declutter and depersonalise — buyers need to picture themselves living there, not navigating your belongings',
+      'Invest in professional photography — listings with quality images generate significantly more digital enquiry',
+      'Agree on a marketing plan — discuss open home frequency, digital advertising reach, and a clear pricing strategy with your agent',
+    ],
+  },
+  {
+    heading: 'Book Your Free Dubbo Property Appraisal',
+    body: 'Whether you are ready to act now or simply want to understand your options, a free appraisal is the best starting point. Raine & Horne Dubbo provides obligation-free sales and rental appraisals across all Dubbo suburbs and surrounding communities. Contact our team today to book your appraisal and get an accurate, locally grounded view of what your property is worth right now.',
+  },
+  {
+    heading: 'Frequently Asked Questions',
+    body: '',
+  },
+  {
+    heading: 'Is now a good time to sell my property in Dubbo?',
+    body: 'Current conditions in Dubbo — low listing stock, active buyer enquiry, and shorter days on market — are generally favourable for sellers. A free appraisal with a local Raine & Horne agent will give you a clear, suburb-specific view of what your property could achieve right now.',
+  },
+  {
+    heading: 'How do I know what rent to charge for my Dubbo investment property?',
+    body: 'A free rental appraisal compares your property against current Dubbo listings and recent leasing results in your suburb, factoring in size, condition, location, and tenant demand. The goal is to recommend a competitive weekly rent that minimises vacancy while maximising your return.',
+  },
+  {
+    heading: 'What costs are involved in selling a property in Dubbo?',
+    body: 'The main costs of selling in Dubbo include agent commission, marketing and advertising, conveyancing fees, and any pest or building inspections required. Your agent should provide a full written cost estimate before you sign a listing agreement — always ask for this upfront.',
+  },
+  {
+    heading: 'How long does it take to sell a house in Dubbo?',
+    body: 'Most well-presented Dubbo properties sell within 30–60 days of listing when priced correctly. Properties that are overpriced or poorly marketed tend to sit longer, which can negatively affect buyer perception. An honest appraisal and a strong marketing plan are the two most important factors.',
+  },
+  {
+    heading: 'What does a Dubbo property manager do and is it worth the cost?',
+    body: 'A professional property manager handles tenant sourcing and screening, lease preparation, rent collection, routine inspections, maintenance coordination, and compliance with NSW tenancy legislation. For most Dubbo landlords, the cost of professional management is outweighed by the time saved, reduced vacancy, and risk mitigation it provides.',
   },
 ];
 
@@ -314,30 +310,40 @@ function buildBlogEditorBlocks({
   const today = new Date().toISOString().split('T')[0];
   const contentSections = hasPreloadedSections ? preloadedSections! : DEFAULT_SEARCH_AI_BLOG_SECTIONS;
 
+  // Article title as H1
   const blocks: EditorBlock[] = [
-    createEditorBlock('blog-hero', 'hero', {
-      headline: articleTitle,
-      subheadline: "If you've been wondering what your property is worth in today's market, this guide explains how a local appraisal helps you make a confident next decision.",
-      ctaLabel: 'Talk to an expert',
-      ctaUrl: '',
-    }),
+    createEditorBlock('blog-title', 'heading', { text: articleTitle, level: 'h1' }),
     createEditorBlock('blog-author', 'author-bar', {
-      name: 'Birdeye content team',
+      name: 'Birdeye AI',
       date: today,
-      readingTime: '6 min read',
-      tags: ['Local SEO', 'Customer experience'],
+      readingTime: '15 min read',
+      tags: ['AI search', 'AEO'],
+    }),
+    createEditorBlock('blog-hero-image', 'image', {
+      src: DEFAULT_SEARCH_AI_BLOG_HERO_IMAGE,
+      alt: articleTitle,
+      caption: '',
     }),
   ];
 
-  if (!hasPreloadedSections) {
-    blocks.push(createEditorBlock('blog-preview-hero-image', 'image', {
-      src: DEFAULT_SEARCH_AI_BLOG_HERO_IMAGE,
-      alt: 'Property appraisal home exterior',
-      caption: '',
-    }));
-  }
+  // Split content sections from FAQ Q&As
+  let inFaqSection = false;
+  const faqSections: typeof contentSections = [];
+  const bodySections: typeof contentSections = [];
 
-  contentSections.forEach((section, index) => {
+  contentSections.forEach(section => {
+    if (section.heading?.toLowerCase().includes('frequently asked question')) {
+      inFaqSection = true;
+      return;
+    }
+    if (inFaqSection) {
+      faqSections.push(section);
+    } else {
+      bodySections.push(section);
+    }
+  });
+
+  bodySections.forEach((section, index) => {
     const prefix = hasPreloadedSections ? 'blog-preloaded' : 'blog-search-preview';
     if (section.heading) {
       blocks.push(createEditorBlock(`${prefix}-heading-${index}`, 'heading', { text: section.heading, level: 'h2' }));
@@ -356,6 +362,30 @@ function buildBlogEditorBlocks({
       }));
     }
   });
+
+  // FAQ section at the bottom
+  const faqItems = faqSections.filter(s => s.heading && s.body);
+  if (faqItems.length > 0) {
+    blocks.push(createEditorBlock('blog-faq-heading', 'heading', { text: 'Frequently Asked Questions', level: 'h2' }));
+    faqItems.forEach((section, index) => {
+      blocks.push(createEditorBlock(`blog-faq-q-${index}`, 'heading', { text: section.heading!, level: 'h3' }));
+      blocks.push(createEditorBlock(`blog-faq-a-${index}`, 'paragraph', { text: section.body! }));
+    });
+  }
+
+  // Fallback FAQs when no preloaded FAQ data
+  if (faqItems.length === 0) {
+    blocks.push(createEditorBlock('blog-faq-heading', 'heading', { text: 'Frequently Asked Questions', level: 'h2' }));
+    [
+      { q: 'What is the difference between SEO and AI search optimization?', a: 'SEO improves your position in a ranked list of links. AI search optimization — often called AEO — focuses on being selected and cited in a single synthesized answer. The goal shifts from ranking on page one to being the source an AI platform trusts and cites.' },
+      { q: 'Which AI platforms should I optimize for?', a: 'The three platforms with the highest query volume in 2026 are ChatGPT, Gemini, and Perplexity. Each uses slightly different citation signals, but the fundamentals — complete profiles, structured content, and consistent citations — apply to all three.' },
+      { q: 'What content types perform best in AI search?', a: 'FAQ pages, location-specific service pages, pricing pages, and comparison content consistently outperform generic brand copy. Content written to directly answer customer questions is cited more often than promotional copy.' },
+      { q: 'How do reviews influence AI-generated answers?', a: 'Reviews act as trust signals. LLMs analyze overall ratings, sentiment consistency, and the specificity of review content to validate brand recommendations. A business with a high volume of detailed, positive reviews is cited more often than one with sparse or mixed feedback.' },
+    ].forEach(({ q, a }, i) => {
+      blocks.push(createEditorBlock(`blog-faq-q-${i}`, 'heading', { text: q, level: 'h3' }));
+      blocks.push(createEditorBlock(`blog-faq-a-${i}`, 'paragraph', { text: a }));
+    });
+  }
 
   return blocks;
 }

@@ -188,11 +188,11 @@ export const EDITOR_CONFIGS: Record<ContentMode, EditorConfig> = {
       { id: 'keywords', label: 'Target keywords',  type: 'text',     placeholder: 'e.g. local SEO, review management' },
     ],
     scoreDimensions: [
-      { label: 'Brand voice',      score: 90, color: 'green'  },
-      { label: 'Factual accuracy', score: 85, color: 'green'  },
-      { label: 'SEO optimization', score: 82, color: 'orange' },
-      { label: 'Content depth',    score: 88, color: 'green'  },
-      { label: 'AEO score',        score: 75, color: 'orange' },
+      { label: 'Intent Match',         score: 88, color: 'green'  },
+      { label: 'Search Visibility',    score: 82, color: 'green'  },
+      { label: 'Content Depth',        score: 85, color: 'green'  },
+      { label: 'Brand Alignment',      score: 90, color: 'green'  },
+      { label: 'Publishing Readiness', score: 75, color: 'orange' },
     ],
     quickWins: [
       { label: 'Add internal links',  description: 'Add 2+ internal links to boost SEO authority.', action: 'Add links' },
@@ -372,10 +372,11 @@ export const EDITOR_CONFIGS: Record<ContentMode, EditorConfig> = {
       { id: 'tone',      label: 'Tone',                  type: 'select',   options: ['Friendly & conversational', 'Professional', 'Concise & direct', 'Authoritative'] },
     ],
     scoreDimensions: [
-      { label: 'Brand alignment', score: 88, color: 'green'  },
-      { label: 'AEO score',       score: 74, color: 'orange' },
-      { label: 'Readability',     score: 90, color: 'green'  },
-      { label: 'Accuracy',        score: 82, color: 'green'  },
+      { label: 'Intent Match',         score: 90, color: 'green'  },
+      { label: 'Search Visibility',    score: 74, color: 'orange' },
+      { label: 'Content Depth',        score: 88, color: 'green'  },
+      { label: 'Brand Alignment',      score: 82, color: 'green'  },
+      { label: 'Publishing Readiness', score: 78, color: 'orange' },
     ],
     quickWins: [
       { label: 'Add location keywords', description: 'Mention city names in 2–3 answers to lift local citation probability.', action: 'Make it local' },

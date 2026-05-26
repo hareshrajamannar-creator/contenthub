@@ -228,6 +228,44 @@ const MODE_META: Record<BlockEditorMode, { icon: React.ElementType; title: strin
   faq:     { icon: MessageSquare, title: 'Build your FAQ',                   sub: 'Add Q&A pairs or organise them into sections.' },
 };
 
+// ── Blog-mode semantic spacing ────────────────────────────────────────────────
+// Mirrors how Gutenberg, Framer, and Notion handle block spacing:
+// headings signal section breaks and get large top gaps; content within a
+// section stays tight to its heading.
+function getBlogBlockTopClass(block: Block, prevBlock: Block | null, idx: number): string {
+  if (idx === 0 || !prevBlock) return '';
+
+  const t = block.type;
+  const pt = prevBlock.type;
+  const level = String((block.content as Record<string, unknown>)?.level ?? '');
+  const prevLevel = String((prevBlock.content as Record<string, unknown>)?.level ?? '');
+
+  // H2 = new major section — large gap so sections feel distinct
+  if (t === 'heading' && level === 'h2') return 'mt-10';
+  // H3 = sub-section — medium gap
+  if (t === 'heading' && level === 'h3') return 'mt-6';
+
+  // Content right after H1 (author bar, etc.) — tight
+  if (pt === 'heading' && prevLevel === 'h1') return 'mt-1';
+  // Content right after any heading groups tightly with it
+  if (pt === 'heading') return 'mt-0';
+
+  // Images: generous breathing room before and after
+  if (t === 'image') return 'mt-6';
+  if (pt === 'image') return 'mt-6';
+
+  // Author bar → hero image
+  if (pt === 'author-bar') return 'mt-4';
+
+  // List immediately after paragraph: tight grouping
+  if (t === 'list' && pt === 'paragraph') return 'mt-1';
+  // Paragraph after list: small gap
+  if (t === 'paragraph' && pt === 'list') return 'mt-2';
+
+  // Default body content (paragraph → paragraph, etc.)
+  return 'mt-4';
+}
+
 function EmptyState({ mode, onAdd }: { mode: BlockEditorMode; onAdd: (type: import('./blockTypes').BlockType) => void }) {
   const meta = MODE_META[mode];
   const Icon = meta.icon;
@@ -384,9 +422,11 @@ export function BlockCanvas({ mode, zoom = 1, onZoomChange, onBlockFocus }: Bloc
             {blocks.map((block: Block, idx: number) => {
               const BlockComponent = BLOCK_COMPONENTS[block.type];
               const isFocused = focusedId === block.id;
+              const prevBlock = idx > 0 ? blocks[idx - 1] : null;
+              const topClass = mode === 'blog' ? getBlogBlockTopClass(block, prevBlock, idx) : '';
 
               return (
-                <div key={block.id}>
+                <div key={block.id} className={topClass}>
                   {/* Insertion point above this block */}
                   <BlockPicker
                     mode={mode}

@@ -215,8 +215,8 @@ export function ContentScorePanel({
                 <span className="text-[10px] text-muted-foreground leading-none italic font-serif">i</span>
               </div>
             </TooltipTrigger>
-            <TooltipContent side="top" sideOffset={6} className="max-w-[220px] text-center">
-              Score reflects how well this content is optimised for AEO (AI search visibility), brand consistency, and SEO performance.
+            <TooltipContent side="top" sideOffset={6} className="max-w-[300px]">
+              Content score is calculated using a weighted scoring model across five key quality signals: Intent Match (30%), Search Visibility (25%), Content Depth (20%), Brand Alignment (15%), and Publishing Readiness (10%). Together, these factors determine how optimized, relevant, on-brand, and publish-ready your content is.
             </TooltipContent>
           </Tooltip>
           {isRecalculating && (
@@ -337,10 +337,11 @@ export function ContentScorePanel({
 // ── Defaults ──────────────────────────────────────────────────────────────────
 
 export const DEFAULT_AEO_DIMS: ScoreDim[] = [
-  { label: 'Brand voice',         score: 96, weight: 30 },
-  { label: 'Factual accuracy',    score: 95, weight: 30 },
-  { label: 'Content readability', score: 94, weight: 25 },
-  { label: 'Originality',         score: 93, weight: 15 },
+  { label: 'Intent Match',         score: 96, weight: 30 },
+  { label: 'Search Visibility',    score: 94, weight: 25 },
+  { label: 'Content Depth',        score: 93, weight: 20 },
+  { label: 'Brand Alignment',      score: 95, weight: 15 },
+  { label: 'Publishing Readiness', score: 92, weight: 10 },
 ];
 
 export const DEFAULT_OVERALL_SCORE: number = Math.round(

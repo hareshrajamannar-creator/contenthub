@@ -56,28 +56,35 @@ export function SearchAIBlogPreviewModal({ rec, open, onClose }: SearchAIBlogPre
               {/* Scrollable body */}
               <ScrollArea className="min-h-0 flex-1">
                 <div className="flex flex-col">
-                  {/* Hero image */}
-                  <img
-                    src={blog.heroImage}
-                    alt={rec.title}
-                    className="h-[220px] w-full object-cover"
-                  />
-
                   <div className="px-8 pb-8 pt-6">
+                    {/* Article title */}
+                    <h1 className="mb-4 text-xl font-bold leading-snug tracking-tight text-foreground">
+                      {rec.title}
+                    </h1>
+
                     {/* Article meta */}
-                    <div className="mb-6 flex flex-wrap items-center gap-2">
+                    <div className="mb-5 flex flex-wrap items-center gap-2">
+                      <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[9px] font-bold text-primary">
+                        AI
+                      </div>
+                      <span className="text-xs font-medium text-foreground">Birdeye AI</span>
+                      <span className="text-xs text-muted-foreground">·</span>
+                      <span className="text-xs text-muted-foreground">15 min read</span>
+                      <span className="text-xs text-muted-foreground">·</span>
                       <Badge variant="secondary" className="text-[11px]">AI generated</Badge>
-                      <span className="text-xs text-muted-foreground">Raine &amp; Horne AI</span>
-                      <span className="text-xs text-muted-foreground">·</span>
-                      <span className="text-xs text-muted-foreground">May 2025</span>
-                      <span className="text-xs text-muted-foreground">·</span>
-                      <span className="text-xs text-muted-foreground">5 min read</span>
                     </div>
 
+                    {/* Hero image */}
+                    <img
+                      src={blog.heroImage}
+                      alt={rec.title}
+                      className="mb-6 h-[220px] w-full rounded-xl object-cover"
+                    />
+
                     {/* Sections */}
-                    <div className="flex flex-col gap-4">
+                    <div className="flex flex-col">
                       {blog.sections.map((section, i) => (
-                        <div key={i}>
+                        <div key={i} className={section.heading ? "mt-6" : "mt-2"}>
                           {section.heading && (
                             <h2 className="mb-2 text-base font-semibold text-foreground">
                               {section.heading}

@@ -131,7 +131,7 @@ export function BlockShell({
       </div>
 
       {/* Block content */}
-      <div className={cn(surface === 'card' ? 'px-5 py-4' : 'px-4 py-3')} onBlur={onBlur}>
+      <div className={cn(surface === 'card' ? 'px-5 py-4' : 'px-4 py-0.5')} onBlur={onBlur}>
         {children}
       </div>
     </div>

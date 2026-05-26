@@ -106,8 +106,8 @@ export const TextEditingToolbar: Story = {
   },
 };
 
-export const ManualBlockTabs: Story = {
-  name: 'Manual block tabs',
+export const ManualPanel: Story = {
+  name: 'Manual panel',
   args: {
     sections: THREE_SECTIONS,
     generationLabel: 'AEO optimized · 14 FAQs · 3 sections',
@@ -116,7 +116,20 @@ export const ManualBlockTabs: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
     await userEvent.click(canvas.getByRole('button', { name: 'Manual' }));
-    await userEvent.click(canvas.getByRole('button', { name: 'Pre-built' }));
+  },
+};
+
+export const TitleInserted: Story = {
+  name: 'Title block inserted',
+  args: {
+    sections: THREE_SECTIONS,
+    generationLabel: 'AEO optimized · 14 FAQs · 3 sections',
+    onEditSettings: () => console.log('Edit settings'),
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await userEvent.click(canvas.getByRole('button', { name: 'Manual' }));
+    await userEvent.click(canvas.getByRole('button', { name: 'Title' }));
   },
 };
 
