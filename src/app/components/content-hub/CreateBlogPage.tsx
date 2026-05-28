@@ -180,7 +180,7 @@ export function CreateBlogPage({ onCancel, onGenerate }: CreateBlogPageProps) {
   const [advancedOpen, setAdvancedOpen] = useState(false);
   const [includeImages, setIncludeImages]   = useState(true);
   const [includeCTAs, setIncludeCTAs]       = useState(true);
-  const [includeFAQ, setIncludeFAQ]         = useState(false);
+  const [includeFAQ, setIncludeFAQ]         = useState(true);
   const [internalLinks, setInternalLinks]   = useState(true);
   const [generatingTopic, setGeneratingTopic] = useState(false);
   const topicIdxRef  = useRef(0);
@@ -448,11 +448,11 @@ export function CreateBlogPage({ onCancel, onGenerate }: CreateBlogPageProps) {
         </div>
 
         {/* Advanced options */}
-        <div>
+        <div className="rounded-lg border border-border">
           <button
             type="button"
             onClick={() => setAdvancedOpen(o => !o)}
-            className="flex items-center justify-between w-full py-2"
+            className="flex items-center justify-between w-full px-4 py-3"
           >
             <span className="text-[13px] font-medium text-foreground">Advanced options</span>
             {advancedOpen
@@ -461,7 +461,7 @@ export function CreateBlogPage({ onCancel, onGenerate }: CreateBlogPageProps) {
             }
           </button>
           {advancedOpen && (
-            <div className="flex flex-col gap-4 mt-2">
+            <div className="flex flex-col gap-4 border-t border-border px-4 py-4">
               <ToggleRow label="Include images" checked={includeImages} onChange={setIncludeImages} />
               <ToggleRow label="Include CTAs" checked={includeCTAs} onChange={setIncludeCTAs} />
               <ToggleRow label="Include FAQ section" checked={includeFAQ} onChange={setIncludeFAQ} />
