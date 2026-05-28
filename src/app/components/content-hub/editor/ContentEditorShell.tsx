@@ -2005,50 +2005,38 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
             {editingCardItemType === null && !isGenerating && cards.length > 0 && (
               <div className="flex h-[48px] flex-none items-center rounded-lg border border-border/60 bg-background px-3">
 
-                  {/* Left spacer — balances right controls for true centering */}
+                  {/* Left spacer */}
                   <div className="flex-1" />
 
-                  {/* Center: view switcher only */}
-                  <SegmentedToggle
-                    ariaLabel="Canvas view"
-                    items={[
-                      { value: 'grid' as const, label: 'Grid view', icon: <Grid size={13} strokeWidth={1.6} absoluteStrokeWidth /> },
-                      { value: 'list' as const, label: 'List view', icon: <List size={13} strokeWidth={1.6} absoluteStrokeWidth /> },
-                      { value: 'calendar' as const, label: 'Calendar view', icon: <Calendar size={13} strokeWidth={1.6} absoluteStrokeWidth /> },
-                    ]}
-                    value={viewMode}
-                    onChange={setViewMode}
-                    iconOnly
-                  />
+                  {/* Center: view switcher + layout direction switcher (project only) */}
+                  <div className="flex items-center gap-2">
+                    <SegmentedToggle
+                      ariaLabel="Canvas view"
+                      items={[
+                        { value: 'grid' as const, label: 'Grid view', icon: <Grid size={13} strokeWidth={1.6} absoluteStrokeWidth /> },
+                        { value: 'list' as const, label: 'List view', icon: <List size={13} strokeWidth={1.6} absoluteStrokeWidth /> },
+                        { value: 'calendar' as const, label: 'Calendar view', icon: <Calendar size={13} strokeWidth={1.6} absoluteStrokeWidth /> },
+                      ]}
+                      value={viewMode}
+                      onChange={setViewMode}
+                      iconOnly
+                    />
+                    {mode === 'project' && (
+                      <SegmentedToggle
+                        ariaLabel="Arrange direction"
+                        items={[
+                          { value: 'vertical' as const, label: 'Arrange vertically', icon: <ArrowDown size={13} strokeWidth={1.6} absoluteStrokeWidth /> },
+                          { value: 'horizontal' as const, label: 'Arrange horizontally', icon: <ArrowRight size={13} strokeWidth={1.6} absoluteStrokeWidth /> },
+                        ]}
+                        value={layoutDirection}
+                        onChange={v => { handleArrangeCards(v as 'vertical' | 'horizontal'); }}
+                        iconOnly
+                      />
+                    )}
+                  </div>
 
                   {/* Right: all other controls */}
                   <div className="flex flex-1 items-center justify-end gap-1">
-
-                    {/* Layout direction — project only */}
-                    {mode === 'project' && (
-                      <>
-                        <button type="button" title="Arrange vertically"
-                          onClick={() => handleArrangeCards('vertical')}
-                          className={cn(
-                            'flex h-[30px] w-[30px] items-center justify-center rounded-lg border border-border/70 bg-background transition-colors',
-                            layoutDirection === 'vertical'
-                              ? 'text-foreground bg-muted'
-                              : 'text-muted-foreground hover:bg-muted hover:text-foreground',
-                          )}>
-                          <ArrowDown size={14} strokeWidth={1.6} absoluteStrokeWidth />
-                        </button>
-                        <button type="button" title="Arrange horizontally"
-                          onClick={() => handleArrangeCards('horizontal')}
-                          className={cn(
-                            'flex h-[30px] w-[30px] items-center justify-center rounded-lg border border-border/70 bg-background transition-colors',
-                            layoutDirection === 'horizontal'
-                              ? 'text-foreground bg-muted'
-                              : 'text-muted-foreground hover:bg-muted hover:text-foreground',
-                          )}>
-                          <ArrowRight size={14} strokeWidth={1.6} absoluteStrokeWidth />
-                        </button>
-                      </>
-                    )}
 
                     {/* Undo */}
                     <button type="button" title="Undo" onClick={handleUndo}
