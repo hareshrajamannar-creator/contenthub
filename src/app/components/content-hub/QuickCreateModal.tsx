@@ -2,11 +2,14 @@ import React, { useState, useEffect } from 'react';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import {
   X, ChevronRight, ChevronLeft, Minus, Plus,
-  MessageSquare, FileText, Share2, Mail, Monitor,
+  MessageSquare, FileText, Mail, Monitor,
 } from 'lucide-react';
 import { cn } from '@/app/components/ui/utils';
 import { MODAL_OVERLAY_VISUAL_CLASS } from '@/app/components/ui/modalOverlayClasses';
 import { ContentFlowTextarea, ContentFlowTextInput } from './shared/ContentFlowControls';
+import {
+  FacebookLogo, InstagramLogo, LinkedInLogo, YouTubeLogo, TikTokLogo,
+} from './shared/socialPlatforms';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -50,14 +53,39 @@ const STEP_LABELS: Record<QuickCreateMode, string[]> = {
 
 // ── Project content types ─────────────────────────────────────────────────────
 
-const PROJECT_TYPES = [
-  { id: 'blog'    as const, label: 'Blog post',    icon: FileText,      defaultCount: 1, defaultOn: true  },
-  { id: 'social'  as const, label: 'Social posts', icon: Share2,        defaultCount: 3, defaultOn: true  },
-  { id: 'email'   as const, label: 'Email',        icon: Mail,          defaultCount: 1, defaultOn: true  },
-  { id: 'faq'     as const, label: 'FAQ page',     icon: MessageSquare, defaultCount: 1, defaultOn: false },
-  { id: 'landing' as const, label: 'Landing page', icon: Monitor,       defaultCount: 1, defaultOn: false },
+type ProjectTypeId =
+  | 'blog'
+  | 'fb-post' | 'fb-reel'
+  | 'ig-post' | 'ig-reel'
+  | 'li-post'
+  | 'yt-short'
+  | 'tt-video'
+  | 'email' | 'faq' | 'landing';
+
+interface ProjectTypeConfig {
+  id: ProjectTypeId;
+  label: string;
+  icon?: React.ElementType;
+  Logo?: React.FC<{ size?: number }>;
+  defaultCount: number;
+  defaultOn: boolean;
+  /** Used to render a section divider above this row */
+  sectionLabel?: string;
+}
+
+const PROJECT_TYPES: ProjectTypeConfig[] = [
+  { id: 'blog',     label: 'Blog post',      icon: FileText,      defaultCount: 1, defaultOn: true  },
+  { id: 'fb-post',  label: 'Facebook post',  Logo: FacebookLogo,  defaultCount: 2, defaultOn: true,  sectionLabel: 'Social' },
+  { id: 'fb-reel',  label: 'Facebook Reel',  Logo: FacebookLogo,  defaultCount: 1, defaultOn: false },
+  { id: 'ig-post',  label: 'Instagram post', Logo: InstagramLogo, defaultCount: 2, defaultOn: true  },
+  { id: 'ig-reel',  label: 'Instagram Reel', Logo: InstagramLogo, defaultCount: 1, defaultOn: false },
+  { id: 'li-post',  label: 'LinkedIn post',  Logo: LinkedInLogo,  defaultCount: 1, defaultOn: false },
+  { id: 'yt-short', label: 'YouTube Shorts', Logo: YouTubeLogo,   defaultCount: 1, defaultOn: false },
+  { id: 'tt-video', label: 'TikTok video',   Logo: TikTokLogo,    defaultCount: 1, defaultOn: false },
+  { id: 'email',    label: 'Email',          icon: Mail,          defaultCount: 1, defaultOn: true,  sectionLabel: 'Other' },
+  { id: 'faq',      label: 'FAQ page',       icon: MessageSquare, defaultCount: 1, defaultOn: false },
+  { id: 'landing',  label: 'Landing page',   icon: Monitor,       defaultCount: 1, defaultOn: false },
 ];
-type ProjectTypeId = typeof PROJECT_TYPES[number]['id'];
 
 interface ProjectTypeEntry {
   id: ProjectTypeId;
@@ -68,20 +96,43 @@ interface ProjectTypeEntry {
 
 function defaultIdeas(id: ProjectTypeId, count: number): string[] {
   const pools: Record<ProjectTypeId, string[]> = {
-    blog:    DEFAULT_BLOG_IDEAS,
-    social:  [
+    blog:     DEFAULT_BLOG_IDEAS,
+    'fb-post': [
       'Before and after: our spring lawn transformation',
-      'Spring garden checklist for a fresh start',
-      'Now is the best time to book your garden cleanup',
       'Three signs your garden needs professional care this season',
-      'Behind the scenes: a day in the life of our lawn team',
+      'The simple habit that keeps your lawn looking perfect all year',
     ],
-    email:   [
+    'fb-reel': [
+      '60-second time-lapse: complete backyard transformation',
+      'Satisfying lawn stripe tutorial — try this at home',
+    ],
+    'ig-post': [
+      'Lush green results — swipe to see the full transformation',
+      'Our team in action on a Dubbo property this week',
+      'Clean edges make all the difference — see our work',
+    ],
+    'ig-reel': [
+      'Watch us transform an overgrown backyard in 30 seconds',
+      'ASMR lawn mowing — deeply satisfying spring cleanup',
+    ],
+    'li-post': [
+      'How professional landscaping adds up to 15% to property value',
+      'What sets a premium lawn care service apart — from a practitioner',
+    ],
+    'yt-short': [
+      'The lawn care secret professionals never share',
+      'How to get perfect lawn stripes every time',
+    ],
+    'tt-video': [
+      'POV: transforming the worst lawn on the street',
+      'Tell me you are a lawn pro without telling me',
+    ],
+    email:    [
       'Spring offer: book your cleanup this week for 20% off',
       'Seasonal reminder: get your garden ready before the rush',
     ],
-    faq:     [DEFAULT_FAQ_IDEA],
-    landing: ['Spring garden services: book now and save'],
+    faq:      [DEFAULT_FAQ_IDEA],
+    landing:  ['Spring garden services: book now and save'],
   };
   return Array.from({ length: count }, (_, i) => pools[id][i] ?? `${id} idea ${i + 1}`);
 }
@@ -377,36 +428,46 @@ export function QuickCreateModal({ mode, onClose, onGenerate }: QuickCreateModal
         {PROJECT_TYPES.map(ct => {
           const entry = projectTypes.find(t => t.id === ct.id)!;
           const Icon = ct.icon;
+          const Logo = ct.Logo;
           return (
-            <div
-              key={ct.id}
-              className={cn(
-                'flex items-center gap-3 rounded-lg border px-3 py-2.5 transition-colors',
-                entry.selected ? 'border-primary/30 bg-primary/[0.03]' : 'border-border bg-background',
+            <React.Fragment key={ct.id}>
+              {ct.sectionLabel && (
+                <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide pt-1">
+                  {ct.sectionLabel}
+                </p>
               )}
-            >
-              <button
-                type="button"
-                onClick={() => updateProjectType(ct.id, { selected: !entry.selected })}
-                className="flex items-center gap-3 flex-1 text-left min-w-0"
+              <div
+                className={cn(
+                  'flex items-center gap-3 rounded-lg border px-3 py-2.5 transition-colors',
+                  entry.selected ? 'border-primary/30 bg-primary/[0.03]' : 'border-border bg-background',
+                )}
               >
-                <div className={cn(
-                  'w-7 h-7 rounded-lg flex items-center justify-center shrink-0',
-                  entry.selected ? 'bg-primary/10' : 'bg-muted',
-                )}>
-                  <Icon size={14} strokeWidth={1.6} absoluteStrokeWidth className={entry.selected ? 'text-primary' : 'text-muted-foreground'} />
-                </div>
-                <span className={cn('text-[13px] font-medium', entry.selected ? 'text-foreground' : 'text-muted-foreground')}>
-                  {ct.label}
-                </span>
-              </button>
-              {entry.selected && (
-                <CountStepper
-                  value={entry.count}
-                  onChange={v => updateProjectType(ct.id, { count: v })}
-                />
-              )}
-            </div>
+                <button
+                  type="button"
+                  onClick={() => updateProjectType(ct.id, { selected: !entry.selected })}
+                  className="flex items-center gap-3 flex-1 text-left min-w-0"
+                >
+                  <div className="w-7 h-7 flex items-center justify-center shrink-0">
+                    {Logo ? (
+                      <Logo size={22} />
+                    ) : Icon ? (
+                      <div className={cn('w-7 h-7 rounded-lg flex items-center justify-center', entry.selected ? 'bg-primary/10' : 'bg-muted')}>
+                        <Icon size={14} strokeWidth={1.6} absoluteStrokeWidth className={entry.selected ? 'text-primary' : 'text-muted-foreground'} />
+                      </div>
+                    ) : null}
+                  </div>
+                  <span className={cn('text-[13px] font-medium', entry.selected ? 'text-foreground' : 'text-muted-foreground')}>
+                    {ct.label}
+                  </span>
+                </button>
+                {entry.selected && (
+                  <CountStepper
+                    value={entry.count}
+                    onChange={v => updateProjectType(ct.id, { count: v })}
+                  />
+                )}
+              </div>
+            </React.Fragment>
           );
         })}
       </div>
