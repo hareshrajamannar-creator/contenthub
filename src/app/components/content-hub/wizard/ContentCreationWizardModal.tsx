@@ -211,6 +211,10 @@ export function ContentCreationWizardModal({
     ? 'Next'
     : isRegenerateMode ? 'Regenerate' : 'Start generating';
 
+  const canProceed = mode === 'project' && step === 0
+    ? ((step1.projectName as string) ?? '').trim().length > 0
+    : true;
+
   // ── Render step body ──────────────────────────────────────────────────────
 
   function renderStep() {
@@ -316,6 +320,7 @@ export function ContentCreationWizardModal({
               <Button
                 size="sm"
                 onClick={handleNext}
+                disabled={!canProceed}
                 className={isRegenerateMode && step === 2 ? 'bg-amber-600 hover:bg-amber-700' : ''}
               >
                 {primaryLabel}

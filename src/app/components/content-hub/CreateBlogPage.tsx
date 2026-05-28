@@ -187,7 +187,7 @@ export function CreateBlogPage({ onCancel, onGenerate }: CreateBlogPageProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const canAdvance = step === 0
-    ? selectedLocations.length > 0
+    ? blogName.trim().length > 0 && selectedLocations.length > 0
     : topic.trim().length >= 5;
 
   function handleBrandKitChange(id: string) {
