@@ -2012,6 +2012,7 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
                   <div className="flex items-center gap-2">
                     <SegmentedToggle
                       ariaLabel="Canvas view"
+                      variant="outline"
                       items={[
                         { value: 'grid' as const, label: 'Grid view', icon: <Grid size={13} strokeWidth={1.6} absoluteStrokeWidth /> },
                         { value: 'list' as const, label: 'List view', icon: <List size={13} strokeWidth={1.6} absoluteStrokeWidth /> },
@@ -2024,6 +2025,7 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
                     {mode === 'project' && (
                       <SegmentedToggle
                         ariaLabel="Arrange direction"
+                        variant="outline"
                         items={[
                           { value: 'vertical' as const, label: 'Arrange vertically', icon: <ArrowDown size={13} strokeWidth={1.6} absoluteStrokeWidth /> },
                           { value: 'horizontal' as const, label: 'Arrange horizontally', icon: <ArrowRight size={13} strokeWidth={1.6} absoluteStrokeWidth /> },
