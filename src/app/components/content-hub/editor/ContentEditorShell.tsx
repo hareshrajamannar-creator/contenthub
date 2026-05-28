@@ -26,6 +26,7 @@ import {
   FileText, Share2, Mail, MessageSquare, Monitor, Video, FolderPlus,
   Plus, ChevronUp, Grid, List, Calendar, ZoomIn, ZoomOut,
   Undo2, Redo2, ArrowDown, ArrowRight, CheckCircle2, MoreVertical,
+  Activity, History, Bookmark, MessageCircle,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -139,6 +140,8 @@ export interface ContentEditorShellProps {
   recAeoScore?: number;
   /** Hide brand/location context in the header for recommendation-driven review flows */
   hideHeaderContext?: boolean;
+  /** Called when user clicks Edit on a blog/faq card in project mode — parent handles routing */
+  onEditCard?: (cardId: string, itemType: ContentItemType) => void;
 }
 
 interface CanvasCardLayout {
@@ -927,7 +930,7 @@ function AddContentButton({ mode, onAdd }: { mode: ContentMode; onAdd: (t: Conte
 
 // ── Main shell ────────────────────────────────────────────────────────────────
 
-export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupPhase = false, initialTitle, preloadedFAQs, preloadedBlogSections, recAeoScore, hideHeaderContext = false }: ContentEditorShellProps) {
+export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupPhase = false, initialTitle, preloadedFAQs, preloadedBlogSections, recAeoScore, hideHeaderContext = false, onEditCard }: ContentEditorShellProps) {
   const config = EDITOR_CONFIGS[mode];
 
   // ── Header state
@@ -1004,6 +1007,7 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
   const [shareOpen, setShareOpen] = useState(false);
   const [shareInitialTab, setShareInitialTab] = useState<'collaborate' | 'download'>('collaborate');
   const [sendForApprovalOpen, setSendForApprovalOpen] = useState(false);
+  const [blogSendForApprovalOpen, setBlogSendForApprovalOpen] = useState(false);
 
   const handleSaveFaq = useCallback(() => {
     toast.success('FAQ content saved to project', {
@@ -1039,6 +1043,32 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
     },
     [onBack],
   );
+
+  const handleBlogSendForApprovalSubmit = useCallback(
+    ({ approvalWorkflow, scheduleDate }: { approvalWorkflow: string; scheduleDate?: Date }) => {
+      const when = scheduleDate
+        ? ` · scheduled for ${new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).format(scheduleDate)}`
+        : '';
+      toast.success(`Blog post sent to ${approvalWorkflow}${when}`, {
+        icon: <CheckCircle2 size={16} strokeWidth={1.6} absoluteStrokeWidth className="text-green-500 flex-none" />,
+      });
+      setBlogSendForApprovalOpen(false);
+    },
+    [],
+  );
+
+  const handleBlogSaveAndAddToLibrary = useCallback(() => {
+    addSavedBlock({
+      name: title || 'Blog post',
+      createdBy: 'Haresh R.',
+      sourceType: 'blog',
+      preview: { title: title || 'Blog post', snippets: [] },
+    });
+    toast.success('Blog post saved to library', {
+      icon: <CheckCircle2 size={16} strokeWidth={1.6} absoluteStrokeWidth className="text-green-500 flex-none" />,
+    });
+  }, [title]);
+
   const [faqScore, setFaqScore] = useState(0);
   const [faqScorePanelOpen, setFaqScorePanelOpen] = useState(true);
   const [blogScore, setBlogScore] = useState(mode === 'blog' ? (recAeoScore ?? 92) : 0);
@@ -1315,6 +1345,8 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
 
   // ── Score panel state
   const [activeScoreCardId, setActiveScoreCardId] = useState<string | null>(null);
+  const [editingCardItemType, setEditingCardItemType] = useState<'blog' | 'faq' | null>(null);
+  const [editingCardId, setEditingCardId] = useState<string | null>(null);
 
   // ── Handlers
 
@@ -1348,8 +1380,22 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
     setCommentsOpen(false);
   }, []);
 
-  const handleEdit = useCallback((_cardId: string) => {
-    // TODO: drill down to item-level editor
+  const handleEdit = useCallback((cardId: string) => {
+    const card = cards.find(c => c.id === cardId);
+    if (!card) return;
+    if (card.itemType === 'blog' || card.itemType === 'faq') {
+      if (onEditCard) {
+        onEditCard(cardId, card.itemType);
+      } else {
+        setEditingCardItemType(card.itemType);
+        setEditingCardId(cardId);
+      }
+    }
+  }, [cards, onEditCard]);
+
+  const handleDeleteCard = useCallback((cardId: string) => {
+    setCards(prev => prev.filter(c => c.id !== cardId));
+    setActiveScoreCardId(prev => prev === cardId ? null : prev);
   }, []);
 
   const handleSelectTemplate = useCallback((template: EditorTemplate) => {
@@ -1579,7 +1625,7 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
                   </Button>
                 )}
               </>
-            ) : (
+            ) : setupPhase === 'done' ? (
               <>
                 {mode === 'faq' && faqScore > 0 && (
                   <button
@@ -1612,21 +1658,55 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
                 )}
 
                 {mode === 'blog' ? (
-                  <>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => { setShareInitialTab('collaborate'); setShareOpen(true); }}
-                    >
-                      Share
-                    </Button>
-                    <Button
-                      type="button"
-                      onClick={() => setExportOpen(true)}
-                    >
-                      Publish
-                    </Button>
-                  </>
+                  <div className="inline-flex items-center gap-2">
+                    <div className="inline-flex">
+                      <Button
+                        type="button"
+                        className="rounded-r-none"
+                        onClick={() => setExportOpen(true)}
+                      >
+                        Publish
+                      </Button>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            type="button"
+                            aria-label="More publish options"
+                            className="rounded-l-none border-l border-primary-foreground/20 px-2"
+                          >
+                            <ChevronDown size={14} strokeWidth={1.6} absoluteStrokeWidth />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="min-w-[220px]">
+                          <DropdownMenuItem onClick={() => setBlogSendForApprovalOpen(true)}>
+                            Send for approval
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={handleBlogSaveAndAddToLibrary}>
+                            Save and add to library
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <button
+                          type="button"
+                          aria-label="More actions"
+                          className="flex h-[var(--button-height)] w-[var(--button-height)] items-center justify-center rounded-md border border-border bg-background text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                        >
+                          <MoreVertical size={16} strokeWidth={1.6} absoluteStrokeWidth />
+                        </button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="min-w-[180px]">
+                        <DropdownMenuItem onClick={() => { setShareInitialTab('collaborate'); setShareOpen(true); }}>
+                          Share
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => { setShareInitialTab('download'); setShareOpen(true); }}>
+                          Download
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
                 ) : (
                   <div className="inline-flex items-center gap-2">
                     <div className="inline-flex">
@@ -1680,7 +1760,7 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
                 )}
 
               </>
-            )}
+            ) : null}
           </div>
         </div>
 
@@ -1911,217 +1991,259 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
           </div>
 
           {/* ── Center canvas ── */}
-            {/* Center canvas — card-based modes: social / email / video / project */}
-            <div className={cn(
-              'flex-1 min-w-0 bg-[var(--color-canvas,#F7F8FA)] relative',
-              'overflow-auto',
+          <div className="flex-1 min-w-0 flex flex-col overflow-hidden">
+
+            {/* Toolbar — floating card style, outside scroll area */}
+            {editingCardItemType === null && !isGenerating && cards.length > 0 && (
+              <div className="flex-none px-3 pt-3 pb-1">
+                <div className="flex h-[48px] items-center rounded-lg border border-border/60 bg-background px-3">
+
+                  {/* Left spacer — balances right controls for true centering */}
+                  <div className="flex-1" />
+
+                  {/* Center: view switcher only */}
+                  <SegmentedToggle
+                    ariaLabel="Canvas view"
+                    items={[
+                      { value: 'grid' as const, label: 'Grid view', icon: <Grid size={13} strokeWidth={1.6} absoluteStrokeWidth /> },
+                      { value: 'list' as const, label: 'List view', icon: <List size={13} strokeWidth={1.6} absoluteStrokeWidth /> },
+                      { value: 'calendar' as const, label: 'Calendar view', icon: <Calendar size={13} strokeWidth={1.6} absoluteStrokeWidth /> },
+                    ]}
+                    value={viewMode}
+                    onChange={setViewMode}
+                    iconOnly
+                  />
+
+                  {/* Right: all other controls */}
+                  <div className="flex flex-1 items-center justify-end gap-1">
+
+                    {/* Layout direction — project only */}
+                    {mode === 'project' && (
+                      <>
+                        <button type="button" title="Arrange vertically"
+                          onClick={() => handleArrangeCards('vertical')}
+                          className={cn(
+                            'flex h-[30px] w-[30px] items-center justify-center rounded-lg border border-border/70 bg-background transition-colors',
+                            layoutDirection === 'vertical'
+                              ? 'text-foreground bg-muted'
+                              : 'text-muted-foreground hover:bg-muted hover:text-foreground',
+                          )}>
+                          <ArrowDown size={14} strokeWidth={1.6} absoluteStrokeWidth />
+                        </button>
+                        <button type="button" title="Arrange horizontally"
+                          onClick={() => handleArrangeCards('horizontal')}
+                          className={cn(
+                            'flex h-[30px] w-[30px] items-center justify-center rounded-lg border border-border/70 bg-background transition-colors',
+                            layoutDirection === 'horizontal'
+                              ? 'text-foreground bg-muted'
+                              : 'text-muted-foreground hover:bg-muted hover:text-foreground',
+                          )}>
+                          <ArrowRight size={14} strokeWidth={1.6} absoluteStrokeWidth />
+                        </button>
+                        <div className="mx-1 h-5 w-px bg-border" />
+                      </>
+                    )}
+
+                    {/* Undo */}
+                    <button type="button" title="Undo" onClick={handleUndo} disabled={!canUndo}
+                      className="flex h-[30px] w-[30px] items-center justify-center rounded-lg border border-border/70 bg-background text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:pointer-events-none disabled:opacity-25">
+                      <Undo2 size={14} strokeWidth={1.6} absoluteStrokeWidth />
+                    </button>
+
+                    {/* Redo */}
+                    <button type="button" title="Redo" onClick={handleRedo} disabled={!canRedo}
+                      className="flex h-[30px] w-[30px] items-center justify-center rounded-lg border border-border/70 bg-background text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:pointer-events-none disabled:opacity-25">
+                      <Redo2 size={14} strokeWidth={1.6} absoluteStrokeWidth />
+                    </button>
+
+                    {/* Zoom dropdown */}
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <button type="button"
+                          className="flex h-[30px] items-center gap-1 rounded-lg border border-border/70 bg-background px-2.5 text-[12px] text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
+                          <span className="tabular-nums min-w-[28px] text-center">{Math.round(zoom * 100)}%</span>
+                          <ChevronDown size={11} strokeWidth={1.6} absoluteStrokeWidth />
+                        </button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="center" className="min-w-[80px]">
+                        {[0.5, 0.75, 0.85, 1.0, 1.25, 1.5, 2.0].map(p => (
+                          <DropdownMenuItem key={p} onClick={() => setZoom(p)} className="justify-center text-[13px]">
+                            {Math.round(p * 100)}%
+                          </DropdownMenuItem>
+                        ))}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+
+                    <div className="mx-1 h-5 w-px bg-border" />
+
+                    {/* Version history */}
+                    <button type="button" title="Version history"
+                      onClick={() => setVersionHistoryOpen(true)}
+                      className="flex h-[30px] w-[30px] items-center justify-center rounded-lg border border-border/70 bg-background text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
+                      <History size={14} strokeWidth={1.6} absoluteStrokeWidth />
+                    </button>
+
+                    {/* Activity */}
+                    <button type="button" title="Activity"
+                      onClick={() => { setActivityOpen(v => !v); setCommentsOpen(false); }}
+                      className={cn(
+                        'flex h-[30px] w-[30px] items-center justify-center rounded-lg border border-border/70 bg-background transition-colors',
+                        activityOpen ? 'text-foreground bg-muted' : 'text-muted-foreground hover:bg-muted hover:text-foreground',
+                      )}>
+                      <Activity size={14} strokeWidth={1.6} absoluteStrokeWidth />
+                    </button>
+
+                    {/* Save */}
+                    <button type="button" title="Save"
+                      className="flex h-[30px] w-[30px] items-center justify-center rounded-lg border border-border/70 bg-background text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
+                      <Bookmark size={14} strokeWidth={1.6} absoluteStrokeWidth />
+                    </button>
+
+                    {/* Comments */}
+                    <button type="button" title="Comments"
+                      onClick={() => { setCommentsOpen(v => !v); setActivityOpen(false); }}
+                      className={cn(
+                        'flex h-[30px] w-[30px] items-center justify-center rounded-lg border border-border/70 bg-background transition-colors',
+                        commentsOpen ? 'text-foreground bg-muted' : 'text-muted-foreground hover:bg-muted hover:text-foreground',
+                      )}>
+                      <MessageCircle size={14} strokeWidth={1.6} absoluteStrokeWidth />
+                    </button>
+                  </div>
+                </div>
+              </div>
             )}
-            onWheel={handleCanvasWheel}
-            >
 
-              {/* Floating toolbar — always visible when canvas has cards */}
-              {!isGenerating && cards.length > 0 && (
-                <div className="sticky top-4 z-20 flex justify-center pointer-events-none">
-                  <div className="bg-background rounded-lg shadow-sm border border-border pointer-events-auto">
-                    <div className="flex items-center px-4 py-2 gap-4">
-                      {/* Undo / redo */}
-                      <div className="flex items-center gap-1">
-                        <button
-                          type="button"
-                          onClick={handleUndo}
-                          disabled={!canUndo}
-                          title="Undo"
-                          className="p-1.5 hover:bg-muted rounded-md transition-colors disabled:opacity-30"
-                        >
-                          <Undo2 size={15} strokeWidth={1.6} absoluteStrokeWidth className="text-foreground" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={handleRedo}
-                          disabled={!canRedo}
-                          title="Redo"
-                          className="p-1.5 hover:bg-muted rounded-md transition-colors disabled:opacity-30"
-                        >
-                          <Redo2 size={15} strokeWidth={1.6} absoluteStrokeWidth className="text-foreground" />
-                        </button>
-                      </div>
-
-                      <div className="w-px h-4 bg-border" />
-
-                      {/* Layout direction — vertical / horizontal stacking */}
-                      {mode === 'project' && (
-                        <>
-                          <div className="flex items-center gap-1 bg-muted rounded-md p-1">
-                            <button
-                              type="button"
-                              title="Arrange vertically"
-                              onClick={() => handleArrangeCards('vertical')}
-                              className={cn(
-                                'flex items-center justify-center px-2 py-1 rounded-md transition-colors',
-                                layoutDirection === 'vertical' ? 'bg-background shadow-sm' : 'hover:bg-background/50',
-                              )}
-                            >
-                              <ArrowDown
-                                size={16}
-                                strokeWidth={1.6}
-                                absoluteStrokeWidth
-                                className={layoutDirection === 'vertical' ? 'text-foreground' : 'text-muted-foreground'}
-                              />
-                            </button>
-                            <button
-                              type="button"
-                              title="Arrange horizontally"
-                              onClick={() => handleArrangeCards('horizontal')}
-                              className={cn(
-                                'flex items-center justify-center px-2 py-1 rounded-md transition-colors',
-                                layoutDirection === 'horizontal' ? 'bg-background shadow-sm' : 'hover:bg-background/50',
-                              )}
-                            >
-                              <ArrowRight
-                                size={16}
-                                strokeWidth={1.6}
-                                absoluteStrokeWidth
-                                className={layoutDirection === 'horizontal' ? 'text-foreground' : 'text-muted-foreground'}
-                              />
-                            </button>
-                          </div>
-                          <div className="w-px h-4 bg-border" />
-                        </>
-                      )}
-
-                      {/* View toggle */}
-                      <div className="flex items-center gap-1 bg-muted rounded-md p-1">
-                        {(['grid', 'list', 'calendar'] as const).map((v) => {
-                          const Icon = v === 'grid' ? Grid : v === 'list' ? List : Calendar;
-                          return (
-                            <button
-                              key={v}
-                              type="button"
-                              onClick={() => setViewMode(v)}
-                              className={cn(
-                                'flex items-center justify-center px-2 py-1 rounded-md transition-colors',
-                                viewMode === v
-                                  ? 'bg-background shadow-sm'
-                                  : 'hover:bg-background/50',
-                              )}
-                            >
-                              <Icon
-                                size={16}
-                                strokeWidth={1.6}
-                                absoluteStrokeWidth
-                                className={viewMode === v ? 'text-foreground' : 'text-muted-foreground'}
-                              />
-                            </button>
-                          );
-                        })}
-                      </div>
-
-                      {/* Zoom controls */}
-                      <div className="flex items-center gap-2">
-                        <button
-                          type="button"
-                          onClick={() => setZoom(z => Math.max(0.5, +(z - 0.1).toFixed(1)))}
-                          className="p-1 hover:bg-muted rounded-md transition-colors"
-                        >
-                          <ZoomOut size={16} strokeWidth={1.6} absoluteStrokeWidth className="text-foreground" />
-                        </button>
-                        <span className="text-[13px] text-muted-foreground text-nowrap">
-                          {Math.round(zoom * 100)}%
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => setZoom(z => Math.min(2, +(z + 0.1).toFixed(1)))}
-                          className="p-1 hover:bg-muted rounded-md transition-colors"
-                        >
-                          <ZoomIn size={16} strokeWidth={1.6} absoluteStrokeWidth className="text-foreground" />
-                        </button>
+            {/* Card item editor — shown when user clicks Edit on a blog/faq card */}
+            {editingCardItemType !== null ? (
+              <BlockEditorProvider initialBlocks={editingCardItemType === 'blog' ? initialBlogEditorBlocks : []}>
+                <div className="flex flex-1 min-h-0 flex-col overflow-hidden">
+                  <div className="flex-none h-10 flex items-center border-b border-border bg-background px-4">
+                    <button
+                      type="button"
+                      onClick={() => { setEditingCardItemType(null); setEditingCardId(null); }}
+                      className="flex items-center gap-1.5 text-[12px] text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      <ArrowLeft size={13} strokeWidth={1.6} absoluteStrokeWidth />
+                      Back to project
+                    </button>
+                  </div>
+                  <div className="flex flex-1 min-h-0 overflow-hidden">
+                    <div className="flex flex-1 min-w-0 flex-col gap-2 overflow-hidden p-2">
+                      <CanvasEditorTopBar
+                        score={60}
+                        scoreLabel="Content score"
+                        hideScore={editingCardItemType === 'blog'}
+                        canUndo={canUndo}
+                        canRedo={canRedo}
+                        onUndo={handleUndo}
+                        onRedo={handleRedo}
+                        zoom={zoom}
+                        onZoomChange={setZoom}
+                        onActivity={() => { setActivityOpen(v => !v); setCommentsOpen(false); }}
+                        onChat={() => { setCommentsOpen(v => !v); setActivityOpen(false); }}
+                      />
+                      <div className="min-h-0 flex-1 overflow-hidden rounded-xl">
+                        <BlockCanvas
+                          mode={editingCardItemType}
+                          zoom={zoom}
+                          onZoomChange={setZoom}
+                          onBlockFocus={() => {}}
+                        />
                       </div>
                     </div>
                   </div>
                 </div>
-              )}
-
-              {isGenerating ? (
-                <GeneratingSkeleton count={generateCount} />
-              ) : cards.length === 0 ? (
-                <EmptyCanvas mode={mode} onAddCard={handleAddCard} onSelectTemplate={handleSelectTemplate} />
-              ) : (
-                <div
-                  className="relative"
-                  style={{
-                    width: canvasBounds.width,
-                    height: canvasBounds.height,
-                    minWidth: '100%',
-                    minHeight: '100%',
-                    zoom,
-                  }}
-                >
-                  {cards.map((card, idx) => (
-                    <div
-                      key={card.id}
-                      onPointerDown={event => handleCardPointerDown(event, card.id)}
-                      className={cn(
-                        'absolute group/card select-none',
-                        dragStateRef.current?.cardId === card.id && 'cursor-grabbing',
-                      )}
-                      style={{
-                        left: cardLayouts[card.id]?.x ?? CARD_CANVAS_PADDING,
-                        top: cardLayouts[card.id]?.y ?? CARD_CANVAS_PADDING,
-                        width: cardLayouts[card.id]?.width ?? defaultCardSize(card.itemType).width,
-                        minHeight: cardLayouts[card.id]?.height,
-                      }}
-                    >
-                      <div
-                        ref={node => handleCardMeasureRef(card.id, node)}
-                        className="rounded-xl"
-                        style={{ minHeight: cardLayouts[card.id]?.height }}
-                      >
-                        <EditorContentCard
-                          card={card}
-                          onScoreClick={handleScoreClick}
-                          scoreActive={activeScoreCardId === card.id}
-                          onEdit={handleEdit}
-                          onAddAnother={handleAddAnother}
-                          showAddAnother={idx === cards.length - 1}
-                        />
-                      </div>
-                      {(['top', 'right', 'bottom', 'left'] as ResizeEdge[]).map(edge => (
-                        <div
-                          key={edge}
-                          aria-label={`Resize ${card.name} from ${edge}`}
-                          role="button"
-                          tabIndex={-1}
-                          data-card-resize-edge={edge}
-                          onPointerDown={event => handleResizePointerDown(event, card.id, edge)}
-                          className={cn(
-                            'absolute z-10',
-                            edge === 'top' && '-top-1 left-2 right-2 h-2 cursor-ns-resize',
-                            edge === 'right' && 'bottom-2 -right-1 top-2 w-2 cursor-ew-resize',
-                            edge === 'bottom' && '-bottom-1 left-2 right-2 h-2 cursor-ns-resize',
-                            edge === 'left' && 'bottom-2 -left-1 top-2 w-2 cursor-ew-resize',
-                          )}
-                        />
-                      ))}
-                    </div>
-                  ))}
-                  {/* Add more content button */}
+              </BlockEditorProvider>
+            ) : (
+              /* Scrollable canvas */
+              <div
+                className="flex-1 min-h-0 bg-[var(--color-canvas,#F7F8FA)] relative overflow-auto"
+                onWheel={handleCanvasWheel}
+              >
+                {isGenerating ? (
+                  <GeneratingSkeleton count={generateCount} />
+                ) : cards.length === 0 ? (
+                  <EmptyCanvas mode={mode} onAddCard={handleAddCard} onSelectTemplate={handleSelectTemplate} />
+                ) : (
                   <div
-                    className="absolute"
+                    className="relative"
                     style={{
-                      left: CARD_CANVAS_PADDING,
-                      top: Math.max(...cards.map(card => {
-                        const layout = cardLayouts[card.id];
-                        if (!layout) return 0;
-                        const measuredHeight = measuredCardHeights[card.id] ?? defaultCardSize(card.itemType).height;
-                        return layout.y + Math.max(layout.height ?? 0, measuredHeight);
-                      }), CARD_CANVAS_PADDING) + CARD_CANVAS_GAP,
+                      width: canvasBounds.width,
+                      height: canvasBounds.height,
+                      minWidth: '100%',
+                      minHeight: '100%',
+                      zoom,
                     }}
                   >
-                    <AddContentButton mode={mode} onAdd={handleAddCard} />
+                    {cards.map((card, idx) => (
+                      <div
+                        key={card.id}
+                        onPointerDown={event => handleCardPointerDown(event, card.id)}
+                        className={cn(
+                          'absolute group/card select-none',
+                          dragStateRef.current?.cardId === card.id && 'cursor-grabbing',
+                        )}
+                        style={{
+                          left: cardLayouts[card.id]?.x ?? CARD_CANVAS_PADDING,
+                          top: cardLayouts[card.id]?.y ?? CARD_CANVAS_PADDING,
+                          width: cardLayouts[card.id]?.width ?? defaultCardSize(card.itemType).width,
+                          minHeight: cardLayouts[card.id]?.height,
+                        }}
+                      >
+                        <div
+                          ref={node => handleCardMeasureRef(card.id, node)}
+                          className="rounded-xl"
+                          style={{ minHeight: cardLayouts[card.id]?.height }}
+                        >
+                          <EditorContentCard
+                            card={card}
+                            onScoreClick={handleScoreClick}
+                            scoreActive={activeScoreCardId === card.id}
+                            onEdit={handleEdit}
+                            onDelete={handleDeleteCard}
+                            onAddAnother={handleAddAnother}
+                            showAddAnother={idx === cards.length - 1}
+                          />
+                        </div>
+                        {(['top', 'right', 'bottom', 'left'] as ResizeEdge[]).map(edge => (
+                          <div
+                            key={edge}
+                            aria-label={`Resize ${card.name} from ${edge}`}
+                            role="button"
+                            tabIndex={-1}
+                            data-card-resize-edge={edge}
+                            onPointerDown={event => handleResizePointerDown(event, card.id, edge)}
+                            className={cn(
+                              'absolute z-10',
+                              edge === 'top' && '-top-1 left-2 right-2 h-2 cursor-ns-resize',
+                              edge === 'right' && 'bottom-2 -right-1 top-2 w-2 cursor-ew-resize',
+                              edge === 'bottom' && '-bottom-1 left-2 right-2 h-2 cursor-ns-resize',
+                              edge === 'left' && 'bottom-2 -left-1 top-2 w-2 cursor-ew-resize',
+                            )}
+                          />
+                        ))}
+                      </div>
+                    ))}
+                    {/* Add more content button */}
+                    <div
+                      className="absolute"
+                      style={{
+                        left: CARD_CANVAS_PADDING,
+                        top: Math.max(...cards.map(card => {
+                          const layout = cardLayouts[card.id];
+                          if (!layout) return 0;
+                          const measuredHeight = measuredCardHeights[card.id] ?? defaultCardSize(card.itemType).height;
+                          return layout.y + Math.max(layout.height ?? 0, measuredHeight);
+                        }), CARD_CANVAS_PADDING) + CARD_CANVAS_GAP,
+                      }}
+                    >
+                      <AddContentButton mode={mode} onAdd={handleAddCard} />
+                    </div>
                   </div>
-                </div>
-              )}
-            </div>
+                )}
+              </div>
+            )}
+          </div>
 
             {/* Right score panel — slides in on card score click */}
             <EditorScorePanel
@@ -2192,6 +2314,11 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
         open={sendForApprovalOpen}
         onClose={() => setSendForApprovalOpen(false)}
         onSubmit={handleSendForApprovalSubmit}
+      />
+      <FAQSendForApprovalModal
+        open={blogSendForApprovalOpen}
+        onClose={() => setBlogSendForApprovalOpen(false)}
+        onSubmit={handleBlogSendForApprovalSubmit}
       />
       {/* Version history — full-screen overlay covering the entire editor */}
       {versionHistoryOpen && (

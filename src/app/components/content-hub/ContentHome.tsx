@@ -17,7 +17,7 @@ export type ContentHomeInitialMode =
   | 'brief' | 'templates' | 'socialEditor' | 'emailEditor' | 'blogEditor';
 
 interface ContentHomeProps {
-  onNavigate: (view: 'content-hub-create', initialMode?: ContentHomeInitialMode) => void;
+  onNavigate: (view: 'content-hub-create' | 'content-hub-blog-create', initialMode?: ContentHomeInitialMode) => void;
   onOpenCanvas?: (mode: 'faq' | 'blog') => void;
   onOpenProjects?: () => void;
 }
@@ -299,7 +299,10 @@ export const ContentHome = ({ onNavigate, onOpenCanvas }: ContentHomeProps) => {
           {CREATE_OPTIONS.map(opt => (
             <div
               key={opt.id}
-              onClick={() => onNavigate('content-hub-create', opt.mode)}
+              onClick={() => opt.id === 'blog'
+                ? onNavigate('content-hub-blog-create')
+                : onNavigate('content-hub-create', opt.mode)
+              }
               className={cn(
                 'border rounded-xl p-4 cursor-pointer transition-all flex flex-col gap-3',
                 opt.accent

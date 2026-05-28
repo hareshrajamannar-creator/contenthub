@@ -4,6 +4,9 @@ import { BlogPublishModal } from "@/app/components/content-hub/blog/BlogPublishM
 const meta: Meta<typeof BlogPublishModal> = {
   title: "App/BlogPublishModal",
   component: BlogPublishModal,
+  parameters: {
+    layout: "centered",
+  },
 };
 export default meta;
 type Story = StoryObj<typeof BlogPublishModal>;

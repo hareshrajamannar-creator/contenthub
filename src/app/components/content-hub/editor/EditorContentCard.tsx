@@ -14,12 +14,10 @@
  *   Canva-style "Add another [type]" button — appears below the card.
  */
 
-import React, { useState } from 'react';
+import React from 'react';
 import {
   FileText, Share2, Mail, MessageSquare, Monitor, Video,
-  CheckCircle2, MoreHorizontal, ChevronRight,
-  Eye, Pencil, Copy, Trash2,
-  UserCircle2, ChevronDown,
+  ChevronRight, Eye, Pencil, Trash2, Sparkles, Copy, MoreHorizontal,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -30,7 +28,8 @@ import {
 } from '@/app/components/ui/dropdown-menu';
 import { cn } from '@/app/components/ui/utils';
 import { type ContentItemType, ITEM_TYPE_LABEL } from './editorConfig';
-import { scoreColor, scoreStrokeColor } from '../shared/scoreColors';
+import { ScoreProgressRing } from '../shared/CanvasEditorTopBar';
+import { scoreColor } from '../shared/scoreColors';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -48,12 +47,14 @@ export interface ContentCardData {
 
 interface EditorContentCardProps {
   card: ContentCardData;
-  /** Called when user clicks the score pill — parent opens/closes right panel */
+  /** Called when user clicks the score ring — parent opens/closes right panel */
   onScoreClick: (cardId: string) => void;
   /** Whether THIS card's score panel is currently open */
   scoreActive: boolean;
-  /** Called when user clicks Edit in the ⋮ menu — drills down to item editor */
+  /** Called when user clicks Edit — drills down to item editor */
   onEdit: (cardId: string) => void;
+  /** Called when user clicks Delete */
+  onDelete?: (cardId: string) => void;
   /** Called when user clicks "Add another [type]" footer button */
   onAddAnother: (itemType: ContentItemType) => void;
   /** Show the "Add another" footer (last card in a type group, or always) */
@@ -329,51 +330,17 @@ const PREVIEW_MAP: Record<ContentItemType, React.FC> = {
   video:   VideoPreview,
 };
 
-// ── Score bar — horizontal progress + score number, matches FAQGroupCard ─────
-
-function ScoreBar({ score, active, onClick }: { score: number; active: boolean; onClick: () => void }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-label={`Content score: ${score}. Click to ${active ? 'close' : 'open'} score panel.`}
-      className={cn(
-        'flex items-center gap-1.5 px-2 py-1 rounded-md transition-colors flex-none',
-        active ? 'bg-muted' : 'hover:bg-muted/60',
-      )}
-    >
-      <div className="w-12 h-1.5 bg-[#e5e7eb] rounded-full overflow-hidden">
-        <div
-          className="h-full rounded-full transition-all duration-500"
-          style={{ width: `${score}%`, background: scoreStrokeColor(score) }}
-        />
-      </div>
-      <span
-        className="text-[12px] font-semibold leading-none tabular-nums"
-        style={{ color: scoreColor(score).text }}
-      >
-        {score}
-      </span>
-    </button>
-  );
-}
-
 // ── Main component ─────────────────────────────────────────────────────────────
-
-const TEAM_MEMBERS = ['Haresh R.', 'Priya K.', 'Arjun M.', 'Balaji K.'];
-const APPROVAL_STATUSES = ['Approved', 'Needs review', 'Pending', 'Rejected'] as const;
-type ApprovalStatus = typeof APPROVAL_STATUSES[number];
 
 export function EditorContentCard({
   card,
   onScoreClick,
   scoreActive,
   onEdit,
+  onDelete,
   onAddAnother,
   showAddAnother = true,
 }: EditorContentCardProps) {
-  const [assignee, setAssignee] = useState<string | null>(null);
-  const [approvalStatus, setApprovalStatus] = useState<ApprovalStatus | null>(null);
   const Icon = TYPE_ICON[card.itemType];
   const Preview = PREVIEW_MAP[card.itemType];
 
@@ -388,110 +355,47 @@ export function EditorContentCard({
         {/* Card header — matches FAQ/blog canvas style */}
         <div className="flex items-center gap-2 px-4 h-12 border-b border-border">
 
-          {/* LEFT: icon + name + score */}
+          {/* LEFT: icon + content type label */}
           <div className="flex items-center gap-2 flex-1 min-w-0">
             <div className="size-6 rounded-md bg-primary/[0.07] flex items-center justify-center flex-none">
               <Icon size={13} strokeWidth={1.6} absoluteStrokeWidth className="text-foreground/70" />
             </div>
-            <span className="text-[13px] font-medium text-foreground truncate">{card.name}</span>
-            <ScoreBar score={card.score} active={scoreActive} onClick={() => onScoreClick(card.id)} />
+            <span className="text-[13px] font-medium text-foreground truncate">{ITEM_TYPE_LABEL[card.itemType]}</span>
           </div>
 
-          {/* RIGHT: assign + approval + edit + kebab */}
+          {/* RIGHT: score ring + number | Edit (bordered) | Kebab */}
           <div className="flex items-center gap-1 flex-none">
 
-            {/* Assign dropdown */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button
-                  type="button"
-                  className={cn(
-                    'flex items-center gap-1 h-7 px-2 rounded-md text-[12px] transition-colors',
-                    assignee
-                      ? 'text-primary bg-primary/[0.07] hover:bg-primary/[0.11]'
-                      : 'text-muted-foreground hover:bg-muted hover:text-foreground',
-                  )}
-                >
-                  <UserCircle2 size={13} strokeWidth={1.6} absoluteStrokeWidth />
-                  <span className="max-w-[64px] truncate">{assignee ?? 'Assign'}</span>
-                  <ChevronDown size={10} strokeWidth={1.6} absoluteStrokeWidth className="opacity-60" />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-44">
-                {TEAM_MEMBERS.map(name => (
-                  <DropdownMenuItem key={name} onSelect={() => setAssignee(name)}>
-                    <UserCircle2 size={13} strokeWidth={1.6} absoluteStrokeWidth className="mr-2 text-muted-foreground flex-none" />
-                    {name}
-                    {assignee === name && (
-                      <CheckCircle2 size={12} strokeWidth={1.6} absoluteStrokeWidth className="ml-auto text-primary flex-none" />
-                    )}
-                  </DropdownMenuItem>
-                ))}
-                {assignee && (
-                  <>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onSelect={() => setAssignee(null)} className="text-muted-foreground">
-                      Unassign
-                    </DropdownMenuItem>
-                  </>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
-
-            {/* Approval dropdown */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button
-                  type="button"
-                  className={cn(
-                    'flex items-center gap-1 h-7 px-2 rounded-md text-[12px] transition-colors',
-                    approvalStatus === 'Approved'
-                      ? 'text-[#1D9E75] bg-[#1D9E75]/[0.07] hover:bg-[#1D9E75]/[0.12]'
-                      : approvalStatus === 'Needs review' || approvalStatus === 'Pending'
-                      ? 'text-amber-600 bg-amber-50 hover:bg-amber-100'
-                      : approvalStatus === 'Rejected'
-                      ? 'text-destructive bg-destructive/[0.07] hover:bg-destructive/[0.12]'
-                      : 'text-muted-foreground hover:bg-muted hover:text-foreground',
-                  )}
-                >
-                  <CheckCircle2 size={13} strokeWidth={1.6} absoluteStrokeWidth />
-                  <span>{approvalStatus ?? 'Approve'}</span>
-                  <ChevronDown size={10} strokeWidth={1.6} absoluteStrokeWidth className="opacity-60" />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-44">
-                {APPROVAL_STATUSES.map(status => (
-                  <DropdownMenuItem key={status} onSelect={() => setApprovalStatus(status)}>
-                    {status}
-                    {approvalStatus === status && (
-                      <CheckCircle2 size={12} strokeWidth={1.6} absoluteStrokeWidth className="ml-auto text-primary flex-none" />
-                    )}
-                  </DropdownMenuItem>
-                ))}
-                {approvalStatus && (
-                  <>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onSelect={() => setApprovalStatus(null)} className="text-muted-foreground">
-                      Clear
-                    </DropdownMenuItem>
-                  </>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
-
-            <div className="w-px h-4 bg-border mx-0.5" />
-
-            {/* Edit — navigates to item editor */}
+            {/* Score ring + number */}
             <button
               type="button"
-              title="Edit in canvas"
+              onClick={() => onScoreClick(card.id)}
+              aria-label={`Content score: ${card.score}`}
+              className={cn(
+                'flex items-center gap-1.5 h-7 px-2 rounded transition-colors',
+                scoreActive ? 'bg-muted' : 'hover:bg-muted/60',
+              )}
+            >
+              <ScoreProgressRing score={card.score} />
+              <span
+                className="text-[12px] font-semibold tabular-nums leading-none"
+                style={{ color: scoreColor(card.score).text }}
+              >
+                {card.score}
+              </span>
+            </button>
+
+            {/* Edit — bordered tile, navigates to item editor */}
+            <button
+              type="button"
+              title="Edit"
               onClick={() => onEdit(card.id)}
-              className="flex items-center justify-center w-7 h-7 rounded text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+              className="flex items-center justify-center w-[30px] h-[30px] rounded-lg border border-border/70 bg-background text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
             >
               <Pencil size={14} strokeWidth={1.6} absoluteStrokeWidth />
             </button>
 
-            {/* Kebab */}
+            {/* Kebab — AI, Preview, Duplicate, Delete */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button
@@ -504,6 +408,10 @@ export function EditorContentCard({
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-[160px]">
                 <DropdownMenuItem className="gap-2">
+                  <Sparkles size={13} strokeWidth={1.6} absoluteStrokeWidth />
+                  AI suggestions
+                </DropdownMenuItem>
+                <DropdownMenuItem className="gap-2">
                   <Eye size={13} strokeWidth={1.6} absoluteStrokeWidth />
                   Preview
                 </DropdownMenuItem>
@@ -512,7 +420,11 @@ export function EditorContentCard({
                   Duplicate
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem variant="destructive" className="gap-2">
+                <DropdownMenuItem
+                  variant="destructive"
+                  className="gap-2"
+                  onSelect={() => onDelete?.(card.id)}
+                >
                   <Trash2 size={13} strokeWidth={1.6} absoluteStrokeWidth />
                   Delete
                 </DropdownMenuItem>

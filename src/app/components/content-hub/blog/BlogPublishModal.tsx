@@ -1,12 +1,23 @@
+/**
+ * BlogPublishModal
+ *
+ * Lets the user publish a blog post to a pre-connected WordPress or Wix site.
+ * Accounts are configured once in Settings → Integrations; this modal only
+ * shows those connected accounts — it never asks for credentials.
+ *
+ * Flow:
+ *  1. Account picker  — WordPress / Wix tabs, list of connected sites
+ *  2. Published state — live URL with Copy / Share / Open actions
+ */
 import React, { useState } from 'react';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { toast } from 'sonner';
 import {
-  AlertCircle,
-  CalendarDays,
   CheckCircle2,
-  Eye,
-  EyeOff,
+  Copy,
+  ExternalLink,
+  Globe,
+  Share2,
   X,
 } from 'lucide-react';
 import {
@@ -16,73 +27,264 @@ import {
   DialogTitle,
 } from '@/app/components/ui/dialog';
 import { Button } from '@/app/components/ui/button';
-import { Calendar } from '@/app/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/app/components/ui/popover';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/app/components/ui/select';
+import { TextTabsRow } from '@/app/components/ui/text-tabs';
 import { cn } from '@/lib/utils';
+
+// ── Mock connected accounts ───────────────────────────────────────────────────
+
+interface ConnectedSite {
+  id: string;
+  platform: 'wordpress' | 'wix';
+  name: string;
+  url: string;
+  postCount: number;
+  lastActivity: string;
+  hue: number;
+}
+
+const CONNECTED_SITES: ConnectedSite[] = [
+  {
+    id: 'wp-smile',
+    platform: 'wordpress',
+    name: 'Smile Dental Group',
+    url: 'smile-dental.com',
+    postCount: 142,
+    lastActivity: 'Post published 3 days ago',
+    hue: 210,
+  },
+  {
+    id: 'wp-acme',
+    platform: 'wordpress',
+    name: 'Acme Dental Westside',
+    url: 'acmedental-west.com',
+    postCount: 38,
+    lastActivity: 'Post published 2 weeks ago',
+    hue: 150,
+  },
+  {
+    id: 'wp-bayview',
+    platform: 'wordpress',
+    name: 'Bayview Orthodontics',
+    url: 'bayviewortho.com',
+    postCount: 61,
+    lastActivity: 'Post published 1 week ago',
+    hue: 280,
+  },
+  {
+    id: 'wix-smile',
+    platform: 'wix',
+    name: 'Smile Dental Group',
+    url: 'smile-dental.wixsite.com/main',
+    postCount: 28,
+    lastActivity: 'Page published 5 days ago',
+    hue: 40,
+  },
+  {
+    id: 'wix-pacific',
+    platform: 'wix',
+    name: 'Pacific Rim Restaurants',
+    url: 'pacificrim.wixsite.com/group',
+    postCount: 15,
+    lastActivity: 'Page published 3 weeks ago',
+    hue: 330,
+  },
+];
+
+// ── Site avatar ───────────────────────────────────────────────────────────────
+
+function SiteAvatar({ name, hue }: { name: string; hue: number }) {
+  return (
+    <div
+      className="size-9 rounded-full flex items-center justify-center text-[13px] font-semibold flex-shrink-0"
+      style={{
+        backgroundColor: `hsl(${hue}, 55%, 92%)`,
+        color: `hsl(${hue}, 50%, 28%)`,
+      }}
+    >
+      {name.charAt(0)}
+    </div>
+  );
+}
+
+// ── Site card ─────────────────────────────────────────────────────────────────
+
+function SiteCard({
+  site,
+  selected,
+  onClick,
+}: {
+  site: ConnectedSite;
+  selected: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        'flex w-full items-center gap-4 rounded-lg border px-4 py-3 text-left transition-colors',
+        selected
+          ? 'border-primary/50 bg-primary/[0.04]'
+          : 'border-border/70 bg-background hover:border-primary/30 hover:bg-muted/30',
+      )}
+    >
+      <SiteAvatar name={site.name} hue={site.hue} />
+      <p className="flex-1 text-[13px] font-medium text-foreground truncate">{site.name}</p>
+      {selected && (
+        <CheckCircle2 size={16} strokeWidth={1.6} absoluteStrokeWidth className="flex-none text-primary" />
+      )}
+    </button>
+  );
+}
+
+// ── Published success state ───────────────────────────────────────────────────
+
+function PublishedState({ liveUrl }: { liveUrl: string }) {
+  const [copied, setCopied] = useState(false);
+
+  function handleCopy() {
+    navigator.clipboard.writeText(liveUrl).catch(() => {});
+    setCopied(true);
+    window.setTimeout(() => setCopied(false), 2000);
+  }
+
+  return (
+    <div className="flex flex-col items-center gap-6 px-6 pb-8 pt-6">
+      {/* Icon + heading */}
+      <div className="flex flex-col items-center gap-3">
+        <div className="flex size-12 items-center justify-center rounded-full bg-green-50 dark:bg-green-950/30">
+          <CheckCircle2 size={24} strokeWidth={1.6} absoluteStrokeWidth className="text-green-500" />
+        </div>
+        <div className="text-center">
+          <p className="text-[15px] font-semibold text-foreground">Blog post published</p>
+          <p className="mt-1 text-[13px] text-muted-foreground">Your post is live and being indexed</p>
+        </div>
+      </div>
+
+      {/* Live URL row */}
+      <div className="flex w-full items-center gap-2 rounded-lg border border-border bg-muted px-4 py-2.5">
+        <Globe size={13} strokeWidth={1.6} absoluteStrokeWidth className="flex-none text-muted-foreground" />
+        <span className="flex-1 truncate font-mono text-[12px] text-foreground">{liveUrl}</span>
+        <button
+          type="button"
+          onClick={handleCopy}
+          className="flex-none text-[12px] text-muted-foreground transition-colors hover:text-foreground"
+          aria-label="Copy link"
+        >
+          {copied
+            ? <span className="text-green-600 text-[11px]">Copied</span>
+            : <Copy size={13} strokeWidth={1.6} absoluteStrokeWidth />
+          }
+        </button>
+      </div>
+
+      {/* Action buttons */}
+      <div className="flex w-full gap-2">
+        <Button
+          type="button"
+          variant="outline"
+          className="flex-1 gap-2"
+          onClick={handleCopy}
+        >
+          <Copy size={13} strokeWidth={1.6} absoluteStrokeWidth />
+          Copy link
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          className="flex-1 gap-2"
+        >
+          <Share2 size={13} strokeWidth={1.6} absoluteStrokeWidth />
+          Share link
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          className="flex-1 gap-2"
+        >
+          <ExternalLink size={13} strokeWidth={1.6} absoluteStrokeWidth />
+          Open page
+        </Button>
+      </div>
+
+    </div>
+  );
+}
+
+// ── Account picker tab content ────────────────────────────────────────────────
+
+function AccountList({
+  sites,
+  selectedId,
+  onSelect,
+  emptyLabel,
+}: {
+  sites: ConnectedSite[];
+  selectedId: string | null;
+  onSelect: (id: string) => void;
+  emptyLabel: string;
+}) {
+  if (sites.length === 0) {
+    return (
+      <div className="flex flex-col items-center gap-2 py-8 text-center">
+        <p className="text-[13px] font-medium text-foreground">No accounts connected</p>
+        <p className="text-[12px] text-muted-foreground max-w-[260px]">{emptyLabel}</p>
+      </div>
+    );
+  }
+  return (
+    <div className="flex flex-col gap-2">
+      {sites.map(site => (
+        <SiteCard
+          key={site.id}
+          site={site}
+          selected={selectedId === site.id}
+          onClick={() => onSelect(site.id)}
+        />
+      ))}
+    </div>
+  );
+}
+
+// ── Main component ────────────────────────────────────────────────────────────
 
 export interface BlogPublishModalProps {
   open: boolean;
   onClose: () => void;
 }
 
-const APPROVAL_WORKFLOWS = [
-  'Marketing approval',
-  'Legal review',
-  'Brand compliance',
-  'Regional manager approval',
-  'SEO review',
-  'Product marketing review',
-  'Executive approval',
-  'Franchise owner approval',
-  'Content quality review',
-  'Final publishing review',
-];
-
-function formatScheduleDate(date: Date) {
-  return new Intl.DateTimeFormat('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  }).format(date);
-}
+type ModalView = 'picker' | 'published';
 
 export const BlogPublishModal = ({ open, onClose }: BlogPublishModalProps) => {
-  const [siteUrl, setSiteUrl]             = useState('');
-  const [username, setUsername]           = useState('');
-  const [appPassword, setAppPassword]     = useState('');
-  const [showPassword, setShowPassword]   = useState(false);
-  const [approvalWorkflow, setApprovalWorkflow] = useState('');
-  const [scheduleDate, setScheduleDate]   = useState<Date | undefined>(undefined);
-  const [datePickerOpen, setDatePickerOpen] = useState(false);
+  const [view, setView] = useState<ModalView>('picker');
+  const [activeTab, setActiveTab] = useState<'wordpress' | 'wix'>('wordpress');
+  const [selectedSiteId, setSelectedSiteId] = useState<string | null>(null);
+  const [liveUrl, setLiveUrl] = useState('');
 
-  const canPublish = siteUrl.trim() !== '' && username.trim() !== '' && appPassword.trim() !== '';
+  const wpSites  = CONNECTED_SITES.filter(s => s.platform === 'wordpress');
+  const wixSites = CONNECTED_SITES.filter(s => s.platform === 'wix');
+
+  const selectedSite = CONNECTED_SITES.find(s => s.id === selectedSiteId) ?? null;
+
+  function handlePublish() {
+    if (!selectedSite) return;
+    const slug = 'dubbo-property-market-2026-buyers-sellers-landlords';
+    const url  = `https://${selectedSite.url}/${slug}/`;
+    setLiveUrl(url);
+    setView('published');
+    toast.success(`Published to ${selectedSite.name}`, {
+      icon: <CheckCircle2 size={16} strokeWidth={1.6} absoluteStrokeWidth className="text-green-500 flex-none" />,
+    });
+  }
 
   function resetAndClose() {
     onClose();
     window.setTimeout(() => {
-      setSiteUrl('');
-      setUsername('');
-      setAppPassword('');
-      setShowPassword(false);
-      setApprovalWorkflow('');
-      setScheduleDate(undefined);
-      setDatePickerOpen(false);
-    }, 180);
-  }
-
-  function handlePublish() {
-    if (!canPublish) return;
-    toast.success('Blog post published to WordPress', {
-      icon: <CheckCircle2 size={16} strokeWidth={1.6} absoluteStrokeWidth className="text-green-500 flex-none" />,
-    });
-    resetAndClose();
+      setView('picker');
+      setSelectedSiteId(null);
+      setLiveUrl('');
+      setActiveTab('wordpress');
+    }, 200);
   }
 
   return (
@@ -100,7 +302,9 @@ export const BlogPublishModal = ({ open, onClose }: BlogPublishModalProps) => {
         >
           {/* Header */}
           <div className="flex flex-none items-center justify-between border-b border-border px-6 py-4">
-            <DialogTitle className="text-[15px] font-semibold leading-none">Publish blog post</DialogTitle>
+            <DialogTitle className="text-[15px] font-semibold leading-none">
+              {view === 'published' ? 'Published' : 'Publish blog post'}
+            </DialogTitle>
             <button
               type="button"
               onClick={resetAndClose}
@@ -112,136 +316,61 @@ export const BlogPublishModal = ({ open, onClose }: BlogPublishModalProps) => {
           </div>
 
           {/* Body */}
-          <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5 flex flex-col gap-5">
-            {/* Warning banner */}
-            <div className="flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 dark:border-amber-800/40 dark:bg-amber-950/30">
-              <AlertCircle size={15} strokeWidth={1.6} absoluteStrokeWidth className="mt-0.5 flex-none text-amber-600 dark:text-amber-400" />
-              <p className="text-[12px] leading-[1.6] text-amber-900 dark:text-amber-200">
-                WordPress Application Passwords must be enabled. In WordPress admin, go to Users, open your profile, then create an Application Password.
-              </p>
-            </div>
+          {view === 'published' ? (
+            <PublishedState liveUrl={liveUrl} />
+          ) : (
+            <>
+              <div className="min-h-0 flex-1 overflow-y-auto">
+                {/* Underline tabs */}
+                <div className="px-6 pt-4">
+                  <TextTabsRow
+                    ariaLabel="Publishing platform"
+                    value={activeTab}
+                    onChange={v => { setActiveTab(v); setSelectedSiteId(null); }}
+                    items={[
+                      { id: 'wordpress' as const, label: 'WordPress' },
+                      { id: 'wix' as const,       label: 'Wix' },
+                    ]}
+                  />
+                </div>
 
-            {/* WordPress site URL */}
-            <div className="flex flex-col gap-1.5">
-              <label className="text-[13px] font-medium text-foreground">WordPress site URL</label>
-              <input
-                type="url"
-                value={siteUrl}
-                onChange={e => setSiteUrl(e.target.value)}
-                placeholder="https://example.com"
-                className={cn(
-                  'h-10 w-full rounded-lg border border-[#e5e9f0] bg-white px-4 text-[13px] text-foreground outline-none transition-colors',
-                  'placeholder:text-muted-foreground hover:border-[#c0c6d4]',
-                  'focus:border-primary focus:ring-2 focus:ring-primary/10',
-                  'dark:border-[#333a47] dark:bg-[#262b35] dark:text-[#e4e4e4]',
-                )}
-              />
-            </div>
-
-            {/* WordPress username */}
-            <div className="flex flex-col gap-1.5">
-              <label className="text-[13px] font-medium text-foreground">WordPress username</label>
-              <input
-                type="text"
-                value={username}
-                onChange={e => setUsername(e.target.value)}
-                placeholder="editor@example.com"
-                autoComplete="username"
-                className={cn(
-                  'h-10 w-full rounded-lg border border-[#e5e9f0] bg-white px-4 text-[13px] text-foreground outline-none transition-colors',
-                  'placeholder:text-muted-foreground hover:border-[#c0c6d4]',
-                  'focus:border-primary focus:ring-2 focus:ring-primary/10',
-                  'dark:border-[#333a47] dark:bg-[#262b35] dark:text-[#e4e4e4]',
-                )}
-              />
-            </div>
-
-            {/* Application password */}
-            <div className="flex flex-col gap-1.5">
-              <label className="text-[13px] font-medium text-foreground">Application password</label>
-              <div className="relative">
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  value={appPassword}
-                  onChange={e => setAppPassword(e.target.value)}
-                  placeholder="Different from your login password"
-                  autoComplete="new-password"
-                  className={cn(
-                    'h-10 w-full rounded-lg border border-[#e5e9f0] bg-white px-4 pr-10 text-[13px] text-foreground outline-none transition-colors',
-                    'placeholder:text-muted-foreground hover:border-[#c0c6d4]',
-                    'focus:border-primary focus:ring-2 focus:ring-primary/10',
-                    'dark:border-[#333a47] dark:bg-[#262b35] dark:text-[#e4e4e4]',
+                <div className="px-6 py-4">
+                  {activeTab === 'wordpress' ? (
+                    <AccountList
+                      sites={wpSites}
+                      selectedId={selectedSiteId}
+                      onSelect={setSelectedSiteId}
+                      emptyLabel="Connect a WordPress site in Settings → Integrations to publish here."
+                    />
+                  ) : (
+                    <AccountList
+                      sites={wixSites}
+                      selectedId={selectedSiteId}
+                      onSelect={setSelectedSiteId}
+                      emptyLabel="Connect a Wix site in Settings → Integrations to publish here."
+                    />
                   )}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(v => !v)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground"
-                  aria-label={showPassword ? 'Hide password' : 'Show password'}
-                >
-                  {showPassword
-                    ? <EyeOff size={14} strokeWidth={1.6} absoluteStrokeWidth />
-                    : <Eye size={14} strokeWidth={1.6} absoluteStrokeWidth />}
-                </button>
+                </div>
               </div>
-            </div>
-          </div>
 
-          {/* Footer */}
-          <div className="flex flex-none items-center gap-2 border-t border-border px-6 py-4">
-            <Select value={approvalWorkflow} onValueChange={setApprovalWorkflow}>
-              <SelectTrigger
-                size="sm"
-                aria-label="Approval workflow"
-                className="h-9 w-[200px] border-border bg-background text-[13px]"
-              >
-                <SelectValue placeholder="Select approval" />
-              </SelectTrigger>
-              <SelectContent align="start" className="w-[240px]">
-                {APPROVAL_WORKFLOWS.map(workflow => (
-                  <SelectItem key={workflow} value={workflow}>
-                    {workflow}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <Popover open={datePickerOpen} onOpenChange={setDatePickerOpen}>
-              <PopoverTrigger asChild>
+              {/* Footer */}
+              <div className="flex flex-none items-center justify-between border-t border-border px-6 py-4">
                 <button
                   type="button"
-                  className="flex h-9 items-center gap-2 rounded-md border border-border bg-background px-3 text-[13px] text-foreground transition-colors hover:bg-muted/60"
-                  aria-label="Schedule date"
+                  className="text-[12px] text-primary hover:underline underline-offset-2 transition-colors"
                 >
-                  <CalendarDays size={14} strokeWidth={1.6} absoluteStrokeWidth className="flex-none text-muted-foreground" />
-                  <span className={scheduleDate ? 'text-foreground' : 'text-muted-foreground'}>
-                    {scheduleDate ? formatScheduleDate(scheduleDate) : 'Select date and time'}
-                  </span>
+                  Manage {activeTab === 'wordpress' ? 'WordPress' : 'Wix'} accounts
                 </button>
-              </PopoverTrigger>
-              <PopoverContent align="start" className="w-auto p-0">
-                <Calendar
-                  mode="single"
-                  selected={scheduleDate}
-                  onSelect={date => {
-                    setScheduleDate(date);
-                    if (date) setDatePickerOpen(false);
-                  }}
-                  initialFocus
-                />
-              </PopoverContent>
-            </Popover>
-
-            <div className="flex-1" />
-
-            <Button
-              type="button"
-              disabled={!canPublish}
-              onClick={handlePublish}
-            >
-              Publish
-            </Button>
-          </div>
+                <Button
+                  type="button"
+                  disabled={!selectedSite}
+                  onClick={handlePublish}
+                >
+                  Publish as new page
+                </Button>
+              </div>
+            </>
+          )}
         </DialogPrimitive.Content>
       </DialogPortal>
     </Dialog>

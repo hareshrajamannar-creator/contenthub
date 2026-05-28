@@ -11,7 +11,7 @@
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
-export type SavedBlockSource = 'faq-section' | 'faq-full';
+export type SavedBlockSource = 'faq-section' | 'faq-full' | 'blog';
 
 export interface SavedBlock {
   id: string;

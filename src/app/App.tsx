@@ -75,6 +75,7 @@ import { ContentEditorShell } from "./components/content-hub/editor/ContentEdito
 import type { ContentMode } from "./components/content-hub/editor/editorConfig";
 import { FAQGenerationAgentsView } from "./components/content-hub/FAQGenerationAgentsView";
 import { RecommendationsView } from "./components/recommendations/RecommendationsView";
+import { CreateBlogPage } from "./components/content-hub/CreateBlogPage";
 
 const AUTH_STORAGE_KEY = "birdai_demo_authenticated";
 const LOGIN_TAB_TITLE_INDEX_KEY = "auth:login_tab_title_index";
@@ -136,6 +137,7 @@ export type AppView =
   | "content-hub-fix"
   | "content-hub-agents-faq"
   | "content-hub-agents-blog"
+  | "content-hub-blog-create"
   | "recommendations";
 
 const DEFAULT_APP_VIEW: AppView = "recommendations";
@@ -470,6 +472,7 @@ export default function App() {
     v === "content-hub-fix" ||
     v === "content-hub-agents-faq" ||
     v === "content-hub-agents-blog" ||
+    v === "content-hub-blog-create" ||
     v === "recommendations";
 
   return (
@@ -578,13 +581,17 @@ export default function App() {
             <AppointmentsL2NavPanel />
           )}
           {/* Content Hub L2 nav panel — suppressed only on create view, or when the FAQ agent builder is open on the agents-faq page */}
-          {!aiPanelOpen && !mynaWorkspaceExpanded && currentView?.startsWith("content-hub") && currentView !== "content-hub-create" && !(currentView === "content-hub-agents-faq" && faqAgentBuilderOpen) && (
+          {!aiPanelOpen && !mynaWorkspaceExpanded && currentView?.startsWith("content-hub") && currentView !== "content-hub-create" && currentView !== "content-hub-blog-create" && !(currentView === "content-hub-agents-faq" && faqAgentBuilderOpen) && (
             <ContentHubL2NavPanel
               activeItem={contentHubL2Active}
               onActiveItemChange={handleContentHubL2Change}
               onCreate={(mode) => {
-                setCreateViewInitialMode(mode);
-                setCurrentView("content-hub-create");
+                if (mode === 'blog') {
+                  setCurrentView("content-hub-blog-create");
+                } else {
+                  setCreateViewInitialMode(mode);
+                  setCurrentView("content-hub-create");
+                }
               }}
             />
           )}
@@ -715,6 +722,14 @@ export default function App() {
               <div className="flex-1 flex items-center justify-center text-muted-foreground text-sm">Awaiting approval — coming soon</div>
             ) : currentView === "content-hub-fix" ? (
               <div className="flex-1 flex items-center justify-center text-muted-foreground text-sm">Fix content — coming soon</div>
+            ) : currentView === "content-hub-blog-create" ? (
+              <CreateBlogPage
+                onCancel={() => setCurrentView("content-hub-home")}
+                onGenerate={() => {
+                  setCreateViewStartAtBlogCanvas(true);
+                  setCurrentView("content-hub-create");
+                }}
+              />
             ) : currentView === "content-hub-create" ? (
               createViewStartAtFAQCanvas ? (
                 <ContentEditorShell
