@@ -2052,15 +2052,15 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
                     )}
 
                     {/* Undo */}
-                    <button type="button" title="Undo" onClick={handleUndo} disabled={!canUndo}
-                      className="flex h-[30px] w-[30px] items-center justify-center rounded-lg border border-border/70 bg-background text-foreground/60 transition-colors hover:bg-muted hover:text-foreground disabled:pointer-events-none disabled:opacity-40">
-                      <Undo2 size={14} strokeWidth={1.6} absoluteStrokeWidth />
+                    <button type="button" title="Undo" onClick={handleUndo}
+                      className="flex h-[30px] w-[30px] items-center justify-center rounded-lg border border-border/70 bg-background transition-colors hover:bg-muted">
+                      <Undo2 size={14} strokeWidth={1.6} absoluteStrokeWidth className={cn('text-muted-foreground transition-opacity', !canUndo && 'opacity-30')} />
                     </button>
 
                     {/* Redo */}
-                    <button type="button" title="Redo" onClick={handleRedo} disabled={!canRedo}
-                      className="flex h-[30px] w-[30px] items-center justify-center rounded-lg border border-border/70 bg-background text-foreground/60 transition-colors hover:bg-muted hover:text-foreground disabled:pointer-events-none disabled:opacity-40">
-                      <Redo2 size={14} strokeWidth={1.6} absoluteStrokeWidth />
+                    <button type="button" title="Redo" onClick={handleRedo}
+                      className="flex h-[30px] w-[30px] items-center justify-center rounded-lg border border-border/70 bg-background transition-colors hover:bg-muted">
+                      <Redo2 size={14} strokeWidth={1.6} absoluteStrokeWidth className={cn('text-muted-foreground transition-opacity', !canRedo && 'opacity-30')} />
                     </button>
 
                     {/* Zoom dropdown */}
