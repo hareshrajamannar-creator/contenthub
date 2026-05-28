@@ -1109,11 +1109,18 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
     const label = buildGenerationLabel(data);
     setGenerationInfo({ label, wizardData: null as unknown as import('../wizard/wizardTypes').WizardData });
 
+    const SOCIAL_PLATFORM_IDS = new Set(['fb-post', 'fb-reel', 'ig-post', 'ig-reel', 'li-post', 'yt-short', 'tt-video']);
+    const VALID_ITEM_TYPES = new Set<ContentItemType>(['blog', 'social', 'email', 'faq', 'landing', 'video']);
+    function toItemType(raw: string): ContentItemType {
+      if (SOCIAL_PLATFORM_IDS.has(raw)) return 'social';
+      return VALID_ITEM_TYPES.has(raw as ContentItemType) ? (raw as ContentItemType) : 'blog';
+    }
+
     // Determine cards to generate from the ideas in the flow data
     const newCards: ContentCardData[] = data.ideas && data.ideas.length > 0
       ? data.ideas.map((idea, i) => ({
           id: `${idea.type}-${i}`,
-          itemType: idea.type as ContentItemType,
+          itemType: toItemType(idea.type),
           name: idea.title,
           status: 'Draft' as CardStatus,
           score: 84 - (i * 3),
@@ -1997,7 +2004,7 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
             {/* Toolbar — floating card style, outside scroll area */}
             {editingCardItemType === null && !isGenerating && cards.length > 0 && (
               <div className="flex-none px-3 pt-3 pb-1">
-                <div className="flex h-[48px] items-center rounded-lg border border-border/60 bg-background px-3">
+                <div className="flex h-[48px] items-center px-3">
 
                   {/* Left spacer — balances right controls for true centering */}
                   <div className="flex-1" />
@@ -2041,19 +2048,18 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
                           )}>
                           <ArrowRight size={14} strokeWidth={1.6} absoluteStrokeWidth />
                         </button>
-                        <div className="mx-1 h-5 w-px bg-border" />
                       </>
                     )}
 
                     {/* Undo */}
                     <button type="button" title="Undo" onClick={handleUndo} disabled={!canUndo}
-                      className="flex h-[30px] w-[30px] items-center justify-center rounded-lg border border-border/70 bg-background text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:pointer-events-none disabled:opacity-25">
+                      className="flex h-[30px] w-[30px] items-center justify-center rounded-lg border border-border/70 bg-background text-foreground/60 transition-colors hover:bg-muted hover:text-foreground disabled:pointer-events-none disabled:opacity-40">
                       <Undo2 size={14} strokeWidth={1.6} absoluteStrokeWidth />
                     </button>
 
                     {/* Redo */}
                     <button type="button" title="Redo" onClick={handleRedo} disabled={!canRedo}
-                      className="flex h-[30px] w-[30px] items-center justify-center rounded-lg border border-border/70 bg-background text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:pointer-events-none disabled:opacity-25">
+                      className="flex h-[30px] w-[30px] items-center justify-center rounded-lg border border-border/70 bg-background text-foreground/60 transition-colors hover:bg-muted hover:text-foreground disabled:pointer-events-none disabled:opacity-40">
                       <Redo2 size={14} strokeWidth={1.6} absoluteStrokeWidth />
                     </button>
 
@@ -2074,8 +2080,6 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
                         ))}
                       </DropdownMenuContent>
                     </DropdownMenu>
-
-                    <div className="mx-1 h-5 w-px bg-border" />
 
                     {/* Version history */}
                     <button type="button" title="Version history"
