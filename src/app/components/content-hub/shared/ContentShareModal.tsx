@@ -1,16 +1,22 @@
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import React, { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { toast } from 'sonner';
 import {
   Braces,
   CheckCircle2,
   Code,
   Copy,
+  Download,
   File,
   FileText,
   Image,
   Link2,
+  Mail,
+  MessageSquare,
+  Monitor,
   Presentation,
+  Share2,
   Table,
+  Video,
   X,
 } from 'lucide-react';
 import {
@@ -20,6 +26,7 @@ import {
   DialogTitle,
 } from '@/app/components/ui/dialog';
 import { Button } from '@/app/components/ui/button';
+import { Checkbox } from '@/app/components/ui/checkbox';
 import {
   Select,
   SelectContent,
@@ -32,12 +39,22 @@ import { cn } from '@/lib/utils';
 type ShareTab = 'collaborate' | 'download' | 'embed';
 type Permission = 'View only' | 'Comment' | 'Edit';
 
+export type ProjectItemType = 'blog' | 'social' | 'email' | 'faq' | 'landing' | 'video';
+
+export interface ProjectDownloadItem {
+  id: string;
+  itemType: ProjectItemType;
+  label: string;
+}
+
 interface ContentShareModalProps {
   open: boolean;
   onClose: () => void;
   contentTitle?: string;
   shareUrl?: string;
   initialTab?: ShareTab;
+  /** When provided, the Download tab shows per-item format selection (project mode) */
+  projectItems?: ProjectDownloadItem[];
 }
 
 interface Member {
@@ -70,6 +87,34 @@ const DOWNLOAD_OPTIONS = [
   { id: 'json', label: 'JSON', icon: Braces       },
   { id: 'ppt',  label: 'PPT',  icon: Presentation },
 ];
+
+// Per-type format options shown in project download mode
+const ITEM_TYPE_FORMATS: Record<ProjectItemType, { id: string; label: string }[]> = {
+  blog:    [{ id: 'docx', label: 'DOCX' }, { id: 'pdf', label: 'PDF' }, { id: 'html', label: 'HTML' }],
+  social:  [{ id: 'png',  label: 'PNG'  }, { id: 'pdf', label: 'PDF' }],
+  email:   [{ id: 'html', label: 'HTML' }, { id: 'pdf', label: 'PDF' }, { id: 'docx', label: 'DOCX' }],
+  faq:     [{ id: 'html', label: 'HTML' }, { id: 'json', label: 'JSON' }, { id: 'pdf', label: 'PDF' }],
+  landing: [{ id: 'html', label: 'HTML' }, { id: 'pdf', label: 'PDF' }],
+  video:   [{ id: 'pdf',  label: 'PDF'  }],
+};
+
+const ITEM_TYPE_DEFAULT_FORMAT: Record<ProjectItemType, string> = {
+  blog:    'docx',
+  social:  'png',
+  email:   'html',
+  faq:     'html',
+  landing: 'html',
+  video:   'pdf',
+};
+
+const ITEM_TYPE_ICON: Record<ProjectItemType, React.ElementType> = {
+  blog:    FileText,
+  social:  Share2,
+  email:   Mail,
+  faq:     MessageSquare,
+  landing: Monitor,
+  video:   Video,
+};
 
 function initials(name: string) {
   const parts = name.trim().split(' ');
@@ -143,9 +188,26 @@ export function ContentShareModal({
   contentTitle = 'New FAQ page',
   shareUrl = 'https://contenthub.birdeye.com/share/faq-set-001',
   initialTab = 'collaborate',
+  projectItems,
 }: ContentShareModalProps) {
   const [activeTab, setActiveTab] = useState<ShareTab>(initialTab);
   useEffect(() => { if (open) setActiveTab(initialTab); }, [open, initialTab]);
+
+  // Project download state — format selection and item selection
+  const [itemFormats, setItemFormats] = useState<Record<string, string>>({});
+  const [selectedItemIds, setSelectedItemIds] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    if (!open || !projectItems) return;
+    const formats: Record<string, string> = {};
+    const selected = new Set<string>();
+    projectItems.forEach(item => {
+      formats[item.id] = ITEM_TYPE_DEFAULT_FORMAT[item.itemType];
+      selected.add(item.id);
+    });
+    setItemFormats(formats);
+    setSelectedItemIds(selected);
+  }, [open, projectItems]);
 
   // Invite chip state
   const inputRef = useRef<HTMLInputElement>(null);
@@ -377,7 +439,118 @@ export function ContentShareModal({
             </div>
           )}
 
-          {activeTab === 'download' && (
+          {activeTab === 'download' && projectItems && projectItems.length > 0 ? (
+            /* ── Project mode: per-item format selection ── */
+            <div className="flex flex-col gap-4">
+
+              {/* Summary row — select all + download all */}
+              <div className="flex items-center justify-between">
+                <label className="flex items-center gap-2 cursor-pointer select-none">
+                  <Checkbox
+                    checked={selectedItemIds.size === projectItems.length && projectItems.length > 0}
+                    onCheckedChange={checked => {
+                      setSelectedItemIds(
+                        checked
+                          ? new Set(projectItems.map(i => i.id))
+                          : new Set(),
+                      );
+                    }}
+                  />
+                  <span className="text-[13px] text-muted-foreground">
+                    {selectedItemIds.size} of {projectItems.length} selected
+                  </span>
+                </label>
+                <Button
+                  type="button"
+                  size="sm"
+                  disabled={selectedItemIds.size === 0}
+                  className="gap-1.5 h-[32px] px-3 text-[12px]"
+                  onClick={() => {
+                    const count = selectedItemIds.size;
+                    toast.success(`Downloading ${count} item${count !== 1 ? 's' : ''}`, {
+                      duration: 4000,
+                      icon: <CheckCircle2 size={20} strokeWidth={1.6} absoluteStrokeWidth className="text-green-600" />,
+                    });
+                  }}
+                >
+                  <Download size={13} strokeWidth={1.6} absoluteStrokeWidth />
+                  Download selected
+                </Button>
+              </div>
+
+              {/* Item rows */}
+              <div className="flex flex-col gap-2">
+                {projectItems.map(item => {
+                  const TypeIcon = ITEM_TYPE_ICON[item.itemType];
+                  const formats = ITEM_TYPE_FORMATS[item.itemType];
+                  const selectedFormat = itemFormats[item.id] ?? ITEM_TYPE_DEFAULT_FORMAT[item.itemType];
+                  const isSelected = selectedItemIds.has(item.id);
+
+                  return (
+                    <div
+                      key={item.id}
+                      className={cn(
+                        'flex items-center gap-3 rounded-lg border px-4 py-3 transition-colors',
+                        isSelected ? 'border-border bg-background' : 'border-border/40 bg-muted/20 opacity-60',
+                      )}
+                    >
+                      <Checkbox
+                        checked={isSelected}
+                        onCheckedChange={checked => {
+                          setSelectedItemIds(prev => {
+                            const next = new Set(prev);
+                            if (checked) next.add(item.id); else next.delete(item.id);
+                            return next;
+                          });
+                        }}
+                      />
+
+                      {/* Content type icon */}
+                      <div className="flex size-7 shrink-0 items-center justify-center rounded-md bg-primary/[0.07]">
+                        <TypeIcon size={13} strokeWidth={1.6} absoluteStrokeWidth className="text-foreground/70" />
+                      </div>
+
+                      {/* Label */}
+                      <span className="flex-1 text-[13px] font-medium text-foreground">{item.label}</span>
+
+                      {/* Format selector */}
+                      <Select
+                        value={selectedFormat}
+                        onValueChange={val => setItemFormats(prev => ({ ...prev, [item.id]: val }))}
+                        disabled={!isSelected}
+                      >
+                        <SelectTrigger className="h-[30px] w-[84px] border-border bg-background text-[12px]">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent align="end">
+                          {formats.map(fmt => (
+                            <SelectItem key={fmt.id} value={fmt.id} className="text-[12px]">
+                              {fmt.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+
+                      {/* Individual download */}
+                      <button
+                        type="button"
+                        title={`Download as ${selectedFormat.toUpperCase()}`}
+                        disabled={!isSelected}
+                        onClick={() => toast.success(`Downloading ${item.label} as ${selectedFormat.toUpperCase()}`, {
+                          duration: 4000,
+                          icon: <CheckCircle2 size={20} strokeWidth={1.6} absoluteStrokeWidth className="text-green-600" />,
+                        })}
+                        className="flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-lg border border-border/70 bg-background text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:pointer-events-none disabled:opacity-25"
+                      >
+                        <Download size={13} strokeWidth={1.6} absoluteStrokeWidth />
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ) : activeTab === 'download' ? (
+            /* ── Single content mode: flat format list ── */
             <div className="flex flex-col gap-2">
               {DOWNLOAD_OPTIONS.map(option => {
                 const Icon = option.icon;
@@ -404,7 +577,7 @@ export function ContentShareModal({
                 );
               })}
             </div>
-          )}
+          ) : null}
 
           {activeTab === 'embed' && (
             <div className="space-y-4">

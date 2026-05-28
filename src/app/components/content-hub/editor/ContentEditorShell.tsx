@@ -2309,6 +2309,10 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
         onClose={() => setShareOpen(false)}
         contentTitle={title}
         initialTab={shareInitialTab}
+        projectItems={mode === 'project' && cards.length > 0
+          ? cards.map(c => ({ id: c.id, itemType: c.itemType, label: ITEM_TYPE_LABEL[c.itemType] }))
+          : undefined
+        }
       />
       <FAQSendForApprovalModal
         open={sendForApprovalOpen}
