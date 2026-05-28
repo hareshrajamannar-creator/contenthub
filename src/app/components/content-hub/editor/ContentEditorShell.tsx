@@ -1925,6 +1925,7 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
                 onRedo={handleRedo}
                 zoom={zoom}
                 onZoomChange={setZoom}
+                onVersionHistory={() => setVersionHistoryOpen(true)}
                 onActivity={() => { setActivityOpen(v => !v); setCommentsOpen(false); setFaqScorePanelOpen(false); setBlogScorePanelOpen(false); setActiveScoreCardId(null); }}
                 onChat={() => { setCommentsOpen(v => !v); setActivityOpen(false); setFaqScorePanelOpen(false); setBlogScorePanelOpen(false); setActiveScoreCardId(null); }}
               />
@@ -2329,7 +2330,7 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
       {versionHistoryOpen && (
         <div className="absolute inset-0 z-50">
           <ContentVersionHistory
-            contentType={mode === 'blog' ? 'blog' : 'faq'}
+            contentType={mode === 'blog' ? 'blog' : mode === 'project' ? 'project' : 'faq'}
             onClose={() => setVersionHistoryOpen(false)}
           />
         </div>

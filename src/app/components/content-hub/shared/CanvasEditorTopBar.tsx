@@ -1,6 +1,5 @@
 import {
   Activity,
-  Bookmark,
   ChevronDown,
   History,
   MessageCircle,
@@ -35,7 +34,6 @@ interface CanvasEditorTopBarProps {
   onZoomChange?: (zoom: number) => void;
   onVersionHistory?: () => void;
   onActivity?: () => void;
-  onSave?: () => void;
   onChat?: () => void;
   hideScore?: boolean;
 }
@@ -120,7 +118,6 @@ export function CanvasEditorTopBar({
   onZoomChange,
   onVersionHistory,
   onActivity,
-  onSave,
   onChat,
   hideScore = false,
 }: CanvasEditorTopBarProps) {
@@ -185,9 +182,6 @@ export function CanvasEditorTopBar({
         </TileButton>
         <TileButton title="Activity" onClick={onActivity}>
           <Activity size={14} strokeWidth={1.6} absoluteStrokeWidth />
-        </TileButton>
-        <TileButton title="Save" onClick={onSave}>
-          <Bookmark size={14} strokeWidth={1.6} absoluteStrokeWidth />
         </TileButton>
         <TileButton title="Comments" onClick={onChat}>
           <MessageCircle size={14} strokeWidth={1.6} absoluteStrokeWidth />

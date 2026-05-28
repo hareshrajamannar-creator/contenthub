@@ -31,3 +31,10 @@ export const BlogVersion: Story = {
     onClose: () => {},
   },
 };
+
+export const ProjectVersion: Story = {
+  args: {
+    contentType: 'project',
+    onClose: () => {},
+  },
+};

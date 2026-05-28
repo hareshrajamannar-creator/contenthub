@@ -1,7 +1,9 @@
-import { ArrowLeft, Check } from 'lucide-react';
-import { useState } from 'react';
+import { ArrowLeft, Check, AlertCircle, Video } from 'lucide-react';
+import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/app/components/ui/button';
+import { ReadOnlyContentCard } from '@/app/components/content-hub/editor/EditorContentCard';
+import type { ContentCardData } from '@/app/components/content-hub/editor/EditorContentCard';
 import {
   Dialog,
   DialogContent,
@@ -40,6 +42,9 @@ interface BlogVersionBlock {
   items?: string[];
   changed?: boolean;
 }
+
+// Which card IDs changed in each project version (compared to the current)
+type ProjectVersionChanges = Record<VersionId, Set<string>>;
 
 // ── Mock data ─────────────────────────────────────────────────────────────────
 
@@ -252,6 +257,22 @@ const BLOG_CONTENT: Record<VersionId, BlogVersionBlock[]> = {
   ],
 };
 
+// Cards that match the live project canvas (same data, used in read-only version history)
+const PROJECT_CANVAS_CARDS: ContentCardData[] = [
+  { id: 'blog-1',   itemType: 'blog',   name: 'Blog post',   status: 'Ready', score: 78, approved: false },
+  { id: 'social-1', itemType: 'social', name: 'Social post', status: 'Ready', score: 82, approved: false },
+  { id: 'email-1',  itemType: 'email',  name: 'Email',       status: 'Draft', score: 65, approved: false },
+  { id: 'faq-1',    itemType: 'faq',    name: 'FAQ page',    status: 'Ready', score: 88, approved: false },
+];
+
+// Which card IDs have changes in each historical version vs current
+const PROJECT_CHANGED_IDS: ProjectVersionChanges = {
+  v4: new Set([]),
+  v3: new Set(['blog-1', 'social-1', 'faq-1']),
+  v2: new Set(['blog-1', 'social-1', 'email-1']),
+  v1: new Set(['blog-1', 'social-1', 'email-1', 'faq-1']),
+};
+
 // ── Read-only FAQ preview (matches FAQSectionCanvas visual style exactly) ─────
 
 function FAQReadOnlyPreview({ versionId }: { versionId: VersionId }) {
@@ -291,37 +312,155 @@ function FAQReadOnlyPreview({ versionId }: { versionId: VersionId }) {
 }
 
 // ── Read-only blog preview ─────────────────────────────────────────────────────
+// Derives per-element amber highlights from the version's BLOG_CONTENT changed flags.
+
+const BLOG_HL   = 'bg-amber-100 rounded-[3px] px-1';
+const BLOG_RING = 'ring-2 ring-amber-300';
 
 function BlogReadOnlyPreview({ versionId }: { versionId: VersionId }) {
-  const blocks = BLOG_CONTENT[versionId];
+  const blocks       = BLOG_CONTENT[versionId];
+  const titleBlock   = blocks.find(b => b.type === 'hero-title');
+  const subtitleBlock= blocks.find(b => b.type === 'hero-subtitle');
+  const headingBlocks= blocks.filter(b => b.type === 'heading');
+  const paraBlocks   = blocks.filter(b => b.type === 'paragraph');
+  const bulletsBlock = blocks.find(b => b.type === 'bullets');
+
+  const titleChanged    = titleBlock?.changed    ?? false;
+  const subtitleChanged = subtitleBlock?.changed ?? false;
+  const heading1Changed = headingBlocks[0]?.changed ?? false;
+  const para1Changed    = paraBlocks[0]?.changed    ?? false;
+  const bulletsChanged  = bulletsBlock?.changed  ?? false;
+  // image / video / stats not tracked per-version — highlight only on v1 (initial draft)
+  const mediaChanged    = versionId === 'v1';
+
   return (
-    <div className="rounded-xl border border-border/60 bg-background p-8 flex flex-col gap-4 max-w-2xl mx-auto">
-      {blocks.map((block, i) => {
-        const changed = block.changed ?? false;
-        const hlClass = changed ? 'bg-amber-100 rounded-[3px] px-1' : '';
-        if (block.type === 'hero-title') {
-          return <h1 key={i} className={cn('text-[22px] font-bold text-foreground leading-tight', hlClass)}>{block.text}</h1>;
-        }
-        if (block.type === 'hero-subtitle') {
-          return <p key={i} className={cn('text-[15px] text-muted-foreground leading-relaxed', hlClass)}>{block.text}</p>;
-        }
-        if (block.type === 'heading') {
-          return <h2 key={i} className={cn('text-[16px] font-semibold text-foreground mt-2', hlClass)}>{block.text}</h2>;
-        }
-        if (block.type === 'paragraph') {
-          return <p key={i} className={cn('text-[13px] text-foreground leading-relaxed', hlClass)}>{block.text}</p>;
-        }
-        if (block.type === 'bullets' && block.items) {
-          return (
-            <ul key={i} className={cn('flex flex-col gap-1 pl-4', changed && 'bg-amber-100 rounded-[3px] px-4 py-2')}>
-              {block.items.map((item, bi) => (
-                <li key={bi} className="text-[13px] text-foreground list-disc">{item}</li>
-              ))}
-            </ul>
-          );
-        }
-        return null;
-      })}
+    <div className="max-w-2xl mx-auto flex flex-col gap-5">
+
+      {/* Hero card */}
+      <div className={cn(
+        'overflow-hidden rounded-xl border border-border bg-gradient-to-br from-emerald-50 via-white to-blue-50',
+        mediaChanged && BLOG_RING,
+      )}>
+        <div className="flex min-h-[180px] items-center justify-between gap-5 px-5 py-5">
+          <div className="max-w-[58%] space-y-2">
+            <span className="inline-flex rounded-full bg-primary/10 px-2.5 py-1 text-[11px] font-medium text-primary">
+              Local SEO guide
+            </span>
+            <h2 className={cn('text-[20px] font-semibold leading-tight text-foreground', titleChanged && BLOG_HL)}>
+              {titleBlock?.text ?? 'The Complete Guide to Building Exceptional Customer Experiences'}
+            </h2>
+            <p className={cn('text-[12px] leading-relaxed text-muted-foreground', subtitleChanged && BLOG_HL)}>
+              {subtitleBlock?.text ?? 'Proven strategies that leading brands use to turn every interaction into a loyalty-building moment'}
+            </p>
+          </div>
+          <div className={cn(
+            'flex h-[132px] flex-1 items-center justify-center rounded-xl bg-white/75 shadow-sm ring-1 ring-black/[0.05]',
+            mediaChanged && BLOG_RING,
+          )}>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="h-12 w-16 rounded-lg bg-emerald-100" />
+              <div className="h-12 w-16 rounded-lg bg-blue-100" />
+              <div className="h-12 w-16 rounded-lg bg-amber-100" />
+              <div className="h-12 w-16 rounded-lg bg-violet-100" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Article heading */}
+      <h2 className={cn('text-[18px] font-semibold text-foreground leading-snug', heading1Changed && BLOG_HL)}>
+        {headingBlocks[0]?.text ?? 'Why customer experience is the ultimate differentiator'}
+      </h2>
+      <p className="text-[12px] text-muted-foreground">~167 words · ~1 min read</p>
+
+      {/* Body paragraph */}
+      <p className={cn('text-[13px] text-foreground leading-relaxed', para1Changed && BLOG_HL)}>
+        {paraBlocks[0]?.text ?? "In today's hyper-competitive landscape, the quality of your customer experience is the single greatest differentiator available to any business. Customers who feel genuinely valued don't just return — they become advocates."}
+      </p>
+
+      {/* Section heading 2 */}
+      <h3 className="text-[15px] font-semibold text-foreground">The AI Advantage</h3>
+      <p className="text-[13px] text-foreground leading-relaxed">
+        AI-powered response tools help local businesses respond faster and more consistently — without
+        sacrificing personalisation. Rather than copy-paste replies, modern AI can personalise each
+        response based on the reviewer's specific feedback and match your brand voice.
+      </p>
+
+      {/* Bullets */}
+      {bulletsBlock?.items && (
+        <ul className={cn('flex flex-col gap-1 pl-5', bulletsChanged && 'bg-amber-100 rounded-lg px-5 py-3')}>
+          {bulletsBlock.items.map((item, i) => (
+            <li key={i} className="text-[13px] text-foreground list-disc">{item}</li>
+          ))}
+        </ul>
+      )}
+
+      {/* Stats grid */}
+      <div className="grid grid-cols-3 gap-3">
+        {[['23%', 'more review volume'], ['4.6x', 'faster response time'], ['89%', 'trust public replies']].map(([val, lbl]) => (
+          <div key={lbl} className="rounded-lg border border-border bg-muted/30 p-3">
+            <p className="text-[18px] font-semibold text-foreground">{val}</p>
+            <p className="text-[11px] leading-snug text-muted-foreground">{lbl}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Checklist */}
+      <div className="rounded-xl border border-border bg-background p-4">
+        <h3 className="text-[15px] font-semibold text-foreground">Implementation checklist</h3>
+        <ul className="mt-2 space-y-1.5 text-[13px] leading-relaxed text-foreground">
+          <li>Train reply guidance on your best historical responses and brand guardrails.</li>
+          <li>Route low-score or sensitive reviews to a human reviewer before publishing.</li>
+          <li>Measure response time, review velocity, and customer sentiment by location.</li>
+        </ul>
+      </div>
+
+      {/* Video embed */}
+      <div className={cn('overflow-hidden rounded-xl border border-border bg-zinc-950', mediaChanged && BLOG_RING)}>
+        <div className="flex h-[180px] items-center justify-center bg-gradient-to-br from-zinc-900 to-emerald-950">
+          <div className="flex size-14 items-center justify-center rounded-full bg-white/15 text-white">
+            <Video size={22} strokeWidth={1.6} absoluteStrokeWidth />
+          </div>
+        </div>
+        <div className="px-4 py-3">
+          <p className="text-[12px] font-medium text-white">Video embed: responding to a difficult review</p>
+          <p className="mt-0.5 text-[11px] text-zinc-400">2:18 · Customer experience training clip</p>
+        </div>
+      </div>
+
+      {/* CTA */}
+      <div className="rounded-xl bg-primary px-5 py-4 text-primary-foreground">
+        <p className="text-[15px] font-semibold">Ready to respond faster?</p>
+        <p className="mt-1 text-[12px] leading-relaxed text-primary-foreground/80">
+          Start with your top three review scenarios and build an approval workflow your team trusts.
+        </p>
+      </div>
+
+    </div>
+  );
+}
+
+// ── Read-only project canvas (version history) ────────────────────────────────
+
+function ProjectVersionCanvas({ versionId }: { versionId: VersionId }) {
+  const changedIds = PROJECT_CHANGED_IDS[versionId];
+  const isCurrent = versionId === 'v4';
+
+  return (
+    <div className="flex flex-col gap-4 max-w-[860px] mx-auto">
+      {!isCurrent && (
+        <div className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-amber-50 border border-amber-200/70">
+          <AlertCircle size={13} strokeWidth={1.6} absoluteStrokeWidth className="text-amber-600 flex-none" />
+          <p className="text-[12px] text-amber-700">Cards highlighted in amber changed since the current version.</p>
+        </div>
+      )}
+      {PROJECT_CANVAS_CARDS.map(card => (
+        <ReadOnlyContentCard
+          key={card.id}
+          card={card}
+          changed={changedIds.has(card.id)}
+        />
+      ))}
     </div>
   );
 }
@@ -329,7 +468,7 @@ function BlogReadOnlyPreview({ versionId }: { versionId: VersionId }) {
 // ── Main component ─────────────────────────────────────────────────────────────
 
 export interface ContentVersionHistoryProps {
-  contentType: 'faq' | 'blog';
+  contentType: 'faq' | 'blog' | 'project';
   onClose: () => void;
 }
 
@@ -374,10 +513,12 @@ export function ContentVersionHistory({ contentType, onClose }: ContentVersionHi
         {/* Read-only content preview */}
         <div className="flex-1 min-w-0 overflow-y-auto rounded-xl bg-background border border-border/60">
           <div className="px-8 py-6 pb-10">
-            {contentType === 'faq' ? (
-              <FAQReadOnlyPreview versionId={selectedVersionId} />
-            ) : (
+            {contentType === 'project' ? (
+              <ProjectVersionCanvas versionId={selectedVersionId} />
+            ) : contentType === 'blog' ? (
               <BlogReadOnlyPreview versionId={selectedVersionId} />
+            ) : (
+              <FAQReadOnlyPreview versionId={selectedVersionId} />
             )}
           </div>
         </div>
@@ -393,6 +534,9 @@ export function ContentVersionHistory({ contentType, onClose }: ContentVersionHi
           <div className="flex-1 overflow-y-auto divide-y divide-border">
             {VERSIONS.map(version => {
               const isSelected = selectedVersionId === version.id;
+              const projectChangedCount = contentType === 'project'
+                ? PROJECT_CHANGED_IDS[version.id].size
+                : 0;
               return (
                 <button
                   key={version.id}
@@ -418,6 +562,11 @@ export function ContentVersionHistory({ contentType, onClose }: ContentVersionHi
                     </div>
                     <span className="text-[12px] text-muted-foreground">{version.author}</span>
                   </div>
+                  {contentType === 'project' && !version.isCurrent && projectChangedCount > 0 && (
+                    <span className="text-[11px] font-medium text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full w-fit">
+                      {projectChangedCount} {projectChangedCount === 1 ? 'item' : 'items'} changed
+                    </span>
+                  )}
                   {version.isCurrent && (
                     <span className="text-[11px] font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-full w-fit">
                       Current version

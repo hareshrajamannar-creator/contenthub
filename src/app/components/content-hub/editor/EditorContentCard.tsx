@@ -73,8 +73,13 @@ const TYPE_ICON: Record<ContentItemType, React.ElementType> = {
 };
 
 // ── Inline content preview renderers ─────────────────────────────────────────
+// When `changed` is true (version history only), specific text/image elements
+// get an amber highlight — the rest of the card body stays unaffected.
 
-function BlogPreview() {
+const HL = 'bg-amber-100/90 rounded-[3px] px-0.5'; // inline text highlight
+const HL_IMG = 'ring-2 ring-amber-300';             // image/media area ring
+
+function BlogPreview({ changed = false }: { changed?: boolean }) {
   return (
     <div className="px-6 py-5 space-y-5">
       <div className="overflow-hidden rounded-xl border border-border bg-gradient-to-br from-emerald-50 via-white to-blue-50">
@@ -83,14 +88,14 @@ function BlogPreview() {
             <span className="inline-flex rounded-full bg-primary/10 px-2.5 py-1 text-[11px] font-medium text-primary">
               Local SEO guide
             </span>
-            <h2 className="text-[20px] font-semibold leading-tight text-foreground">
+            <h2 className={cn('text-[20px] font-semibold leading-tight text-foreground', changed && HL)}>
               How local businesses win with AI-powered review responses
             </h2>
-            <p className="text-[12px] leading-relaxed text-muted-foreground">
+            <p className={cn('text-[12px] leading-relaxed text-muted-foreground', changed && HL)}>
               A practical playbook for turning faster replies, stronger trust signals, and better service recovery into measurable growth.
             </p>
           </div>
-          <div className="flex h-[132px] flex-1 items-center justify-center rounded-xl bg-white/75 shadow-sm ring-1 ring-black/[0.05]">
+          <div className={cn('flex h-[132px] flex-1 items-center justify-center rounded-xl bg-white/75 shadow-sm ring-1 ring-black/[0.05]', changed && HL_IMG)}>
             <div className="grid grid-cols-2 gap-2">
               <div className="h-12 w-16 rounded-lg bg-emerald-100" />
               <div className="h-12 w-16 rounded-lg bg-blue-100" />
@@ -105,7 +110,7 @@ function BlogPreview() {
         How Local Businesses Are Winning With AI-Powered Review Responses
       </h2>
       <p className="text-[12px] text-muted-foreground">~167 words · ~1 min read</p>
-      <p className="text-[13px] text-foreground leading-relaxed">
+      <p className={cn('text-[13px] text-foreground leading-relaxed', changed && HL)}>
         Online reviews shape purchasing decisions more than ever. According to a 2024 BrightLocal survey,
         93% of consumers read reviews before visiting a local business, and 89% say they're more likely to
         choose a business that responds to all reviews.
@@ -137,7 +142,7 @@ function BlogPreview() {
           <li>Measure response time, review velocity, and customer sentiment by location.</li>
         </ul>
       </div>
-      <div className="overflow-hidden rounded-xl border border-border bg-zinc-950">
+      <div className={cn('overflow-hidden rounded-xl border border-border bg-zinc-950', changed && HL_IMG)}>
         <div className="flex h-[180px] items-center justify-center bg-gradient-to-br from-zinc-900 to-emerald-950">
           <div className="flex size-14 items-center justify-center rounded-full bg-white/15 text-white">
             <Video size={22} strokeWidth={1.6} absoluteStrokeWidth />
@@ -158,13 +163,14 @@ function BlogPreview() {
   );
 }
 
-function SocialPreview() {
+function SocialPreview({ changed = false }: { changed?: boolean }) {
   return (
     <div className="px-6 py-4 flex justify-center">
       <div className="w-[280px] rounded-2xl border border-border bg-background overflow-hidden shadow-sm">
-        {/* Mock image area */}
-        <div className="h-[160px] bg-gradient-to-br from-green-400/20 to-emerald-500/20 flex items-center justify-center">
-          <span className="text-3xl">🌿</span>
+        <div className={cn('h-[160px] bg-gradient-to-br from-green-400/20 to-emerald-500/20 flex items-center justify-center', changed && HL_IMG)}>
+          <div className="size-16 rounded-xl bg-green-200/60 flex items-center justify-center">
+            <div className="size-8 rounded-lg bg-green-400/50" />
+          </div>
         </div>
         <div className="p-3 space-y-2">
           <div className="flex items-center gap-2">
@@ -173,9 +179,9 @@ function SocialPreview() {
             </div>
             <span className="text-[12px] font-medium text-foreground">Olive Garden</span>
           </div>
-          <p className="text-[12px] text-foreground leading-relaxed">
-            🌱 Spring is here and so is our outdoor seating! Join us for fresh flavors under the open sky.
-            Reserve your table today. 🍃
+          <p className={cn('text-[12px] text-foreground leading-relaxed', changed && HL)}>
+            Spring is here and so is our outdoor seating! Join us for fresh flavors under the open sky.
+            Reserve your table today.
           </p>
           <p className="text-[11px] text-primary">#SpringDining #OutdoorSeating #LocalEats</p>
         </div>
@@ -184,13 +190,15 @@ function SocialPreview() {
   );
 }
 
-function EmailPreview() {
+function EmailPreview({ changed = false }: { changed?: boolean }) {
   return (
     <div className="px-6 py-4 flex justify-center">
       <div className="w-full max-w-[480px] rounded-lg border border-border overflow-hidden bg-background shadow-sm">
         <div className="bg-primary/5 px-4 py-3 border-b border-border">
           <p className="text-[11px] text-muted-foreground">Subject</p>
-          <p className="text-[13px] font-medium text-foreground">Your table is waiting this spring 🌸</p>
+          <p className={cn('text-[13px] font-medium text-foreground', changed && HL)}>
+            Your table is waiting this spring
+          </p>
         </div>
         <div className="px-4 py-4 space-y-3">
           <p className="text-[13px] text-foreground">Hi [First Name],</p>
@@ -199,7 +207,7 @@ function EmailPreview() {
             menu in our newly expanded outdoor dining area.
           </p>
           <div className="flex justify-center pt-1">
-            <span className="bg-primary text-primary-foreground text-[12px] font-medium px-4 py-2 rounded-lg">
+            <span className={cn('bg-primary text-primary-foreground text-[12px] font-medium px-4 py-2 rounded-lg', changed && 'ring-2 ring-amber-400 ring-offset-1')}>
               Reserve your table
             </span>
           </div>
@@ -209,22 +217,25 @@ function EmailPreview() {
   );
 }
 
-function FAQPreview() {
+function FAQPreview({ changed = false }: { changed?: boolean }) {
   const questions = [
-    'Are reservations required?',
-    'Do you offer vegan options?',
-    'Is there outdoor seating?',
-    'What are your hours of operation?',
+    { text: 'Are reservations required?', highlight: changed },
+    { text: 'Do you offer vegan options?', highlight: false },
+    { text: 'Is there outdoor seating?', highlight: changed },
+    { text: 'What are your hours of operation?', highlight: false },
   ];
   return (
     <div className="flex flex-col border-t border-border/40">
       {questions.map((q, i) => (
         <div
           key={i}
-          className="flex items-center gap-2 px-4 py-2 border-b border-border/30 last:border-0 hover:bg-muted/30 transition-colors"
+          className={cn(
+            'flex items-center gap-2 px-4 py-2 border-b border-border/30 last:border-0 transition-colors',
+            q.highlight ? 'bg-amber-100/60' : 'hover:bg-muted/30',
+          )}
         >
           <span className="text-[10px] font-mono text-muted-foreground/60 w-6 flex-shrink-0 select-none">Q{i + 1}</span>
-          <span className="text-[12px] text-foreground flex-1 truncate">{q}</span>
+          <span className="text-[12px] text-foreground flex-1 truncate">{q.text}</span>
           <ChevronRight size={11} strokeWidth={1.6} absoluteStrokeWidth className="text-muted-foreground/40 flex-shrink-0" />
         </div>
       ))}
@@ -232,20 +243,20 @@ function FAQPreview() {
   );
 }
 
-function LandingPreview() {
+function LandingPreview({ changed = false }: { changed?: boolean }) {
   return (
     <div className="space-y-5 px-6 py-5">
       <div className="overflow-hidden rounded-xl border border-border bg-gradient-to-br from-primary/10 via-white to-emerald-50">
         <div className="px-6 py-7 text-center">
           <span className="text-[11px] font-medium uppercase tracking-wide text-primary">Spring campaign</span>
-          <h2 className="mx-auto mt-2 max-w-[420px] text-[24px] font-semibold leading-tight text-foreground">
+          <h2 className={cn('mx-auto mt-2 max-w-[420px] text-[24px] font-semibold leading-tight text-foreground', changed && HL)}>
             Fresh ingredients. Local sourcing. Great service.
           </h2>
           <p className="mx-auto mt-3 max-w-[420px] text-[13px] leading-relaxed text-muted-foreground">
             Experience the Olive Garden difference with seasonal menus, refreshed patios, and local offers across every participating location.
           </p>
           <div className="mt-5 flex justify-center gap-2">
-            <span className="rounded-lg bg-primary px-5 py-2.5 text-[13px] font-medium text-primary-foreground">
+            <span className={cn('rounded-lg bg-primary px-5 py-2.5 text-[13px] font-medium text-primary-foreground', changed && 'ring-2 ring-amber-400 ring-offset-1')}>
               Book your table now
             </span>
             <span className="rounded-lg border border-border bg-background px-5 py-2.5 text-[13px] font-medium text-foreground">
@@ -253,7 +264,7 @@ function LandingPreview() {
             </span>
           </div>
         </div>
-        <div className="grid grid-cols-3 gap-2 border-t border-border bg-background/70 p-3">
+        <div className={cn('grid grid-cols-3 gap-2 border-t border-border bg-background/70 p-3', changed && HL_IMG)}>
           <div className="h-24 rounded-lg bg-emerald-100" />
           <div className="h-24 rounded-lg bg-amber-100" />
           <div className="h-24 rounded-lg bg-rose-100" />
@@ -302,10 +313,10 @@ function LandingPreview() {
   );
 }
 
-function VideoPreview() {
+function VideoPreview({ changed = false }: { changed?: boolean }) {
   return (
     <div className="px-6 py-4 flex justify-center">
-      <div className="w-full max-w-[400px] rounded-xl overflow-hidden border border-border bg-zinc-900 shadow-sm">
+      <div className={cn('w-full max-w-[400px] rounded-xl overflow-hidden border border-border bg-zinc-900 shadow-sm', changed && HL_IMG)}>
         <div className="h-[180px] flex items-center justify-center relative">
           <div className="absolute inset-0 bg-gradient-to-br from-green-800/60 to-emerald-900/60" />
           <div className="relative z-10 size-12 rounded-full bg-white/20 flex items-center justify-center">
@@ -313,7 +324,9 @@ function VideoPreview() {
           </div>
         </div>
         <div className="px-3 py-2.5 bg-zinc-800">
-          <p className="text-[12px] font-medium text-white">Behind the scenes — Olive Garden kitchen</p>
+          <p className={cn('text-[12px] font-medium text-white', changed && 'bg-amber-100/20 rounded-[3px] px-0.5')}>
+            Behind the scenes — Olive Garden kitchen
+          </p>
           <p className="text-[11px] text-zinc-400 mt-0.5">2:34 · YouTube</p>
         </div>
       </div>
@@ -321,7 +334,7 @@ function VideoPreview() {
   );
 }
 
-const PREVIEW_MAP: Record<ContentItemType, React.FC> = {
+const PREVIEW_MAP: Record<ContentItemType, React.FC<{ changed?: boolean }>> = {
   blog:    BlogPreview,
   social:  SocialPreview,
   email:   EmailPreview,
@@ -329,6 +342,43 @@ const PREVIEW_MAP: Record<ContentItemType, React.FC> = {
   landing: LandingPreview,
   video:   VideoPreview,
 };
+
+// ── Read-only card (used in version history) ──────────────────────────────────
+
+export function ReadOnlyContentCard({
+  card,
+  changed = false,
+}: {
+  card: ContentCardData;
+  changed?: boolean;
+}) {
+  const Icon = TYPE_ICON[card.itemType];
+  const Preview = PREVIEW_MAP[card.itemType];
+
+  return (
+    <div className={cn(
+      'rounded-xl border bg-background',
+      changed ? 'border-amber-300/80' : 'border-border',
+    )}>
+      {/* Header */}
+      <div className="flex items-center gap-2 px-4 h-12 border-b border-border">
+        <div className="flex items-center gap-2 flex-1 min-w-0">
+          <div className="size-6 rounded-md bg-primary/[0.07] flex items-center justify-center flex-none">
+            <Icon size={13} strokeWidth={1.6} absoluteStrokeWidth className="text-foreground/70" />
+          </div>
+          <span className="text-[13px] font-medium text-foreground truncate">{ITEM_TYPE_LABEL[card.itemType]}</span>
+        </div>
+        {changed && (
+          <span className="text-[11px] font-medium text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">
+            Changed
+          </span>
+        )}
+      </div>
+      {/* Preview body */}
+      <Preview changed={changed} />
+    </div>
+  );
+}
 
 // ── Main component ─────────────────────────────────────────────────────────────
 
