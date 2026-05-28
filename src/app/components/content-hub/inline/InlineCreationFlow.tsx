@@ -456,29 +456,20 @@ function StepGoal({
         <div className="flex flex-col gap-2">
           <label className="text-[13px] font-medium text-foreground">Content mix</label>
           <div className="flex flex-col gap-2">
-            {(data.contentMix ?? getDefaultMix()).map((item, i, currentMix) => {
-              const typeDef = CONTENT_MIX_TYPES.find(t => t.type === item.type);
-              return (
-                <React.Fragment key={item.type}>
-                  {typeDef?.sectionLabel && (
-                    <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide pt-1">
-                      {typeDef.sectionLabel}
-                    </p>
-                  )}
-                  <ContentMixRow
-                    item={item}
-                    onIncrement={() => {
-                      const updated = currentMix.map((m, idx) => idx === i ? { ...m, count: Math.min(5, m.count + 1) } : m);
-                      onChange({ ...data, contentMix: updated });
-                    }}
-                    onDecrement={() => {
-                      const updated = currentMix.map((m, idx) => idx === i ? { ...m, count: Math.max(0, m.count - 1) } : m);
-                      onChange({ ...data, contentMix: updated });
-                    }}
-                  />
-                </React.Fragment>
-              );
-            })}
+            {(data.contentMix ?? getDefaultMix()).map((item, i, currentMix) => (
+              <ContentMixRow
+                key={item.type}
+                item={item}
+                onIncrement={() => {
+                  const updated = currentMix.map((m, idx) => idx === i ? { ...m, count: Math.min(5, m.count + 1) } : m);
+                  onChange({ ...data, contentMix: updated });
+                }}
+                onDecrement={() => {
+                  const updated = currentMix.map((m, idx) => idx === i ? { ...m, count: Math.max(0, m.count - 1) } : m);
+                  onChange({ ...data, contentMix: updated });
+                }}
+              />
+            ))}
           </div>
         </div>
 
@@ -684,14 +675,14 @@ const CONTENT_MIX_TYPES: {
   sectionLabel?: string;
 }[] = [
   { type: 'blog',     label: 'Blog post',      icon: FileText },
-  { type: 'fb-post',  label: 'Facebook post',  Logo: FacebookLogo,  sectionLabel: 'Social' },
+  { type: 'fb-post',  label: 'Facebook post',  Logo: FacebookLogo },
   { type: 'fb-reel',  label: 'Facebook Reel',  Logo: FacebookLogo },
   { type: 'ig-post',  label: 'Instagram post', Logo: InstagramLogo },
   { type: 'ig-reel',  label: 'Instagram Reel', Logo: InstagramLogo },
   { type: 'li-post',  label: 'LinkedIn post',  Logo: LinkedInLogo },
   { type: 'yt-short', label: 'YouTube Shorts', Logo: YouTubeLogo },
   { type: 'tt-video', label: 'TikTok video',   Logo: TikTokLogo },
-  { type: 'email',    label: 'Email campaign', icon: Mail,          sectionLabel: 'Other' },
+  { type: 'email',    label: 'Email campaign', icon: Mail },
   { type: 'faq',      label: 'FAQ page',       icon: MessageSquare },
   { type: 'landing',  label: 'Landing page',   icon: Monitor },
 ];

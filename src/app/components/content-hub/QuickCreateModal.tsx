@@ -69,20 +69,18 @@ interface ProjectTypeConfig {
   Logo?: React.FC<{ size?: number }>;
   defaultCount: number;
   defaultOn: boolean;
-  /** Used to render a section divider above this row */
-  sectionLabel?: string;
 }
 
 const PROJECT_TYPES: ProjectTypeConfig[] = [
   { id: 'blog',     label: 'Blog post',      icon: FileText,      defaultCount: 1, defaultOn: true  },
-  { id: 'fb-post',  label: 'Facebook post',  Logo: FacebookLogo,  defaultCount: 2, defaultOn: true,  sectionLabel: 'Social' },
+  { id: 'fb-post',  label: 'Facebook post',  Logo: FacebookLogo,  defaultCount: 2, defaultOn: true  },
   { id: 'fb-reel',  label: 'Facebook Reel',  Logo: FacebookLogo,  defaultCount: 1, defaultOn: false },
   { id: 'ig-post',  label: 'Instagram post', Logo: InstagramLogo, defaultCount: 2, defaultOn: true  },
   { id: 'ig-reel',  label: 'Instagram Reel', Logo: InstagramLogo, defaultCount: 1, defaultOn: false },
   { id: 'li-post',  label: 'LinkedIn post',  Logo: LinkedInLogo,  defaultCount: 1, defaultOn: false },
   { id: 'yt-short', label: 'YouTube Shorts', Logo: YouTubeLogo,   defaultCount: 1, defaultOn: false },
   { id: 'tt-video', label: 'TikTok video',   Logo: TikTokLogo,    defaultCount: 1, defaultOn: false },
-  { id: 'email',    label: 'Email',          icon: Mail,          defaultCount: 1, defaultOn: true,  sectionLabel: 'Other' },
+  { id: 'email',    label: 'Email',          icon: Mail,          defaultCount: 1, defaultOn: true  },
   { id: 'faq',      label: 'FAQ page',       icon: MessageSquare, defaultCount: 1, defaultOn: false },
   { id: 'landing',  label: 'Landing page',   icon: Monitor,       defaultCount: 1, defaultOn: false },
 ];
@@ -430,13 +428,7 @@ export function QuickCreateModal({ mode, onClose, onGenerate }: QuickCreateModal
           const Icon = ct.icon;
           const Logo = ct.Logo;
           return (
-            <React.Fragment key={ct.id}>
-              {ct.sectionLabel && (
-                <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide pt-1">
-                  {ct.sectionLabel}
-                </p>
-              )}
-              <div
+            <div
                 className={cn(
                   'flex items-center gap-3 rounded-lg border px-3 py-2.5 transition-colors',
                   entry.selected ? 'border-primary/30 bg-primary/[0.03]' : 'border-border bg-background',
@@ -467,7 +459,6 @@ export function QuickCreateModal({ mode, onClose, onGenerate }: QuickCreateModal
                   />
                 )}
               </div>
-            </React.Fragment>
           );
         })}
       </div>

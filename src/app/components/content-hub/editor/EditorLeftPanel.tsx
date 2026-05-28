@@ -335,7 +335,6 @@ function ProjectManualPanel({ onAddCard }: { onAddCard: (itemType: ContentItemTy
           </p>
         </div>
 
-        {/* Non-social content types */}
         <div className="grid grid-cols-2 gap-2">
           {NON_SOCIAL_ADDABLE_TYPES.map(type => {
             const Icon = ITEM_ICON[type];
@@ -354,29 +353,20 @@ function ProjectManualPanel({ onAddCard }: { onAddCard: (itemType: ContentItemTy
               </button>
             );
           })}
-        </div>
-
-        {/* Social platforms */}
-        <div className="pt-1 border-t border-border flex flex-col gap-2">
-          <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
-            Social
-          </span>
-          <div className="grid grid-cols-2 gap-2">
-            {SOCIAL_PLATFORMS.map(platform => (
-              <button
-                key={platform.id}
-                type="button"
-                onClick={() => onAddCard('social')}
-                className="group flex aspect-square min-h-[84px] flex-col items-center justify-center gap-1.5 rounded-lg border border-border bg-background p-2 transition-all hover:border-primary/40 hover:bg-primary/[0.03]"
-              >
-                <GripHorizontal size={12} strokeWidth={1.6} absoluteStrokeWidth className="text-muted-foreground/30 transition-colors group-hover:text-muted-foreground/60" />
-                <platform.Logo size={20} />
-                <span className="text-center text-[12px] font-medium leading-tight text-muted-foreground transition-colors group-hover:text-foreground">
-                  {platform.label}
-                </span>
-              </button>
-            ))}
-          </div>
+          {SOCIAL_PLATFORMS.map(platform => (
+            <button
+              key={platform.id}
+              type="button"
+              onClick={() => onAddCard('social')}
+              className="group flex aspect-square min-h-[84px] flex-col items-center justify-center gap-1.5 rounded-lg border border-border bg-background p-2 transition-all hover:border-primary/40 hover:bg-primary/[0.03]"
+            >
+              <GripHorizontal size={12} strokeWidth={1.6} absoluteStrokeWidth className="text-muted-foreground/30 transition-colors group-hover:text-muted-foreground/60" />
+              <platform.Logo size={20} />
+              <span className="text-center text-[12px] font-medium leading-tight text-muted-foreground transition-colors group-hover:text-foreground">
+                {platform.label}
+              </span>
+            </button>
+          ))}
         </div>
       </div>
     </div>
