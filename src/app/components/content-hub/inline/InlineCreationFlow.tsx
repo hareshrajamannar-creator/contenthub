@@ -19,10 +19,13 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import type { FlowNavControls, FlowNavState } from '../faq/FAQInlineCreationFlow';
 import {
   ChevronRight, Check, X, Upload,
-  FileText, Share2, Mail, MessageSquare, Monitor,
+  FileText, Mail, MessageSquare, Monitor,
   MapPin, Package, Star, Layers, Pencil,
   Target, BookOpen, Megaphone, Users, Zap,
 } from 'lucide-react';
+import {
+  FacebookLogo, InstagramLogo, LinkedInLogo, YouTubeLogo, TikTokLogo,
+} from '../shared/socialPlatforms';
 import { cn } from '@/lib/utils';
 import type { ContentMode } from '../editor/editorConfig';
 import {
@@ -453,20 +456,29 @@ function StepGoal({
         <div className="flex flex-col gap-2">
           <label className="text-[13px] font-medium text-foreground">Content mix</label>
           <div className="flex flex-col gap-2">
-            {(data.contentMix ?? getDefaultMix()).map((item, i, currentMix) => (
-              <ContentMixRow
-                key={item.type}
-                item={item}
-                onIncrement={() => {
-                  const updated = currentMix.map((m, idx) => idx === i ? { ...m, count: Math.min(5, m.count + 1) } : m);
-                  onChange({ ...data, contentMix: updated });
-                }}
-                onDecrement={() => {
-                  const updated = currentMix.map((m, idx) => idx === i ? { ...m, count: Math.max(0, m.count - 1) } : m);
-                  onChange({ ...data, contentMix: updated });
-                }}
-              />
-            ))}
+            {(data.contentMix ?? getDefaultMix()).map((item, i, currentMix) => {
+              const typeDef = CONTENT_MIX_TYPES.find(t => t.type === item.type);
+              return (
+                <React.Fragment key={item.type}>
+                  {typeDef?.sectionLabel && (
+                    <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide pt-1">
+                      {typeDef.sectionLabel}
+                    </p>
+                  )}
+                  <ContentMixRow
+                    item={item}
+                    onIncrement={() => {
+                      const updated = currentMix.map((m, idx) => idx === i ? { ...m, count: Math.min(5, m.count + 1) } : m);
+                      onChange({ ...data, contentMix: updated });
+                    }}
+                    onDecrement={() => {
+                      const updated = currentMix.map((m, idx) => idx === i ? { ...m, count: Math.max(0, m.count - 1) } : m);
+                      onChange({ ...data, contentMix: updated });
+                    }}
+                  />
+                </React.Fragment>
+              );
+            })}
           </div>
         </div>
 
@@ -664,12 +676,24 @@ const FAQ_COUNTS = [
   { value: '30', label: '30+' },
 ];
 
-const CONTENT_MIX_TYPES = [
-  { type: 'blog',    label: 'Blog post',      icon: FileText    },
-  { type: 'social',  label: 'Social post',    icon: Share2      },
-  { type: 'email',   label: 'Email campaign', icon: Mail        },
-  { type: 'faq',     label: 'FAQ page',       icon: MessageSquare },
-  { type: 'landing', label: 'Landing page',   icon: Monitor     },
+const CONTENT_MIX_TYPES: {
+  type: string;
+  label: string;
+  icon?: React.ElementType;
+  Logo?: React.FC<{ size?: number }>;
+  sectionLabel?: string;
+}[] = [
+  { type: 'blog',     label: 'Blog post',      icon: FileText },
+  { type: 'fb-post',  label: 'Facebook post',  Logo: FacebookLogo,  sectionLabel: 'Social' },
+  { type: 'fb-reel',  label: 'Facebook Reel',  Logo: FacebookLogo },
+  { type: 'ig-post',  label: 'Instagram post', Logo: InstagramLogo },
+  { type: 'ig-reel',  label: 'Instagram Reel', Logo: InstagramLogo },
+  { type: 'li-post',  label: 'LinkedIn post',  Logo: LinkedInLogo },
+  { type: 'yt-short', label: 'YouTube Shorts', Logo: YouTubeLogo },
+  { type: 'tt-video', label: 'TikTok video',   Logo: TikTokLogo },
+  { type: 'email',    label: 'Email campaign', icon: Mail,          sectionLabel: 'Other' },
+  { type: 'faq',      label: 'FAQ page',       icon: MessageSquare },
+  { type: 'landing',  label: 'Landing page',   icon: Monitor },
 ];
 
 function ContentMixRow({
@@ -682,13 +706,20 @@ function ContentMixRow({
   onDecrement: () => void;
 }) {
   const TypeDef = CONTENT_MIX_TYPES.find(t => t.type === item.type);
-  const Icon = TypeDef?.icon ?? FileText;
+  const Icon = TypeDef?.icon;
+  const Logo = TypeDef?.Logo;
 
   return (
     <div className="flex items-center justify-between px-4 py-3 rounded-xl border border-border bg-background">
       <div className="flex items-center gap-3">
-        <div className="size-8 rounded-lg bg-muted flex items-center justify-center flex-none">
-          <Icon size={14} strokeWidth={1.6} absoluteStrokeWidth className="text-foreground/60" />
+        <div className="size-8 flex items-center justify-center flex-none">
+          {Logo ? (
+            <Logo size={22} />
+          ) : (
+            <div className="size-8 rounded-lg bg-muted flex items-center justify-center">
+              {Icon && <Icon size={14} strokeWidth={1.6} absoluteStrokeWidth className="text-foreground/60" />}
+            </div>
+          )}
         </div>
         <span className="text-[13px] font-medium text-foreground">{item.label}</span>
       </div>
@@ -716,7 +747,8 @@ function ContentMixRow({
 }
 
 function getDefaultMix(): ContentMixItem[] {
-  return CONTENT_MIX_TYPES.map(t => ({ type: t.type, label: t.label, count: 1 }));
+  const defaults: Record<string, number> = { blog: 1, 'fb-post': 2, 'ig-post': 2, email: 1 };
+  return CONTENT_MIX_TYPES.map(t => ({ type: t.type, label: t.label, count: defaults[t.type] ?? 0 }));
 }
 
 function StepFineTune({
@@ -838,33 +870,59 @@ function buildIdeas(data: Partial<InlineFlowData>): SummaryIdea[] {
     mix.forEach(({ type, label, count }) => {
       for (let i = 0; i < count; i++) {
         const titles: Record<string, string[]> = {
-          blog:    ['How LushGreen became the top-rated landscaping service', 'Spring lawn care tips from our experts', '5 reasons customers choose LushGreen'],
-          social:  ['Spring is the perfect time to refresh your lawn', 'Meet our team of certified landscapers', 'Customer spotlight: before & after transformation'],
-          email:   ['Your spring lawn care checklist is ready', 'Exclusive offer: spring clean-up package'],
-          faq:     ['LushGreen services FAQ'],
-          landing: ['Spring lawn care — book now and save 20%'],
+          blog:      ['How LushGreen became the top-rated landscaping service', 'Spring lawn care tips from our experts', '5 reasons customers choose LushGreen'],
+          'fb-post': ['Before and after: spring lawn transformation', 'Three signs your garden needs professional care', 'Meet our certified lawn care team'],
+          'fb-reel': ['60-second time-lapse: complete backyard transformation', 'Satisfying lawn stripe tutorial'],
+          'ig-post': ['Lush green results — swipe to see the transformation', 'Our team in action this week'],
+          'ig-reel': ['Watch us transform an overgrown backyard in 30 seconds', 'ASMR lawn mowing — satisfying spring cleanup'],
+          'li-post': ['How professional landscaping adds up to 15% to property value', 'What sets a premium lawn care service apart'],
+          'yt-short': ['The lawn care secret professionals never share', 'How to get perfect lawn stripes every time'],
+          'tt-video': ['POV: transforming the worst lawn on the street', 'Tell me you are a lawn pro without telling me'],
+          email:     ['Your spring lawn care checklist is ready', 'Exclusive offer: spring clean-up package'],
+          faq:       ['LushGreen services FAQ'],
+          landing:   ['Spring lawn care — book now and save 20%'],
         };
         const hintsByType: Record<string, string[]> = {
-          blog:    [
+          blog:      [
             `In-depth guide helping homeowners choose the right ${projectGoalHint === 'bookings' ? 'landscaping service' : 'lawn care approach'} for their property`,
             'Expert seasonal tips and best practices covering maintenance, common problems, and professional solutions',
             '5 key reasons why customers consistently rate LushGreen above competitors in their area',
           ],
-          social:  [
+          'fb-post': [
             'Before & after transformation post showcasing a recent customer project with local hashtags',
-            'Team spotlight introducing the certified landscapers behind every LushGreen service',
-            'Customer testimonial carousel highlighting seasonal promotions and 5-star reviews',
+            'Engagement post highlighting seasonal care tips with a soft call to book',
+            'Team spotlight with behind-the-scenes content to build trust and brand warmth',
           ],
-          email:   [
+          'fb-reel': [
+            'Short-form time-lapse reel of a full lawn transformation — highly shareable',
+            'Tutorial reel showing a professional lawn striping technique in under 60 seconds',
+          ],
+          'ig-post': [
+            'Before & after carousel targeting local homeowners with geo-tagged location',
+            'On-site action shot with a short caption and 5 targeted hashtags',
+          ],
+          'ig-reel': [
+            'Satisfying 30-second reel of an overgrown backyard transformed by the LushGreen team',
+            'ASMR-style mowing reel with trending audio — optimised for Reels discovery',
+          ],
+          'li-post': [
+            'Thought-leadership post on how professional landscaping drives measurable property value uplift',
+            'Practitioner insight post on quality standards that differentiate premium lawn care services',
+          ],
+          'yt-short': [
+            'Quick-tip Short revealing a professional lawn care technique most homeowners overlook',
+            'Step-by-step Short showing how to achieve perfect mowing stripes at home',
+          ],
+          'tt-video': [
+            'Trending POV-format video showing the transformation of a severely neglected lawn',
+            'Relatable lawn pro humour video optimised for TikTok For You page discovery',
+          ],
+          email:     [
             'Seasonal promotion email with a spring clean-up package offer and limited-time CTA',
             'Loyalty reward email for returning customers with an exclusive discount and referral link',
           ],
-          faq:     [
-            'SEO-structured FAQ covering pricing, scheduling windows, and service coverage areas',
-          ],
-          landing: [
-            'Conversion-focused page with hero imagery, 3-step booking process, social proof, and seasonal CTA',
-          ],
+          faq:       ['SEO-structured FAQ covering pricing, scheduling windows, and service coverage areas'],
+          landing:   ['Conversion-focused page with hero imagery, 3-step booking process, social proof, and seasonal CTA'],
         };
         const hintList = hintsByType[type] ?? ['AI-generated content piece'];
         const hint = hintList[i] ?? hintList[hintList.length - 1];
