@@ -761,7 +761,6 @@ export default function App() {
                   initialTitle={createViewRecTitle ?? undefined}
                   recAeoScore={createViewRecAeoScore}
                   preloadedBlogSections={createViewPreloadedBlogSections}
-                  hideHeaderContext
                   onBack={() => {
                     setCreateViewStartAtBlogCanvas(false);
                     setCreateViewRecId(undefined);

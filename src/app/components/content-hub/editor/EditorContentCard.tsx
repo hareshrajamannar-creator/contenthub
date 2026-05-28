@@ -14,11 +14,13 @@
  *   Canva-style "Add another [type]" button — appears below the card.
  */
 
-import React from 'react';
+import React, { useState } from 'react';
 import {
   FileText, Share2, Mail, MessageSquare, Monitor, Video,
   ChevronRight, Eye, Pencil, Trash2, Sparkles, Copy, MoreHorizontal,
+  UserRound, Check, ChevronDown,
 } from 'lucide-react';
+import { toast } from 'sonner';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -30,6 +32,16 @@ import { cn } from '@/app/components/ui/utils';
 import { type ContentItemType, ITEM_TYPE_LABEL } from './editorConfig';
 import { ScoreProgressRing } from '../shared/CanvasEditorTopBar';
 import { scoreColor } from '../shared/scoreColors';
+
+// ── Team members (mock) ───────────────────────────────────────────────────────
+
+const TEAM_MEMBERS = [
+  { id: '1', name: 'Sarah Mitchell', email: 'sarah.mitchell@birdeye.com', initials: 'SM', color: 'bg-indigo-500'  },
+  { id: '2', name: 'James Wilson',   email: 'james.wilson@birdeye.com',   initials: 'JW', color: 'bg-amber-500'   },
+  { id: '3', name: 'David Parker',   email: 'david.parker@birdeye.com',   initials: 'DP', color: 'bg-emerald-500' },
+  { id: '4', name: 'Emily Johnson',  email: 'emily.johnson@birdeye.com',  initials: 'EJ', color: 'bg-rose-500'    },
+  { id: '5', name: 'Michael Chen',   email: 'michael.chen@birdeye.com',   initials: 'MC', color: 'bg-violet-500'  },
+];
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -394,6 +406,18 @@ export function EditorContentCard({
   const Icon = TYPE_ICON[card.itemType];
   const Preview = PREVIEW_MAP[card.itemType];
 
+  const [assignOpen, setAssignOpen] = useState(false);
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const assignedUser = TEAM_MEMBERS.find(u => u.id === selectedUserId) ?? null;
+
+  function handleAssignSend() {
+    if (!assignedUser) return;
+    const name = assignedUser.name;
+    setAssignOpen(false);
+    setSelectedUserId(null);
+    toast.success(`Assigned to ${name}`);
+  }
+
   return (
     <div className="flex flex-col gap-2">
       {/* Card */}
@@ -434,6 +458,65 @@ export function EditorContentCard({
                 {card.score}
               </span>
             </button>
+
+            {/* Assign to dropdown */}
+            <DropdownMenu open={assignOpen} onOpenChange={setAssignOpen}>
+              <DropdownMenuTrigger asChild>
+                <button
+                  type="button"
+                  aria-label="Assign to"
+                  className="flex items-center gap-1 h-7 px-2 rounded-lg border border-border/70 bg-background text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                >
+                  {assignedUser ? (
+                    <div className={cn('flex size-5 shrink-0 items-center justify-center rounded-full text-[9px] font-bold text-white', assignedUser.color)}>
+                      {assignedUser.initials}
+                    </div>
+                  ) : (
+                    <UserRound size={13} strokeWidth={1.6} absoluteStrokeWidth />
+                  )}
+                  <span className="text-[12px]">{assignedUser ? assignedUser.name.split(' ')[0] : 'Assign'}</span>
+                  <ChevronDown size={10} strokeWidth={1.6} absoluteStrokeWidth />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-[272px] p-0 overflow-hidden">
+                <div className="px-3 py-2.5 border-b border-border">
+                  <p className="text-[12px] font-medium text-foreground">Assign to</p>
+                </div>
+                <div className="py-1 max-h-[220px] overflow-y-auto">
+                  {TEAM_MEMBERS.map(member => (
+                    <DropdownMenuItem
+                      key={member.id}
+                      className="flex items-center gap-3 px-3 py-2.5 cursor-pointer"
+                      onSelect={e => {
+                        e.preventDefault();
+                        setSelectedUserId(member.id === selectedUserId ? null : member.id);
+                      }}
+                    >
+                      <div className={cn('flex size-8 shrink-0 items-center justify-center rounded-full text-[11px] font-bold text-white', member.color)}>
+                        {member.initials}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[13px] font-medium text-foreground leading-none mb-0.5">{member.name}</p>
+                        <p className="text-[11px] text-muted-foreground truncate">{member.email}</p>
+                      </div>
+                      {selectedUserId === member.id && (
+                        <Check size={14} strokeWidth={1.6} absoluteStrokeWidth className="text-primary shrink-0" />
+                      )}
+                    </DropdownMenuItem>
+                  ))}
+                </div>
+                <div className="border-t border-border p-2">
+                  <button
+                    type="button"
+                    disabled={!assignedUser}
+                    onClick={handleAssignSend}
+                    className="w-full rounded-md bg-primary px-3 py-1.5 text-[13px] font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-40 disabled:pointer-events-none"
+                  >
+                    Send
+                  </button>
+                </div>
+              </DropdownMenuContent>
+            </DropdownMenu>
 
             {/* Edit — bordered tile, navigates to item editor */}
             <button

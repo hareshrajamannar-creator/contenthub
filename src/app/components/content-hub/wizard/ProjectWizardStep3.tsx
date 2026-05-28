@@ -9,23 +9,27 @@ import React from 'react';
 import { Plus, Minus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ContentFlowSelect, ContentFlowTextarea } from '../shared/ContentFlowControls';
+import { SOCIAL_PLATFORMS, SOCIAL_PLATFORM_BY_LABEL } from '../shared/socialPlatforms';
 
 // ── Content mix defaults per project type ─────────────────────────────────────
 
 const TYPE_MIX_DEFAULTS: Record<string, { type: string; count: number }[]> = {
   campaign: [
-    { type: 'Blog post', count: 1 },
-    { type: 'Social posts', count: 5 },
-    { type: 'Email', count: 1 },
+    { type: 'Blog post',       count: 1 },
+    { type: 'Facebook post',   count: 2 },
+    { type: 'Instagram post',  count: 2 },
+    { type: 'LinkedIn post',   count: 1 },
+    { type: 'Email',           count: 1 },
   ],
   location: [
-    { type: 'FAQ', count: 1 },
-    { type: 'Social posts', count: 3 },
+    { type: 'FAQ',            count: 1 },
+    { type: 'Facebook post',  count: 2 },
+    { type: 'Instagram post', count: 1 },
   ],
   launch: [
     { type: 'Landing page', count: 1 },
-    { type: 'Blog post', count: 1 },
-    { type: 'FAQ', count: 1 },
+    { type: 'Blog post',    count: 1 },
+    { type: 'FAQ',          count: 1 },
   ],
   reviews: [
     { type: 'Review responses', count: 10 },
@@ -35,7 +39,16 @@ const TYPE_MIX_DEFAULTS: Record<string, { type: string; count: number }[]> = {
   ],
 };
 
-const ALL_CONTENT_TYPES = ['Blog post', 'Social posts', 'Email', 'FAQ', 'Landing page', 'Review responses'];
+const SOCIAL_TYPE_LABELS = SOCIAL_PLATFORMS.map(p => p.label);
+
+const ALL_CONTENT_TYPES = [
+  'Blog post',
+  ...SOCIAL_TYPE_LABELS,
+  'Email',
+  'FAQ',
+  'Landing page',
+  'Review responses',
+];
 
 const OBJECTIVES = [
   { id: 'visibility', label: 'Search visibility',  description: 'Rank in Google SGE, AI answer engines, and featured snippets' },
@@ -157,9 +170,18 @@ export function ProjectWizardStep3({ step1Data, data, onChange }: ProjectWizardS
       {/* Content mix */}
       <div className="flex flex-col gap-3">
         <label className="text-[13px] font-medium text-foreground">Content mix</label>
-        {contentMix.map(item => (
+        {contentMix.map(item => {
+          const socialDef = SOCIAL_PLATFORM_BY_LABEL.get(item.type);
+          return (
           <div key={item.type} className="flex items-center gap-3 p-3 border border-border rounded-lg bg-background">
-            <span className="flex-1 text-[13px] text-foreground">{item.type}</span>
+            {socialDef ? (
+              <div className="flex items-center gap-2 flex-1 min-w-0">
+                <socialDef.Logo size={16} />
+                <span className="text-[13px] text-foreground">{item.type}</span>
+              </div>
+            ) : (
+              <span className="flex-1 text-[13px] text-foreground">{item.type}</span>
+            )}
             <div className="flex items-center gap-2">
               <button
                 type="button"
@@ -186,22 +208,30 @@ export function ProjectWizardStep3({ step1Data, data, onChange }: ProjectWizardS
               Remove
             </button>
           </div>
-        ))}
+          );
+        })}
 
         {/* Add type */}
         {unusedTypes.length > 0 && (
           <div className="flex flex-wrap gap-2">
-            {unusedTypes.map(t => (
-              <button
-                key={t}
-                type="button"
-                onClick={() => addType(t)}
-                className="flex items-center gap-1 border border-dashed border-border rounded-full px-3 py-1 text-[12px] text-muted-foreground hover:border-primary/40 hover:text-foreground transition-colors"
-              >
-                <Plus size={11} strokeWidth={1.6} absoluteStrokeWidth />
-                {t}
-              </button>
-            ))}
+            {unusedTypes.map(t => {
+              const socialDef = SOCIAL_PLATFORM_BY_LABEL.get(t);
+              return (
+                <button
+                  key={t}
+                  type="button"
+                  onClick={() => addType(t)}
+                  className="flex items-center gap-1.5 border border-dashed border-border rounded-full px-3 py-1 text-[12px] text-muted-foreground hover:border-primary/40 hover:text-foreground transition-colors"
+                >
+                  {socialDef ? (
+                    <socialDef.Logo size={13} />
+                  ) : (
+                    <Plus size={11} strokeWidth={1.6} absoluteStrokeWidth />
+                  )}
+                  {t}
+                </button>
+              );
+            })}
           </div>
         )}
       </div>

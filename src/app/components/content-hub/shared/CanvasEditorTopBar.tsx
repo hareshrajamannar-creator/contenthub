@@ -1,12 +1,15 @@
 import {
   Activity,
+  Check,
   ChevronDown,
   History,
   MessageCircle,
   Redo2,
   Undo2,
+  UserRound,
 } from 'lucide-react';
-import { type ReactNode } from 'react';
+import { type ReactNode, useState } from 'react';
+import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/app/components/ui/tooltip';
 import {
@@ -16,6 +19,24 @@ import {
   DropdownMenuTrigger,
 } from '@/app/components/ui/dropdown-menu';
 import { scoreStrokeColor } from './scoreColors';
+
+// ── Team members (mock) ───────────────────────────────────────────────────────
+
+interface TeamMember {
+  id: string;
+  name: string;
+  email: string;
+  initials: string;
+  color: string;
+}
+
+const TEAM_MEMBERS: TeamMember[] = [
+  { id: '1', name: 'Sarah Mitchell',  email: 'sarah.mitchell@birdeye.com',  initials: 'SM', color: 'bg-indigo-500'  },
+  { id: '2', name: 'James Wilson',    email: 'james.wilson@birdeye.com',    initials: 'JW', color: 'bg-amber-500'   },
+  { id: '3', name: 'David Parker',    email: 'david.parker@birdeye.com',    initials: 'DP', color: 'bg-emerald-500' },
+  { id: '4', name: 'Emily Johnson',   email: 'emily.johnson@birdeye.com',   initials: 'EJ', color: 'bg-rose-500'    },
+  { id: '5', name: 'Michael Chen',    email: 'michael.chen@birdeye.com',    initials: 'MC', color: 'bg-violet-500'  },
+];
 
 const ZOOM_PRESETS = [0.25, 0.5, 0.75, 0.85, 1.0, 1.25, 1.5, 2.0, 3.0];
 
@@ -121,6 +142,19 @@ export function CanvasEditorTopBar({
   onChat,
   hideScore = false,
 }: CanvasEditorTopBarProps) {
+  const [assignOpen, setAssignOpen] = useState(false);
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+
+  const selectedUser = TEAM_MEMBERS.find(u => u.id === selectedUserId) ?? null;
+
+  function handleSend() {
+    if (!selectedUser) return;
+    const name = selectedUser.name;
+    setAssignOpen(false);
+    setSelectedUserId(null);
+    toast.success(`Assigned to ${name}`);
+  }
+
   return (
     <div className="flex h-[48px] flex-none items-center gap-4 rounded-lg border border-border/60 bg-background px-4">
       {/* Left: content score (when visible) */}
@@ -186,6 +220,64 @@ export function CanvasEditorTopBar({
         <TileButton title="Comments" onClick={onChat}>
           <MessageCircle size={14} strokeWidth={1.6} absoluteStrokeWidth />
         </TileButton>
+
+        {/* Divider */}
+        <div className="mx-1 h-5 w-px bg-border" />
+
+        {/* Assign to dropdown */}
+        <DropdownMenu open={assignOpen} onOpenChange={setAssignOpen}>
+          <DropdownMenuTrigger asChild>
+            <button
+              type="button"
+              className="flex h-[30px] items-center gap-1.5 rounded-lg border border-border/70 bg-background px-2.5 text-[12px] text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            >
+              <UserRound size={13} strokeWidth={1.6} absoluteStrokeWidth />
+              <span>{selectedUser ? selectedUser.name : 'Assign to'}</span>
+              <ChevronDown size={11} strokeWidth={1.6} absoluteStrokeWidth />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-[272px] p-0 overflow-hidden">
+            <div className="px-3 py-2.5 border-b border-border">
+              <p className="text-[12px] font-medium text-foreground">Assign to</p>
+            </div>
+            <div className="py-1 max-h-[220px] overflow-y-auto">
+              {TEAM_MEMBERS.map(member => (
+                <DropdownMenuItem
+                  key={member.id}
+                  className="flex items-center gap-3 px-3 py-2.5 cursor-pointer"
+                  onSelect={e => {
+                    e.preventDefault();
+                    setSelectedUserId(member.id === selectedUserId ? null : member.id);
+                  }}
+                >
+                  <div className={cn(
+                    'flex size-8 shrink-0 items-center justify-center rounded-full text-[11px] font-bold text-white',
+                    member.color,
+                  )}>
+                    {member.initials}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[13px] font-medium text-foreground leading-none mb-0.5">{member.name}</p>
+                    <p className="text-[11px] text-muted-foreground truncate">{member.email}</p>
+                  </div>
+                  {selectedUserId === member.id && (
+                    <Check size={14} strokeWidth={1.6} absoluteStrokeWidth className="text-primary shrink-0" />
+                  )}
+                </DropdownMenuItem>
+              ))}
+            </div>
+            <div className="border-t border-border p-2">
+              <button
+                type="button"
+                disabled={!selectedUser}
+                onClick={handleSend}
+                className="w-full rounded-md bg-primary px-3 py-1.5 text-[13px] font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-40 disabled:pointer-events-none"
+              >
+                Send
+              </button>
+            </div>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </div>
   );

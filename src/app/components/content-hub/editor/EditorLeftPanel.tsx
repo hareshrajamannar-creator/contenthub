@@ -11,8 +11,8 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import {
-  FileText, Share2, Mail, MessageSquare, Monitor, Video,
-  Sparkles, Plus, Paperclip, SendHorizontal,
+  FileText, Mail, MessageSquare, Monitor, Video,
+  Sparkles, Plus, Paperclip, SendHorizontal, GripHorizontal,
 } from 'lucide-react';
 import { cn } from '@/app/components/ui/utils';
 import { SegmentedToggle } from '@/app/components/ui/segmented-toggle.v1';
@@ -30,6 +30,7 @@ import {
   EDITOR_CONFIGS,
   ITEM_TYPE_LABEL,
 } from './editorConfig';
+import { SOCIAL_PLATFORMS } from '../shared/socialPlatforms';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -43,7 +44,7 @@ interface EditorLeftPanelProps {
 
 
 const ITEM_ICON: Record<ContentItemType, React.ElementType> = {
-  blog: FileText, social: Share2, email: Mail,
+  blog: FileText, social: MessageSquare, email: Mail,
   faq: MessageSquare, landing: Monitor, video: Video,
 };
 
@@ -319,38 +320,63 @@ function AiCopilot({
 
 // ── Project manual panel — content type blocks only ───────────────────────────
 
-const ALL_ADDABLE_TYPES: ContentItemType[] = ['blog', 'social', 'email', 'faq', 'landing', 'video'];
+const NON_SOCIAL_ADDABLE_TYPES: ContentItemType[] = ['blog', 'email', 'faq', 'landing', 'video'];
 
 function ProjectManualPanel({ onAddCard }: { onAddCard: (itemType: ContentItemType) => void }) {
   return (
     <div className="flex flex-col h-full min-h-0 overflow-y-auto">
-      <div className="px-4 py-4 flex flex-col gap-4">
+      <div className="px-4 py-4 flex flex-col gap-3">
         <div className="flex flex-col gap-1">
-          <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide px-1">
+          <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
             Add content
           </span>
-          <p className="text-[12px] text-muted-foreground px-1 mb-2">
+          <p className="text-[12px] text-muted-foreground">
             Click a block to add another piece of content to the canvas.
           </p>
-          {ALL_ADDABLE_TYPES.map(type => {
+        </div>
+
+        {/* Non-social content types */}
+        <div className="grid grid-cols-2 gap-2">
+          {NON_SOCIAL_ADDABLE_TYPES.map(type => {
             const Icon = ITEM_ICON[type];
             return (
               <button
                 key={type}
                 type="button"
                 onClick={() => onAddCard(type)}
-                className="flex items-center gap-3 h-10 px-3 rounded-xl border border-border bg-background hover:border-primary/30 hover:bg-muted/40 transition-all text-left group"
+                className="group flex aspect-square min-h-[84px] flex-col items-center justify-center gap-1.5 rounded-lg border border-border bg-background p-2 transition-all hover:border-primary/40 hover:bg-primary/[0.03]"
               >
-                <div className="size-7 rounded-lg bg-muted flex items-center justify-center flex-none">
-                  <Icon size={14} strokeWidth={1.6} absoluteStrokeWidth className="text-foreground/60 group-hover:text-primary/70 transition-colors" />
-                </div>
-                <span className="text-[13px] text-foreground group-hover:text-primary transition-colors flex-1">
+                <GripHorizontal size={12} strokeWidth={1.6} absoluteStrokeWidth className="text-muted-foreground/30 transition-colors group-hover:text-muted-foreground/60" />
+                <Icon size={18} strokeWidth={1.6} absoluteStrokeWidth className="text-muted-foreground transition-colors group-hover:text-primary" />
+                <span className="text-center text-[12px] font-medium leading-tight text-muted-foreground transition-colors group-hover:text-foreground">
                   {ITEM_TYPE_LABEL[type]}
                 </span>
-                <Plus size={13} strokeWidth={1.6} absoluteStrokeWidth className="text-muted-foreground group-hover:text-primary transition-colors" />
               </button>
             );
           })}
+        </div>
+
+        {/* Social platforms */}
+        <div className="pt-1 border-t border-border flex flex-col gap-2">
+          <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
+            Social
+          </span>
+          <div className="grid grid-cols-2 gap-2">
+            {SOCIAL_PLATFORMS.map(platform => (
+              <button
+                key={platform.id}
+                type="button"
+                onClick={() => onAddCard('social')}
+                className="group flex aspect-square min-h-[84px] flex-col items-center justify-center gap-1.5 rounded-lg border border-border bg-background p-2 transition-all hover:border-primary/40 hover:bg-primary/[0.03]"
+              >
+                <GripHorizontal size={12} strokeWidth={1.6} absoluteStrokeWidth className="text-muted-foreground/30 transition-colors group-hover:text-muted-foreground/60" />
+                <platform.Logo size={20} />
+                <span className="text-center text-[12px] font-medium leading-tight text-muted-foreground transition-colors group-hover:text-foreground">
+                  {platform.label}
+                </span>
+              </button>
+            ))}
+          </div>
         </div>
       </div>
     </div>
