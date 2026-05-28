@@ -26,7 +26,7 @@ import {
   FileText, Share2, Mail, MessageSquare, Monitor, Video, FolderPlus,
   Plus, ChevronUp, Grid, List, Calendar, ZoomIn, ZoomOut,
   Undo2, Redo2, ArrowDown, ArrowRight, CheckCircle2, MoreVertical,
-  Activity, History, Bookmark, MessageCircle,
+  Activity, History, MessageCircle,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -2093,12 +2093,6 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
                       <Activity size={14} strokeWidth={1.6} absoluteStrokeWidth />
                     </button>
 
-                    {/* Save */}
-                    <button type="button" title="Save"
-                      className="flex h-[30px] w-[30px] items-center justify-center rounded-lg border border-border/70 bg-background text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
-                      <Bookmark size={14} strokeWidth={1.6} absoluteStrokeWidth />
-                    </button>
-
                     {/* Comments */}
                     <button type="button" title="Comments"
                       onClick={() => { setCommentsOpen(v => !v); setActivityOpen(false); }}
@@ -2257,6 +2251,13 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
             <CommentPanel
               open={commentsOpen}
               onClose={() => setCommentsOpen(false)}
+            />
+
+            {/* Activity drawer — slides in from right when activity toggle is active */}
+            <ContentActivityDrawer
+              open={activityOpen}
+              onClose={() => setActivityOpen(false)}
+              contentType="blog"
             />
           </div>
       ))}
