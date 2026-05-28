@@ -1971,9 +1971,9 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
         </BlockEditorProvider>
       ) : (
         /* ── Card-based modes — social / email / video / project ── */
-        <div className="flex flex-1 min-h-0">
+        <div className="flex flex-1 min-h-0 gap-2 bg-[var(--color-canvas,#F7F8FA)] p-2">
           {/* Left panel */}
-          <div className="flex-shrink-0 flex flex-col overflow-hidden" style={{ width: 300, borderRight: '1px solid #e5e9f0' }}>
+          <div className="flex-shrink-0 flex flex-col overflow-hidden rounded-xl border border-border/60 bg-background" style={{ width: 300 }}>
             <div className="flex-none px-4 py-3 border-b border-border">
               <SegmentedToggle ariaLabel="Create mode" items={LEFT_TAB_ITEMS} value={leftTab} onChange={setLeftTab} />
             </div>
@@ -1999,12 +1999,11 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
           </div>
 
           {/* ── Center canvas ── */}
-          <div className="flex-1 min-w-0 flex flex-col overflow-hidden">
+          <div className="flex-1 min-w-0 flex flex-col gap-2 overflow-hidden">
 
             {/* Toolbar — floating card style, outside scroll area */}
             {editingCardItemType === null && !isGenerating && cards.length > 0 && (
-              <div className="flex-none px-3 pt-3 pb-1">
-                <div className="flex h-[48px] items-center px-3">
+              <div className="flex h-[48px] flex-none items-center rounded-lg border border-border/60 bg-background px-3">
 
                   {/* Left spacer — balances right controls for true centering */}
                   <div className="flex-1" />
@@ -2109,7 +2108,6 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
                     </button>
                   </div>
                 </div>
-              </div>
             )}
 
             {/* Card item editor — shown when user clicks Edit on a blog/faq card */}
@@ -2156,7 +2154,7 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
             ) : (
               /* Scrollable canvas */
               <div
-                className="flex-1 min-h-0 bg-[var(--color-canvas,#F7F8FA)] relative overflow-auto"
+                className="flex-1 min-h-0 rounded-xl bg-[var(--color-canvas,#F7F8FA)] relative overflow-auto"
                 onWheel={handleCanvasWheel}
               >
                 {isGenerating ? (
