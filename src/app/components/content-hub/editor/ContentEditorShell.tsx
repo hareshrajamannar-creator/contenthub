@@ -1959,7 +1959,13 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
                 scoreLabel="Content score"
               />
             )}
-            {!(mode === 'blog' && blogScorePanelOpen) && <BlockSettingsPanel />}
+            {!(mode === 'blog' && blogScorePanelOpen) && !commentsOpen && <BlockSettingsPanel />}
+
+            {/* Comment panel — slides in from right when comments toggle is active */}
+            <CommentPanel
+              open={commentsOpen}
+              onClose={() => setCommentsOpen(false)}
+            />
 
             {/* Activity panel */}
             <ContentActivityDrawer
