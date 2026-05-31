@@ -259,9 +259,6 @@ export function ContentScorePanel({
               <div className="flex items-start justify-between gap-2 py-3">
                 <div className="flex flex-col gap-0.5">
                   <span className="text-[13px] text-foreground font-medium leading-[18px]">{dim.label}</span>
-                  {dim.weight !== undefined && (
-                    <span className="text-[12px] text-muted-foreground leading-[16px]">Weights: {dim.weight}</span>
-                  )}
                 </div>
                 <div className="flex items-baseline gap-0.5 flex-shrink-0">
                   <span className="text-[14px] text-foreground font-semibold leading-none">{dim.score}</span>

@@ -362,12 +362,15 @@ export function BlockLibraryPanel({ mode }: BlockLibraryPanelProps) {
 
   const prebuiltBlocks = PREBUILT_BLOCKS[mode] ?? [];
 
+  // Blog editor hides the Pre-built tab; other modes keep it.
+  const subTabs: SubTab[] = mode === 'blog' ? ['basic', 'saved'] : ['basic', 'prebuilt', 'saved'];
+
   return (
     <div className="flex flex-col h-full overflow-hidden">
       {/* Sub-tabs */}
       <div className="flex-none border-b border-border px-4 py-3">
         <div className="flex h-[var(--button-height)] rounded-md bg-[#f0f1f5] p-[2px] dark:bg-[#262b35]">
-        {(['basic', 'prebuilt', 'saved'] as const).map(t => (
+        {subTabs.map(t => (
           <button
             key={t}
             type="button"

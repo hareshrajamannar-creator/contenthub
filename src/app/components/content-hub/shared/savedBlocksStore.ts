@@ -30,6 +30,59 @@ export interface SavedBlock {
 
 const STORAGE_KEY = 'birdeye:saved-blocks:v1';
 
+/**
+ * Seed blocks shown the first time the Saved tab is opened, so the panel
+ * demonstrates reusable FAQ sections out of the box instead of an empty state.
+ * Only applied when no saved blocks have been persisted yet this session.
+ */
+const SEED_SAVED_BLOCKS: SavedBlock[] = [
+  {
+    id: 'seed-hours-location',
+    name: 'Hours & location FAQ',
+    createdBy: 'Birdeye',
+    createdAt: '2026-05-20T09:00:00.000Z',
+    sourceType: 'faq-section',
+    preview: {
+      title: 'Hours & location',
+      snippets: [
+        'What are your opening hours?',
+        'Where is the nearest location?',
+        'Do you have parking available?',
+      ],
+    },
+  },
+  {
+    id: 'seed-reservations',
+    name: 'Reservations FAQ',
+    createdBy: 'Birdeye',
+    createdAt: '2026-05-20T09:05:00.000Z',
+    sourceType: 'faq-full',
+    preview: {
+      title: 'Reservations & booking',
+      snippets: [
+        'How do I make a reservation?',
+        'Can I book a table for a large group?',
+        'What is your cancellation policy?',
+      ],
+    },
+  },
+  {
+    id: 'seed-menu-dietary',
+    name: 'Menu & dietary FAQ',
+    createdBy: 'Birdeye',
+    createdAt: '2026-05-20T09:10:00.000Z',
+    sourceType: 'faq-section',
+    preview: {
+      title: 'Menu & dietary options',
+      snippets: [
+        'Do you have vegetarian or vegan options?',
+        'Can you accommodate food allergies?',
+        'Is the menu available online?',
+      ],
+    },
+  },
+];
+
 type Listener = (blocks: SavedBlock[]) => void;
 const _listeners = new Set<Listener>();
 let _blocks: SavedBlock[] = _loadFromStorage();
@@ -37,9 +90,10 @@ let _blocks: SavedBlock[] = _loadFromStorage();
 function _loadFromStorage(): SavedBlock[] {
   try {
     const raw = sessionStorage.getItem(STORAGE_KEY);
-    return raw ? (JSON.parse(raw) as SavedBlock[]) : [];
+    // No persisted state yet → seed with example reusable blocks.
+    return raw ? (JSON.parse(raw) as SavedBlock[]) : [...SEED_SAVED_BLOCKS];
   } catch {
-    return [];
+    return [...SEED_SAVED_BLOCKS];
   }
 }
 
