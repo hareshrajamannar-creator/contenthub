@@ -34,6 +34,10 @@ import { CalendarView as ContentHubCalendarView } from './CalendarView';
 // ── Mock data ─────────────────────────────────────────────────────────────────
 
 const PROJECTS: ProjectRow[] = [
+  { id: 11, name: 'Lawn care FAQ',                     status: 'Published', channels: ['faq'],                                                        locations: 500, updated: 'Nov 07, 2025', createdBy: 'Noah P',    hue: 50  },
+  { id: 12, name: 'Service & pricing FAQ',             status: 'Drafts',    channels: ['faq'],                                                        locations: 500, updated: 'Nov 07, 2025', createdBy: 'Olivia R',  hue: 300 },
+  { id: 13, name: 'How to overseed your lawn',         status: 'Published', channels: ['blog'],                                                       locations: 500, updated: 'Nov 06, 2025', createdBy: 'Liam G',    hue: 110 },
+  { id: 14, name: 'Native plant guide',                status: 'Scheduled', channels: ['blog'],                                                       locations: 500, updated: 'Nov 06, 2025', createdBy: 'Sophia L',  hue: 230 },
   { id: 1,  name: 'Spring garden cleanup',             status: 'Drafts',    channels: ['facebook','instagram','twitter','linkedin','youtube','web'],  locations: 500, updated: 'Nov 05, 2025', createdBy: 'Elijah M',  hue: 160 },
   { id: 2,  name: 'Sustainable lawn care launch 🌱',   status: 'Scheduled', channels: ['web','blog','email'],                                          locations: 500, updated: 'Nov 04, 2025', createdBy: 'Jacob K',   hue: 210 },
   { id: 3,  name: 'Before & after showcase',           status: 'Scheduled', channels: ['facebook','instagram','twitter','linkedin','youtube','email'], locations: 500, updated: 'Nov 03, 2025', createdBy: 'Ava T',     hue: 280 },
@@ -210,6 +214,7 @@ function TemplateCard({ tmpl, onUse }: { tmpl: TemplateItem; onUse: (t: Template
 }
 
 function getProjectContentType(project: ProjectRow): ContentType {
+  if (project.channels.includes('faq')) return 'faq';
   if (project.channels.includes('blog')) return 'blog';
   if (project.channels.includes('email')) return 'email';
   if (project.channels.includes('web')) return 'faq';

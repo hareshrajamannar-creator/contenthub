@@ -7,7 +7,7 @@
  */
 
 import React from 'react';
-import { Globe, FileText, Mail, Eye, MoreHorizontal, Copy, BookMarked, Trash2, Pencil } from 'lucide-react';
+import { Globe, FileText, Mail, HelpCircle, Eye, MoreHorizontal, Copy, BookMarked, Trash2, Pencil } from 'lucide-react';
 import { Badge } from '@/app/components/ui/badge';
 import {
   DropdownMenu,
@@ -23,7 +23,7 @@ export type ProjectStatus = 'Drafts' | 'Scheduled' | 'Published';
 
 export type ChannelId =
   | 'facebook' | 'instagram' | 'twitter' | 'linkedin' | 'youtube'
-  | 'web' | 'blog' | 'email';
+  | 'web' | 'blog' | 'email' | 'faq';
 
 export interface ProjectRow {
   id: number;
@@ -95,7 +95,7 @@ export function ChannelChip({ id }: { id: ChannelId }) {
   if (id === 'instagram') return <div className="size-[22px] rounded-full shrink-0 flex items-center justify-center" style={{ background: 'linear-gradient(45deg,#f09433 0%,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888 100%)' }}><IgLogo /></div>;
   if (id === 'linkedin')  return <div className="size-[22px] rounded-full shrink-0 flex items-center justify-center" style={{ background: '#0A66C2' }}><LiLogo /></div>;
   if (id === 'youtube')   return <div className="size-[22px] rounded-full shrink-0 flex items-center justify-center bg-[#FF0000]"><YtLogo /></div>;
-  const Icon = id === 'web' ? Globe : id === 'blog' ? FileText : Mail;
+  const Icon = id === 'web' ? Globe : id === 'blog' ? FileText : id === 'faq' ? HelpCircle : Mail;
   return (
     <div className="size-[22px] rounded-full shrink-0 bg-muted flex items-center justify-center">
       <Icon size={14} strokeWidth={1.6} absoluteStrokeWidth className="text-muted-foreground" />
