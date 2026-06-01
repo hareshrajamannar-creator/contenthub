@@ -34,6 +34,8 @@ interface EditorScorePanelProps {
   scoreLabel?: string;
   /** Max number of improvement items to show */
   maxImprovements?: number;
+  /** Which fix copy to surface — FAQ-specific or blog-specific. Default 'faq'. */
+  improvementSet?: 'faq' | 'blog';
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
@@ -49,6 +51,7 @@ export function EditorScorePanel({
   onFixAll,
   scoreLabel,
   maxImprovements,
+  improvementSet,
 }: EditorScorePanelProps) {
   const dims: ScoreDim[] = (dimensions ?? config.scoreDimensions).map(d => ({
     label: d.label,
@@ -76,6 +79,7 @@ export function EditorScorePanel({
           onItemFixing={onItemFixing}
           onFixAll={onFixAll}
           maxImprovements={maxImprovements}
+          improvementSet={improvementSet}
         />
       </div>
     </div>

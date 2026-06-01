@@ -9,10 +9,26 @@
  */
 
 import React, { useState } from 'react';
-import { X } from 'lucide-react';
+import { X, ChevronRight, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { scoreColor, scoreStrokeColor } from './scoreColors';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/app/components/ui/tooltip';
+
+/**
+ * Sentence-cases a metric label while preserving all-caps acronyms (SEO, AEO).
+ * "Intent Match" → "Intent match", "SEO optimization" → "SEO optimization".
+ */
+function toSentenceCase(label: string): string {
+  return label
+    .split(' ')
+    .map((word, idx) => {
+      const isAcronym = word.length >= 2 && word === word.toUpperCase() && /[A-Z]/.test(word);
+      if (isAcronym) return word;
+      if (idx === 0) return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+      return word.toLowerCase();
+    })
+    .join(' ');
+}
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -48,6 +64,8 @@ export interface ContentScorePanelProps {
   className?: string;
   /** Max number of improvement items to show (undefined = show all) */
   maxImprovements?: number;
+  /** Which fix copy to surface — FAQ-specific or blog-specific. Default 'faq'. */
+  improvementSet?: 'faq' | 'blog';
 }
 
 // ── Improvement items ─────────────────────────────────────────────────────────
@@ -58,15 +76,31 @@ interface ImprovementItem {
   description: string;
   action: string;
   scoreBump: number;
+  /**
+   * Index of the breakdown dimension this improvement belongs to.
+   * Keyed by position (not label) so it maps correctly across editors whose
+   * dimension sets differ (AEO: Intent Match…, Blog: Brand voice…).
+   */
+  dim: number;
 }
 
-const ALL_IMPROVEMENTS: ImprovementItem[] = [
+// FAQ-flavoured fixes — copy references questions, answers, FAQ schema.
+const FAQ_IMPROVEMENTS: ImprovementItem[] = [
+  {
+    id: 'variants',
+    label: 'Add conversational variants',
+    description: 'Rewrite 3–4 questions in the phrasing users actually type ("how do I…", "what is the best…") to capture voice search.',
+    action: 'Rewrite questions',
+    scoreBump: 3,
+    dim: 0,
+  },
   {
     id: 'location',
     label: 'Add location keywords',
     description: 'Mention 2–3 city names in your answers to lift local citation probability.',
     action: 'Make it local',
     scoreBump: 5,
+    dim: 1,
   },
   {
     id: 'schema',
@@ -74,13 +108,7 @@ const ALL_IMPROVEMENTS: ImprovementItem[] = [
     description: 'Structured data lets search engines display your answers directly in results, boosting click-through rate by up to 20%.',
     action: 'Add schema',
     scoreBump: 5,
-  },
-  {
-    id: 'links',
-    label: 'Link to service pages',
-    description: 'Anchor 2–3 answers to relevant service pages. Internal links strengthen page authority and lower bounce rate.',
-    action: 'Add links',
-    scoreBump: 4,
+    dim: 1,
   },
   {
     id: 'expand',
@@ -88,13 +116,7 @@ const ALL_IMPROVEMENTS: ImprovementItem[] = [
     description: 'Answers under 40 words rank lower in AI-generated summaries.',
     action: 'Expand answers',
     scoreBump: 3,
-  },
-  {
-    id: 'variants',
-    label: 'Add conversational variants',
-    description: 'Rewrite 3–4 questions in the phrasing users actually type ("how do I…", "what is the best…") to capture voice search.',
-    action: 'Rewrite questions',
-    scoreBump: 3,
+    dim: 2,
   },
   {
     id: 'bullets',
@@ -102,6 +124,67 @@ const ALL_IMPROVEMENTS: ImprovementItem[] = [
     description: 'Answers with 4+ sentences are 30% more likely to be featured in AI summaries when restructured as bullet points.',
     action: 'Reformat',
     scoreBump: 2,
+    dim: 2,
+  },
+  {
+    id: 'links',
+    label: 'Link to service pages',
+    description: 'Anchor 2–3 answers to relevant service pages. Internal links strengthen page authority and lower bounce rate.',
+    action: 'Add links',
+    scoreBump: 4,
+    dim: 3,
+  },
+];
+
+// Blog-flavoured fixes — copy references the article, sections, headings, links.
+const BLOG_IMPROVEMENTS: ImprovementItem[] = [
+  {
+    id: 'blog-intent',
+    label: 'Match the search query in your intro',
+    description: 'Restate the target query in the first paragraph and H1 so the article signals its intent immediately.',
+    action: 'Rewrite intro',
+    scoreBump: 3,
+    dim: 0,
+  },
+  {
+    id: 'blog-location',
+    label: 'Add location keywords',
+    description: 'Mention 2–3 city or region names across the article to lift local search visibility.',
+    action: 'Make it local',
+    scoreBump: 5,
+    dim: 1,
+  },
+  {
+    id: 'blog-meta',
+    label: 'Add a meta title and description',
+    description: 'A keyword-rich meta title and description improve click-through from search results.',
+    action: 'Add meta tags',
+    scoreBump: 5,
+    dim: 1,
+  },
+  {
+    id: 'blog-expand',
+    label: 'Expand thin sections',
+    description: 'Sections under 80 words rank lower. Add detail or an example to each short section.',
+    action: 'Expand sections',
+    scoreBump: 3,
+    dim: 2,
+  },
+  {
+    id: 'blog-bullets',
+    label: 'Break long paragraphs into bullets',
+    description: 'Paragraphs over four sentences are easier to scan and more likely to be featured when restructured as bullet points.',
+    action: 'Reformat',
+    scoreBump: 2,
+    dim: 2,
+  },
+  {
+    id: 'blog-links',
+    label: 'Link to service pages',
+    description: 'Anchor 2–3 relevant phrases to your service pages to strengthen internal linking and page authority.',
+    action: 'Add links',
+    scoreBump: 4,
+    dim: 3,
   },
 ];
 
@@ -120,10 +203,21 @@ export function ContentScorePanel({
   onFixAll,
   className,
   maxImprovements,
+  improvementSet = 'faq',
 }: ContentScorePanelProps) {
   const [doneIds, setDoneIds] = useState<Set<string>>(new Set());
   const [fixingIds, setFixingIds] = useState<Set<string>>(new Set());
-  const [fixingAll, setFixingAll] = useState(false);
+  // Index of the dimension currently running its "Apply all fixes" action.
+  const [fixingDim, setFixingDim] = useState<number | null>(null);
+  // Dimension labels the user has expanded (all metrics start collapsed).
+  const [expandedDims, setExpandedDims] = useState<Set<string>>(new Set());
+
+  // Fix copy varies by surface: blog editor talks about articles/sections,
+  // FAQ editor talks about questions/answers.
+  const ALL_IMPROVEMENTS = improvementSet === 'blog' ? BLOG_IMPROVEMENTS : FAQ_IMPROVEMENTS;
+
+  // Single amber accent for the "needs attention" issue badge.
+  const ATTENTION = scoreColor(60);
 
   // When the parent caps the visible list (e.g. recommendation flow shows
   // exactly one improvement), retire the whole section once the cap of fixes
@@ -155,19 +249,30 @@ export function ContentScorePanel({
     }, 1200);
   }
 
-  function handleFixAll() {
-    if (fixingAll || visibleItems.length === 0) return;
-    const pendingIds = visibleItems.map(i => i.id);
-    const totalBump = visibleItems.reduce((sum, i) => sum + i.scoreBump, 0);
-    setFixingAll(true);
+  function handleFixDimension(dimIndex: number) {
+    if (fixingDim !== null) return;
+    const items = visibleItems.filter(item => item.dim === dimIndex);
+    if (items.length === 0) return;
+    const pendingIds = items.map(i => i.id);
+    const totalBump = items.reduce((sum, i) => sum + i.scoreBump, 0);
+    setFixingDim(dimIndex);
     setFixingIds(new Set(pendingIds));
     onFixAll?.();
     setTimeout(() => {
       setFixingIds(new Set());
       setDoneIds(prev => new Set([...prev, ...pendingIds]));
-      setFixingAll(false);
+      setFixingDim(null);
       onItemFixed?.(totalBump);
     }, 1800);
+  }
+
+  function toggleDim(label: string) {
+    setExpandedDims(prev => {
+      const next = new Set(prev);
+      if (next.has(label)) next.delete(label);
+      else next.add(label);
+      return next;
+    });
   }
 
   return (
@@ -252,78 +357,108 @@ export function ContentScorePanel({
           />
         </div>
 
-        {/* Dimension rows */}
-        <div className="flex flex-col">
-          {dimensions.map((dim, i) => (
-            <div key={dim.label}>
-              <div className="flex items-start justify-between gap-2 py-3">
-                <div className="flex flex-col gap-0.5">
-                  <span className="text-[13px] text-foreground font-medium leading-[18px]">{dim.label}</span>
-                </div>
-                <div className="flex items-baseline gap-0.5 flex-shrink-0">
-                  <span className="text-[14px] text-foreground font-semibold leading-none">{dim.score}</span>
-                  <span className="text-[12px] text-muted-foreground leading-none">/100</span>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
+        {/* Dimension breakdown — each metric owns its improvements */}
+        <div className="flex flex-col gap-1">
+          {dimensions.map((dim, i) => {
+            const dimItems = visibleItems.filter(item => item.dim === i);
+            const dimBump = ALL_IMPROVEMENTS
+              .filter(item => item.dim === i && doneIds.has(item.id))
+              .reduce((sum, item) => sum + item.scoreBump, 0);
+            const dimScore = Math.min(100, dim.score + dimBump);
+            const hasIssues = dimItems.length > 0;
+            const isOpen = hasIssues && expandedDims.has(dim.label);
+            const dimFixing = fixingDim === i;
 
-        {/* Ways to improve — single unified section, hidden when all done */}
-        {visibleItems.length > 0 && (
-          <>
-            <div className="flex flex-col gap-3 mt-4">
-              <div className="flex items-center justify-between">
-                <span className="text-[13px] font-semibold text-foreground">Ways to improve</span>
-                {visibleItems.length > 1 && (
-                  <button
-                    type="button"
-                    onClick={handleFixAll}
-                    disabled={fixingAll}
-                    className="text-[12px] font-medium text-primary disabled:opacity-50"
-                  >
-                    Fix all
-                  </button>
-                )}
-              </div>
-
-              {visibleItems.map(item => {
-                const isFixing = fixingIds.has(item.id);
-                return (
-                  <div
-                    key={item.id}
-                    className="rounded-lg border border-border bg-background p-3 flex flex-col gap-1.5"
-                  >
-                    {isFixing ? (
-                      <div className="flex flex-col gap-2 animate-pulse">
-                        <div className="h-2.5 w-1/3 rounded-full bg-muted" />
-                        <div className="h-3 w-3/4 rounded-full bg-muted" />
-                        <div className="h-2.5 w-full rounded-full bg-muted" />
-                        <div className="h-2.5 w-5/6 rounded-full bg-muted" />
-                        <div className="h-2.5 w-1/4 rounded-full bg-primary/20" />
-                      </div>
-                    ) : (
-                      <>
-                        <div className="flex items-center justify-between gap-2">
-                          <span className="text-[12px] font-medium text-foreground">{item.label}</span>
-                          <span className="text-[11px] font-medium text-[#1D9E75] flex-none">+{item.scoreBump} pts</span>
-                        </div>
-                        <p className="text-[11px] text-muted-foreground leading-relaxed">{item.description}</p>
-                        <button
-                          type="button"
-                          onClick={() => handleFixItem(item.id)}
-                          className="self-start text-[11px] font-medium text-primary mt-0.5"
-                        >
-                          {item.action}
-                        </button>
-                      </>
+            return (
+              <div key={dim.label}>
+                {/* Metric header — toggles the issue list when there are issues */}
+                <button
+                  type="button"
+                  onClick={() => hasIssues && toggleDim(dim.label)}
+                  className={cn(
+                    'w-full flex items-center justify-between gap-2 py-2 text-left',
+                    hasIssues ? 'cursor-pointer' : 'cursor-default',
+                  )}
+                  aria-expanded={hasIssues ? isOpen : undefined}
+                >
+                  <div className="flex items-center gap-2 min-w-0">
+                    <ChevronRight
+                      size={14}
+                      strokeWidth={1.6}
+                      absoluteStrokeWidth
+                      className={cn(
+                        'flex-none text-muted-foreground/60 transition-transform duration-200',
+                        !hasIssues && 'invisible',
+                        isOpen && '-rotate-90',
+                      )}
+                    />
+                    <span className="text-[13px] font-medium text-foreground truncate leading-[18px]">
+                      {toSentenceCase(dim.label)}
+                    </span>
+                    {hasIssues && (
+                      <span
+                        className="inline-flex items-center gap-0.5 rounded px-1 py-0.5 flex-none"
+                        style={{ backgroundColor: ATTENTION.bg, color: ATTENTION.text }}
+                      >
+                        <AlertTriangle size={11} strokeWidth={1.6} absoluteStrokeWidth />
+                        <span className="text-[11px] font-medium leading-none">{dimItems.length}</span>
+                      </span>
                     )}
                   </div>
-                );
-              })}
-            </div>
-          </>
-        )}
+                  <span className="text-[13px] font-semibold text-foreground tabular-nums leading-none flex-none">
+                    {dimScore}
+                  </span>
+                </button>
+
+                {/* Issue list for this metric */}
+                {isOpen && (
+                  <div className="flex flex-col gap-2 pb-2 pl-6">
+                    {dimItems.map(item => {
+                      const isFixing = fixingIds.has(item.id) || dimFixing;
+                      return (
+                        <div
+                          key={item.id}
+                          className="rounded-lg border border-border bg-background p-4 flex flex-col gap-1.5"
+                        >
+                          {isFixing ? (
+                            <div className="flex flex-col gap-2 animate-pulse">
+                              <div className="h-2.5 w-1/3 rounded-full bg-muted" />
+                              <div className="h-2.5 w-3/4 rounded-full bg-muted" />
+                              <div className="h-2.5 w-full rounded-full bg-muted" />
+                              <div className="h-2.5 w-1/4 rounded-full bg-primary/20" />
+                            </div>
+                          ) : (
+                            <>
+                              <span className="text-[12px] font-medium text-foreground">{item.label}</span>
+                              <p className="text-[11px] text-muted-foreground leading-relaxed">{item.description}</p>
+                              <button
+                                type="button"
+                                onClick={() => handleFixItem(item.id)}
+                                className="self-start text-[11px] font-medium text-primary mt-0.5"
+                              >
+                                {item.action}
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      );
+                    })}
+                    {dimItems.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => handleFixDimension(i)}
+                        disabled={dimFixing}
+                        className="self-start text-[12px] font-medium text-primary disabled:opacity-50"
+                      >
+                        Apply all {dimItems.length} fixes
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
 
         <div className="h-2" />
       </div>

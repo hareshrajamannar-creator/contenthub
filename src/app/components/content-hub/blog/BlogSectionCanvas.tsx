@@ -1724,6 +1724,7 @@ export function BlogSectionCanvas({ sections, generationLabel, onVersionHistory,
         onItemFixed={handleItemFixed}
         onFixAll={handleFixAll}
         maxImprovements={initialScore !== undefined ? 1 : undefined}
+        improvementSet="blog"
       />
 
       {/* ── Hero settings panel ───────────────────────────────────────── */}

@@ -1073,6 +1073,8 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
   const [faqScorePanelOpen, setFaqScorePanelOpen] = useState(true);
   const [blogScore, setBlogScore] = useState(mode === 'blog' ? (recAeoScore ?? 92) : 0);
   const [blogScorePanelOpen, setBlogScorePanelOpen] = useState(true);
+  // Brief shimmer over the blog canvas while a score fix is being applied.
+  const [blogFixShimmer, setBlogFixShimmer] = useState(false);
   const [commentsOpen, setCommentsOpen] = useState(false);
   const [activityOpen, setActivityOpen] = useState(false);
   const [versionHistoryOpen, setVersionHistoryOpen] = useState(false);
@@ -1936,7 +1938,7 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
                 onActivity={() => { setActivityOpen(v => !v); setCommentsOpen(false); setFaqScorePanelOpen(false); setBlogScorePanelOpen(false); setActiveScoreCardId(null); }}
                 onChat={() => { setCommentsOpen(v => !v); setActivityOpen(false); setFaqScorePanelOpen(false); setBlogScorePanelOpen(false); setActiveScoreCardId(null); }}
               />
-              <div className="min-h-0 flex-1 overflow-hidden rounded-xl">
+              <div className="relative min-h-0 flex-1 overflow-hidden rounded-xl">
                 <BlockCanvas
                   mode={mode as 'blog' | 'landing' | 'faq'}
                   zoom={zoom}
@@ -1945,6 +1947,15 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
                     if (mode === 'blog') setBlogScorePanelOpen(false);
                   }}
                 />
+                {/* Fix-in-progress shimmer — signals the canvas is updating */}
+                {blogFixShimmer && (
+                  <div className="absolute inset-0 z-20 flex items-start justify-center bg-background/45 backdrop-blur-[1px]">
+                    <div className="mt-8 flex items-center gap-2 rounded-full border border-border bg-background px-3 py-1.5 shadow-sm">
+                      <Sparkles size={14} strokeWidth={1.6} absoluteStrokeWidth className="text-primary animate-pulse" />
+                      <span className="text-[12px] font-medium text-foreground">Applying fix…</span>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -1957,6 +1968,10 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
                 dimensions={buildBlogScoreDimensions(blogScore)}
                 score={blogScore}
                 scoreLabel="Content score"
+                improvementSet="blog"
+                onItemFixing={() => setBlogFixShimmer(true)}
+                onFixAll={() => setBlogFixShimmer(true)}
+                onItemFixed={() => setBlogFixShimmer(false)}
               />
             )}
             {!(mode === 'blog' && blogScorePanelOpen) && !commentsOpen && <BlockSettingsPanel />}
