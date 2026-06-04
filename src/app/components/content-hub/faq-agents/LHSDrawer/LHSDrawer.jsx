@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { FormInput } from '../elemental-stubs';
+import { PROCEDURES } from '../services/procedureService';
 import NodeType from '../Organisms/Accordion/NodeType/NodeType';
 import AIChatBubble from '../Molecules/AIChatBubble/AIChatBubble';
 import AIPromptBox from '../Molecules/AIPromptBox/AIPromptBox';
@@ -172,6 +173,15 @@ export const TASK_CARDS = [
   { label: 'External apps', icon: 'grid_view', action: 'chevron', subKey: 'External apps-task' },
 ];
 
+/* ─── Procedures data — sourced from business-level settings ─── */
+function getProcedureCards(usedIds = []) {
+  const base = [{ label: 'Custom', icon: 'article', action: 'drag' }];
+  const named = PROCEDURES
+    .filter((p) => !usedIds.includes(p.id))
+    .map((p) => ({ label: p.name, icon: 'article', action: 'drag', procedureId: p.id }));
+  return [...base, ...named];
+}
+
 /* ─── Controls data ─── */
 export const CONTROL_CARDS = [
   { label: 'Branch', icon: 'account_tree', action: 'drag', nodeType: 'branch' },
@@ -184,10 +194,12 @@ export const CONTROL_CARDS = [
 const INITIAL_SUB_ITEMS = { ...TRIGGER_SUB_ITEMS, ...TASK_SUB_ITEMS };
 
 /* ─── Card Row ─── */
-export function CardRow({ label, icon, action, isActive, onClick, onHover, cardRef, nodeType, viewOnly }) {
+export function CardRow({ label, icon, action, isActive, onClick, onHover, cardRef, nodeType, viewOnly, procedureId }) {
   const handleDragStart = (e) => {
     e.dataTransfer.setData('application/reactflow-type', nodeType);
-    e.dataTransfer.setData('application/reactflow-label', label);
+    // For procedure cards, use the procedureId as the label so AgentBuilder
+    // can seed the first procedureIds entry correctly
+    e.dataTransfer.setData('application/reactflow-label', procedureId || label);
     e.dataTransfer.setData('application/reactflow-description', label);
     e.dataTransfer.effectAllowed = 'copy';
   };
@@ -233,6 +245,7 @@ export default function LHSDrawer({
   defaultTab = 'Create manually',
   defaultOpenSection = 'Trigger',
   viewOnly = false,
+  usedProcedureIds = [],
 }) {
   const [activeTab, setActiveTab] = useState(defaultTab);
   const [openSection, setOpenSection] = useState(defaultOpenSection);
@@ -292,6 +305,7 @@ export default function LHSDrawer({
               onHover={() => handleCardHover(card, section, card.subKey)}
               cardRef={(el) => { cardRefs.current[`${section}-${card.label}`] = el; }}
               viewOnly={viewOnly}
+              procedureId={card.procedureId}
             />
           </div>
         );
@@ -301,6 +315,8 @@ export default function LHSDrawer({
 
   const triggerContent = renderCards(TRIGGER_CARDS, 'trigger', 'trigger');
   const tasksContent = renderCards(TASK_CARDS, 'task', 'task');
+  const procedureCards = getProcedureCards(usedProcedureIds);
+  const proceduresContent = renderCards(procedureCards, 'procedures', 'procedures');
   const controlsContent = renderCards(CONTROL_CARDS, 'control', 'branch');
 
   const activeSubItems = expandedCard ? subItems[expandedCard] : null;
@@ -346,6 +362,7 @@ export default function LHSDrawer({
           <div className="lhs-drawer__sections">
             <NodeType title="Trigger" content={triggerContent} isOpen={openSection === 'Trigger'} onToggle={() => toggleSection('Trigger')} />
             <NodeType title="Tasks" content={tasksContent} isOpen={openSection === 'Tasks'} onToggle={() => toggleSection('Tasks')} />
+            <NodeType title="Procedures" content={proceduresContent} isOpen={openSection === 'Procedures'} onToggle={() => toggleSection('Procedures')} />
             <NodeType title="Controls" content={controlsContent} isOpen={openSection === 'Controls'} onToggle={() => toggleSection('Controls')} />
           </div>
         </div>
