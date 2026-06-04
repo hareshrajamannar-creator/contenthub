@@ -7,7 +7,7 @@ import styles from './UserPromptInput.module.css';
 
 const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 
-export default function UserPromptInput({ value, onChange, required }) {
+export default function UserPromptInput({ value, onChange, required, hideLabel = false }) {
   const editorRef = useRef(null);
   const onChangeRef = useRef(onChange);
   useEffect(() => { onChangeRef.current = onChange; }, [onChange]);
@@ -62,10 +62,12 @@ export default function UserPromptInput({ value, onChange, required }) {
 
   return (
     <div className={styles.wrap}>
-      <div className={styles.labelRow}>
-        <span className={styles.label}>User prompt</span>
-        {required && <span className={styles.required}>*</span>}
-      </div>
+      {!hideLabel && (
+        <div className={styles.labelRow}>
+          <span className={styles.label}>User prompt</span>
+          {required && <span className={styles.required}>*</span>}
+        </div>
+      )}
       <div className={styles.inputBox}>
         <div
           ref={editorRef}

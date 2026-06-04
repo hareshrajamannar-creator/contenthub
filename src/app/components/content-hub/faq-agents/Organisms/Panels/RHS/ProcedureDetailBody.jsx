@@ -1,5 +1,4 @@
 import React, { useState, useRef, useEffect } from 'react';
-import TextArea from '@birdeye/elemental/core/atoms/TextArea/index.js';
 import UserPromptInput from '../../../Molecules/Inputs/UserPromptInput/UserPromptInput';
 import VariableChip, { CHIP_TYPES, DataTypeIcon } from '../../../Molecules/Inputs/VariableChip/VariableChip';
 import etStyles from './EntityTaskBody.module.css';
@@ -150,16 +149,16 @@ export default function ProcedureDetailBody({ initialValues = {}, onFieldChange,
             When to use this procedure?<span className={styles.required}> *</span>
           </span>
         </div>
-        <TextArea
-          name="whenToUse"
+        <textarea
+          className={styles.whenToUseTextarea}
           placeholder="Describe when this procedure should be triggered..."
           value={whenToUse}
+          rows={4}
           onChange={(e) => {
             const val = e.target.value;
             setWhenToUse(val);
             onFieldChange?.('whenToUse', val);
           }}
-          noFloatingLabel
         />
       </div>
 

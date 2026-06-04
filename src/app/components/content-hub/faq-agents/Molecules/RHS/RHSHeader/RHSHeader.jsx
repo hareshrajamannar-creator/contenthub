@@ -20,11 +20,11 @@ export default function RHSPanelHeader({
       justifyContent: 'space-between',
       padding: '0 15px',
       height: 60,
-      background: '#ffffff',
-      borderTop: '1px solid #e5e9f0',
-      borderLeft: '1px solid #e5e9f0',
-      borderRight: '1px solid #e5e9f0',
-      borderRadius: '8px 8px 0 0',
+      background: 'transparent',
+      borderTop: 'none',
+      borderLeft: 'none',
+      borderRight: 'none',
+      borderRadius: '0',
       boxSizing: 'border-box',
     }}>
       <span style={{

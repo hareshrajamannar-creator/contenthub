@@ -22,11 +22,11 @@ export default function RHSPanelFooter({
 
   return (
     <div style={{
-      background: '#ffffff',
-      borderBottom: '1px solid #e5e9f0',
-      borderLeft: '1px solid #e5e9f0',
-      borderRight: '1px solid #e5e9f0',
-      borderRadius: '0 0 8px 8px',
+      background: 'transparent',
+      borderBottom: 'none',
+      borderLeft: 'none',
+      borderRight: 'none',
+      borderRadius: '0',
       padding: '16px 16px 24px',
       display: 'flex',
       flexDirection: 'column',

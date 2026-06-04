@@ -17,10 +17,10 @@
 
 /* ─── Root panel ─── */
 .lhs-drawer {
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 12px rgba(33, 33, 33, 0.12);
-  border: 1px solid #e5e9f0;
+  background: transparent;
+  border-radius: 0;
+  box-shadow: none;
+  border: none;
   width: 360px;
   height: 100%;
   display: flex;
