@@ -13,6 +13,8 @@ import LoopBody from './LoopBody';
 import ControlBranchBody from './ControlBranchBody';
 import StartBody from './StartBody';
 import ConversationTriggerBody from './ConversationTriggerBody';
+import ProcedureTaskBody from './ProcedureTaskBody';
+import ProcedureDetailBody from './ProcedureDetailBody';
 import ExpandedRHSModal from '../../../Modules/ExpandedRHSModal/ExpandedRHSModal/ExpandedRHSModal';
 import ExpandedRHSTest from '../../../Modules/ExpandedRHSModal/ExpandedRHSTest/ExpandedRHSTest';
 
@@ -69,6 +71,16 @@ const VARIANTS = {
   },
   conversationTrigger: {
     body: ConversationTriggerBody,
+    showActions: true,
+    showPromptStrength: false,
+  },
+  procedureTask: {
+    body: ProcedureTaskBody,
+    showActions: true,
+    showPromptStrength: false,
+  },
+  procedureDetail: {
+    body: ProcedureDetailBody,
     showActions: true,
     showPromptStrength: false,
   },

@@ -7,6 +7,7 @@ import ShareModal from '../Organisms/Modals/ShareModal/ShareModal';
 import EmptyStates from '../Patterns/EmptyStates/EmptyStates';
 import { Button } from '../elemental-stubs';
 import { saveAgent, getAgentBySlug, getCachedAgent, saveCustomTool, getCustomTools } from '../services/agentService';
+import { getProcedureById, PROCEDURES } from '../services/procedureService';
 import { getModuleNav } from '../Modules/moduleNavigation';
 import './AgentBuilder.css';
 
@@ -72,6 +73,10 @@ function makeNodeDetails(type, label) {
       ],
     };
   }
+  if (type === 'procedures') {
+    const firstId = label && label !== 'Custom' ? label : null;
+    return { procedureIds: firstId ? [firstId] : [] };
+  }
   if (type === 'branch') return { basedOn: 'conditions', branches: [] };
   if (type === 'delay') return { name: '', duration: '', unit: '' };
   if (type === 'parallel') return { nodeName: '', description: '', branches: [{ name: '' }, { name: '' }] };
@@ -109,6 +114,8 @@ function makeNodeConfig(id, type, label, description) {
     flowType = 'parallel';
   } else if (type === 'loop') {
     flowType = 'loop';
+  } else if (type === 'procedures') {
+    flowType = 'procedures';
   } else if (type === 'task') {
     flowType = 'task';
     hasAiIcon = label === 'Custom';
@@ -167,7 +174,15 @@ function buildFlow(nodeList, startData, nodeDetails = {}) {
               title: nodeDetails[nodeId]?.triggerName ?? item.data.title,
               subtitle: nodeDetails[nodeId]?.description ?? item.data.subtitle,
             }
-          : { ...item.data },
+          : item.flowType === 'procedures'
+            ? {
+                ...item.data,
+                procedureItems: (nodeDetails[nodeId]?.procedureIds || []).map((pid) => {
+                  const p = getProcedureById(pid);
+                  return { id: pid, name: p ? p.name : pid };
+                }),
+              }
+            : { ...item.data },
     });
     edges.push({
       id: `e-${prevId}-${nodeId}`,
@@ -313,6 +328,8 @@ export default function AgentBuilder({
   const [navId, setNavId] = useState(activeNavId);
   const [nodeList, setNodeList] = useState(() => initialNodes || []);
   const [selectedNodeId, setSelectedNodeId] = useState(null);
+  // Tracks which procedure is open in the detail view (UI-only, not persisted)
+  const [activeProcedureId, setActiveProcedureId] = useState(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [nodeDetails, setNodeDetails] = useState(() => {
     const base = initialNodeDetails || {};
@@ -776,6 +793,15 @@ export default function AgentBuilder({
       canMoveDown: !viewOnly && nodeIdx !== -1 && nodeIdx < nodeList.length - 1,
     };
     if (n.type === 'branch') extra.onAddBranch = () => handleAddBranchPath(n.id);
+    if (n.type === 'procedures' && !viewOnly) {
+      extra.onDropProcedure = (procedureId) => {
+        setNodeDetails((prev) => {
+          const existing = prev[n.id]?.procedureIds || [];
+          if (existing.includes(procedureId)) return prev;
+          return { ...prev, [n.id]: { ...(prev[n.id] || {}), procedureIds: [...existing, procedureId] } };
+        });
+      };
+    }
     return { ...n, data: { ...n.data, ...extra } };
   });
 
@@ -898,6 +924,7 @@ export default function AgentBuilder({
   const handleCloseDrawer = useCallback(() => {
     setDrawerOpen(false);
     setSelectedNodeId(null);
+    setActiveProcedureId(null);
   }, []);
 
   const currentDetails = selectedNodeId ? (nodeDetails[selectedNodeId] || {}) : {};
@@ -1056,6 +1083,50 @@ export default function AgentBuilder({
           title="Loop"
           viewOnly={viewOnly}
           bodyProps={{ initialValues: currentDetails, onFieldChange: activeFieldChange }}
+          onClose={handleCloseDrawer}
+          onSave={handleCloseDrawer}
+        />
+      );
+    }
+
+    if (flowType === 'procedures') {
+      if (activeProcedureId) {
+        const proc = getProcedureById(activeProcedureId);
+        const overrides = currentDetails.procedureOverrides?.[activeProcedureId] || {};
+        const mergedProc = proc ? { ...proc, ...overrides } : { id: activeProcedureId, name: activeProcedureId, ...overrides };
+        return (
+          <RHS
+            key={`proc-detail-${activeProcedureId}`}
+            variant="procedureDetail"
+            title={mergedProc.name}
+            viewOnly={viewOnly}
+            onBack={() => setActiveProcedureId(null)}
+            bodyProps={{
+              initialValues: mergedProc,
+              onFieldChange: (field, value) => {
+                const overridesNext = {
+                  ...(currentDetails.procedureOverrides || {}),
+                  [activeProcedureId]: { ...(currentDetails.procedureOverrides?.[activeProcedureId] || {}), [field]: value },
+                };
+                activeFieldChange('procedureOverrides', overridesNext);
+              },
+            }}
+            onClose={handleCloseDrawer}
+            onSave={() => setActiveProcedureId(null)}
+          />
+        );
+      }
+      return (
+        <RHS
+          key="proc-list"
+          variant="procedureTask"
+          title="Procedures"
+          viewOnly={viewOnly}
+          bodyProps={{
+            initialValues: currentDetails,
+            onFieldChange: activeFieldChange,
+            onSelectProcedure: (id) => setActiveProcedureId(id),
+          }}
           onClose={handleCloseDrawer}
           onSave={handleCloseDrawer}
         />
@@ -1234,7 +1305,16 @@ export default function AgentBuilder({
 
         <div className="agent-builder">
           <div className="agent-builder__lhs">
-            <LHSDrawer defaultTab="Create manually" triggerOpen tasksOpen={false} controlsOpen={false} viewOnly={viewOnly} />
+            <LHSDrawer
+              defaultTab="Create manually"
+              triggerOpen
+              tasksOpen={false}
+              controlsOpen={false}
+              viewOnly={viewOnly}
+              usedProcedureIds={
+                Object.values(nodeDetails).flatMap((d) => d?.procedureIds || [])
+              }
+            />
           </div>
 
           <div className={`agent-builder__canvas${drawerOpen ? ' agent-builder__canvas--with-rhs' : ''}`}>
