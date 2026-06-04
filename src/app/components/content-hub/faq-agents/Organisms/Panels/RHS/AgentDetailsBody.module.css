@@ -58,7 +58,7 @@
 /* ─── "+ N more" expand link ─── */
 .moreLink {
   font-size: 12px;
-  font-weight: 500;
+  font-weight: 400;
   line-height: 20px;
   color: #1976d2;
   background: none;
@@ -75,7 +75,7 @@
 /* ─── "+ Add" link ─── */
 .addLink {
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 400;
   line-height: 20px;
   color: #1976d2;
   background: none;

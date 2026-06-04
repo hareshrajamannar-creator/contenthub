@@ -7,7 +7,7 @@
 
 .step {
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 400;
   color: #212121;
   font-family: 'Roboto', sans-serif;
 }
@@ -23,11 +23,11 @@
   align-items: center;
   gap: 4px;
   padding: 3px 8px 3px 6px;
-  background: #f0f4ff;
-  border: 1px solid #c5d0f5;
+  background: #f4f6f7;
+  border: 1px solid #d4d8de;
   border-radius: 4px;
   font-size: 12px;
-  color: #3949ab;
+  color: #424242;
   font-family: 'Roboto', sans-serif;
   font-weight: 400;
   white-space: nowrap;
@@ -37,7 +37,7 @@
   font-size: 13px !important;
   width: 13px;
   height: 13px;
-  color: #3949ab;
+  color: #757575;
   font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20;
 }
 
@@ -49,16 +49,16 @@
 }
 
 .emptyDragOver {
-  color: #3949ab;
+  color: #424242;
   font-style: normal;
-  font-weight: 500;
+  font-weight: 400;
 }
 
 .dropHint {
   font-size: 12px;
-  color: #3949ab;
+  color: #424242;
   font-family: 'Roboto', sans-serif;
-  font-weight: 500;
+  font-weight: 400;
   text-align: center;
   padding: 4px 0;
 }
