@@ -1289,7 +1289,7 @@ export default function AgentBuilder({
       </div>
 
       {/* ─── Builder body ─── */}
-      <div className="agent-builder-wrapper" style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', background: '#f4f6f7' }}>
+      <div className="agent-builder-wrapper" style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', background: 'transparent' }}>
         {viewOnly && (
           <div className="ab-view-banner">
             <span className="material-symbols-outlined">visibility</span>
