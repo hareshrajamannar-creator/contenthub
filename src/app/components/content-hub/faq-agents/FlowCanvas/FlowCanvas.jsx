@@ -6,27 +6,15 @@ import {
   BaseEdge,
   getStraightPath,
   useReactFlow,
-  applyNodeChanges,
 } from '@xyflow/react';
 import GraphControls from '../Modules/FlowCanvas/GraphControls/GraphControls';
 import '@xyflow/react/dist/style.css';
 import StartNode from '../Molecules/Canvas/StartNode/StartNode';
 import EndNode from '../Molecules/Canvas/EndNode/EndNode';
 import CanvasNode from '../Molecules/Canvas/CanvasNode/CanvasNode';
+import ProceduresNode from '../Molecules/Canvas/ProceduresNode/ProceduresNode';
 import './FlowCanvas.css';
 import branchStyles from './BranchPath.module.css';
-
-const DRAG_HANDLE_CLASS = 'flow-canvas__drag-handle';
-const DRAGGABLE_TYPES = new Set(['trigger', 'task', 'branch', 'delay', 'parallel', 'loop']);
-
-/* ─── Drag handle ─── */
-function DragHandle() {
-  return (
-    <div className={DRAG_HANDLE_CLASS} title="Drag to reorder">
-      <span className="material-symbols-outlined">drag_indicator</span>
-    </div>
-  );
-}
 
 /* ─── Custom Node Wrappers ─── */
 function StartNodeWrapper({ id, data }) {
@@ -44,10 +32,7 @@ function TriggerNodeWrapper({ id, data }) {
   return (
     <div className="flow-canvas__node-center">
       <Handle type="target" position={Position.Top} />
-      <div className="flow-canvas__node-draggable-row">
-        <DragHandle />
-        <CanvasNode nodeType="trigger" label={data.headerLabel || (data.subtype === 'Schedule-based' ? 'Schedule-based trigger' : 'Trigger')} stepNumber={data.stepNumber} title={data.title} description={data.subtitle} titlePlaceholder={data.titlePlaceholder} descriptionPlaceholder={data.descriptionPlaceholder} hasToggle={data.hasToggle} toggleEnabled={data.toggleEnabled} state={isSelected ? 'selected' : 'default'} onDelete={data.onDelete} />
-      </div>
+      <CanvasNode nodeType="trigger" label={data.headerLabel || (data.subtype === 'Schedule-based' ? 'Schedule-based trigger' : 'Trigger')} stepNumber={data.stepNumber} title={data.title} description={data.subtitle} titlePlaceholder={data.titlePlaceholder} descriptionPlaceholder={data.descriptionPlaceholder} hasToggle={data.hasToggle} toggleEnabled={data.toggleEnabled} state={isSelected ? 'selected' : 'default'} onDelete={data.onDelete} onMoveUp={data.onMoveUp} onMoveDown={data.onMoveDown} canMoveUp={data.canMoveUp} canMoveDown={data.canMoveDown} />
       <Handle type="source" position={Position.Bottom} />
     </div>
   );
@@ -58,10 +43,7 @@ function TaskNodeWrapper({ id, data }) {
   return (
     <div className="flow-canvas__node-center">
       <Handle type="target" position={Position.Top} />
-      <div className="flow-canvas__node-draggable-row">
-        <DragHandle />
-        <CanvasNode nodeType="task" label="Task" stepNumber={data.stepNumber} title={data.title} description={data.subtitle} titlePlaceholder={data.titlePlaceholder} descriptionPlaceholder={data.descriptionPlaceholder} hasAiIcon={data.hasAiIcon} hasToggle={data.hasToggle} toggleEnabled={data.toggleEnabled} state={isSelected ? 'selected' : 'default'} onDelete={data.onDelete} />
-      </div>
+      <CanvasNode nodeType="task" label="Task" stepNumber={data.stepNumber} title={data.title} description={data.subtitle} titlePlaceholder={data.titlePlaceholder} descriptionPlaceholder={data.descriptionPlaceholder} hasAiIcon={data.hasAiIcon} hasToggle={data.hasToggle} toggleEnabled={data.toggleEnabled} state={isSelected ? 'selected' : 'default'} onDelete={data.onDelete} onMoveUp={data.onMoveUp} onMoveDown={data.onMoveDown} canMoveUp={data.canMoveUp} canMoveDown={data.canMoveDown} />
       <Handle type="source" position={Position.Bottom} />
     </div>
   );
@@ -72,10 +54,7 @@ function BranchNodeWrapper({ id, data }) {
   return (
     <div className="flow-canvas__node-center">
       <Handle type="target" position={Position.Top} />
-      <div className="flow-canvas__node-draggable-row">
-        <DragHandle />
-        <CanvasNode nodeType="branch" label="Branch" stepNumber={data.stepNumber} title={data.title} description={data.subtitle} titlePlaceholder={data.titlePlaceholder} descriptionPlaceholder={data.descriptionPlaceholder} hasToggle={data.hasToggle} toggleEnabled={data.toggleEnabled} hasAddButton onAddClick={data.onAddBranch} state={isSelected ? 'selected' : 'default'} onDelete={data.onDelete} />
-      </div>
+      <CanvasNode nodeType="branch" label="Branch" stepNumber={data.stepNumber} title={data.title} description={data.subtitle} titlePlaceholder={data.titlePlaceholder} descriptionPlaceholder={data.descriptionPlaceholder} hasToggle={data.hasToggle} toggleEnabled={data.toggleEnabled} hasAddButton onAddClick={data.onAddBranch} state={isSelected ? 'selected' : 'default'} onDelete={data.onDelete} onMoveUp={data.onMoveUp} onMoveDown={data.onMoveDown} canMoveUp={data.canMoveUp} canMoveDown={data.canMoveDown} />
       <Handle type="source" position={Position.Bottom} />
     </div>
   );
@@ -86,22 +65,46 @@ function ControlNodeWrapper({ id, data, nodeType, label }) {
   return (
     <div className="flow-canvas__node-center">
       <Handle type="target" position={Position.Top} />
-      <div className="flow-canvas__node-draggable-row">
-        <DragHandle />
-        <CanvasNode
-          nodeType={nodeType}
-          label={label}
-          stepNumber={data.stepNumber}
-          title={data.title}
-          description={data.subtitle}
-          titlePlaceholder={data.titlePlaceholder}
-          descriptionPlaceholder={data.descriptionPlaceholder}
-          hasToggle={data.hasToggle}
-          toggleEnabled={data.toggleEnabled}
-          state={isSelected ? 'selected' : 'default'}
-          onDelete={data.onDelete}
-        />
-      </div>
+      <CanvasNode
+        nodeType={nodeType}
+        label={label}
+        stepNumber={data.stepNumber}
+        title={data.title}
+        description={data.subtitle}
+        titlePlaceholder={data.titlePlaceholder}
+        descriptionPlaceholder={data.descriptionPlaceholder}
+        hasToggle={data.hasToggle}
+        toggleEnabled={data.toggleEnabled}
+        state={isSelected ? 'selected' : 'default'}
+        onDelete={data.onDelete}
+        onMoveUp={data.onMoveUp}
+        onMoveDown={data.onMoveDown}
+        canMoveUp={data.canMoveUp}
+        canMoveDown={data.canMoveDown}
+      />
+      <Handle type="source" position={Position.Bottom} />
+    </div>
+  );
+}
+
+function ProceduresNodeWrapper({ id, data }) {
+  const isSelected = id === data.selectedNodeId;
+  return (
+    <div className="flow-canvas__node-center">
+      <Handle type="target" position={Position.Top} />
+      <ProceduresNode
+        stepNumber={data.stepNumber}
+        procedureItems={data.procedureItems || []}
+        hasToggle={data.hasToggle}
+        toggleEnabled={data.toggleEnabled}
+        state={isSelected ? 'selected' : 'default'}
+        onDelete={data.onDelete}
+        onMoveUp={data.onMoveUp}
+        onMoveDown={data.onMoveDown}
+        canMoveUp={data.canMoveUp}
+        canMoveDown={data.canMoveDown}
+        onDropProcedure={data.onDropProcedure}
+      />
       <Handle type="source" position={Position.Bottom} />
     </div>
   );
@@ -271,6 +274,7 @@ const NODE_TYPES = {
   delay: DelayNodeWrapper,
   parallel: ParallelNodeWrapper,
   loop: LoopNodeWrapper,
+  procedures: ProceduresNodeWrapper,
   branchPath: BranchPathNodeWrapper,
   branchEnd: BranchEndNodeWrapper,
   end: EndNodeWrapper,
@@ -282,55 +286,36 @@ const EDGE_TYPES = {
 };
 
 /* ─── Main FlowCanvas ─── */
+// Nodes are positioned purely by buildFlow() — no canvas drag-to-reorder.
+// This matches Zapier/n8n's fixed-layout model and eliminates all the
+// localNodes sync complexity that was causing diagonal lines and ghost buttons.
 function FlowCanvasInner({
   nodes = [],
   edges = [],
   onNodeClick,
   onDropNode,
-  onNodesReorder,
   orientation = 'vertical',
   onOrientationChange,
   onRun,
   selectedNodeId,
   viewOnly = false,
 }) {
-  const { screenToFlowPosition, zoomTo, fitView, getNodes } = useReactFlow();
+  const { zoomTo, fitView, getNodes } = useReactFlow();
   const [zoom, setZoom] = useState(110);
   const [isDraggingFromLHS, setIsDraggingFromLHS] = useState(false);
 
   const onDropNodeRef = useRef(onDropNode);
   useEffect(() => { onDropNodeRef.current = onDropNode; }, [onDropNode]);
-  const onNodesReorderRef = useRef(onNodesReorder);
-  useEffect(() => { onNodesReorderRef.current = onNodesReorder; }, [onNodesReorder]);
 
-  // Enrich nodes: inject selectedNodeId + restrict drag to handle element
+  // Enrich nodes with selectedNodeId — positions come directly from buildFlow,
+  // no local state needed because nodes never move on the canvas.
   const styledNodes = useMemo(
     () => nodes.map((n) => ({
       ...n,
       data: { ...n.data, selectedNodeId },
-      dragHandle: DRAGGABLE_TYPES.has(n.type) ? `.${DRAG_HANDLE_CLASS}` : undefined,
     })),
     [nodes, selectedNodeId]
   );
-
-  // Local node state so React Flow can own positions during canvas drag
-  const [localNodes, setLocalNodes] = useState(() => styledNodes);
-  const isDraggingRef = useRef(false);
-
-  // Sync parent → local whenever nodes change and no drag is in progress
-  useEffect(() => {
-    if (!isDraggingRef.current) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setLocalNodes(styledNodes);
-    }
-  }, [styledNodes]);
-
-  // Let React Flow mutate node positions during drag
-  const handleNodesChange = useCallback((changes) => {
-    const posChange = changes.find((c) => c.type === 'position');
-    if (posChange) isDraggingRef.current = posChange.dragging === true;
-    setLocalNodes((nds) => applyNodeChanges(changes, nds));
-  }, []);
 
   // Fit view whenever a node is added or removed
   const prevNodeCountRef = useRef(nodes.length);
@@ -341,7 +326,7 @@ function FlowCanvasInner({
     }
   }, [nodes.length, fitView]);
 
-  // Detect LHS drag start/end (HTML5 drag API, separate from RF node drag)
+  // Detect LHS drag start/end (HTML5 drag API)
   useEffect(() => {
     const onDragStart = (e) => {
       if (e.dataTransfer?.types?.includes('application/reactflow-type')) {
@@ -367,23 +352,12 @@ function FlowCanvasInner({
     [onNodeClick]
   );
 
-  // On drag-stop: clear drag flag, sort canvas nodes by Y, call reorder
-  const handleNodeDragStop = useCallback(() => {
-    isDraggingRef.current = false;
-    if (!onNodesReorderRef.current) return;
-    const allNodes = getNodes();
-    const draggable = allNodes
-      .filter((n) => DRAGGABLE_TYPES.has(n.type))
-      .sort((a, b) => a.position.y - b.position.y);
-    onNodesReorderRef.current(draggable.map((n) => n.id));
-  }, [getNodes]);
-
   const handleDragOver = useCallback((event) => {
     event.preventDefault();
     event.dataTransfer.dropEffect = 'copy';
   }, []);
 
-  // Canvas-wide drop — skip if landed inside a foreignObject (edge + buttons handle their own drops)
+  // Canvas-wide drop — skip if landed inside a foreignObject (edge buttons handle their own drops)
   const handleDrop = useCallback(
     (event) => {
       event.preventDefault();
@@ -392,10 +366,51 @@ function FlowCanvasInner({
       const label = event.dataTransfer.getData('application/reactflow-label');
       const description = event.dataTransfer.getData('application/reactflow-description');
       if (!type) return;
-      const position = screenToFlowPosition({ x: event.clientX, y: event.clientY });
-      onDropNodeRef.current?.({ type, label, description, position });
+
+      const dropY = event.clientY; // screen Y — no coordinate conversion needed
+
+      // Get actual DOM positions of main-axis nodes via getBoundingClientRect.
+      // This is zoom/pan independent — we compare screen pixels to screen pixels.
+      const MAIN_TYPES = ['trigger', 'task', 'branch', 'delay', 'parallel', 'loop', 'procedures'];
+      const allNodes = getNodes();
+
+      const mainNodeDoms = allNodes
+        .filter((n) => MAIN_TYPES.includes(n.type) && Math.abs(n.position.x) <= 50)
+        .sort((a, b) => a.position.y - b.position.y)
+        .map((n) => ({
+          id: n.id,
+          el: document.querySelector(`.react-flow__node[data-id="${n.id}"]`),
+        }))
+        .filter((n) => n.el !== null);
+
+      let afterNodeId = null;
+      let insertAtBeginning = false;
+
+      if (mainNodeDoms.length > 0) {
+        const firstRect = mainNodeDoms[0].el.getBoundingClientRect();
+
+        if (dropY < firstRect.top + firstRect.height / 2) {
+          // Dropped above the midpoint of the first node → insert at beginning
+          insertAtBeginning = true;
+        } else {
+          let insertIndex = mainNodeDoms.length; // default: after last node
+          for (let i = 0; i < mainNodeDoms.length - 1; i++) {
+            const bottomOfCurrent = mainNodeDoms[i].el.getBoundingClientRect().bottom;
+            const topOfNext = mainNodeDoms[i + 1].el.getBoundingClientRect().top;
+            const gapMid = (bottomOfCurrent + topOfNext) / 2;
+            if (dropY < gapMid) {
+              insertIndex = i + 1;
+              break;
+            }
+          }
+          afterNodeId = mainNodeDoms[insertIndex - 1].id;
+        }
+      }
+      // Empty flow: afterNodeId=null, insertAtBeginning=false → append (only valid spot)
+
+      onDropNodeRef.current?.({ type, label, description, afterNodeId, insertAtBeginning });
     },
-    [screenToFlowPosition]
+    [getNodes]
   );
 
   const styledEdges = useMemo(
@@ -442,20 +457,18 @@ function FlowCanvasInner({
       </div>
 
       <ReactFlow
-        nodes={localNodes}
+        nodes={styledNodes}
         edges={styledEdges}
         nodeTypes={NODE_TYPES}
         edgeTypes={EDGE_TYPES}
         defaultEdgeOptions={defaultEdgeOptions}
-        onNodesChange={handleNodesChange}
         onNodeClick={handleNodeClick}
-        onNodeDragStop={viewOnly ? undefined : handleNodeDragStop}
         onViewportChange={handleViewportChange}
         fitView
         fitViewOptions={{ padding: 0.25, maxZoom: 1.1 }}
         nodeOrigin={[0.5, 0]}
         proOptions={{ hideAttribution: true }}
-        nodesDraggable={!viewOnly}
+        nodesDraggable={false}
         nodesConnectable={false}
         panOnScroll
         zoomOnScroll
@@ -464,8 +477,8 @@ function FlowCanvasInner({
   );
 }
 
-export default function FlowCanvas(props) {
-  return (
-    <FlowCanvasInner {...props} />
-  );
+export default function FlowCanvas({ onNodesReorder: _ignored, ...props }) {
+  // onNodesReorder is no longer used — nodes are fixed-position (Zapier model).
+  // Accept and discard it so callers don't need to change their prop signature.
+  return <FlowCanvasInner {...props} />;
 }

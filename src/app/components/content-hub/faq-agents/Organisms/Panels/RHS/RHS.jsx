@@ -12,6 +12,7 @@ import ParallelBody from './ParallelBody';
 import LoopBody from './LoopBody';
 import ControlBranchBody from './ControlBranchBody';
 import StartBody from './StartBody';
+import ConversationTriggerBody from './ConversationTriggerBody';
 import ExpandedRHSModal from '../../../Modules/ExpandedRHSModal/ExpandedRHSModal/ExpandedRHSModal';
 import ExpandedRHSTest from '../../../Modules/ExpandedRHSModal/ExpandedRHSTest/ExpandedRHSTest';
 
@@ -63,6 +64,11 @@ const VARIANTS = {
   },
   controlBranch: {
     body: ControlBranchBody,
+    showActions: true,
+    showPromptStrength: false,
+  },
+  conversationTrigger: {
+    body: ConversationTriggerBody,
     showActions: true,
     showPromptStrength: false,
   },

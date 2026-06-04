@@ -724,6 +724,18 @@ export default function AgentBuilder({
     });
   }, []);
 
+  const handleMoveNode = useCallback((nodeId, direction) => {
+    setNodeList((prev) => {
+      const idx = prev.findIndex((n) => n.id === nodeId);
+      if (idx === -1) return prev;
+      const targetIdx = direction === 'up' ? idx - 1 : idx + 1;
+      if (targetIdx < 0 || targetIdx >= prev.length) return prev;
+      const next = [...prev];
+      [next[idx], next[targetIdx]] = [next[targetIdx], next[idx]];
+      return next.map((n, i) => ({ ...n, data: { ...n.data, stepNumber: i + 1 } }));
+    });
+  }, []);
+
   const handleDeleteBranchPath = useCallback((branchPathId) => {
     setNodeDetails((prev) => {
       const copy = { ...prev };
@@ -755,7 +767,14 @@ export default function AgentBuilder({
       return { ...n, data: { ...n.data, onDelete: () => handleDeleteBranchPath(n.id) } };
     }
     if (n.type === 'branchEnd') return n;
-    const extra = { onDelete: () => handleDeleteNode(n.id) };
+    const nodeIdx = nodeList.findIndex((nl) => nl.id === n.id);
+    const extra = {
+      onDelete: () => handleDeleteNode(n.id),
+      onMoveUp: () => handleMoveNode(n.id, 'up'),
+      onMoveDown: () => handleMoveNode(n.id, 'down'),
+      canMoveUp: !viewOnly && nodeIdx > 0,
+      canMoveDown: !viewOnly && nodeIdx !== -1 && nodeIdx < nodeList.length - 1,
+    };
     if (n.type === 'branch') extra.onAddBranch = () => handleAddBranchPath(n.id);
     return { ...n, data: { ...n.data, ...extra } };
   });
@@ -957,6 +976,19 @@ export default function AgentBuilder({
           defaultFrequency={currentDetails.frequency || 'Daily'}
           defaultDay={currentDetails.day || '7 days'}
           defaultTime={currentDetails.time || '9:00 AM'}
+        />
+      );
+    }
+
+    if (flowType === 'trigger' && data.subtype === 'Conversation trigger') {
+      return (
+        <RHS
+          variant="conversationTrigger"
+          title="Trigger"
+          viewOnly={viewOnly}
+          bodyProps={{ initialValues: currentDetails, onFieldChange: activeFieldChange }}
+          onClose={handleCloseDrawer}
+          onSave={handleCloseDrawer}
         />
       );
     }

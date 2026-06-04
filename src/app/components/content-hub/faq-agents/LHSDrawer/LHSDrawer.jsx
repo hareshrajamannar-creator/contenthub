@@ -84,6 +84,7 @@ const TRIGGER_SUB_ITEMS = {
 
 export const TRIGGER_CARDS = [
   { label: 'Schedule-based', icon: 'schedule', action: 'drag' },
+  { label: 'Conversation trigger', icon: 'forum', action: 'drag' },
   { label: 'Reviews', icon: 'grade', action: 'chevron' },
   { label: 'Inbox', icon: 'sms', action: 'chevron' },
   { label: 'Listings', icon: 'location_on', action: 'chevron' },

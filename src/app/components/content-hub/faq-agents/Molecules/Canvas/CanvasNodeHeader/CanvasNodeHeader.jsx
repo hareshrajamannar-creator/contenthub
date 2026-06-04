@@ -30,12 +30,13 @@ const TriggerSvg = () => (
 );
 
 const ICON_CONFIG = {
-  trigger:  { svgComponent: TriggerSvg, modifier: 'trigger'  },
-  task:     { svgComponent: TaskSvg,    modifier: 'task'     },
-  branch:   { icon: 'account_tree',     modifier: 'branch'   },
-  parallel: { icon: 'splitscreen_add', modifier: 'parallel' },
-  loop:     { icon: 'repeat',          modifier: 'loop'     },
-  delay:    { icon: 'hourglass_empty', modifier: 'delay'    },
+  trigger:    { svgComponent: TriggerSvg, modifier: 'trigger'    },
+  task:       { svgComponent: TaskSvg,    modifier: 'task'       },
+  branch:     { icon: 'account_tree',     modifier: 'branch'     },
+  parallel:   { icon: 'splitscreen_add',  modifier: 'parallel'   },
+  loop:       { icon: 'repeat',           modifier: 'loop'       },
+  delay:      { icon: 'hourglass_empty',  modifier: 'delay'      },
+  procedures: { icon: 'article',          modifier: 'procedures' },
 };
 
 export default function CanvasNodeHeader({
@@ -49,6 +50,10 @@ export default function CanvasNodeHeader({
   onAddClick,
   onMenuClick,
   onDelete,
+  onMoveUp,
+  onMoveDown,
+  canMoveUp = false,
+  canMoveDown = false,
 }) {
   const config = ICON_CONFIG[nodeType] || ICON_CONFIG.task;
   const [menuOpen, setMenuOpen] = useState(false);
@@ -99,6 +104,28 @@ export default function CanvasNodeHeader({
         )}
         {hasAddButton && (
           <Button type="link" customIcon={<AddIcon />} onClick={onAddClick} noHover aria-label="Add" />
+        )}
+        {(canMoveUp || canMoveDown) && (
+          <div className="cnh__reorder-btns">
+            <button
+              className={`cnh__reorder-btn${canMoveUp ? '' : ' cnh__reorder-btn--disabled'}`}
+              type="button"
+              title="Move up"
+              disabled={!canMoveUp}
+              onClick={(e) => { e.stopPropagation(); onMoveUp?.(); }}
+            >
+              <span className="material-symbols-outlined">arrow_upward</span>
+            </button>
+            <button
+              className={`cnh__reorder-btn${canMoveDown ? '' : ' cnh__reorder-btn--disabled'}`}
+              type="button"
+              title="Move down"
+              disabled={!canMoveDown}
+              onClick={(e) => { e.stopPropagation(); onMoveDown?.(); }}
+            >
+              <span className="material-symbols-outlined">arrow_downward</span>
+            </button>
+          </div>
         )}
         <div className="cnh__more-wrapper" ref={menuRef}>
           <Button type="link" customIcon={<MoreIcon />} onClick={handleMoreClick} noHover aria-label="More options" />

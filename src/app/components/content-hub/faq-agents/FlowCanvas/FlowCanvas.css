@@ -21,7 +21,9 @@
   height: 100%;
   min-height: 600px;
   font-family: 'Roboto', sans-serif;
-  background: #f4f6f7;
+  background-color: #f8f9fb;
+  background-image: radial-gradient(circle, #c8cdd8 1px, transparent 1px);
+  background-size: 28px 28px;
 }
 
 /* ─── Toolbar anchor (positioning only) ─── */

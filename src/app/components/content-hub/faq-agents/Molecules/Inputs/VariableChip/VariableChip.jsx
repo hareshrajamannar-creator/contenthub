@@ -24,6 +24,7 @@ export const CHIP_TYPES = [
   { type: 'link', label: 'Link URL', icon: 'link' },
   { type: 'address', label: 'Brand', icon: 'home' },
   { type: 'product', label: 'Industry', icon: 'deployed_code' },
+  { type: 'tool', label: 'Tool', icon: 'build' },
 ];
 
 const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
