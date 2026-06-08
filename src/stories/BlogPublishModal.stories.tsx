@@ -16,4 +16,26 @@ export const Default: Story = {
     open: true,
     onClose: () => {},
   },
+  parameters: {
+    docs: {
+      description: {
+        story: 'First publish: WordPress / Wix destination picker.',
+      },
+    },
+  },
+};
+
+export const ManageAfterPublish: Story = {
+  args: {
+    open: true,
+    onClose: () => {},
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'After publishing (pick a site → Publish), close and reopen the modal: instead of the destination picker it now shows the Framer-style manage view — live link, last-updated/author, and an Update CTA to push new changes (plus "Publish to another site").',
+      },
+    },
+  },
 };

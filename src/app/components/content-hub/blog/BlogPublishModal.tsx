@@ -9,15 +9,17 @@
  *  1. Account picker  — WordPress / Wix tabs, list of connected sites
  *  2. Published state — live URL with Copy / Share / Open actions
  */
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { toast } from 'sonner';
 import {
   CheckCircle2,
+  Clock,
   Copy,
   ExternalLink,
   Globe,
   Share2,
+  UserRound,
   X,
 } from 'lucide-react';
 import {
@@ -211,6 +213,117 @@ function PublishedState({ liveUrl }: { liveUrl: string }) {
   );
 }
 
+// ── Already-published "manage" state ──────────────────────────────────────────
+
+interface PublishedInfo {
+  url: string;
+  siteName: string;
+  platform: 'wordpress' | 'wix';
+  publishedAt: number; // epoch ms
+  by: string;
+}
+
+function relativeTime(epochMs: number): string {
+  const mins = Math.floor((Date.now() - epochMs) / 60000);
+  if (mins < 1) return 'just now';
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  const days = Math.floor(hrs / 24);
+  return `${days}d ago`;
+}
+
+/**
+ * Framer-style state shown when a post is already published and the user opens
+ * Publish again: the live link, who last updated it and when, plus an Update CTA
+ * to push the latest edits — instead of re-asking for a destination.
+ */
+function ManageState({
+  info,
+  onUpdate,
+  onPublishElsewhere,
+}: {
+  info: PublishedInfo;
+  onUpdate: () => void;
+  onPublishElsewhere: () => void;
+}) {
+  const [copied, setCopied] = useState(false);
+  const displayUrl = info.url.replace(/^https?:\/\//, '');
+
+  function handleCopy() {
+    navigator.clipboard.writeText(info.url).catch(() => {});
+    setCopied(true);
+    window.setTimeout(() => setCopied(false), 2000);
+  }
+
+  return (
+    <div className="flex flex-col px-6 pb-6 pt-5">
+      {/* Detail rows */}
+      <div className="flex flex-col gap-3">
+        {/* Live link */}
+        <div className="flex items-center gap-3">
+          <Globe size={15} strokeWidth={1.6} absoluteStrokeWidth className="flex-none text-muted-foreground" />
+          <span className="flex-1 truncate text-[13px] font-medium text-foreground">{displayUrl}</span>
+          <div className="flex flex-none items-center gap-2">
+            <button
+              type="button"
+              onClick={handleCopy}
+              className="text-muted-foreground transition-colors hover:text-foreground"
+              aria-label="Copy link"
+            >
+              {copied
+                ? <span className="text-[11px] text-green-600">Copied</span>
+                : <Copy size={14} strokeWidth={1.6} absoluteStrokeWidth />
+              }
+            </button>
+            <a
+              href={info.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-muted-foreground transition-colors hover:text-foreground"
+              aria-label="Open page"
+            >
+              <ExternalLink size={14} strokeWidth={1.6} absoluteStrokeWidth />
+            </a>
+          </div>
+        </div>
+
+        {/* Last updated */}
+        <div className="flex items-center gap-3">
+          <Clock size={15} strokeWidth={1.6} absoluteStrokeWidth className="flex-none text-muted-foreground" />
+          <span className="text-[13px] text-muted-foreground">
+            Updated {relativeTime(info.publishedAt)} · by {info.by}
+          </span>
+        </div>
+
+        {/* Change status */}
+        <div className="flex items-center gap-3">
+          <UserRound size={15} strokeWidth={1.6} absoluteStrokeWidth className="flex-none text-muted-foreground" />
+          <span className="text-[13px] text-muted-foreground">
+            Published to {info.siteName} · {info.platform === 'wordpress' ? 'WordPress' : 'Wix'}
+          </span>
+        </div>
+      </div>
+
+      {/* Actions */}
+      <div className="mt-6 flex flex-col gap-2">
+        <Button type="button" className="w-full" onClick={onUpdate}>
+          Update
+        </Button>
+      </div>
+
+      {/* Publish to another destination */}
+      <button
+        type="button"
+        onClick={onPublishElsewhere}
+        className="mt-4 self-center text-[12px] text-primary transition-colors hover:underline underline-offset-2"
+      >
+        Publish to another site
+      </button>
+    </div>
+  );
+}
+
 // ── Account picker tab content ────────────────────────────────────────────────
 
 function AccountList({
@@ -253,13 +366,23 @@ export interface BlogPublishModalProps {
   onClose: () => void;
 }
 
-type ModalView = 'picker' | 'published';
+type ModalView = 'picker' | 'published' | 'manage';
 
 export const BlogPublishModal = ({ open, onClose }: BlogPublishModalProps) => {
   const [view, setView] = useState<ModalView>('picker');
   const [activeTab, setActiveTab] = useState<'wordpress' | 'wix'>('wordpress');
   const [selectedSiteId, setSelectedSiteId] = useState<string | null>(null);
   const [liveUrl, setLiveUrl] = useState('');
+  // Persisted across opens so a second Publish click manages the live post
+  // instead of re-asking for a destination.
+  const [publishedInfo, setPublishedInfo] = useState<PublishedInfo | null>(null);
+
+  // Pick the right view each time the modal opens: manage an existing
+  // publication, or start the destination picker for a first publish.
+  useEffect(() => {
+    if (open) setView(publishedInfo ? 'manage' : 'picker');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
 
   const wpSites  = CONNECTED_SITES.filter(s => s.platform === 'wordpress');
   const wixSites = CONNECTED_SITES.filter(s => s.platform === 'wix');
@@ -271,18 +394,31 @@ export const BlogPublishModal = ({ open, onClose }: BlogPublishModalProps) => {
     const slug = 'dubbo-property-market-2026-buyers-sellers-landlords';
     const url  = `https://${selectedSite.url}/${slug}/`;
     setLiveUrl(url);
+    setPublishedInfo({
+      url,
+      siteName: selectedSite.name,
+      platform: selectedSite.platform,
+      publishedAt: Date.now(),
+      by: 'You',
+    });
     setView('published');
     toast.success(`Published to ${selectedSite.name}`, {
       icon: <CheckCircle2 size={16} strokeWidth={1.6} absoluteStrokeWidth className="text-green-500 flex-none" />,
     });
   }
 
+  function handleUpdate() {
+    setPublishedInfo(prev => (prev ? { ...prev, publishedAt: Date.now(), by: 'You' } : prev));
+    toast.success('Changes published', {
+      icon: <CheckCircle2 size={16} strokeWidth={1.6} absoluteStrokeWidth className="text-green-500 flex-none" />,
+    });
+    resetAndClose();
+  }
+
   function resetAndClose() {
     onClose();
     window.setTimeout(() => {
-      setView('picker');
       setSelectedSiteId(null);
-      setLiveUrl('');
       setActiveTab('wordpress');
     }, 200);
   }
@@ -303,7 +439,7 @@ export const BlogPublishModal = ({ open, onClose }: BlogPublishModalProps) => {
           {/* Header */}
           <div className="flex flex-none items-center justify-between border-b border-border px-6 py-4">
             <DialogTitle className="text-[15px] font-semibold leading-none">
-              {view === 'published' ? 'Published' : 'Publish blog post'}
+              {view === 'published' || view === 'manage' ? 'Published' : 'Publish blog post'}
             </DialogTitle>
             <button
               type="button"
@@ -316,7 +452,13 @@ export const BlogPublishModal = ({ open, onClose }: BlogPublishModalProps) => {
           </div>
 
           {/* Body */}
-          {view === 'published' ? (
+          {view === 'manage' && publishedInfo ? (
+            <ManageState
+              info={publishedInfo}
+              onUpdate={handleUpdate}
+              onPublishElsewhere={() => { setSelectedSiteId(null); setView('picker'); }}
+            />
+          ) : view === 'published' ? (
             <PublishedState liveUrl={liveUrl} />
           ) : (
             <>
