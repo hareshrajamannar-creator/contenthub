@@ -6,7 +6,7 @@
  */
 
 import React, { useRef } from 'react';
-import { AlignCenter, AlignLeft, AlignRight, ImageIcon, Trash2, Upload, X } from 'lucide-react';
+import { AlignCenter, AlignLeft, AlignRight, ImageIcon, Plus, Trash2, Upload, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   Select,

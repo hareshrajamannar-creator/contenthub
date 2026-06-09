@@ -389,7 +389,7 @@ export function ContentScorePanel({
                       className={cn(
                         'flex-none text-muted-foreground/60 transition-transform duration-200',
                         !hasIssues && 'invisible',
-                        isOpen && '-rotate-90',
+                        isOpen && 'rotate-90',
                       )}
                     />
                     <span className="text-[13px] font-medium text-foreground truncate leading-[18px]">

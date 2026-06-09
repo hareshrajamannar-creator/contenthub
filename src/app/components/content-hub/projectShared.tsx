@@ -108,7 +108,7 @@ const MAX_VISIBLE_CHANNELS = 3;
 const CHANNEL_LABEL: Record<ChannelId, string> = {
   facebook: 'Facebook', instagram: 'Instagram', twitter: 'X (Twitter)',
   linkedin: 'LinkedIn', youtube: 'YouTube',
-  web: 'Web', blog: 'Blog', email: 'Email',
+  web: 'Web', blog: 'Blog', email: 'Email', faq: 'FAQ',
 };
 
 export function ChannelCell({ channels }: { channels: ChannelId[] }) {
