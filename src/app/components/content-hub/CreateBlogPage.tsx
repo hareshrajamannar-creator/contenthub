@@ -11,8 +11,8 @@ import {
 import {
   ContentFlowStepper,
   ContentFlowInfoLabel,
+  ContentFlowKeywordTagInput,
   ContentFlowLocationFlatList,
-  ContentFlowMultiSelect,
   ContentFlowSelect,
   ContentFlowTextarea,
   ContentFlowTextInput,
@@ -313,14 +313,14 @@ export function CreateBlogPage({ onCancel, onGenerate }: CreateBlogPageProps) {
 
         {/* Target keywords */}
         <div className="space-y-1.5">
-          <ContentFlowInfoLabel tooltip="Select the keywords you want this blog to target.">
+          <ContentFlowInfoLabel tooltip="Type a keyword and press Enter, or pick from suggestions.">
             Keywords
           </ContentFlowInfoLabel>
-          <ContentFlowMultiSelect
+          <ContentFlowKeywordTagInput
             values={keywords}
-            options={KEYWORD_OPTIONS}
+            suggestions={KEYWORD_OPTIONS}
             onChange={setKeywords}
-            placeholder="Select keywords..."
+            placeholder="Select or enter keywords"
           />
         </div>
 

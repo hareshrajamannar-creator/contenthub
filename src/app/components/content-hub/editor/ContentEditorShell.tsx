@@ -159,13 +159,13 @@ const DEFAULT_REC_FAQ_FLOW_DATA: FAQFlowData = {
   contentName: '',
   brandKit: 'olive-garden',
   locations: ['loc-1001', 'loc-1002', 'loc-1003', 'loc-1004', 'loc-1005', 'loc-1006', 'loc-1007', 'loc-1008', 'loc-1009', 'loc-1010', 'loc-1011', 'loc-1012', 'loc-1013', 'loc-1014', 'loc-1015', 'loc-1016', 'loc-1017', 'loc-1018', 'loc-1019', 'loc-1020'],
-  template: 'general',
+  template: 'aeo',
+  customAgent: 'on-demand',
   sourceUrl: '',
   additionalContext: '',
   questionCount: 14,
-  signalSources: [],
-  objective: 'aeo',
-  publishTo: [],
+  signalSources: ['reviews', 'website'],
+  attachments: [],
   sections: [
     { id: 'sec-rec-1', title: 'General questions',        description: '', count: 5 },
     { id: 'sec-rec-2', title: 'Pricing and appointments', description: '', count: 5 },
@@ -177,11 +177,17 @@ const DEFAULT_REC_BLOG_FLOW_DATA: BlogFlowData = {
   contentName: '',
   brandKit: 'olive-garden',
   locations: ['loc-1001', 'loc-1002', 'loc-1003', 'loc-1004', 'loc-1005', 'loc-1006', 'loc-1007', 'loc-1008', 'loc-1009', 'loc-1010', 'loc-1011', 'loc-1012', 'loc-1013', 'loc-1014', 'loc-1015', 'loc-1016', 'loc-1017', 'loc-1018', 'loc-1019', 'loc-1020'],
+  agentId: 'blog-default',
   topic: 'Dubbo property market 2026 — what buyers, sellers and landlords need to know',
-  keywords: 'Dubbo property, property management Dubbo, rental appraisal Dubbo, sell property Dubbo, Raine & Horne Dubbo',
-  audience: 'Dubbo homeowners, landlords, and property buyers',
-  wordTarget: 2500,
+  keywords: ['Dubbo property', 'property management Dubbo', 'rental appraisal Dubbo', 'sell property Dubbo'],
+  intent: 'agent',
+  objective: 'agent',
+  funnelStage: 'agent',
+  length: 'long',
+  signalSources: [],
   publishTo: [],
+  attachments: [],
+  blogCount: 1,
   sections: [
     { id: 'blog-sec-1', heading: 'Dubbo market conditions for sellers',       description: 'Low listing volumes and consistent buyer enquiry — what sellers need to know right now', wordCount: 300 },
     { id: 'blog-sec-2', heading: 'Rental market update for landlords',        description: 'Tight vacancy rates, strong demand, and how to maximise your rental yield in Dubbo', wordCount: 350 },
@@ -1078,8 +1084,9 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
   const [commentsOpen, setCommentsOpen] = useState(false);
   const [activityOpen, setActivityOpen] = useState(false);
   const [versionHistoryOpen, setVersionHistoryOpen] = useState(false);
-  const setupHeaderTitle =
-    mode === 'project' ? 'Create project'
+  const setupHeaderTitle = isEditingSettings
+    ? (mode === 'blog' ? 'Blog settings' : mode === 'faq' ? 'FAQ settings' : 'Content settings')
+    : mode === 'project' ? 'Create project'
     : mode === 'faq' ? "Create FAQ's"
     : mode === 'blog' ? 'Create Blog post'
     : `Create ${config.label.toLowerCase()}`;
@@ -1175,7 +1182,7 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
   function handleBlogFlowComplete(data: BlogFlowData) {
     setBlogFlowData(data);
     const totalWords = data.sections.reduce((s, sec) => s + sec.wordCount, 0);
-    const label = `${data.tone} · ${totalWords} words · ${data.sections.length} sections`;
+    const label = `${data.length ?? 'medium'} · ${totalWords} words · ${data.sections.length} sections`;
     setGenerationInfo({ label, wizardData: null as unknown as import('../wizard/wizardTypes').WizardData });
     setSetupPhase('generating');
   }
@@ -1531,7 +1538,7 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
           <div className="flex items-center gap-4">
             <button
               type="button"
-              onClick={onBack}
+              onClick={isEditingSettings ? () => setSetupPhase('done') : onBack}
               aria-label="Go back"
               className="flex items-center justify-center w-8 h-8 rounded hover:bg-muted/60 text-muted-foreground hover:text-foreground transition-colors flex-none"
             >
@@ -1601,7 +1608,7 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
                 <Button
                   type="button"
                   variant="ghost"
-                  onClick={onBack}
+                  onClick={isEditingSettings ? () => setSetupPhase('done') : onBack}
                   className="text-muted-foreground hover:text-foreground"
                 >
                   Cancel
@@ -1789,18 +1796,20 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
             {mode === 'faq' ? (
               <FAQInlineCreationFlow
                 onComplete={handleFAQFlowComplete}
-                onCancel={onBack}
+                onCancel={isEditingSettings ? () => setSetupPhase('done') : onBack}
                 controlRef={flowNavRef}
                 onNavStateChange={setWizardNavState}
                 hideProgress
+                initialData={isEditingSettings && faqFlowData ? faqFlowData : undefined}
               />
             ) : mode === 'blog' ? (
               <BlogInlineCreationFlow
                 onComplete={handleBlogFlowComplete}
-                onCancel={onBack}
+                onCancel={isEditingSettings ? () => setSetupPhase('done') : onBack}
                 controlRef={flowNavRef}
                 onNavStateChange={setWizardNavState}
                 hideProgress
+                initialData={isEditingSettings && blogFlowData ? blogFlowData : undefined}
               />
             ) : (
               <InlineCreationFlow
@@ -2280,10 +2289,12 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
       <Dialog open={regenConfirmOpen} onOpenChange={setRegenConfirmOpen}>
         <DialogContent className="max-w-[420px]">
           <DialogHeader>
-            <DialogTitle>Regenerate FAQ set?</DialogTitle>
+            <DialogTitle>{mode === 'blog' ? 'Regenerate blog post?' : 'Regenerate FAQ set?'}</DialogTitle>
           </DialogHeader>
           <p className="text-[13px] text-muted-foreground leading-relaxed -mt-1">
-            A new version will be created based on your updated settings. Your existing FAQ content will be replaced and cannot be recovered.
+            {mode === 'blog'
+              ? 'A new version will be created based on your updated settings. Your existing blog content will be replaced and cannot be recovered.'
+              : 'A new version will be created based on your updated settings. Your existing FAQ content will be replaced and cannot be recovered.'}
           </p>
           <DialogFooter className="mt-2">
             <Button

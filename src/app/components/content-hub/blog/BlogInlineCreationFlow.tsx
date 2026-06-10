@@ -9,18 +9,23 @@
  *  3. brief     — Review / edit the content brief
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
-import { Check } from 'lucide-react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { Check, ChevronDown, Loader2, Sparkles, ArrowUpRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   CONTENT_FLOW_STEP_TITLE_CLASS,
   ContentFlowInfoLabel,
+  ContentFlowKeywordTagInput,
   ContentFlowLocationFlatList,
-  ContentFlowRadioCard,
   ContentFlowSelect,
   ContentFlowTextarea,
   ContentFlowTextInput,
 } from '../shared/ContentFlowControls';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/app/components/ui/popover';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -35,16 +40,23 @@ export interface BlogFlowData {
   contentName: string;
   brandKit: string;
   locations: string[];
-  blogType: string;
+  agentId: string;
   topic: string;
-  keywords: string;
-  wordTarget: number;
+  keywords: string[];
+  intent: string;
+  objective: string;
+  funnelStage: string;
+  length: string;
   signalSources: string[];
   publishTo: string[];
   attachments: string[];
   blogCount: number;
   contentBrief?: string;
   sections: BlogSection[];
+  // legacy fields kept for compatibility
+  blogType?: string;
+  wordTarget?: number;
+  keywords_text?: string;
 }
 
 export interface FlowNavControls {
@@ -66,6 +78,7 @@ export interface BlogInlineCreationFlowProps {
   controlRef?: React.MutableRefObject<FlowNavControls | null>;
   onNavStateChange?: (state: FlowNavState) => void;
   hideProgress?: boolean;
+  initialData?: Partial<BlogFlowData>;
 }
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -99,19 +112,76 @@ const LOCATIONS = [
   { id: 'loc-1020', label: '1020 - Charlotte, NC' },
 ];
 
-const BLOG_TEMPLATES = [
-  { id: 'seo',       label: 'SEO blog post',             description: 'Optimized for search rankings with targeted keywords and structure' },
-  { id: 'howto',     label: 'How-to guide',               description: 'Step-by-step instructions that help customers take action' },
-  { id: 'listicle',  label: 'Listicle',                   description: 'Scannable numbered or bulleted list of tips, tools, or ideas' },
-  { id: 'casestudy', label: 'Case study / success story', description: 'Real-world results and outcomes that build trust and credibility' },
-  { id: 'spotlight', label: 'Product / service spotlight', description: 'Deep-dive into a specific offer, feature, or service you provide' },
+const BLOG_AGENTS = [
+  { id: 'blog-default',  label: 'Blog generation agent' },
+  { id: 'seo-writer',    label: 'SEO Writer — keyword-first content' },
+  { id: 'local-blogger', label: 'Local Blogger — location-targeted posts' },
+  { id: 'authority',     label: 'Authority Builder — thought leadership' },
+  { id: 'story-writer',  label: 'Story Writer — patient & case stories' },
+  { id: 'brand-voice',   label: 'Brand Voice — on-brand, on-tone content' },
 ];
 
-const WORD_COUNT_OPTIONS: { label: string; value: number }[] = [
-  { label: 'Short (~600 words)',      value: 600 },
-  { label: 'Medium (~1,200 words)',   value: 1200 },
-  { label: 'Long (~2,000 words)',     value: 2000 },
-  { label: 'In-depth (~3,500 words)', value: 3500 },
+const KEYWORD_OPTIONS = [
+  { value: 'dental-anxiety',       label: 'Dental anxiety' },
+  { value: 'family-dentist',       label: 'Family dentist' },
+  { value: 'sedation-dentistry',   label: 'Sedation dentistry' },
+  { value: 'preventive-care',      label: 'Preventive care' },
+  { value: 'teeth-whitening',      label: 'Teeth whitening' },
+  { value: 'dental-implants',      label: 'Dental implants' },
+  { value: 'orthodontics',         label: 'Orthodontics' },
+  { value: 'emergency-dentist',    label: 'Emergency dentist' },
+  { value: 'cosmetic-dentistry',   label: 'Cosmetic dentistry' },
+  { value: 'local-seo',            label: 'Local SEO' },
+  { value: 'patient-experience',   label: 'Patient experience' },
+  { value: 'dental-checkup',       label: 'Dental checkup' },
+];
+
+const INTENT_OPTIONS = [
+  { value: 'agent',         label: 'Let agent decide' },
+  { value: 'informational', label: 'Informational' },
+  { value: 'commercial',    label: 'Commercial' },
+  { value: 'transactional', label: 'Transactional' },
+  { value: 'navigational',  label: 'Navigational' },
+];
+
+const OBJECTIVE_OPTIONS = [
+  { value: 'agent',       label: 'Let agent decide' },
+  { value: 'traffic',     label: 'Traffic' },
+  { value: 'aeo',         label: 'AEO' },
+  { value: 'authority',   label: 'Authority' },
+  { value: 'conversions', label: 'Conversions' },
+];
+
+const FUNNEL_OPTIONS = [
+  { value: 'agent',         label: 'Let agent decide' },
+  { value: 'awareness',     label: 'Awareness' },
+  { value: 'consideration', label: 'Consideration' },
+  { value: 'decision',      label: 'Decision' },
+];
+
+const LENGTH_OPTIONS = [
+  { value: 'short',  label: 'Short (~800 words)' },
+  { value: 'medium', label: 'Medium (~1,500 words)' },
+  { value: 'long',   label: 'Long (~2,500 words)' },
+];
+
+const GENERATED_TOPIC_PAIRS: { topic: string; keywords: string[] }[] = [
+  {
+    topic: 'How to overcome dental anxiety as an adult\n\nMillions of adults skip routine dental care because of fear or past negative experiences. This post covers practical strategies — from open communication with your dentist to sedation options — that help anxious patients finally get the care they need.',
+    keywords: ['dental-anxiety', 'sedation-dentistry', 'patient-experience'],
+  },
+  {
+    topic: '5 tips for finding the right dentist for your family\n\nChoosing a family dentist is one of the most important healthcare decisions you can make. Learn what to look for — from preventive care philosophy to kid-friendly environments — so the whole family feels comfortable and cared for.',
+    keywords: ['family-dentist', 'preventive-care', 'dental-checkup'],
+  },
+  {
+    topic: 'The benefits of preventive dental care and regular checkups\n\nPreventive dentistry is the most cost-effective way to protect your long-term oral health. This article explains how routine cleanings, early screening, and personalised care plans keep small issues from becoming expensive problems.',
+    keywords: ['preventive-care', 'dental-checkup', 'patient-experience'],
+  },
+  {
+    topic: 'Understanding sedation dentistry: what patients need to know\n\nSedation dentistry has made dental care accessible for millions of anxious or medically complex patients. We break down the types of sedation available, who they are suitable for, and what to expect before, during, and after your appointment.',
+    keywords: ['sedation-dentistry', 'dental-anxiety', 'family-dentist'],
+  },
 ];
 
 const PUBLISH_DESTINATIONS = [
@@ -231,15 +301,30 @@ function Step1BrandKit({ contentName, brandKit, locations, onChange }: Step1Prop
 // ── Step 2: Blog setup ────────────────────────────────────────────────────────
 
 interface Step2Props {
-  blogType: string;
+  agentId: string;
   topic: string;
-  keywords: string;
-  wordTarget: number;
-  onChange: (patch: Partial<Pick<BlogFlowData, 'blogType' | 'topic' | 'keywords' | 'wordTarget'>>) => void;
+  keywords: string[];
+  intent: string;
+  objective: string;
+  funnelStage: string;
+  length: string;
+  onChange: (patch: Partial<Pick<BlogFlowData, 'agentId' | 'topic' | 'keywords' | 'intent' | 'objective' | 'funnelStage' | 'length'>>) => void;
 }
 
-function Step2Setup({ blogType, topic, keywords, wordTarget, onChange }: Step2Props) {
-  const selectedWordCount = WORD_COUNT_OPTIONS.find(o => o.value === wordTarget);
+function Step2Setup({ agentId, topic, keywords, intent, objective, funnelStage, length, onChange }: Step2Props) {
+  const [generatingTopic, setGeneratingTopic] = useState(false);
+  const topicIdxRef = useRef(0);
+  const selectedAgent = BLOG_AGENTS.find(a => a.id === agentId);
+
+  function handleGenerateTopic() {
+    setGeneratingTopic(true);
+    setTimeout(() => {
+      const pair = GENERATED_TOPIC_PAIRS[topicIdxRef.current % GENERATED_TOPIC_PAIRS.length];
+      onChange({ topic: pair.topic, keywords: pair.keywords });
+      topicIdxRef.current += 1;
+      setGeneratingTopic(false);
+    }, 900);
+  }
 
   return (
     <div className="space-y-6">
@@ -247,56 +332,112 @@ function Step2Setup({ blogType, topic, keywords, wordTarget, onChange }: Step2Pr
         <h2 className={CONTENT_FLOW_STEP_TITLE_CLASS}>Blog setup</h2>
       </div>
 
-      {/* Blog type */}
-      <div className="space-y-2">
-        <label className="text-[13px] font-medium text-foreground">What kind of blog post are you creating?</label>
-        <div className="flex flex-col gap-2">
-          {BLOG_TEMPLATES.map(t => (
-            <ContentFlowRadioCard
-              key={t.id}
-              selected={blogType === t.id}
-              onClick={() => onChange({ blogType: t.id })}
-              title={t.label}
-              description={t.description}
-            />
-          ))}
-        </div>
+      {/* Agent */}
+      <div className="space-y-1.5">
+        <ContentFlowInfoLabel tooltip="Each agent is optimised for a different blog style and goal.">
+          Agent
+        </ContentFlowInfoLabel>
+        <Popover>
+          <PopoverTrigger asChild>
+            <button
+              type="button"
+              className="flex w-full items-center justify-between rounded-lg border border-[#e5e9f0] bg-white px-3 py-2 text-[13px] text-[#212121] transition-colors hover:border-[#c0c6d4] dark:border-[#333a47] dark:bg-[#262b35] dark:text-[#e4e4e4] dark:hover:border-[#4d5568]"
+            >
+              <span className="truncate">{selectedAgent?.label ?? 'Choose an agent...'}</span>
+              <ChevronDown size={20} strokeWidth={1.6} absoluteStrokeWidth className="size-5 shrink-0 text-[#888] dark:text-[#6b7280]" />
+            </button>
+          </PopoverTrigger>
+          <PopoverContent align="start" className="w-[var(--radix-popover-trigger-width)] p-1">
+            <div className="flex flex-col">
+              {BLOG_AGENTS.map(agent => (
+                <button
+                  key={agent.id}
+                  type="button"
+                  onClick={() => onChange({ agentId: agent.id })}
+                  className={cn(
+                    'flex w-full items-center rounded-md px-3 py-2 text-[13px] text-left transition-colors',
+                    agentId === agent.id
+                      ? 'bg-[#e8effe] text-[#2552ED] dark:bg-[#1e2d5e] dark:text-[#6b9bff]'
+                      : 'text-foreground hover:bg-muted',
+                  )}
+                >
+                  {agent.label}
+                </button>
+              ))}
+              <div className="my-1 h-px bg-border" />
+              <button
+                type="button"
+                className="flex h-8 w-full items-center gap-1.5 rounded-md px-3 text-[13px] text-primary transition-colors hover:bg-muted"
+              >
+                <span>Manage blog agents</span>
+                <ArrowUpRight size={13} strokeWidth={1.6} absoluteStrokeWidth className="shrink-0" />
+              </button>
+            </div>
+          </PopoverContent>
+        </Popover>
       </div>
 
       {/* Topic */}
       <div className="space-y-1.5">
-        <label className="text-[13px] font-medium text-foreground">What should the blog posts be about? <span className="text-destructive">*</span></label>
+        <label className="text-[13px] font-medium text-foreground">
+          Topic <span className="text-destructive">*</span>
+        </label>
         <ContentFlowTextarea
           value={topic}
           onChange={e => onChange({ topic: e.target.value })}
-          placeholder="e.g. How to improve customer experience at your restaurant"
-          rows={3}
+          placeholder="e.g. How to overcome dental anxiety as an adult"
+          className="min-h-[100px]"
         />
+        <button
+          type="button"
+          disabled={generatingTopic}
+          onClick={handleGenerateTopic}
+          className="flex items-center gap-1.5 text-[12px] font-medium text-muted-foreground hover:text-foreground disabled:opacity-60 transition-colors"
+        >
+          {generatingTopic
+            ? <Loader2 size={13} strokeWidth={1.6} absoluteStrokeWidth className="animate-spin text-[#7c3aed]" />
+            : <Sparkles size={13} strokeWidth={1.6} absoluteStrokeWidth className="text-[#7c3aed]" />
+          }
+          {generatingTopic ? 'Generating...' : topic ? 'Regenerate topic' : 'Generate a topic for me'}
+        </button>
       </div>
 
-      {/* Target keywords */}
+      {/* Keywords */}
       <div className="space-y-1.5">
-        <ContentFlowInfoLabel tooltip="Separate multiple keywords with commas.">
-          Target keywords
+        <ContentFlowInfoLabel tooltip="Type a keyword and press Enter, or pick from suggestions.">
+          Keywords
         </ContentFlowInfoLabel>
-        <ContentFlowTextInput
-          value={keywords}
-          onChange={e => onChange({ keywords: e.target.value })}
-          placeholder="e.g. customer experience, restaurant reviews, local dining"
+        <ContentFlowKeywordTagInput
+          values={keywords}
+          suggestions={KEYWORD_OPTIONS}
+          onChange={vals => onChange({ keywords: vals })}
+          placeholder="Select or enter keywords"
         />
       </div>
 
-      {/* Word count target */}
+      {/* Intent */}
       <div className="space-y-1.5">
-        <label className="text-[13px] font-medium text-foreground">Word count target</label>
-        <ContentFlowSelect
-          value={selectedWordCount?.value.toString() ?? ''}
-          options={WORD_COUNT_OPTIONS.map(o => ({ value: o.value.toString(), label: o.label }))}
-          onChange={val => onChange({ wordTarget: Number(val) })}
-          placeholder="Select word count"
-        />
+        <label className="text-[13px] font-medium text-foreground">Intent</label>
+        <ContentFlowSelect value={intent} options={INTENT_OPTIONS} onChange={val => onChange({ intent: val })} />
       </div>
 
+      {/* Objective */}
+      <div className="space-y-1.5">
+        <label className="text-[13px] font-medium text-foreground">Objective</label>
+        <ContentFlowSelect value={objective} options={OBJECTIVE_OPTIONS} onChange={val => onChange({ objective: val })} />
+      </div>
+
+      {/* Funnel stage */}
+      <div className="space-y-1.5">
+        <label className="text-[13px] font-medium text-foreground">Funnel stage</label>
+        <ContentFlowSelect value={funnelStage} options={FUNNEL_OPTIONS} onChange={val => onChange({ funnelStage: val })} />
+      </div>
+
+      {/* Length */}
+      <div className="space-y-1.5">
+        <label className="text-[13px] font-medium text-foreground">Length</label>
+        <ContentFlowSelect value={length} options={LENGTH_OPTIONS} onChange={val => onChange({ length: val })} />
+      </div>
     </div>
   );
 }
@@ -382,20 +523,23 @@ function Step3ContentBrief({ sections, onChange }: Step3Props) {
 
 // ── Main component ────────────────────────────────────────────────────────────
 
-export function BlogInlineCreationFlow({ onComplete, onCancel, controlRef, onNavStateChange, hideProgress = false }: BlogInlineCreationFlowProps) {
+export function BlogInlineCreationFlow({ onComplete, onCancel, controlRef, onNavStateChange, hideProgress = false, initialData }: BlogInlineCreationFlowProps) {
   const TOTAL_STEPS = 2;
   const [step, setStep] = useState(0);
 
   // Step 1 state
-  const [contentName, setContentName] = useState('');
-  const [brandKit, setBrandKit]       = useState('olive-garden');
-  const [locations, setLocations]     = useState<string[]>(LOCATIONS.map(l => l.id));
+  const [contentName, setContentName] = useState(initialData?.contentName ?? '');
+  const [brandKit, setBrandKit]       = useState(initialData?.brandKit ?? 'olive-garden');
+  const [locations, setLocations]     = useState<string[]>(initialData?.locations ?? LOCATIONS.map(l => l.id));
 
   // Step 2 state
-  const [blogType, setBlogType]       = useState('');
-  const [topic, setTopic]             = useState('');
-  const [keywords, setKeywords]       = useState('');
-  const [wordTarget, setWordTarget]   = useState(1200);
+  const [agentId, setAgentId]         = useState(initialData?.agentId ?? 'blog-default');
+  const [topic, setTopic]             = useState(initialData?.topic ?? '');
+  const [keywords, setKeywords]       = useState<string[]>(Array.isArray(initialData?.keywords) ? initialData.keywords : []);
+  const [intent, setIntent]           = useState(initialData?.intent ?? 'agent');
+  const [objective, setObjective]     = useState(initialData?.objective ?? 'agent');
+  const [funnelStage, setFunnelStage] = useState(initialData?.funnelStage ?? 'agent');
+  const [length, setLength]           = useState(initialData?.length ?? 'medium');
   const [signalSources, setSignalSources] = useState<string[]>([]);
   const [attachments, setAttachments] = useState<string[]>([]);
   const [blogCount, setBlogCount]     = useState(1);
@@ -415,11 +559,14 @@ export function BlogInlineCreationFlow({ onComplete, onCancel, controlRef, onNav
     });
   }, [blogCount]);
 
-  const handleStep2Change = (patch: Partial<Pick<BlogFlowData, 'blogType' | 'topic' | 'keywords' | 'wordTarget' | 'signalSources' | 'attachments' | 'blogCount'>>) => {
-    if (patch.blogType !== undefined) setBlogType(patch.blogType);
+  const handleStep2Change = (patch: Partial<Pick<BlogFlowData, 'agentId' | 'topic' | 'keywords' | 'intent' | 'objective' | 'funnelStage' | 'length' | 'signalSources' | 'attachments' | 'blogCount'>>) => {
+    if (patch.agentId !== undefined) setAgentId(patch.agentId);
     if (patch.topic !== undefined) setTopic(patch.topic);
     if (patch.keywords !== undefined) setKeywords(patch.keywords);
-    if (patch.wordTarget !== undefined) setWordTarget(patch.wordTarget);
+    if (patch.intent !== undefined) setIntent(patch.intent);
+    if (patch.objective !== undefined) setObjective(patch.objective);
+    if (patch.funnelStage !== undefined) setFunnelStage(patch.funnelStage);
+    if (patch.length !== undefined) setLength(patch.length);
     if (patch.signalSources !== undefined) setSignalSources(patch.signalSources);
     if (patch.attachments !== undefined) setAttachments(patch.attachments);
     if (patch.blogCount !== undefined) setBlogCount(patch.blogCount);
@@ -432,13 +579,14 @@ export function BlogInlineCreationFlow({ onComplete, onCancel, controlRef, onNav
 
   const handleGenerate = useCallback(() => {
     onComplete({
-      contentName, brandKit, locations, blogType, topic, keywords,
-      wordTarget, signalSources, publishTo: ['library'],
+      contentName, brandKit, locations, agentId, topic, keywords,
+      intent, objective, funnelStage, length,
+      signalSources, publishTo: ['library'],
       attachments, blogCount,
       contentBrief: sections.map(section => `${section.heading}: ${section.description}`).join('\n\n'),
       sections,
     });
-  }, [attachments, blogCount, blogType, brandKit, contentName, keywords, locations, onComplete, sections, signalSources, topic, wordTarget]);
+  }, [agentId, attachments, blogCount, brandKit, contentName, funnelStage, intent, keywords, length, locations, objective, onComplete, sections, signalSources, topic]);
 
   useEffect(() => {
     if (controlRef) {
@@ -479,10 +627,13 @@ export function BlogInlineCreationFlow({ onComplete, onCancel, controlRef, onNav
 
           {step === 1 && (
             <Step2Setup
-              blogType={blogType}
+              agentId={agentId}
               topic={topic}
               keywords={keywords}
-              wordTarget={wordTarget}
+              intent={intent}
+              objective={objective}
+              funnelStage={funnelStage}
+              length={length}
               onChange={handleStep2Change}
             />
           )}

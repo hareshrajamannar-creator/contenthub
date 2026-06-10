@@ -70,6 +70,7 @@ export interface FAQInlineCreationFlowProps {
   controlRef?: React.MutableRefObject<FlowNavControls | null>;
   onNavStateChange?: (state: FlowNavState) => void;
   hideProgress?: boolean;
+  initialData?: Partial<FAQFlowData>;
 }
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -383,23 +384,23 @@ function Step3ContentBrief({ value, onChange }: Step3Props) {
 
 // ── Main component ────────────────────────────────────────────────────────────
 
-export function FAQInlineCreationFlow({ onComplete, onCancel, controlRef, onNavStateChange, hideProgress = false }: FAQInlineCreationFlowProps) {
+export function FAQInlineCreationFlow({ onComplete, onCancel, controlRef, onNavStateChange, hideProgress = false, initialData }: FAQInlineCreationFlowProps) {
   const TOTAL_STEPS = 2;
   const [step, setStep] = useState(0);
 
   // Step 1 state
-  const [contentName, setContentName] = useState('');
-  const [brandKit, setBrandKit]       = useState('olive-garden');
-  const [locations, setLocations]     = useState<string[]>(LOCATIONS.map(l => l.id));
+  const [contentName, setContentName] = useState(initialData?.contentName ?? '');
+  const [brandKit, setBrandKit]       = useState(initialData?.brandKit ?? 'olive-garden');
+  const [locations, setLocations]     = useState<string[]>(initialData?.locations ?? LOCATIONS.map(l => l.id));
 
   // Step 2 state
-  const [template, setTemplate]           = useState('aeo');
-  const [customAgent, setCustomAgent]     = useState('on-demand');
-  const [sourceUrl, setSourceUrl]         = useState('');
-  const [additionalContext, setContext]   = useState('');
-  const [questionCount, setQuestionCount] = useState(14);
-  const [signalSources, setSignals]       = useState<string[]>(['reviews', 'website']);
-  const [attachments, setAttachments]     = useState<string[]>([]);
+  const [template, setTemplate]           = useState(initialData?.template ?? 'aeo');
+  const [customAgent, setCustomAgent]     = useState(initialData?.customAgent ?? 'on-demand');
+  const [sourceUrl, setSourceUrl]         = useState(initialData?.sourceUrl ?? '');
+  const [additionalContext, setContext]   = useState(initialData?.additionalContext ?? '');
+  const [questionCount, setQuestionCount] = useState(initialData?.questionCount ?? 14);
+  const [signalSources, setSignals]       = useState<string[]>(initialData?.signalSources ?? ['reviews', 'website']);
+  const [attachments, setAttachments]     = useState<string[]>(initialData?.attachments ?? []);
 
   // Step 3 state
   const [contentBrief, setContentBrief] = useState('Create an AEO-ready FAQ set that answers the most common customer questions about pricing, bookings, services, locations, response times, and edge cases. Use the selected brand identity and location context, pull supporting signals from reviews and website content, and keep answers clear, direct, and useful for search and AI-generated responses.');

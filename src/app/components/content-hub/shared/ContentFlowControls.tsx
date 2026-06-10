@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Check, ChevronDown, Info, Minus, Plus, Search, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
@@ -436,6 +436,118 @@ export function ContentFlowMultiSelect({
         </div>
       </PopoverContent>
     </Popover>
+  );
+}
+
+// ── Keyword tag input: free-type + Enter, plus suggestion dropdown ─────────────
+
+export function ContentFlowKeywordTagInput({
+  values,
+  suggestions = [],
+  onChange,
+  placeholder = 'Select or enter keywords',
+}: {
+  values: string[];
+  suggestions?: { value: string; label: string }[];
+  onChange: (values: string[]) => void;
+  placeholder?: string;
+}) {
+  const [inputValue, setInputValue] = useState('');
+  const [open, setOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const filteredSuggestions = suggestions.filter(s =>
+    !values.includes(s.value) &&
+    (inputValue === '' || s.label.toLowerCase().includes(inputValue.toLowerCase()))
+  );
+
+  function addKeyword(keyword: string) {
+    const trimmed = keyword.trim();
+    if (!trimmed || values.includes(trimmed)) return;
+    onChange([...values, trimmed]);
+    setInputValue('');
+  }
+
+  function removeKeyword(keyword: string) {
+    onChange(values.filter(v => v !== keyword));
+  }
+
+  function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (e.key === 'Enter' || e.key === ',') {
+      e.preventDefault();
+      addKeyword(inputValue);
+    } else if (e.key === 'Backspace' && inputValue === '' && values.length > 0) {
+      removeKeyword(values[values.length - 1]);
+    }
+  }
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const getLabelForValue = (val: string) =>
+    suggestions.find(s => s.value === val)?.label ?? val;
+
+  return (
+    <div ref={containerRef} className="relative">
+      <div
+        className={cn(
+          'flex min-h-[42px] w-full flex-wrap items-center gap-1.5 rounded-[8px] border border-border bg-background px-3 py-2 cursor-text transition-[box-shadow,border-color]',
+          open && 'border-primary/50 ring-2 ring-primary/15',
+        )}
+        onClick={() => { inputRef.current?.focus(); setOpen(true); }}
+      >
+        {values.map(val => (
+          <span
+            key={val}
+            className="inline-flex items-center gap-1 rounded-md bg-muted px-2 py-0.5 text-[12px] font-medium text-foreground"
+          >
+            {getLabelForValue(val)}
+            <button
+              type="button"
+              onClick={e => { e.stopPropagation(); removeKeyword(val); }}
+              className="text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <X size={11} strokeWidth={1.6} absoluteStrokeWidth />
+            </button>
+          </span>
+        ))}
+        <input
+          ref={inputRef}
+          type="text"
+          value={inputValue}
+          onChange={e => { setInputValue(e.target.value); setOpen(true); }}
+          onFocus={() => setOpen(true)}
+          onKeyDown={handleKeyDown}
+          placeholder={values.length === 0 ? placeholder : ''}
+          className="flex-1 min-w-[120px] bg-transparent text-[13px] text-foreground placeholder:text-muted-foreground outline-none"
+        />
+      </div>
+
+      {open && filteredSuggestions.length > 0 && (
+        <div className="absolute z-50 mt-1 w-full rounded-[8px] border border-border bg-background shadow-md overflow-hidden">
+          <div className="max-h-[200px] overflow-y-auto p-1 flex flex-col gap-3">
+            {filteredSuggestions.map(s => (
+              <button
+                key={s.value}
+                type="button"
+                onMouseDown={e => { e.preventDefault(); addKeyword(s.value); }}
+                className="flex w-full items-center rounded-md px-3 py-1 text-[13px] text-left text-foreground hover:bg-muted transition-colors"
+              >
+                {s.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
 
