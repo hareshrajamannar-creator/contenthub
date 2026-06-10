@@ -146,9 +146,24 @@ const STEPS: ContentFlowStep[] = [
 
 // ── Props ─────────────────────────────────────────────────────────────────────
 
+export interface CreateBlogPageFlowData {
+  contentName: string;
+  brandKitId: string;
+  locations: string[];
+  agentId: string;
+  topic: string;
+  keywords: string[];
+  intent: string;
+  objective: string;
+  funnelStage: string;
+  length: string;
+  brief: string;
+  attachments: string[];
+}
+
 export interface CreateBlogPageProps {
   onCancel: () => void;
-  onGenerate: () => void;
+  onGenerate: (data: CreateBlogPageFlowData) => void;
 }
 
 // ── Main component ────────────────────────────────────────────────────────────
@@ -226,11 +241,21 @@ export function CreateBlogPage({ onCancel, onGenerate }: CreateBlogPageProps) {
       setStep(1);
       return;
     }
-    // Auto-derive blog name from topic when generating if still empty
-    if (!blogName.trim() && topic.trim()) {
-      setBlogName(topic.split('\n')[0].trim());
-    }
-    onGenerate();
+    const resolvedName = blogName.trim() || topic.split('\n')[0].trim();
+    onGenerate({
+      contentName: resolvedName,
+      brandKitId,
+      locations: selectedLocations,
+      agentId,
+      topic,
+      keywords,
+      intent,
+      objective,
+      funnelStage,
+      length,
+      brief,
+      attachments: attachedFiles,
+    });
   }
 
   // ── Step 1: Blog setup (agent at top, then topic + all setup fields) ─────────

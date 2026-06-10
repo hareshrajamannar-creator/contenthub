@@ -142,6 +142,8 @@ export interface ContentEditorShellProps {
   hideHeaderContext?: boolean;
   /** Called when user clicks Edit on a blog/faq card in project mode — parent handles routing */
   onEditCard?: (cardId: string, itemType: ContentItemType) => void;
+  /** Pre-populated blog flow data from CreateBlogPage — retained for settings edit */
+  initialBlogFlowData?: Partial<BlogFlowData>;
 }
 
 interface CanvasCardLayout {
@@ -936,7 +938,7 @@ function AddContentButton({ mode, onAdd }: { mode: ContentMode; onAdd: (t: Conte
 
 // ── Main shell ────────────────────────────────────────────────────────────────
 
-export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupPhase = false, initialTitle, preloadedFAQs, preloadedBlogSections, recAeoScore, hideHeaderContext = false, onEditCard }: ContentEditorShellProps) {
+export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupPhase = false, initialTitle, preloadedFAQs, preloadedBlogSections, recAeoScore, hideHeaderContext = false, onEditCard, initialBlogFlowData }: ContentEditorShellProps) {
   const config = EDITOR_CONFIGS[mode];
 
   // ── Header state
@@ -979,7 +981,11 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
     skipSetupPhase && mode === 'faq' ? DEFAULT_REC_FAQ_FLOW_DATA : null
   );
   const [blogFlowData, setBlogFlowData] = useState<BlogFlowData | null>(
-    skipSetupPhase && mode === 'blog' ? DEFAULT_REC_BLOG_FLOW_DATA : null
+    skipSetupPhase && mode === 'blog'
+      ? initialBlogFlowData
+        ? { ...DEFAULT_REC_BLOG_FLOW_DATA, ...initialBlogFlowData }
+        : DEFAULT_REC_BLOG_FLOW_DATA
+      : null
   );
   const initialBlogEditorBlocks = useMemo(
     () => blogFlowData

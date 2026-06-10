@@ -75,7 +75,7 @@ import { ContentEditorShell } from "./components/content-hub/editor/ContentEdito
 import type { ContentMode } from "./components/content-hub/editor/editorConfig";
 import { FAQGenerationAgentsView } from "./components/content-hub/FAQGenerationAgentsView";
 import { RecommendationsView } from "./components/recommendations/RecommendationsView";
-import { CreateBlogPage } from "./components/content-hub/CreateBlogPage";
+import { CreateBlogPage, type CreateBlogPageFlowData } from "./components/content-hub/CreateBlogPage";
 
 const AUTH_STORAGE_KEY = "birdai_demo_authenticated";
 const LOGIN_TAB_TITLE_INDEX_KEY = "auth:login_tab_title_index";
@@ -259,6 +259,7 @@ export default function App() {
   const [createViewInitialMode, setCreateViewInitialMode] = useState<ContentHomeInitialMode | undefined>(undefined);
   const [createViewStartAtFAQCanvas, setCreateViewStartAtFAQCanvas] = useState(false);
   const [createViewStartAtBlogCanvas, setCreateViewStartAtBlogCanvas] = useState(false);
+  const [createViewBlogFlowData, setCreateViewBlogFlowData] = useState<CreateBlogPageFlowData | undefined>(undefined);
   const [editingFromProjectCard, setEditingFromProjectCard] = useState(false);
   // Recommendation context passed into CreateView
   const [createViewRecId, setCreateViewRecId] = useState<string | undefined>(undefined);
@@ -726,7 +727,8 @@ export default function App() {
             ) : currentView === "content-hub-blog-create" ? (
               <CreateBlogPage
                 onCancel={() => setCurrentView("content-hub-home")}
-                onGenerate={() => {
+                onGenerate={(data) => {
+                  setCreateViewBlogFlowData(data);
                   setCreateViewStartAtBlogCanvas(true);
                   setCurrentView("content-hub-create");
                 }}
@@ -761,8 +763,21 @@ export default function App() {
                   initialTitle={createViewRecTitle ?? undefined}
                   recAeoScore={createViewRecAeoScore}
                   preloadedBlogSections={createViewPreloadedBlogSections}
+                  initialBlogFlowData={createViewBlogFlowData ? {
+                    contentName: createViewBlogFlowData.contentName,
+                    brandKit: createViewBlogFlowData.brandKitId,
+                    locations: createViewBlogFlowData.locations,
+                    agentId: createViewBlogFlowData.agentId,
+                    topic: createViewBlogFlowData.topic,
+                    keywords: createViewBlogFlowData.keywords,
+                    intent: createViewBlogFlowData.intent,
+                    objective: createViewBlogFlowData.objective,
+                    funnelStage: createViewBlogFlowData.funnelStage,
+                    length: createViewBlogFlowData.length,
+                  } : undefined}
                   onBack={() => {
                     setCreateViewStartAtBlogCanvas(false);
+                    setCreateViewBlogFlowData(undefined);
                     setCreateViewRecId(undefined);
                     setCreateViewRecTitle(undefined);
                     setCreateViewRecAeoScore(undefined);
