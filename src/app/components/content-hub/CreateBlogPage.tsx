@@ -216,8 +216,10 @@ export function CreateBlogPage({ onCancel, onGenerate }: CreateBlogPageProps) {
     if (!kit) return;
     setBrandKitId(id);
     setSelectedLocations(kit.locations.map(l => l.value));
-    const firstAgent = BRAND_BLOG_AGENTS[id]?.[0] ?? 'blog-default';
-    setAgentId(firstAgent);
+    const allowedAgents = BRAND_BLOG_AGENTS[id];
+    if (allowedAgents && !allowedAgents.includes(agentId)) {
+      setAgentId('');
+    }
   }
 
   function handleGenerateTopic() {
@@ -508,7 +510,7 @@ export function CreateBlogPage({ onCancel, onGenerate }: CreateBlogPageProps) {
             </PopoverTrigger>
             <PopoverContent align="start" className="w-[var(--radix-popover-trigger-width)] p-1">
               <div className="flex flex-col">
-                {BLOG_AGENTS.filter(a => (BRAND_BLOG_AGENTS[brandKitId] ?? [a.id]).includes(a.id)).map(agent => (
+                {BLOG_AGENTS.filter(a => (BRAND_BLOG_AGENTS[brandKitId] ?? [a.id]).includes(a.id)).map((agent, i) => (
                   <button
                     key={agent.id}
                     type="button"
@@ -520,7 +522,7 @@ export function CreateBlogPage({ onCancel, onGenerate }: CreateBlogPageProps) {
                         : 'text-foreground hover:bg-muted',
                     )}
                   >
-                    {agent.label}
+                    {agent.label}{i === 0 && <span className="ml-1.5 text-[11px] text-muted-foreground">(Default)</span>}
                   </button>
                 ))}
                 <div className="my-1 h-px bg-border" />

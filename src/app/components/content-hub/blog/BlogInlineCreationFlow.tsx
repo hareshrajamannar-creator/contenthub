@@ -312,7 +312,7 @@ function Step1BrandKit({ contentName, brandKit, locations, agentId, onChange, on
             </PopoverTrigger>
             <PopoverContent align="start" className="w-[var(--radix-popover-trigger-width)] p-1">
               <div className="flex flex-col">
-                {filteredAgents.map(agent => (
+                {filteredAgents.map((agent, i) => (
                   <button
                     key={agent.id}
                     type="button"
@@ -324,7 +324,7 @@ function Step1BrandKit({ contentName, brandKit, locations, agentId, onChange, on
                         : 'text-foreground hover:bg-muted',
                     )}
                   >
-                    {agent.label}
+                    {agent.label}{i === 0 && <span className="ml-1.5 text-[11px] text-muted-foreground">(Default)</span>}
                   </button>
                 ))}
                 <div className="my-1 h-px bg-border" />
@@ -633,8 +633,8 @@ export function BlogInlineCreationFlow({ onComplete, onCancel, controlRef, onNav
               onChange={(name, bk, locs) => {
                 setContentName(name);
                 if (bk !== brandKit) {
-                  const firstAgent = BRAND_BLOG_AGENTS[bk]?.[0] ?? 'blog-default';
-                  setAgentId(firstAgent);
+                  const allowed = BRAND_BLOG_AGENTS[bk];
+                  if (allowed && !allowed.includes(agentId)) setAgentId('');
                 }
                 setBrandKit(bk);
                 setLocations(locs);
