@@ -76,6 +76,12 @@ const BLOG_AGENTS = [
   { id: 'brand-voice',   label: 'Brand Voice — on-brand, on-tone content' },
 ];
 
+const BRAND_BLOG_AGENTS: Record<string, string[]> = {
+  'smile-dental':   ['blog-default', 'story-writer', 'brand-voice'],
+  'acme-dental':    ['seo-writer', 'local-blogger', 'blog-default'],
+  'bayview-ortho':  ['authority', 'seo-writer', 'brand-voice'],
+};
+
 const KEYWORD_OPTIONS = [
   { value: 'dental-anxiety',       label: 'Dental anxiety' },
   { value: 'family-dentist',       label: 'Family dentist' },
@@ -210,6 +216,8 @@ export function CreateBlogPage({ onCancel, onGenerate }: CreateBlogPageProps) {
     if (!kit) return;
     setBrandKitId(id);
     setSelectedLocations(kit.locations.map(l => l.value));
+    const firstAgent = BRAND_BLOG_AGENTS[id]?.[0] ?? 'blog-default';
+    setAgentId(firstAgent);
   }
 
   function handleGenerateTopic() {
@@ -261,55 +269,9 @@ export function CreateBlogPage({ onCancel, onGenerate }: CreateBlogPageProps) {
   // ── Step 1: Blog setup (agent at top, then topic + all setup fields) ─────────
 
   function renderStep1() {
-    const selectedAgent = BLOG_AGENTS.find(a => a.id === agentId);
     return (
       <div className="space-y-6">
         <h2 className={CONTENT_FLOW_STEP_TITLE_CLASS}>Blog setup</h2>
-
-        {/* Agent — at the top of blog setup */}
-        <div className="space-y-1.5">
-          <ContentFlowInfoLabel tooltip="Each agent is optimised for a different blog style and goal.">
-            Agent
-          </ContentFlowInfoLabel>
-          <Popover>
-            <PopoverTrigger asChild>
-              <button
-                type="button"
-                className="flex w-full items-center justify-between rounded-lg border border-[#e5e9f0] bg-white px-3 py-2 text-[13px] text-[#212121] transition-colors hover:border-[#c0c6d4] dark:border-[#333a47] dark:bg-[#262b35] dark:text-[#e4e4e4] dark:hover:border-[#4d5568]"
-              >
-                <span className="truncate">{selectedAgent?.label ?? 'Choose an agent...'}</span>
-                <ChevronDown size={20} strokeWidth={1.6} absoluteStrokeWidth className="size-5 shrink-0 text-[#888] dark:text-[#6b7280]" />
-              </button>
-            </PopoverTrigger>
-            <PopoverContent align="start" className="w-[var(--radix-popover-trigger-width)] p-1">
-              <div className="flex flex-col">
-                {BLOG_AGENTS.map(agent => (
-                  <button
-                    key={agent.id}
-                    type="button"
-                    onClick={() => setAgentId(agent.id)}
-                    className={cn(
-                      'flex w-full items-center rounded-md px-3 py-2 text-[13px] text-left transition-colors',
-                      agentId === agent.id
-                        ? 'bg-[#e8effe] text-[#2552ED] dark:bg-[#1e2d5e] dark:text-[#6b9bff]'
-                        : 'text-foreground hover:bg-muted',
-                    )}
-                  >
-                    {agent.label}
-                  </button>
-                ))}
-                <div className="my-1 h-px bg-border" />
-                <button
-                  type="button"
-                  className="flex h-8 w-full items-center gap-1.5 rounded-md px-3 text-[13px] text-primary transition-colors hover:bg-muted"
-                >
-                  <span>Manage blog agents</span>
-                  <ArrowUpRight size={13} strokeWidth={1.6} absoluteStrokeWidth className="shrink-0" />
-                </button>
-              </div>
-            </PopoverContent>
-          </Popover>
-        </div>
 
         {/* Topic */}
         <div className="space-y-1.5">
@@ -527,6 +489,51 @@ export function CreateBlogPage({ onCancel, onGenerate }: CreateBlogPageProps) {
             options={BRAND_KITS.map(k => ({ value: k.id, label: k.label }))}
             onChange={handleBrandKitChange}
           />
+        </div>
+
+        {/* Agent — filtered by selected brand identity */}
+        <div className="space-y-1.5">
+          <ContentFlowInfoLabel tooltip="Each agent is optimised for a different blog style and goal.">
+            Agent
+          </ContentFlowInfoLabel>
+          <Popover>
+            <PopoverTrigger asChild>
+              <button
+                type="button"
+                className="flex w-full items-center justify-between rounded-lg border border-[#e5e9f0] bg-white px-3 py-2 text-[13px] text-[#212121] transition-colors hover:border-[#c0c6d4] dark:border-[#333a47] dark:bg-[#262b35] dark:text-[#e4e4e4] dark:hover:border-[#4d5568]"
+              >
+                <span className="truncate">{BLOG_AGENTS.find(a => a.id === agentId)?.label ?? 'Choose an agent...'}</span>
+                <ChevronDown size={20} strokeWidth={1.6} absoluteStrokeWidth className="size-5 shrink-0 text-[#888] dark:text-[#6b7280]" />
+              </button>
+            </PopoverTrigger>
+            <PopoverContent align="start" className="w-[var(--radix-popover-trigger-width)] p-1">
+              <div className="flex flex-col">
+                {BLOG_AGENTS.filter(a => (BRAND_BLOG_AGENTS[brandKitId] ?? [a.id]).includes(a.id)).map(agent => (
+                  <button
+                    key={agent.id}
+                    type="button"
+                    onClick={() => setAgentId(agent.id)}
+                    className={cn(
+                      'flex w-full items-center rounded-md px-3 py-2 text-[13px] text-left transition-colors',
+                      agentId === agent.id
+                        ? 'bg-[#e8effe] text-[#2552ED] dark:bg-[#1e2d5e] dark:text-[#6b9bff]'
+                        : 'text-foreground hover:bg-muted',
+                    )}
+                  >
+                    {agent.label}
+                  </button>
+                ))}
+                <div className="my-1 h-px bg-border" />
+                <button
+                  type="button"
+                  className="flex h-8 w-full items-center gap-1.5 rounded-md px-3 text-[13px] text-primary transition-colors hover:bg-muted"
+                >
+                  <span>Manage blog agents</span>
+                  <ArrowUpRight size={13} strokeWidth={1.6} absoluteStrokeWidth className="shrink-0" />
+                </button>
+              </div>
+            </PopoverContent>
+          </Popover>
         </div>
 
         {/* Locations */}

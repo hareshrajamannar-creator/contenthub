@@ -122,6 +122,12 @@ const CUSTOM_AGENTS = [
   { id: 'brand-gpt',   label: 'Brand GPT — on-voice, on-brand answers' },
 ];
 
+const BRAND_FAQ_AGENTS: Record<string, string[]> = {
+  'olive-garden':  ['on-demand', 'brand-gpt', 'support-ai'],
+  'birdeye-demo':  ['faq-pro', 'local-seo', 'voice-opt'],
+  'local-seo':     ['local-seo', 'voice-opt', 'on-demand'],
+};
+
 const SIGNAL_SOURCES = [
   { id: 'reviews', label: 'Reviews data' },
   { id: 'tickets', label: 'Ticketing data' },
@@ -191,10 +197,15 @@ interface Step1Props {
   contentName: string;
   brandKit: string;
   locations: string[];
+  customAgent: string;
   onChange: (contentName: string, brandKit: string, locations: string[]) => void;
+  onAgentChange: (agentId: string) => void;
 }
 
-function Step1BrandKit({ contentName, brandKit, locations, onChange }: Step1Props) {
+function Step1BrandKit({ contentName, brandKit, locations, customAgent, onChange, onAgentChange }: Step1Props) {
+  const filteredAgents = CUSTOM_AGENTS.filter(a => (BRAND_FAQ_AGENTS[brandKit] ?? [a.id]).includes(a.id));
+  const selectedAgent = CUSTOM_AGENTS.find(a => a.id === customAgent);
+
   return (
     <div className="space-y-6">
       <div>
@@ -218,6 +229,51 @@ function Step1BrandKit({ contentName, brandKit, locations, onChange }: Step1Prop
             onChange={value => onChange(contentName, value, locations)}
             options={BRAND_KITS.map(bk => ({ value: bk.id, label: bk.label }))}
           />
+        </div>
+
+        {/* Agent — filtered by selected brand identity */}
+        <div className="space-y-1.5">
+          <ContentFlowInfoLabel tooltip="Each agent is optimized for a different FAQ style and goal.">
+            Agent
+          </ContentFlowInfoLabel>
+          <Popover>
+            <PopoverTrigger asChild>
+              <button
+                type="button"
+                className="flex w-full items-center justify-between rounded-lg border border-[#e5e9f0] bg-white px-3 py-2 text-[13px] text-[#212121] transition-colors hover:border-[#c0c6d4] dark:border-[#333a47] dark:bg-[#262b35] dark:text-[#e4e4e4] dark:hover:border-[#4d5568]"
+              >
+                <span className="truncate">{selectedAgent?.label ?? 'Choose an agent...'}</span>
+                <ChevronDown size={20} strokeWidth={1.6} absoluteStrokeWidth className="size-5 shrink-0 text-[#888] dark:text-[#6b7280]" />
+              </button>
+            </PopoverTrigger>
+            <PopoverContent align="start" className="w-[var(--radix-popover-trigger-width)] p-1">
+              <div className="flex flex-col">
+                {filteredAgents.map(agent => (
+                  <button
+                    key={agent.id}
+                    type="button"
+                    onClick={() => onAgentChange(agent.id)}
+                    className={cn(
+                      'flex w-full items-center rounded-md px-3 py-2 text-[13px] text-left transition-colors',
+                      customAgent === agent.id
+                        ? 'bg-[#e8effe] text-[#2552ED] dark:bg-[#1e2d5e] dark:text-[#6b9bff]'
+                        : 'text-foreground hover:bg-muted',
+                    )}
+                  >
+                    {agent.label}
+                  </button>
+                ))}
+                <div className="my-1 h-px bg-border" />
+                <button
+                  type="button"
+                  className="flex h-8 w-full items-center gap-1.5 rounded-md px-3 text-[13px] text-primary transition-colors hover:bg-muted"
+                >
+                  <span>Manage FAQ agents</span>
+                  <ArrowUpRight size={13} strokeWidth={1.6} absoluteStrokeWidth className="shrink-0" />
+                </button>
+              </div>
+            </PopoverContent>
+          </Popover>
         </div>
 
         <div className="space-y-1.5">
@@ -311,17 +367,6 @@ function Step2Setup({ customAgent, sourceUrl, additionalContext, onChange }: Ste
           value={sourceUrl}
           onChange={e => onChange({ sourceUrl: e.target.value })}
           placeholder="https://yourwebsite.com"
-        />
-      </div>
-
-      {/* Agent */}
-      <div className="space-y-1.5">
-        <ContentFlowInfoLabel tooltip="Each agent is optimized for a different FAQ style and goal.">
-          Agent
-        </ContentFlowInfoLabel>
-        <AgentSelect
-          value={customAgent}
-          onChange={value => onChange({ customAgent: value })}
         />
       </div>
 
@@ -475,7 +520,17 @@ export function FAQInlineCreationFlow({ onComplete, onCancel, controlRef, onNavS
               contentName={contentName}
               brandKit={brandKit}
               locations={locations}
-              onChange={(name, bk, locs) => { setContentName(name); setBrandKit(bk); setLocations(locs); }}
+              customAgent={customAgent}
+              onChange={(name, bk, locs) => {
+                setContentName(name);
+                if (bk !== brandKit) {
+                  const firstAgent = BRAND_FAQ_AGENTS[bk]?.[0] ?? 'on-demand';
+                  setCustomAgent(firstAgent);
+                }
+                setBrandKit(bk);
+                setLocations(locs);
+              }}
+              onAgentChange={setCustomAgent}
             />
           )}
 

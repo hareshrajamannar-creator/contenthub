@@ -121,6 +121,12 @@ const BLOG_AGENTS = [
   { id: 'brand-voice',   label: 'Brand Voice — on-brand, on-tone content' },
 ];
 
+const BRAND_BLOG_AGENTS: Record<string, string[]> = {
+  'olive-garden':  ['blog-default', 'story-writer', 'brand-voice'],
+  'birdeye-demo':  ['seo-writer', 'authority', 'local-blogger'],
+  'local-seo':     ['local-blogger', 'seo-writer', 'brand-voice'],
+};
+
 const KEYWORD_OPTIONS = [
   { value: 'dental-anxiety',       label: 'Dental anxiety' },
   { value: 'family-dentist',       label: 'Family dentist' },
@@ -255,10 +261,15 @@ interface Step1Props {
   contentName: string;
   brandKit: string;
   locations: string[];
+  agentId: string;
   onChange: (contentName: string, brandKit: string, locations: string[]) => void;
+  onAgentChange: (agentId: string) => void;
 }
 
-function Step1BrandKit({ contentName, brandKit, locations, onChange }: Step1Props) {
+function Step1BrandKit({ contentName, brandKit, locations, agentId, onChange, onAgentChange }: Step1Props) {
+  const filteredAgents = BLOG_AGENTS.filter(a => (BRAND_BLOG_AGENTS[brandKit] ?? [a.id]).includes(a.id));
+  const selectedAgent = BLOG_AGENTS.find(a => a.id === agentId);
+
   return (
     <div className="space-y-6">
       <div>
@@ -284,6 +295,51 @@ function Step1BrandKit({ contentName, brandKit, locations, onChange }: Step1Prop
           />
         </div>
 
+        {/* Agent — filtered by selected brand identity */}
+        <div className="space-y-1.5">
+          <ContentFlowInfoLabel tooltip="Each agent is optimised for a different blog style and goal.">
+            Agent
+          </ContentFlowInfoLabel>
+          <Popover>
+            <PopoverTrigger asChild>
+              <button
+                type="button"
+                className="flex w-full items-center justify-between rounded-lg border border-[#e5e9f0] bg-white px-3 py-2 text-[13px] text-[#212121] transition-colors hover:border-[#c0c6d4] dark:border-[#333a47] dark:bg-[#262b35] dark:text-[#e4e4e4] dark:hover:border-[#4d5568]"
+              >
+                <span className="truncate">{selectedAgent?.label ?? 'Choose an agent...'}</span>
+                <ChevronDown size={20} strokeWidth={1.6} absoluteStrokeWidth className="size-5 shrink-0 text-[#888] dark:text-[#6b7280]" />
+              </button>
+            </PopoverTrigger>
+            <PopoverContent align="start" className="w-[var(--radix-popover-trigger-width)] p-1">
+              <div className="flex flex-col">
+                {filteredAgents.map(agent => (
+                  <button
+                    key={agent.id}
+                    type="button"
+                    onClick={() => onAgentChange(agent.id)}
+                    className={cn(
+                      'flex w-full items-center rounded-md px-3 py-2 text-[13px] text-left transition-colors',
+                      agentId === agent.id
+                        ? 'bg-[#e8effe] text-[#2552ED] dark:bg-[#1e2d5e] dark:text-[#6b9bff]'
+                        : 'text-foreground hover:bg-muted',
+                    )}
+                  >
+                    {agent.label}
+                  </button>
+                ))}
+                <div className="my-1 h-px bg-border" />
+                <button
+                  type="button"
+                  className="flex h-8 w-full items-center gap-1.5 rounded-md px-3 text-[13px] text-primary transition-colors hover:bg-muted"
+                >
+                  <span>Manage blog agents</span>
+                  <ArrowUpRight size={13} strokeWidth={1.6} absoluteStrokeWidth className="shrink-0" />
+                </button>
+              </div>
+            </PopoverContent>
+          </Popover>
+        </div>
+
         <div className="space-y-1.5">
           <label className="text-[13px] font-medium text-foreground">Locations <span className="text-destructive">*</span></label>
           <ContentFlowLocationFlatList
@@ -301,20 +357,18 @@ function Step1BrandKit({ contentName, brandKit, locations, onChange }: Step1Prop
 // ── Step 2: Blog setup ────────────────────────────────────────────────────────
 
 interface Step2Props {
-  agentId: string;
   topic: string;
   keywords: string[];
   intent: string;
   objective: string;
   funnelStage: string;
   length: string;
-  onChange: (patch: Partial<Pick<BlogFlowData, 'agentId' | 'topic' | 'keywords' | 'intent' | 'objective' | 'funnelStage' | 'length'>>) => void;
+  onChange: (patch: Partial<Pick<BlogFlowData, 'topic' | 'keywords' | 'intent' | 'objective' | 'funnelStage' | 'length'>>) => void;
 }
 
-function Step2Setup({ agentId, topic, keywords, intent, objective, funnelStage, length, onChange }: Step2Props) {
+function Step2Setup({ topic, keywords, intent, objective, funnelStage, length, onChange }: Step2Props) {
   const [generatingTopic, setGeneratingTopic] = useState(false);
   const topicIdxRef = useRef(0);
-  const selectedAgent = BLOG_AGENTS.find(a => a.id === agentId);
 
   function handleGenerateTopic() {
     setGeneratingTopic(true);
@@ -330,51 +384,6 @@ function Step2Setup({ agentId, topic, keywords, intent, objective, funnelStage, 
     <div className="space-y-6">
       <div>
         <h2 className={CONTENT_FLOW_STEP_TITLE_CLASS}>Blog setup</h2>
-      </div>
-
-      {/* Agent */}
-      <div className="space-y-1.5">
-        <ContentFlowInfoLabel tooltip="Each agent is optimised for a different blog style and goal.">
-          Agent
-        </ContentFlowInfoLabel>
-        <Popover>
-          <PopoverTrigger asChild>
-            <button
-              type="button"
-              className="flex w-full items-center justify-between rounded-lg border border-[#e5e9f0] bg-white px-3 py-2 text-[13px] text-[#212121] transition-colors hover:border-[#c0c6d4] dark:border-[#333a47] dark:bg-[#262b35] dark:text-[#e4e4e4] dark:hover:border-[#4d5568]"
-            >
-              <span className="truncate">{selectedAgent?.label ?? 'Choose an agent...'}</span>
-              <ChevronDown size={20} strokeWidth={1.6} absoluteStrokeWidth className="size-5 shrink-0 text-[#888] dark:text-[#6b7280]" />
-            </button>
-          </PopoverTrigger>
-          <PopoverContent align="start" className="w-[var(--radix-popover-trigger-width)] p-1">
-            <div className="flex flex-col">
-              {BLOG_AGENTS.map(agent => (
-                <button
-                  key={agent.id}
-                  type="button"
-                  onClick={() => onChange({ agentId: agent.id })}
-                  className={cn(
-                    'flex w-full items-center rounded-md px-3 py-2 text-[13px] text-left transition-colors',
-                    agentId === agent.id
-                      ? 'bg-[#e8effe] text-[#2552ED] dark:bg-[#1e2d5e] dark:text-[#6b9bff]'
-                      : 'text-foreground hover:bg-muted',
-                  )}
-                >
-                  {agent.label}
-                </button>
-              ))}
-              <div className="my-1 h-px bg-border" />
-              <button
-                type="button"
-                className="flex h-8 w-full items-center gap-1.5 rounded-md px-3 text-[13px] text-primary transition-colors hover:bg-muted"
-              >
-                <span>Manage blog agents</span>
-                <ArrowUpRight size={13} strokeWidth={1.6} absoluteStrokeWidth className="shrink-0" />
-              </button>
-            </div>
-          </PopoverContent>
-        </Popover>
       </div>
 
       {/* Topic */}
@@ -559,8 +568,7 @@ export function BlogInlineCreationFlow({ onComplete, onCancel, controlRef, onNav
     });
   }, [blogCount]);
 
-  const handleStep2Change = (patch: Partial<Pick<BlogFlowData, 'agentId' | 'topic' | 'keywords' | 'intent' | 'objective' | 'funnelStage' | 'length' | 'signalSources' | 'attachments' | 'blogCount'>>) => {
-    if (patch.agentId !== undefined) setAgentId(patch.agentId);
+  const handleStep2Change = (patch: Partial<Pick<BlogFlowData, 'topic' | 'keywords' | 'intent' | 'objective' | 'funnelStage' | 'length' | 'signalSources' | 'attachments' | 'blogCount'>>) => {
     if (patch.topic !== undefined) setTopic(patch.topic);
     if (patch.keywords !== undefined) setKeywords(patch.keywords);
     if (patch.intent !== undefined) setIntent(patch.intent);
@@ -621,13 +629,22 @@ export function BlogInlineCreationFlow({ onComplete, onCancel, controlRef, onNav
               contentName={contentName}
               brandKit={brandKit}
               locations={locations}
-              onChange={(name, bk, locs) => { setContentName(name); setBrandKit(bk); setLocations(locs); }}
+              agentId={agentId}
+              onChange={(name, bk, locs) => {
+                setContentName(name);
+                if (bk !== brandKit) {
+                  const firstAgent = BRAND_BLOG_AGENTS[bk]?.[0] ?? 'blog-default';
+                  setAgentId(firstAgent);
+                }
+                setBrandKit(bk);
+                setLocations(locs);
+              }}
+              onAgentChange={setAgentId}
             />
           )}
 
           {step === 1 && (
             <Step2Setup
-              agentId={agentId}
               topic={topic}
               keywords={keywords}
               intent={intent}
