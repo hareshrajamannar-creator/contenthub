@@ -47,6 +47,7 @@ export function getAppViewTitle(view: AppView): string {
     case "content-hub-approve":
     case "content-hub-agents-faq":
     case "content-hub-agents-blog":
+    case "content-hub-blog-create":
       return "Content Hub";
     case "dashboard":
       return "Reports";
