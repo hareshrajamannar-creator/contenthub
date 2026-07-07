@@ -306,13 +306,7 @@ function TemplateCard({ tmpl, onUse, onPreview }: { tmpl: TemplateItem; onUse: (
             {TYPE_LABEL[tmpl.type]}
           </span>
         </div>
-        {/* Score badge on thumbnail */}
-        <div className="absolute top-2.5 right-2.5 z-10 flex items-center gap-1 rounded-full bg-white/90 px-1.5 py-0.5 shadow-sm">
-          <div className="h-1.5 w-7 overflow-hidden rounded-full bg-zinc-200">
-            <div className="h-full rounded-full bg-emerald-500" style={{ width: '92%' }} />
-          </div>
-          <span className="text-[10px] font-bold text-emerald-700">92</span>
-        </div>
+
 
         <div className="absolute inset-0 p-6">
           <div className="flex h-full w-full flex-col overflow-hidden rounded-lg border border-zinc-200 bg-white">
@@ -364,9 +358,16 @@ function TemplateCard({ tmpl, onUse, onPreview }: { tmpl: TemplateItem; onUse: (
         </div>
       </div>
 
-      {/* Card body — name + description only, no type badge, no tags */}
-      <div className="flex flex-col gap-1.5 p-4">
+      {/* Card body */}
+      <div className="flex flex-col gap-1 p-4">
         <p className="text-[12px] text-foreground font-medium leading-snug line-clamp-2">{tmpl.name}</p>
+        {/* Score — between title and description */}
+        <div className="flex items-center gap-1.5 py-0.5">
+          <div className="h-1.5 w-16 overflow-hidden rounded-full bg-muted">
+            <div className="h-full rounded-full bg-emerald-500" style={{ width: '92%' }} />
+          </div>
+          <span className="text-[11px] font-semibold text-emerald-700">92<span className="font-normal text-muted-foreground">/100</span></span>
+        </div>
         <p className="text-[10px] text-muted-foreground leading-relaxed line-clamp-2">{tmpl.description}</p>
       </div>
     </div>
