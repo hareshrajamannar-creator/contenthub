@@ -2,8 +2,13 @@ import { type KeyboardEvent, useMemo, useState } from 'react';
 import { createColumnHelper } from '@tanstack/react-table';
 import {
   BookMarked, CalendarDays, Copy, LayoutGrid, List, MoreVertical, Pencil, Search,
-  FileText, Share2, Mail, MessageSquare, Monitor, Megaphone, MessageCircle,
+  FileText, Share2, Mail, MessageSquare, Monitor, Megaphone, MessageCircle, X,
+  TrendingUp, Eye, AlignLeft, Award, CheckCircle,
 } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+} from '@/app/components/ui/dialog';
 import { AppDataTable } from '@/app/components/ui/AppDataTable';
 import { AppDataTableColumnSettingsTrigger } from '@/app/components/ui/AppDataTableColumnSettingsTrigger';
 import {
@@ -121,9 +126,166 @@ const LIBRARY_FILTERS: FilterItem[] = [
   { id: 'format', label: 'Format', options: ['Any format', 'Template', 'Suggestion', 'Campaign asset'] },
 ];
 
+// ── Template preview modal ────────────────────────────────────────────────────
+
+const SCORE_ITEMS = [
+  { label: 'Intent match',        score: 96, Icon: TrendingUp   },
+  { label: 'Search visibility',   score: 96, Icon: Eye          },
+  { label: 'Content depth',       score: 96, Icon: AlignLeft    },
+  { label: 'Brand alignment',     score: 96, Icon: Award        },
+  { label: 'Publishing readiness',score: 96, Icon: CheckCircle  },
+];
+
+function TemplatePreviewModal({ tmpl, onClose, onUse }: { tmpl: TemplateItem | null; onClose: () => void; onUse: (t: TemplateItem) => void }) {
+  if (!tmpl) return null;
+  const thumb = TYPE_THUMB[tmpl.type];
+  const { Icon } = thumb;
+  const isBlog = tmpl.type === 'blog';
+  const isSocial = tmpl.type === 'social';
+  const [openItem, setOpenItem] = useState<string | null>(null);
+
+  return (
+    <Dialog open={!!tmpl} onOpenChange={open => { if (!open) onClose(); }}>
+      <DialogContent className="max-w-[1040px] max-h-[88vh] p-0 gap-0 overflow-hidden flex flex-col">
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-border shrink-0">
+          <h2 className="text-[15px] font-semibold text-foreground">Preview of {tmpl.name}</h2>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => onUse(tmpl)}
+              className="h-8 rounded-md bg-primary px-4 text-[13px] font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+            >
+              Use content
+            </button>
+            <button onClick={onClose} className="flex size-7 items-center justify-center rounded-md hover:bg-muted transition-colors text-muted-foreground hover:text-foreground">
+              <X size={16} strokeWidth={1.6} absoluteStrokeWidth />
+            </button>
+          </div>
+        </div>
+
+        {/* Body */}
+        <div className="flex flex-1 min-h-0 overflow-hidden">
+          {/* Left: score + metadata */}
+          <div className="w-[280px] shrink-0 flex flex-col overflow-y-auto border-r border-border px-5 py-5 gap-5">
+            {/* Score */}
+            <div className="flex flex-col gap-2">
+              <div className="flex items-baseline gap-1">
+                <span className="text-[44px] font-bold leading-none text-foreground">92</span>
+                <span className="text-[14px] text-muted-foreground">/ 100</span>
+              </div>
+              <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+                <div className="h-full rounded-full bg-emerald-500" style={{ width: '92%' }} />
+              </div>
+            </div>
+
+            {/* Score breakdown */}
+            <div className="flex flex-col gap-0.5">
+              {SCORE_ITEMS.map(item => (
+                <div key={item.label}>
+                  <button
+                    className="flex w-full items-center justify-between gap-2 rounded-md px-2 py-2 hover:bg-muted/60 transition-colors text-left"
+                    onClick={() => setOpenItem(openItem === item.label ? null : item.label)}
+                  >
+                    <span className="text-[13px] text-foreground">{item.label}</span>
+                    <span className="text-[13px] font-medium text-foreground tabular-nums">{item.score}</span>
+                  </button>
+                  {openItem === item.label && (
+                    <div className="px-2 pb-2">
+                      <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
+                        <div className="h-full rounded-full bg-emerald-500" style={{ width: `${item.score}%` }} />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            {/* Metadata */}
+            <div className="flex flex-col gap-4 pt-2 border-t border-border">
+              <div>
+                <p className="text-[11px] text-muted-foreground mb-1">Topic</p>
+                <p className="text-[13px] text-foreground leading-relaxed">{tmpl.description}</p>
+              </div>
+              <div>
+                <p className="text-[11px] text-muted-foreground mb-1">Brand identity</p>
+                <p className="text-[13px] text-foreground">Birdeye</p>
+              </div>
+              <div>
+                <p className="text-[11px] text-muted-foreground mb-1">Created by</p>
+                <p className="text-[13px] text-foreground">{getTemplateCreator(tmpl.id)}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Right: content preview */}
+          <div className="flex-1 min-w-0 overflow-y-auto bg-zinc-50 p-8">
+            <div className="mx-auto max-w-[560px] rounded-xl border border-zinc-200 bg-white shadow-sm overflow-hidden">
+              {/* Mini topbar */}
+              <div className="flex items-center gap-2 border-b border-zinc-100 px-4 py-2.5">
+                <div className={cn('flex size-[22px] shrink-0 items-center justify-center rounded-[5px]', thumb.iconBg)}>
+                  <Icon size={11} strokeWidth={1.6} absoluteStrokeWidth className={thumb.iconColor} />
+                </div>
+                <span className="text-[11px] font-semibold text-zinc-700">{TYPE_LABEL[tmpl.type]}</span>
+                {isSocial && <span className="text-[11px] font-semibold text-purple-600">· Post</span>}
+                <div className="ml-auto flex items-center gap-1.5">
+                  <div className="h-2 w-16 overflow-hidden rounded-full bg-zinc-100">
+                    <div className="h-full w-[92%] rounded-full bg-emerald-500" />
+                  </div>
+                  <span className="text-[11px] font-bold text-emerald-700">92</span>
+                </div>
+              </div>
+
+              {/* Blog hero */}
+              {isBlog && (
+                <div className="relative h-[120px] overflow-hidden border-b border-zinc-100">
+                  <div className="absolute inset-0 bg-gradient-to-b from-sky-200 to-emerald-100" />
+                  <div className="absolute inset-x-0 bottom-0 h-10 bg-emerald-600" />
+                  <div className="absolute bottom-10 left-8 h-16 w-12 rounded-t-full bg-emerald-700" />
+                  <div className="absolute bottom-10 right-12 h-14 w-10 rounded-t-full bg-emerald-700/70" />
+                  <div className="absolute right-20 top-6 size-5 rounded-full bg-amber-300" />
+                </div>
+              )}
+
+              {/* Content body */}
+              <div className="px-6 py-5 flex flex-col gap-3">
+                {isBlog && (
+                  <>
+                    <h3 className="text-[16px] font-bold leading-snug text-zinc-900">{tmpl.name}</h3>
+                    <p className="text-[13px] text-zinc-500 leading-relaxed">{tmpl.description}</p>
+                    <div className="my-2 rounded-lg border-l-4 border-emerald-500 bg-zinc-50 px-4 py-3">
+                      <p className="text-[13px] font-medium italic text-zinc-700">"We've got to be courageous and really lean in… That's the only way you're going to innovate"</p>
+                      <p className="mt-1 text-[11px] text-zinc-400">– Alex Craddock</p>
+                    </div>
+                  </>
+                )}
+                {!isBlog && (
+                  <>
+                    <div className="flex gap-1.5">
+                      <span className={cn('rounded-full px-2 py-0.5 text-[11px] font-semibold', TYPE_BADGE[tmpl.type])}>{TYPE_LABEL[tmpl.type]}</span>
+                      {isSocial && <span className="rounded-full bg-purple-50 px-2 py-0.5 text-[11px] font-semibold text-purple-700">Post</span>}
+                    </div>
+                    <h3 className="text-[16px] font-bold leading-snug text-zinc-900">{tmpl.name}</h3>
+                    <p className="text-[13px] text-zinc-500 leading-relaxed">{tmpl.description}</p>
+                  </>
+                )}
+                {/* Filler lines */}
+                <div className="flex flex-col gap-2 pt-2">
+                  {tmpl.previewLines.map((w, i) => (
+                    <div key={i} className="h-[6px] rounded-full bg-zinc-100" style={{ width: `${w}%` }} />
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 // ── Template card (matches "Suggested for you" style) ─────────────────────────
 
-function TemplateCard({ tmpl, onUse }: { tmpl: TemplateItem; onUse: (t: TemplateItem) => void }) {
+function TemplateCard({ tmpl, onUse, onPreview }: { tmpl: TemplateItem; onUse: (t: TemplateItem) => void; onPreview: (t: TemplateItem) => void }) {
   const thumb = TYPE_THUMB[tmpl.type];
   const { Icon } = thumb;
   const isBlog = tmpl.type === 'blog';
@@ -131,7 +293,6 @@ function TemplateCard({ tmpl, onUse }: { tmpl: TemplateItem; onUse: (t: Template
 
   return (
     <div
-      onClick={() => onUse(tmpl)}
       onKeyDown={(event) => handleCardKeyDown(event, () => onUse(tmpl))}
       role="button"
       tabIndex={0}
@@ -139,20 +300,22 @@ function TemplateCard({ tmpl, onUse }: { tmpl: TemplateItem; onUse: (t: Template
     >
       {/* Thumbnail preview area */}
       <div className="relative h-[160px] overflow-hidden border-b border-border bg-zinc-100">
+        {/* Type chip on thumbnail */}
+        <div className="absolute top-2.5 left-2.5 z-10">
+          <span className={cn('rounded-full px-2 py-0.5 text-[10px] font-semibold shadow-sm', TYPE_BADGE[tmpl.type])}>
+            {TYPE_LABEL[tmpl.type]}
+          </span>
+        </div>
+        {/* Score badge on thumbnail */}
+        <div className="absolute top-2.5 right-2.5 z-10 flex items-center gap-1 rounded-full bg-white/90 px-1.5 py-0.5 shadow-sm">
+          <div className="h-1.5 w-7 overflow-hidden rounded-full bg-zinc-200">
+            <div className="h-full rounded-full bg-emerald-500" style={{ width: '92%' }} />
+          </div>
+          <span className="text-[10px] font-bold text-emerald-700">92</span>
+        </div>
+
         <div className="absolute inset-0 p-6">
           <div className="flex h-full w-full flex-col overflow-hidden rounded-lg border border-zinc-200 bg-white">
-            <div className="flex items-center gap-2 border-b border-zinc-100 px-2 py-1">
-              <div className={cn('flex size-[18px] shrink-0 items-center justify-center rounded-[4px] border', thumb.iconBg)}>
-                <Icon size={9} strokeWidth={1.6} absoluteStrokeWidth className={thumb.iconColor} />
-              </div>
-              <span className="flex-1 text-[6px] font-semibold text-zinc-700">{TYPE_LABEL[tmpl.type]}</span>
-              <div className="flex items-center gap-1">
-                <div className="h-[3px] w-8 overflow-hidden rounded-full bg-zinc-100">
-                  <div className="h-full w-4/5 rounded-full bg-emerald-600" />
-                </div>
-                <span className="rounded-[2px] bg-emerald-50 px-1 text-[5px] font-bold text-emerald-700">92</span>
-              </div>
-            </div>
             {isBlog && (
               <div className="relative h-[46px] shrink-0 overflow-hidden border-b border-zinc-100">
                 <div className="absolute inset-0 bg-gradient-to-b from-sky-200 to-green-100" />
@@ -183,31 +346,28 @@ function TemplateCard({ tmpl, onUse }: { tmpl: TemplateItem; onUse: (t: Template
             </div>
           </div>
         </div>
-        {/* Hover overlay */}
-        <div className="absolute inset-0 bg-zinc-900/0 group-hover:bg-zinc-900/40 transition-all duration-200 flex items-center justify-center opacity-0 group-hover:opacity-100">
+
+        {/* Hover overlay — two buttons */}
+        <div className="absolute inset-0 bg-zinc-900/0 group-hover:bg-zinc-900/50 transition-all duration-200 flex flex-col items-center justify-center gap-2 opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto">
           <button
             onClick={e => { e.stopPropagation(); onUse(tmpl); }}
-            className="h-7 rounded-md bg-primary px-2 text-[11px] font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
+            className="w-[130px] h-8 rounded-md bg-primary px-3 text-[12px] font-medium text-primary-foreground shadow-md transition-colors hover:bg-primary/90"
           >
-            Use template
+            Use content
+          </button>
+          <button
+            onClick={e => { e.stopPropagation(); onPreview(tmpl); }}
+            className="w-[130px] h-8 rounded-md bg-white/95 px-3 text-[12px] font-medium text-foreground shadow-md transition-colors hover:bg-white"
+          >
+            Preview
           </button>
         </div>
       </div>
 
-      {/* Card body */}
-      <div className="flex flex-col gap-2 p-4">
-        <span className={cn('self-start text-[10px] font-medium px-2 py-0.5 rounded', TYPE_BADGE[tmpl.type])}>
-          {TYPE_LABEL[tmpl.type]}
-        </span>
+      {/* Card body — name + description only, no type badge, no tags */}
+      <div className="flex flex-col gap-1.5 p-4">
         <p className="text-[12px] text-foreground font-medium leading-snug line-clamp-2">{tmpl.name}</p>
         <p className="text-[10px] text-muted-foreground leading-relaxed line-clamp-2">{tmpl.description}</p>
-        {tmpl.useCases.length > 0 && (
-          <div className="mt-0.5 flex flex-wrap gap-1">
-            {tmpl.useCases.slice(0, 2).map(uc => (
-              <span key={uc} className="rounded-full bg-muted px-2 py-0.5 text-[10px] text-muted-foreground">{uc}</span>
-            ))}
-          </div>
-        )}
       </div>
     </div>
   );
@@ -348,7 +508,9 @@ export const ProjectsView = ({
   const [savedFilters, setSavedFilters] = useState<FilterItem[]>(SAVED_FILTERS);
   const [libraryFilters, setLibraryFilters] = useState<FilterItem[]>(LIBRARY_FILTERS);
   const [viewMode, setViewMode] = useState<ViewMode>(initialViewMode);
+  const [libViewMode, setLibViewMode] = useState<'grid' | 'list'>('grid');
   const [columnSheetOpen, setColumnSheetOpen] = useState(false);
+  const [previewTemplate, setPreviewTemplate] = useState<TemplateItem | null>(null);
 
   const tableData = useMemo(() => {
     const status = filterValue(savedFilters, 'status');
@@ -547,6 +709,16 @@ export const ProjectsView = ({
                   <Search className="size-[14px]" strokeWidth={1.6} absoluteStrokeWidth aria-hidden />
                 </Button>
               )}
+              <SegmentedToggle<'grid' | 'list'>
+                iconOnly
+                ariaLabel="Library view"
+                value={libViewMode}
+                onChange={setLibViewMode}
+                items={[
+                  { value: 'grid', label: 'Grid view', icon: <LayoutGrid className="size-[14px]" strokeWidth={1.6} absoluteStrokeWidth aria-hidden /> },
+                  { value: 'list', label: 'List view', icon: <List className="size-[14px]" strokeWidth={1.6} absoluteStrokeWidth aria-hidden /> },
+                ]}
+              />
               <Button type="button" variant="outline" size="icon" aria-label="More options">
                 <MoreVertical className="size-[14px]" strokeWidth={1.6} absoluteStrokeWidth aria-hidden />
               </Button>
@@ -618,26 +790,81 @@ export const ProjectsView = ({
       {/* Library tab — template cards */}
       {activeTab === 'library' && (
         <div className="min-h-0 flex-1 flex flex-col overflow-hidden">
-          {/* Grid */}
           <div className="flex-1 overflow-y-auto px-6 py-4">
             {filteredTemplates.length === 0 ? (
               <div className="flex items-center justify-center h-40 text-[13px] text-muted-foreground">
                 No templates match your search.
               </div>
-            ) : (
+            ) : libViewMode === 'grid' ? (
               <div className="grid grid-cols-4 gap-4">
                 {filteredTemplates.map(tmpl => (
                   <TemplateCard
                     key={tmpl.id}
                     tmpl={tmpl}
                     onUse={() => onNavigate('content-hub-create')}
+                    onPreview={() => setPreviewTemplate(tmpl)}
                   />
                 ))}
+              </div>
+            ) : (
+              /* List view */
+              <div className="flex flex-col divide-y divide-border rounded-lg border border-border overflow-hidden">
+                {filteredTemplates.map(tmpl => {
+                  const thumb = TYPE_THUMB[tmpl.type];
+                  const { Icon } = thumb;
+                  return (
+                    <div key={tmpl.id} className="flex items-center gap-4 px-4 py-3 bg-background hover:bg-muted/40 transition-colors group">
+                      {/* Icon */}
+                      <div className={cn('flex size-9 shrink-0 items-center justify-center rounded-lg', thumb.iconBg)}>
+                        <Icon size={16} strokeWidth={1.6} absoluteStrokeWidth className={thumb.iconColor} />
+                      </div>
+                      {/* Content */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className={cn('rounded-full px-2 py-0.5 text-[10px] font-semibold', TYPE_BADGE[tmpl.type])}>
+                            {TYPE_LABEL[tmpl.type]}
+                          </span>
+                        </div>
+                        <p className="text-[13px] font-medium text-foreground mt-0.5">{tmpl.name}</p>
+                        <p className="text-[11px] text-muted-foreground leading-relaxed line-clamp-1 mt-0.5">{tmpl.description}</p>
+                      </div>
+                      {/* Score */}
+                      <div className="flex items-center gap-2 shrink-0">
+                        <div className="h-1.5 w-16 overflow-hidden rounded-full bg-muted">
+                          <div className="h-full rounded-full bg-emerald-500" style={{ width: '92%' }} />
+                        </div>
+                        <span className="text-[12px] font-bold text-emerald-700 tabular-nums">92</span>
+                      </div>
+                      {/* Actions */}
+                      <div className="flex items-center gap-1.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button
+                          onClick={() => onNavigate('content-hub-create')}
+                          className="h-7 rounded-md bg-primary px-3 text-[11px] font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+                        >
+                          Use content
+                        </button>
+                        <button
+                          onClick={() => setPreviewTemplate(tmpl)}
+                          className="h-7 rounded-md border border-border bg-background px-3 text-[11px] font-medium text-foreground hover:bg-muted transition-colors"
+                        >
+                          Preview
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>
         </div>
       )}
+
+      {/* Template preview modal */}
+      <TemplatePreviewModal
+        tmpl={previewTemplate}
+        onClose={() => setPreviewTemplate(null)}
+        onUse={() => { setPreviewTemplate(null); onNavigate('content-hub-create'); }}
+      />
       </div>
 
       <FilterPane
