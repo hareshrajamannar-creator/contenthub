@@ -285,12 +285,11 @@ function EditorCopilot({
   selectedBlock?: { id: string; type: string; label: string } | null;
   onClearSelectedBlock?: () => void;
 }) {
-  const opening    = mode === 'blog' ? EDITOR_OPENING_BLOG : mode === 'project' ? EDITOR_OPENING_PROJECT : EDITOR_OPENING;
-  const repliesMap = mode === 'blog' ? EDITOR_REPLIES_BLOG : mode === 'project' ? EDITOR_REPLIES_PROJECT : EDITOR_REPLIES;
+  const opening = mode === 'blog' ? EDITOR_OPENING_BLOG : mode === 'project' ? EDITOR_OPENING_PROJECT : EDITOR_OPENING;
 
   const [messages, setMessages] = useState<ChatMessage[]>([opening]);
   const [input, setInput] = useState('');
-  const [activeSection, setActiveSection] = useState<string | null>(null);
+  const [pendingAction, setPendingAction] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -338,7 +337,7 @@ function EditorCopilot({
     onSectionEditStart?.(sectionLabel ?? 'full');
     const loadId = (Date.now() + 1).toString() + '-pl';
     const loadText = sectionLabel
-      ? `Applying your changes to the ${sectionLabel.toLowerCase()}…`
+      ? `Applying your changes to "${sectionLabel}"…`
       : 'Applying your changes…';
     setMessages(prev => [
       ...prev,
@@ -347,58 +346,139 @@ function EditorCopilot({
     setTimeout(() => {
       onSectionEditEnd?.();
       const successText = sectionLabel
-        ? `Done. The ${sectionLabel.toLowerCase()} has been updated — review it in the canvas.`
+        ? `Done. "${sectionLabel}" has been updated — review it in the canvas.`
         : 'Done. Changes applied — review them in the canvas.';
+      const quickFixChips = isBlog ? BLOG_QUICK_FIX_CHIPS : FAQ_QUICK_FIX_CHIPS;
       setMessages(prev =>
         prev.map(m =>
           m.id === loadId
-            ? { ...m, text: successText, isLoading: false, chips: AFTER_EDIT_CHIPS }
+            ? { ...m, text: successText, isLoading: false, chips: quickFixChips }
             : m
         )
       );
     }, 1800);
   }
 
-  // ── Constants ────────────────────────────────────────────────────────────────
+  // ── Quick-fix chip sets ───────────────────────────────────────────────────────
 
-  const SECTION_CHIPS = ['Introduction', 'Body', 'Call to action', 'Conclusion'];
-  const AFTER_EDIT_CHIPS = ['Edit another section', 'Change the tone', 'Looks good'];
+  const BLOG_QUICK_FIX_CHIPS = [
+    'Improve SEO',
+    'Make Concise',
+    'Expand & Add Depth',
+    'Improve Readability',
+    'Strengthen Intro & Hook',
+    'Improve Structure & Flow',
+    'Change Tone',
+  ];
 
-  const SECTION_EDIT_CHIPS: Record<string, string[]> = {
-    // Sectional actions — ALL must be in PARTIAL_EDIT_ACTION_CHIPS
-    'Introduction':   ['Make it shorter', 'Expand this section', 'Rewrite the hook', 'Add a statistic', 'Soften the tone'],
-    'Body':           ['Make it shorter', 'Expand this section', 'Rewrite entirely', 'Add an example', 'Add data or research'],
-    'Call to action': ['Rewrite CTA', 'Make it more compelling', 'Use an approved CTA', 'Make it shorter'],
-    'Conclusion':     ['Rewrite entirely', 'Add key takeaways', 'Soften the tone', 'Make it shorter'],
+  const FAQ_QUICK_FIX_CHIPS = [
+    'Improve SEO',
+    'Make Concise',
+    'Expand & Add Detail',
+    'Improve Clarity',
+    'Make Conversational',
+    'Optimize for Snippets',
+    'Change Tone',
+  ];
+
+  // Follow-up questions per quick-fix action
+  interface FollowUp { text: string; chips: string[] }
+
+  const BLOG_FOLLOWUPS: Record<string, FollowUp> = {
+    'Improve SEO': {
+      text: "What's your primary target keyword or topic phrase for this post?",
+      chips: ['Skip — use existing focus', 'Not sure, just optimise generally'],
+    },
+    'Make Concise': {
+      text: "Anything you want to make sure stays intact?",
+      chips: ['Protect all key examples', 'Protect the data & stats', 'Cut everything you safely can'],
+    },
+    'Expand & Add Depth': {
+      text: "Which areas should we deepen?",
+      chips: ['All sections equally', 'Introduction only', 'Body sections', 'Conclusion', 'Add more data & examples'],
+    },
+    'Improve Readability': {
+      text: "Who's the target audience for this post?",
+      chips: ['General public', 'Business professionals', 'Technical readers', 'First-time readers'],
+    },
+    'Strengthen Intro & Hook': {
+      text: "What feeling should the opening create?",
+      chips: ['Curiosity', 'Urgency', 'Relatability', 'Authority'],
+    },
+    'Improve Structure & Flow': {
+      text: "What feels off about the current structure?",
+      chips: ['Sections feel out of order', 'Transitions are abrupt', 'Narrative doesn\'t flow', 'Not sure — just improve it'],
+    },
+    'Change Tone': {
+      text: "Which tone would you like?",
+      chips: ['Professional', 'Friendly', 'Persuasive', 'Authoritative'],
+    },
   };
 
-  // Chips that trigger a partial (section-level) edit — must NOT overlap with any regen chip labels
-  const PARTIAL_EDIT_ACTION_CHIPS = new Set([
-    'Make it shorter', 'Expand this section', 'Rewrite entirely', 'Add a statistic',
-    'Add an example', 'Add data or research', 'Rewrite CTA', 'Make it more compelling',
-    'Use an approved CTA', 'Add key takeaways', 'Soften the tone', 'Rewrite the hook',
-  ]);
+  const FAQ_FOLLOWUPS: Record<string, FollowUp> = {
+    'Improve SEO': {
+      text: "Any specific search queries you want to target?",
+      chips: ['Skip — use natural language throughout', 'Not sure, just optimise generally'],
+    },
+    'Make Concise': {
+      text: "How tight should the answers be?",
+      chips: ['Shorten all answers equally', 'Just remove filler, keep depth', 'Lead with the answer everywhere'],
+    },
+    'Expand & Add Detail': {
+      text: "Which questions feel thin or incomplete?",
+      chips: ['All of them', 'Pricing & cost questions', 'Process questions', 'Feature questions'],
+    },
+    'Improve Clarity': {
+      text: "Who is your primary audience for this FAQ?",
+      chips: ['General customers', 'Technical users', 'First-time buyers', 'Business clients'],
+    },
+    'Make Conversational': {
+      text: "Where will this FAQ primarily be used?",
+      chips: ['Voice search & smart speakers', 'Customer support chat', 'Website / general web', 'Social media'],
+    },
+    'Optimize for Snippets': {
+      text: "Which platforms are you targeting?",
+      chips: ['Google featured snippets', 'Google Business Profile', 'All major search engines'],
+    },
+    'Change Tone': {
+      text: "Which tone would you like?",
+      chips: ['Professional', 'Friendly', 'Persuasive', 'Authoritative'],
+    },
+  };
 
-  // Regen direction chips — labels deliberately distinct from any section/tone chip labels
-  const REGEN_DIRECTION_CHIPS_BLOG = [
-    'Fresh angle and hook',
-    'Rewrite with a new tone',
-    'More depth and research',
-    'Tighten it up',
-  ];
-  const REGEN_DIRECTION_CHIPS_FAQ = [
-    'Different set of questions',
-    'More detailed answers',
-    'Shorter, snappier answers',
-    'New tone throughout',
-  ];
-
-  // Tone chips — professional/conversational are partial; persuasive/thought leadership trigger regen
-  const PARTIAL_TONE_CHIPS = new Set(['More professional', 'More conversational']);
-  const REGEN_TONE_CHIPS   = new Set(['More persuasive', 'Thought leadership']);
-
-  // Intent chips — all trigger regen
-  const INTENT_CHIPS = ['Educate the reader', 'Drive more conversions', 'Build brand authority', 'Target local search'];
+  // Build a confirmation message from the selected action + follow-up answer
+  function buildConfirmation(action: string, followUp: string): string {
+    const ct = isBlog ? 'blog post' : 'FAQ set';
+    const isVague = followUp.toLowerCase().startsWith('skip') || followUp.toLowerCase().startsWith('not sure');
+    switch (action) {
+      case 'Improve SEO':
+        return isVague
+          ? `Got it. I'll rewrite the ${ct} to strengthen keyword coverage naturally, restructure headings, and sharpen the opening — no stuffing. Ready to regenerate?`
+          : `Got it. I'll rewrite the ${ct} to naturally build around "${followUp}" with cleaner headings and a sharper opening. Ready to regenerate?`;
+      case 'Make Concise':
+        return `Got it. I'll tighten the ${ct} — cutting filler and redundancy while preserving every substantive point. Ready to regenerate?`;
+      case 'Expand & Add Depth':
+      case 'Expand & Add Detail':
+        return followUp === 'All sections equally' || followUp === 'All of them'
+          ? `Got it. I'll deepen the ${ct} across all sections — more examples, supporting arguments, and specifics where they add value. Ready to regenerate?`
+          : `Got it. I'll focus the depth work on: "${followUp}". Ready to regenerate?`;
+      case 'Improve Readability':
+      case 'Improve Clarity':
+        return `Got it. I'll rewrite for "${followUp}" — simpler language, shorter sentences, clearer structure throughout. Ready to regenerate?`;
+      case 'Strengthen Intro & Hook':
+        return `Got it. I'll craft an opening that leads with ${followUp.toLowerCase()} to pull readers in from the first line. Ready to regenerate?`;
+      case 'Improve Structure & Flow':
+        return `Got it. I'll address "${followUp}" — reordering sections, strengthening transitions, and tightening the overall narrative. Ready to regenerate?`;
+      case 'Make Conversational':
+        return `Got it. I'll rewrite for "${followUp}" — natural phrasing, warm tone, and direct answers throughout. Ready to regenerate?`;
+      case 'Optimize for Snippets':
+        return `Got it. I'll front-load each answer with a clear 40–55 word response optimised for "${followUp}". Ready to regenerate?`;
+      case 'Change Tone':
+        return `Got it. I'll rewrite the ${ct} in a ${followUp.toLowerCase()} tone — preserving all facts and structure, changing only voice and word choice. Ready to regenerate?`;
+      default:
+        return `Got it. I'll apply "${action}" to your ${ct}. Ready to regenerate?`;
+    }
+  }
 
   // Block-level contextual chips (all trigger partial edits on the selected block)
   const BLOCK_CONTEXT_CHIPS = new Set([
@@ -410,7 +490,7 @@ function EditorCopilot({
     'Find a better quote', 'Add attribution', 'Rewrite this quote',
     'Add a takeaway', 'Trim the list', 'Rewrite takeaways',
     'Update the bio', 'Make the bio shorter',
-    'Rewrite this section',
+    'Rewrite this section', 'Make it shorter', 'Adjust the tone',
   ]);
 
   // ── Chip handler ─────────────────────────────────────────────────────────────
@@ -439,200 +519,65 @@ function EditorCopilot({
       return;
     }
 
-    // ── Section editing ───────────────────────────────────────────────────────
-
-    if (chip === 'Edit a section') {
-      pushAi({ text: 'Which section would you like to work on?', chips: SECTION_CHIPS });
+    // ── Follow-up answer for a pending quick-fix action ───────────────────────
+    if (pendingAction) {
+      const confirmation = buildConfirmation(pendingAction, chip);
+      setPendingAction(null);
+      triggerRegen(confirmation);
       return;
     }
 
-    if (chip === 'Edit another section' || chip === 'Select a section') {
-      pushAi({ text: 'Which section would you like to work on next?', chips: SECTION_CHIPS });
-      return;
-    }
-
-    if (SECTION_CHIPS.includes(chip)) {
-      setActiveSection(chip);
-      pushAi({
-        text: `What would you like to change in the ${chip.toLowerCase()}?`,
-        chips: SECTION_EDIT_CHIPS[chip] ?? ['Make it shorter', 'Expand this section', 'Rewrite entirely'],
-      });
-      return;
-    }
-
-    if (PARTIAL_EDIT_ACTION_CHIPS.has(chip)) {
-      showPartialLoading(activeSection);
-      return;
-    }
-
-    // ── Tone ─────────────────────────────────────────────────────────────────
-
-    if (chip === 'Change the tone') {
-      pushAi({
-        text: isBlog
-          ? 'What tone would you like for this blog?'
-          : 'What tone would you like for the FAQ answers?',
-        chips: isBlog
-          ? ['More professional', 'More conversational', 'More persuasive', 'Thought leadership']
-          : ['Professional', 'Friendly and casual', 'Authoritative', 'Empathetic'],
-      });
-      return;
-    }
-
-    // Partial tone edits — apply directly, no extra step
-    if (PARTIAL_TONE_CHIPS.has(chip)) {
-      setActiveSection(null);
-      showPartialLoading(null);
-      return;
-    }
-
-    // FAQ tones are all partial edits
-    if (chip === 'Professional' || chip === 'Friendly and casual' || chip === 'Authoritative' || chip === 'Empathetic') {
-      showPartialLoading(null);
-      return;
-    }
-
-    // Regen tones — ask for confirmation before firing
-    if (REGEN_TONE_CHIPS.has(chip)) {
-      triggerRegen(
-        chip === 'Thought leadership'
-          ? 'A thought-leadership voice works best when it shapes the whole piece — this will require a full rewrite. Ready to go?'
-          : 'A persuasive voice needs to run through the whole blog to feel consistent — this will require a full rewrite. Ready to go?',
-      );
-      return;
-    }
-
-    // ── Intent ───────────────────────────────────────────────────────────────
-
-    if (chip === 'Change the intent') {
-      pushAi({
-        text: 'What do you want this blog to accomplish?',
-        chips: INTENT_CHIPS,
-      });
-      return;
-    }
-
-    if (INTENT_CHIPS.includes(chip)) {
-      const intentMap: Record<string, string> = {
-        'Educate the reader':    'educational',
-        'Drive more conversions': 'conversion-focused',
-        'Build brand authority':  'brand-authority',
-        'Target local search':    'local-search',
-      };
-      triggerRegen(
-        `Shifting to a ${intentMap[chip] ?? chip.toLowerCase()} approach requires a full rewrite of the blog. This takes 2–3 minutes — ready to start?`,
-      );
-      return;
-    }
-
-    // ── Regenerate ───────────────────────────────────────────────────────────
-
-    if (chip === 'Regenerate blog') {
-      pushAi({
-        text: 'What would you like to change in the regenerated version?',
-        chips: REGEN_DIRECTION_CHIPS_BLOG,
-      });
-      return;
-    }
-
-    if (chip === 'Regenerate FAQ') {
-      pushAi({
-        text: 'What would you like to change in the new FAQ?',
-        chips: REGEN_DIRECTION_CHIPS_FAQ,
-      });
-      return;
-    }
-
-    // Regen direction chips — trigger immediately (all labels are distinct from section/tone chips)
-    if (REGEN_DIRECTION_CHIPS_BLOG.includes(chip) || REGEN_DIRECTION_CHIPS_FAQ.includes(chip)) {
-      const directionMap: Record<string, string> = {
-        'Fresh angle and hook':         'a fresh angle and new hook',
-        'Rewrite with a new tone':      'a new tone throughout',
-        'More depth and research':      'more depth and supporting research',
-        'Tighten it up':                'a tighter, more focused format',
-        'Different set of questions':   'a different set of questions',
-        'More detailed answers':        'more detailed answers',
-        'Shorter, snappier answers':    'shorter, snappier answers',
-        'New tone throughout':          'a new tone throughout',
-      };
-      const direction = directionMap[chip] ?? chip.toLowerCase();
-      const timeText = isBlog ? '2–3 minutes' : '30–60 seconds';
-      triggerRegen(`This will regenerate the full blog with ${direction}. It takes ${timeText} — ready to start?`);
-      return;
-    }
-
-    // ── FAQ editing ───────────────────────────────────────────────────────────
-
-    if (chip === 'Edit an answer') {
-      pushAi({
-        text: 'What would you like to improve across the answers?',
-        chips: ['Strengthen weak answers', 'Simplify the language', 'Add local keywords', 'Improve SEO structure'],
-      });
-      return;
-    }
-
-    if (chip === 'Add missing questions') {
-      pushAi({
-        text: 'Which area needs more coverage?',
-        chips: ['Pricing and costs', 'How the process works', 'Comparisons and alternatives', 'Local and location info'],
-      });
+    // ── Quick-fix primary chips — ask follow-up question ──────────────────────
+    const allQuickFix = isBlog ? BLOG_QUICK_FIX_CHIPS : FAQ_QUICK_FIX_CHIPS;
+    if (allQuickFix.includes(chip)) {
+      setPendingAction(chip);
+      const followUp = (isBlog ? BLOG_FOLLOWUPS : FAQ_FOLLOWUPS)[chip];
+      if (followUp) {
+        pushAi({ text: followUp.text, chips: followUp.chips });
+      }
       return;
     }
 
     // ── Wrap-up ───────────────────────────────────────────────────────────────
-
     if (chip === 'Looks good') {
       pushAi({ text: "Your content is looking strong. Let me know whenever you want to make more changes." });
       return;
     }
 
-    // ── FAQ answer improvement chips → partial loading ────────────────────────
-
-    const FAQ_PARTIAL_CHIPS = new Set([
-      'Strengthen weak answers', 'Simplify the language', 'Add local keywords', 'Improve SEO structure',
-      'Pricing and costs', 'How the process works', 'Comparisons and alternatives', 'Local and location info',
-    ]);
-    if (FAQ_PARTIAL_CHIPS.has(chip)) {
-      showPartialLoading(null);
-      return;
-    }
-
-    // ── Fall through to repliesMap ────────────────────────────────────────────
-
-    const loadingId = (Date.now() + 2).toString() + '-load';
-    setMessages(prev => [
-      ...prev.map(m => ({ ...m, chips: undefined, multiSelect: undefined })),
-      { id: loadingId, role: 'ai' as const, text: 'Working on it', isLoading: true },
-    ]);
-
-    const replyDef = repliesMap[chip];
-    const fallbackChips = isBlog
-      ? ['Edit a section', 'Change the tone', 'Regenerate blog']
-      : ['Edit an answer', 'Add missing questions', 'Regenerate FAQ'];
-
-    const reply: ChatMessage = replyDef
-      ? { id: loadingId, role: 'ai', text: replyDef.text, chips: replyDef.chips, multiSelect: replyDef.multiSelect }
-      : { id: loadingId, role: 'ai', text: "Tell me more about what you'd like to change and I'll help refine it.", chips: fallbackChips };
-
-    setTimeout(() => {
-      setMessages(prev => prev.map(m => (m.id === loadingId ? reply : m)));
-    }, 900);
+    // ── Fallback ──────────────────────────────────────────────────────────────
+    const quickFixChips = isBlog ? BLOG_QUICK_FIX_CHIPS : FAQ_QUICK_FIX_CHIPS;
+    pushAi({
+      text: "What would you like to improve next?",
+      chips: quickFixChips,
+    });
   }
 
   function handleSend(text: string) {
     if (!text.trim()) return;
     setInput('');
-    // If a block is selected, prefix the message so the AI knows the context
     const userText = selectedBlock
       ? `[${selectedBlock.label}] ${text.trim()}`
       : text.trim();
     clearAndAddUser(userText);
-    // Clear the block chip after sending
+
+    // Block chip active — apply as a targeted partial edit
     if (selectedBlock) {
       onClearSelectedBlock?.();
       prevBlockIdRef.current = null;
+      showPartialLoading(selectedBlock.label);
+      return;
     }
-    showPartialLoading(selectedBlock?.label ?? null);
+
+    // Follow-up free-text answer for a pending action
+    if (pendingAction) {
+      const confirmation = buildConfirmation(pendingAction, text.trim());
+      setPendingAction(null);
+      triggerRegen(confirmation);
+      return;
+    }
+
+    // General free-form instruction → treat as full regen request
+    triggerRegen(`Got it. I'll rewrite the ${isBlog ? 'blog post' : 'FAQ set'} based on your instructions. Ready to regenerate?`);
   }
 
   return (
@@ -750,8 +695,8 @@ const EDITOR_REPLIES_PROJECT: Record<string, EditorReplyProject> = {
 const EDITOR_OPENING: ChatMessage = {
   id: 'editor-0',
   role: 'ai',
-  text: "What would you like to do with this FAQ?",
-  chips: ['Edit an answer', 'Add missing questions', 'Change the tone', 'Regenerate FAQ'],
+  text: "Your FAQ is ready. What would you like to improve?",
+  chips: ['Improve SEO', 'Make Concise', 'Expand & Add Detail', 'Improve Clarity', 'Make Conversational', 'Optimize for Snippets', 'Change Tone'],
 };
 
 // ── Blog editor ───────────────────────────────────────────────────────────────
@@ -759,8 +704,8 @@ const EDITOR_OPENING: ChatMessage = {
 const EDITOR_OPENING_BLOG: ChatMessage = {
   id: 'editor-0',
   role: 'ai',
-  text: "What would you like to do with this blog?",
-  chips: ['Edit a section', 'Change the tone', 'Change the intent', 'Regenerate blog'],
+  text: "Your blog is ready. What would you like to improve?",
+  chips: ['Improve SEO', 'Make Concise', 'Expand & Add Depth', 'Improve Readability', 'Strengthen Intro & Hook', 'Improve Structure & Flow', 'Change Tone'],
 };
 
 const EDITOR_REPLIES_BLOG: Record<string, EditorReply> = {
