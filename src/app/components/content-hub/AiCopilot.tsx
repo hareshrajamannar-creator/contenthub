@@ -450,34 +450,47 @@ function EditorCopilot({
   function buildConfirmation(action: string, followUp: string): string {
     const ct = isBlog ? 'blog post' : 'FAQ set';
     const isVague = followUp.toLowerCase().startsWith('skip') || followUp.toLowerCase().startsWith('not sure');
+    const suffix = '\n\nThis will take 2–3 minutes and use 120 credits.';
+
+    let body: string;
     switch (action) {
       case 'Improve SEO':
-        return isVague
-          ? `Got it. I'll rewrite the ${ct} to strengthen keyword coverage naturally, restructure headings, and sharpen the opening — no stuffing. Ready to regenerate?`
-          : `Got it. I'll rewrite the ${ct} to naturally build around "${followUp}" with cleaner headings and a sharper opening. Ready to regenerate?`;
+        body = isVague
+          ? `Got it. I'll rewrite the ${ct} to strengthen keyword coverage naturally, restructure headings, and sharpen the opening — no stuffing.`
+          : `Got it. I'll rewrite the ${ct} to naturally build around "${followUp}" with cleaner headings and a sharper opening.`;
+        break;
       case 'Make Concise':
-        return `Got it. I'll tighten the ${ct} — cutting filler and redundancy while preserving every substantive point. Ready to regenerate?`;
+        body = `Got it. I'll tighten the ${ct} — cutting filler and redundancy while preserving every substantive point.`;
+        break;
       case 'Expand & Add Depth':
       case 'Expand & Add Detail':
-        return followUp === 'All sections equally' || followUp === 'All of them'
-          ? `Got it. I'll deepen the ${ct} across all sections — more examples, supporting arguments, and specifics where they add value. Ready to regenerate?`
-          : `Got it. I'll focus the depth work on: "${followUp}". Ready to regenerate?`;
+        body = followUp === 'All sections equally' || followUp === 'All of them'
+          ? `Got it. I'll deepen the ${ct} across all sections — more examples, supporting arguments, and specifics where they add value.`
+          : `Got it. I'll focus the depth work on: "${followUp}".`;
+        break;
       case 'Improve Readability':
       case 'Improve Clarity':
-        return `Got it. I'll rewrite for "${followUp}" — simpler language, shorter sentences, clearer structure throughout. Ready to regenerate?`;
+        body = `Got it. I'll rewrite for "${followUp}" — simpler language, shorter sentences, clearer structure throughout.`;
+        break;
       case 'Strengthen Intro & Hook':
-        return `Got it. I'll craft an opening that leads with ${followUp.toLowerCase()} to pull readers in from the first line. Ready to regenerate?`;
+        body = `Got it. I'll craft an opening that leads with ${followUp.toLowerCase()} to pull readers in from the first line.`;
+        break;
       case 'Improve Structure & Flow':
-        return `Got it. I'll address "${followUp}" — reordering sections, strengthening transitions, and tightening the overall narrative. Ready to regenerate?`;
+        body = `Got it. I'll address "${followUp}" — reordering sections, strengthening transitions, and tightening the overall narrative.`;
+        break;
       case 'Make Conversational':
-        return `Got it. I'll rewrite for "${followUp}" — natural phrasing, warm tone, and direct answers throughout. Ready to regenerate?`;
+        body = `Got it. I'll rewrite for "${followUp}" — natural phrasing, warm tone, and direct answers throughout.`;
+        break;
       case 'Optimize for Snippets':
-        return `Got it. I'll front-load each answer with a clear 40–55 word response optimised for "${followUp}". Ready to regenerate?`;
+        body = `Got it. I'll front-load each answer with a clear 40–55 word response optimised for "${followUp}".`;
+        break;
       case 'Change Tone':
-        return `Got it. I'll rewrite the ${ct} in a ${followUp.toLowerCase()} tone — preserving all facts and structure, changing only voice and word choice. Ready to regenerate?`;
+        body = `Got it. I'll rewrite the ${ct} in a ${followUp.toLowerCase()} tone — preserving all facts and structure, changing only voice and word choice.`;
+        break;
       default:
-        return `Got it. I'll apply "${action}" to your ${ct}. Ready to regenerate?`;
+        body = `Got it. I'll apply "${action}" to your ${ct}.`;
     }
+    return body + suffix;
   }
 
   // Block-level contextual chips (all trigger partial edits on the selected block)
