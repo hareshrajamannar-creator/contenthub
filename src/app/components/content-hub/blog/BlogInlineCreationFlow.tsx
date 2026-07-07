@@ -173,8 +173,8 @@ const LENGTH_OPTIONS = [
 
 const GENERATED_TOPIC_PAIRS: { topic: string; keywords: string[] }[] = [
   {
-    topic: 'How to overcome dental anxiety as an adult\n\nMillions of adults skip routine dental care because of fear or past negative experiences. This post covers practical strategies — from open communication with your dentist to sedation options — that help anxious patients finally get the care they need.',
-    keywords: ['dental-anxiety', 'sedation-dentistry', 'patient-experience'],
+    topic: 'Are dental implants right for you?\n\nDental implants are the gold standard for replacing missing teeth — but not everyone is an immediate candidate. This post walks through who qualifies, what the process looks like, and how implants compare to bridges and dentures.',
+    keywords: ['dental-implants', 'tooth-replacement', 'implant-candidacy'],
   },
   {
     topic: '5 tips for finding the right dentist for your family\n\nChoosing a family dentist is one of the most important healthcare decisions you can make. Learn what to look for — from preventive care philosophy to kid-friendly environments — so the whole family feels comfortable and cared for.',

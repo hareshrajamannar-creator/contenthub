@@ -48,7 +48,7 @@ import { EditorContentCard, type ContentCardData, type CardStatus } from './Edit
 import { EditorScorePanel } from './EditorScorePanel';
 import { ManualPanel } from './EditorLeftPanel';
 import { SegmentedToggle } from '@/app/components/ui/segmented-toggle.v1';
-import { BlockCanvas } from './BlockCanvas';
+import { BlockCanvas, type CanvasBlockInfo } from './BlockCanvas';
 import { BlockEditorProvider } from './BlockEditorContext';
 import { BlockLibraryPanel } from './BlockLibraryPanel';
 import { BlockSettingsPanel } from './BlockSettingsPanel';
@@ -65,6 +65,7 @@ import { FAQPublishModal } from '../faq/FAQPublishModal';
 import { FAQSendForApprovalModal } from '../faq/FAQSendForApprovalModal';
 import { addSavedBlock } from '../shared/savedBlocksStore';
 import { BlogPublishModal } from '../blog/BlogPublishModal';
+import { BlogMetaPanel } from '../blog/BlogMetaPanel';
 import { BlogInlineCreationFlow } from '../blog/BlogInlineCreationFlow';
 import type { BlogFlowData } from '../blog/BlogInlineCreationFlow';
 import { BlogGenerationProgress } from '../blog/BlogGenerationProgress';
@@ -97,13 +98,25 @@ function scoreColorFor(value: number): ScoreDimension['color'] {
   return 'red';
 }
 
+const BLOG_DIM_META: { label: string; description: string }[] = [
+  { label: 'Intent Match',
+    description: 'Measures how directly the content delivers on its title, topic, and the reader\'s search intent.' },
+  { label: 'Search Visibility',
+    description: 'Evaluates how well the content is optimized to be surfaced by Google and AI search engines, covering keyword integration, query coverage, and internal linking.' },
+  { label: 'Content Depth',
+    description: 'Assesses whether the content has real substance, a clear point of view, and brand-specific detail rather than generic filler.' },
+  { label: 'Brand Alignment',
+    description: 'Checks that tone, terminology, differentiators, and calls to action are consistent with your brand voice and positioning.' },
+  { label: 'Publishing Readiness',
+    description: 'A compliance gate that flags unsupported claims, missing disclaimers, and banned words. Scores below 70 block publishing regardless of other scores.' },
+];
+
 function buildBlogScoreDimensions(overallScore: number): ScoreDimension[] {
   const s = Math.max(0, Math.min(100, Math.round(overallScore)));
   const offsets = [1, -3, 2, 3, -4];
-  const labels = ['Intent Match', 'Search Visibility', 'Content Depth', 'Brand Alignment', 'Publishing Readiness'];
-  return labels.map((label, i) => {
+  return BLOG_DIM_META.map(({ label, description }, i) => {
     const v = Math.max(0, Math.min(100, s + offsets[i]));
-    return { label, score: v, color: scoreColorFor(v) };
+    return { label, description, score: v, color: scoreColorFor(v) };
   });
 }
 
@@ -180,8 +193,8 @@ const DEFAULT_REC_BLOG_FLOW_DATA: BlogFlowData = {
   brandKit: 'olive-garden',
   locations: ['loc-1001', 'loc-1002', 'loc-1003', 'loc-1004', 'loc-1005', 'loc-1006', 'loc-1007', 'loc-1008', 'loc-1009', 'loc-1010', 'loc-1011', 'loc-1012', 'loc-1013', 'loc-1014', 'loc-1015', 'loc-1016', 'loc-1017', 'loc-1018', 'loc-1019', 'loc-1020'],
   agentId: 'blog-default',
-  topic: 'Dubbo property market 2026 — what buyers, sellers and landlords need to know',
-  keywords: ['Dubbo property', 'property management Dubbo', 'rental appraisal Dubbo', 'sell property Dubbo'],
+  topic: 'Are dental implants right for you?',
+  keywords: ['dental implants', 'tooth replacement', 'implant candidacy', 'dental implant cost'],
   intent: 'agent',
   objective: 'agent',
   funnelStage: 'agent',
@@ -191,92 +204,91 @@ const DEFAULT_REC_BLOG_FLOW_DATA: BlogFlowData = {
   attachments: [],
   blogCount: 1,
   sections: [
-    { id: 'blog-sec-1', heading: 'Dubbo market conditions for sellers',       description: 'Low listing volumes and consistent buyer enquiry — what sellers need to know right now', wordCount: 300 },
-    { id: 'blog-sec-2', heading: 'Rental market update for landlords',        description: 'Tight vacancy rates, strong demand, and how to maximise your rental yield in Dubbo', wordCount: 350 },
-    { id: 'blog-sec-3', heading: 'What buyers need to know in 2026',          description: 'Finance pre-approval, best-value suburbs, and how to move quickly in a competitive market', wordCount: 400 },
-    { id: 'blog-sec-4', heading: 'Five steps before selling your Dubbo home', description: 'From appraisal to presentation — the highest-return actions before going to market', wordCount: 400 },
-    { id: 'blog-sec-5', heading: 'Free appraisal and next steps',             description: 'How to book a free sales or rental appraisal with Raine & Horne Dubbo', wordCount: 300 },
+    { id: 'blog-sec-1', heading: 'What are dental implants?',             description: 'How implants work, what they are made of, and why they are the gold standard for tooth replacement', wordCount: 300 },
+    { id: 'blog-sec-2', heading: 'Who is a good candidate?',              description: 'Bone density, gum health, medical history — what dentists assess before recommending implants', wordCount: 350 },
+    { id: 'blog-sec-3', heading: 'The implant process step by step',      description: 'From consultation and bone grafting to placing the crown — a clear timeline patients can expect', wordCount: 400 },
+    { id: 'blog-sec-4', heading: 'Implants vs bridges vs dentures',       description: 'Comparing long-term cost, comfort, maintenance, and aesthetics across the main replacement options', wordCount: 400 },
+    { id: 'blog-sec-5', heading: 'Book a consultation',                   description: 'How to take the first step and what to expect at your initial implant assessment', wordCount: 300 },
   ],
 };
 
-const DEFAULT_SEARCH_AI_BLOG_TITLE = 'Dubbo Property Market 2026: What Buyers, Sellers and Landlords Need to Know';
-const DEFAULT_SEARCH_AI_BLOG_HERO_IMAGE = 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=900&q=80';
+const DEFAULT_SEARCH_AI_BLOG_TITLE = 'Are dental implants right for you?';
+const DEFAULT_SEARCH_AI_BLOG_HERO_IMAGE = 'https://images.unsplash.com/photo-1606811841689-23dfddce3e95?w=900&q=80';
 const DEFAULT_SEARCH_AI_BLOG_SECTIONS: NonNullable<ContentEditorShellProps['preloadedBlogSections']> = [
   {
-    body: "The Dubbo property market in 2026 continues to attract strong interest from owner-occupiers, upsizers, and investors across regional NSW. With relatively affordable entry prices, tight rental vacancy, and ongoing infrastructure investment in the region, Dubbo remains one of the most active property markets outside of Australia's capital cities. Whether you are planning to sell, buy, or maximise the return on a rental property, understanding current local conditions is the essential first step.",
+    body: "Dental implants have transformed how dentists replace missing teeth — offering a permanent, natural-looking solution that preserves jaw bone and doesn't affect neighbouring teeth. But they aren't right for everyone, and understanding the process, costs, and candidacy requirements is essential before committing. This guide covers everything you need to know to make an informed decision.",
   },
   {
-    heading: 'Market Conditions for Sellers in Dubbo',
-    body: 'Sellers in Dubbo are currently benefiting from limited available stock and consistent buyer enquiry. Well-presented properties priced within the appraised range are achieving strong results and spending fewer days on market than in previous years.',
+    heading: 'What Are Dental Implants?',
+    body: 'A dental implant is a small titanium post surgically placed into the jaw bone, acting as an artificial tooth root. Once the implant integrates with the bone over several months, a custom crown is attached on top, creating a result that looks, feels, and functions like a natural tooth.',
     listItems: [
-      'Median house prices across Dubbo suburbs have held firm with steady growth in popular family areas',
-      'Three and four bedroom homes in South Dubbo, Keswick Estate, and Delroy Park are attracting multiple buyer enquiries',
-      'Properties priced at or below the appraised range are typically selling within 30–45 days of listing',
-      'Street appeal, updated kitchens, and outdoor entertaining areas are the features buyers value most right now',
+      'Titanium implants are biocompatible — the jaw bone fuses to them through a process called osseointegration',
+      'A single implant can replace one tooth; implant-supported bridges or dentures can replace multiple teeth',
+      'Implants preserve bone that would otherwise resorb after tooth loss, maintaining facial structure over time',
+      'With proper care, the implant post can last a lifetime — only the crown may need replacing after 15–20 years',
     ],
-    image: 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=900&q=80',
-    imageAlt: 'Residential property for sale in Dubbo',
+    image: 'https://images.unsplash.com/photo-1606811841689-23dfddce3e95?w=900&q=80',
+    imageAlt: 'Dental implant model showing titanium post and crown',
   },
   {
-    heading: 'Rental Market Update for Dubbo Landlords',
-    body: 'Dubbo\'s rental market remains tight heading into 2026, with vacancy rates well below the state average. Landlords with well-maintained properties are achieving competitive weekly rents and experiencing minimal downtime between tenancies.',
+    heading: 'Who Is a Good Candidate for Dental Implants?',
+    body: 'Most healthy adults are potential candidates, but successful implants depend on a few key factors your dentist will assess at a consultation. Some patients need preparatory treatment first — which adds time but does not rule out implants.',
     listItems: [
-      'Rental vacancy in Dubbo is low — quality properties in good condition are leasing quickly',
-      'Three bedroom houses in West Dubbo and Grangewood are among the most in-demand rental categories',
-      'Tenants are prioritising properties with ducted air conditioning, updated bathrooms, and secure parking',
-      'Annual rent reviews are recommended to ensure your return keeps pace with current market rates',
+      'Sufficient jaw bone density is required to anchor the implant — a bone graft can address deficiencies if needed',
+      'Healthy gums are essential — active gum disease must be treated and resolved before implant placement',
+      'Non-smokers and well-controlled diabetics have significantly higher implant success rates',
+      'Young patients whose jaw bone is still developing are generally not candidates until growth is complete',
     ],
-    image: 'https://images.unsplash.com/photo-1600047509807-ba8f99d2cdde?w=900&q=80',
-    imageAlt: 'Rental property in Dubbo suburb',
+    image: 'https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=900&q=80',
+    imageAlt: 'Dentist reviewing dental x-ray with patient',
   },
   {
-    heading: 'What Buyers Need to Know in 2026',
-    body: 'For buyers, Dubbo continues to offer meaningful value relative to major metropolitan markets, alongside strong community infrastructure, quality schools, and growing local employment. Both first home buyers and investors are active in the current market.',
+    heading: 'The Implant Process: What to Expect',
+    body: 'Dental implant treatment is typically completed over several months, allowing time for the implant to integrate with the bone before the final crown is placed. Understanding each stage helps patients plan and commit to the timeline confidently.',
     listItems: [
-      'Finance pre-approval is essential — well-priced properties are moving quickly and competition is real',
-      'Suburbs like Brocklehurst and Wongarbon offer more affordable entry points for first home buyers',
-      'Investors should focus on properties near Dubbo Base Hospital, the CBD, and established schools for consistent tenant demand',
-      'A free buyer consultation with a local agent will give you a realistic picture of current value ranges before you start inspecting',
-    ],
-  },
-  {
-    heading: 'Five Steps to Take Before Selling Your Dubbo Property',
-    body: 'Preparation before listing has a measurable impact on sale price and time on market. These are the five highest-return steps Dubbo vendors can take before going live.',
-    listItems: [
-      'Book a free appraisal — establish a realistic price range based on current comparable sales in your specific suburb',
-      'Address minor maintenance — fresh paint, repaired gutters, and clean gardens create a strong first impression',
-      'Declutter and depersonalise — buyers need to picture themselves living there, not navigating your belongings',
-      'Invest in professional photography — listings with quality images generate significantly more digital enquiry',
-      'Agree on a marketing plan — discuss open home frequency, digital advertising reach, and a clear pricing strategy with your agent',
+      'Initial consultation: x-rays, bone assessment, and a full treatment plan with itemised costs',
+      'Implant placement surgery: performed under local anaesthetic — most patients return to work the next day',
+      'Healing period: osseointegration takes 3–6 months; a temporary crown may be placed during this time',
+      'Crown placement: the permanent custom crown is fitted once integration is confirmed, completing the restoration',
     ],
   },
   {
-    heading: 'Book Your Free Dubbo Property Appraisal',
-    body: 'Whether you are ready to act now or simply want to understand your options, a free appraisal is the best starting point. Raine & Horne Dubbo provides obligation-free sales and rental appraisals across all Dubbo suburbs and surrounding communities. Contact our team today to book your appraisal and get an accurate, locally grounded view of what your property is worth right now.',
+    heading: 'Implants vs Bridges vs Dentures',
+    body: 'Each tooth replacement option has different trade-offs around cost, comfort, longevity, and maintenance. Implants have the highest upfront cost but the lowest long-term maintenance and the best preservation of oral health.',
+    listItems: [
+      'Implants: highest upfront cost, longest lifespan, no impact on adjacent teeth, preserves bone',
+      'Bridges: lower initial cost, faster treatment, but requires grinding down healthy neighbouring teeth',
+      'Dentures: most affordable entry point, removable, but can shift over time and do not prevent bone loss',
+      'Over 10–15 years, implants often prove the most cost-effective option when maintenance and replacements are factored in',
+    ],
+  },
+  {
+    heading: 'Book Your Implant Consultation',
+    body: 'The best way to find out if dental implants are right for you is to book a consultation with our implant team. We will review your x-rays, assess your bone and gum health, and provide a clear treatment plan and cost estimate — with no obligation to proceed. Most patients leave knowing exactly what is involved and feeling confident about their next step.',
   },
   {
     heading: 'Frequently Asked Questions',
     body: '',
   },
   {
-    heading: 'Is now a good time to sell my property in Dubbo?',
-    body: 'Current conditions in Dubbo — low listing stock, active buyer enquiry, and shorter days on market — are generally favourable for sellers. A free appraisal with a local Raine & Horne agent will give you a clear, suburb-specific view of what your property could achieve right now.',
+    heading: 'Am I a good candidate for dental implants?',
+    body: 'Most adults in good general health with sufficient jaw bone density are candidates. Key factors include non-smoking status, controlled blood sugar, and healthy gums. Your dentist will assess bone volume and oral health at a consultation — some patients need a bone graft first, which adds time but does not rule out implants.',
   },
   {
-    heading: 'How do I know what rent to charge for my Dubbo investment property?',
-    body: 'A free rental appraisal compares your property against current Dubbo listings and recent leasing results in your suburb, factoring in size, condition, location, and tenant demand. The goal is to recommend a competitive weekly rent that minimises vacancy while maximising your return.',
+    heading: 'How long do dental implants last?',
+    body: 'With proper care, the titanium implant post can last a lifetime. The crown placed on top typically lasts 10–20 years before it may need replacing due to normal wear. Good brushing, flossing, and regular dental check-ups are the biggest factors in long-term implant success.',
   },
   {
-    heading: 'What costs are involved in selling a property in Dubbo?',
-    body: 'The main costs of selling in Dubbo include agent commission, marketing and advertising, conveyancing fees, and any pest or building inspections required. Your agent should provide a full written cost estimate before you sign a listing agreement — always ask for this upfront.',
+    heading: 'Do dental implants hurt?',
+    body: 'The procedure is performed under local anaesthetic, so you will not feel pain during surgery. Most patients report mild soreness and swelling for a few days afterwards, managed with over-the-counter pain relief. The discomfort is generally less than patients expect.',
   },
   {
-    heading: 'How long does it take to sell a house in Dubbo?',
-    body: 'Most well-presented Dubbo properties sell within 30–60 days of listing when priced correctly. Properties that are overpriced or poorly marketed tend to sit longer, which can negatively affect buyer perception. An honest appraisal and a strong marketing plan are the two most important factors.',
+    heading: 'How much do dental implants cost?',
+    body: 'A single implant including the crown typically ranges from $3,000 to $6,500 in Australia depending on complexity and location. Some health funds offer partial cover under major dental extras. Your dentist will provide a detailed treatment plan and itemised quote at your consultation.',
   },
   {
-    heading: 'What does a Dubbo property manager do and is it worth the cost?',
-    body: 'A professional property manager handles tenant sourcing and screening, lease preparation, rent collection, routine inspections, maintenance coordination, and compliance with NSW tenancy legislation. For most Dubbo landlords, the cost of professional management is outweighed by the time saved, reduced vacancy, and risk mitigation it provides.',
+    heading: 'How long does the full implant process take?',
+    body: 'From initial consultation to final crown placement, most implant cases take 4–8 months. Cases requiring bone grafting may take longer. Your dentist will give you a personalised timeline at your first appointment so you can plan accordingly.',
   },
 ];
 
@@ -317,7 +329,7 @@ function buildBlogEditorBlocks({
   preloadedSections?: ContentEditorShellProps['preloadedBlogSections'];
 }): EditorBlock[] {
   const hasPreloadedSections = (preloadedSections?.length ?? 0) > 0;
-  const articleTitle = isUsefulBlogTitle(title) ? title!.trim() : DEFAULT_SEARCH_AI_BLOG_TITLE;
+  const articleTitle = isUsefulBlogTitle(title) ? title!.trim().split('\n')[0].trim() : DEFAULT_SEARCH_AI_BLOG_TITLE;
   const today = new Date().toISOString().split('T')[0];
   const contentSections = hasPreloadedSections ? preloadedSections! : DEFAULT_SEARCH_AI_BLOG_SECTIONS;
 
@@ -1015,6 +1027,9 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
   // True when the user clicks "Edit settings" on an already-generated canvas
   const isEditingSettings = generationInfo !== null && setupPhase === 'setup';
   const [regenConfirmOpen, setRegenConfirmOpen] = useState(false);
+  const [shimmerSection, setShimmerSection] = useState<string | null>(null);
+  const [isRegenProgress, setIsRegenProgress] = useState(false);
+  const [selectedCanvasBlock, setSelectedCanvasBlock] = useState<CanvasBlockInfo | null>(null);
   const [exportOpen, setExportOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
   const [shareInitialTab, setShareInitialTab] = useState<'collaborate' | 'download'>('collaborate');
@@ -1087,8 +1102,21 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
   const [blogScorePanelOpen, setBlogScorePanelOpen] = useState(true);
   // Brief shimmer over the blog canvas while a score fix is being applied.
   const [blogFixShimmer, setBlogFixShimmer] = useState(false);
+  // Score staleness and recalculation state.
+  const [isScoreStale, setIsScoreStale] = useState(false);
+  const [isScoreRecalculating, setIsScoreRecalculating] = useState(false);
+
+  const handleRecalculate = useCallback(() => {
+    setIsScoreStale(false);
+    setIsScoreRecalculating(true);
+    // After all 5 steps complete (5 * 1200ms + 600ms grace)
+    setTimeout(() => {
+      setIsScoreRecalculating(false);
+    }, 6600);
+  }, []);
   const [commentsOpen, setCommentsOpen] = useState(false);
   const [activityOpen, setActivityOpen] = useState(false);
+  const [blogMetaOpen, setBlogMetaOpen] = useState(false);
   const [versionHistoryOpen, setVersionHistoryOpen] = useState(false);
   const setupHeaderTitle = isEditingSettings
     ? (mode === 'blog' ? 'Blog settings' : mode === 'faq' ? 'FAQ settings' : 'Content settings')
@@ -1673,9 +1701,18 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
                       blogScorePanelOpen ? 'bg-muted text-foreground' : 'border border-border',
                     )}
                   >
-                    <ScoreProgressRing score={blogScore} />
-                    <span className="font-medium text-foreground">{blogScore}</span>
-                    <span>/ 100 Content score</span>
+                    {isScoreRecalculating ? (
+                      <>
+                        <div className="size-4 rounded-full border-2 border-primary/20 border-t-primary animate-spin" />
+                        <span className="font-medium text-foreground">Recalculating score</span>
+                      </>
+                    ) : (
+                      <>
+                        <ScoreProgressRing score={blogScore} />
+                        <span className="font-medium text-foreground">{blogScore}</span>
+                        <span>/ 100 Content score</span>
+                      </>
+                    )}
                   </button>
                 )}
 
@@ -1930,6 +1967,16 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
                     editorContext="editing"
                     initialContentType={mode === 'blog' ? 'blog' : undefined}
                     wizardSummary={generationInfo?.label}
+                    onRegen={() => {
+                      // Copilot already confirmed — skip the dialog, go straight to progress
+                      setIsRegenProgress(true);
+                      setIsScoreStale(false);
+                      flowNavRef.current?.generate();
+                    }}
+                    onSectionEditStart={section => setShimmerSection(section)}
+                    onSectionEditEnd={() => { setShimmerSection(null); setIsScoreStale(true); }}
+                    selectedBlock={selectedCanvasBlock}
+                    onClearSelectedBlock={() => setSelectedCanvasBlock(null)}
                   />
                 ) : (
                   <BlockLibraryPanel mode={mode as 'blog' | 'landing' | 'faq'} />
@@ -1950,18 +1997,35 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
                 zoom={zoom}
                 onZoomChange={setZoom}
                 onVersionHistory={() => setVersionHistoryOpen(true)}
-                onActivity={() => { setActivityOpen(v => !v); setCommentsOpen(false); setFaqScorePanelOpen(false); setBlogScorePanelOpen(false); setActiveScoreCardId(null); }}
-                onChat={() => { setCommentsOpen(v => !v); setActivityOpen(false); setFaqScorePanelOpen(false); setBlogScorePanelOpen(false); setActiveScoreCardId(null); }}
+                onActivity={() => { setActivityOpen(v => !v); setCommentsOpen(false); setBlogMetaOpen(false); setFaqScorePanelOpen(false); setBlogScorePanelOpen(false); setActiveScoreCardId(null); }}
+                onChat={() => { setCommentsOpen(v => !v); setActivityOpen(false); setBlogMetaOpen(false); setFaqScorePanelOpen(false); setBlogScorePanelOpen(false); setActiveScoreCardId(null); }}
+                onBlogMeta={mode === 'blog' ? () => { setBlogMetaOpen(v => !v); setCommentsOpen(false); setActivityOpen(false); setBlogScorePanelOpen(false); } : undefined}
+                blogMetaOpen={blogMetaOpen}
               />
               <div className="relative min-h-0 flex-1 overflow-hidden rounded-xl">
-                <BlockCanvas
-                  mode={mode as 'blog' | 'landing' | 'faq'}
-                  zoom={zoom}
-                  onZoomChange={setZoom}
-                  onBlockFocus={() => {
-                    if (mode === 'blog') setBlogScorePanelOpen(false);
-                  }}
-                />
+                {isRegenProgress ? (
+                  <div className="min-h-0 flex-1 overflow-hidden rounded-xl h-full">
+                    <BlogGenerationProgress
+                      sections={blogFlowData?.sections ?? [{ id: 'regen', heading: '', description: '', wordCount: 1200 }]}
+                      brandKit={blogFlowData?.brandKit}
+                      topic={blogFlowData?.topic}
+                      isRegen={true}
+                      onComplete={() => { setIsRegenProgress(false); handleRecalculate(); }}
+                      isExiting={false}
+                    />
+                  </div>
+                ) : (
+                  <BlockCanvas
+                    mode={mode as 'blog' | 'landing' | 'faq'}
+                    zoom={zoom}
+                    onZoomChange={setZoom}
+                    onBlockFocus={(info) => {
+                      if (mode === 'blog') setBlogScorePanelOpen(false);
+                      setSelectedCanvasBlock(info);
+                    }}
+                    shimmerSection={shimmerSection}
+                  />
+                )}
                 {/* Fix-in-progress shimmer — signals the canvas is updating */}
                 {blogFixShimmer && (
                   <div className="absolute inset-0 z-20 flex items-start justify-center bg-background/45 backdrop-blur-[1px]">
@@ -1984,9 +2048,13 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
                 score={blogScore}
                 scoreLabel="Content score"
                 improvementSet="blog"
+                isStale={isScoreStale}
+                onRecalculate={handleRecalculate}
+                isRecalculating={isScoreRecalculating}
+                isRegenerating={isRegenProgress}
                 onItemFixing={() => setBlogFixShimmer(true)}
-                onFixAll={() => setBlogFixShimmer(true)}
-                onItemFixed={() => setBlogFixShimmer(false)}
+                onFixAll={() => { setBlogFixShimmer(true); setIsScoreStale(true); }}
+                onItemFixed={() => { setBlogFixShimmer(false); setIsScoreStale(true); }}
               />
             )}
             {!(mode === 'blog' && blogScorePanelOpen) && !commentsOpen && <BlockSettingsPanel />}
@@ -1996,6 +2064,14 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
               open={commentsOpen}
               onClose={() => setCommentsOpen(false)}
             />
+
+            {/* Blog metadata panel */}
+            {mode === 'blog' && (
+              <BlogMetaPanel
+                open={blogMetaOpen}
+                onClose={() => setBlogMetaOpen(false)}
+              />
+            )}
 
             {/* Activity panel */}
             <ContentActivityDrawer
@@ -2171,6 +2247,7 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
                           zoom={zoom}
                           onZoomChange={setZoom}
                           onBlockFocus={() => {}}
+                          shimmerSection={shimmerSection}
                         />
                       </div>
                     </div>
@@ -2274,6 +2351,9 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
               onClose={() => setActiveScoreCardId(null)}
               config={scorePanelConfig}
               score={activeCard?.score ?? 87}
+              isStale={isScoreStale}
+              onRecalculate={handleRecalculate}
+              isRecalculating={isScoreRecalculating}
             />
 
             {/* Comment panel — slides in from right when comments toggle is active */}
@@ -2313,6 +2393,7 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
             <Button
               onClick={() => {
                 setRegenConfirmOpen(false);
+                setIsRegenProgress(true);
                 flowNavRef.current?.generate();
               }}
             >

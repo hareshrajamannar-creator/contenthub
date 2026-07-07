@@ -21,6 +21,7 @@ export interface BlogGenerationProgressProps {
   topic?: string;
   onComplete: () => void;
   isExiting?: boolean;
+  isRegen?: boolean;
 }
 
 type StepStatus = 'pending' | 'active' | 'done';
@@ -39,6 +40,13 @@ const GEN_STEPS: GenStep[] = [
   { id: 'profile', label: 'Analyzing business profile' },
   { id: 'outline', label: 'Building blog outline' },
   { id: 'writing', label: 'Writing content sections' },
+  { id: 'seo',     label: 'Optimizing for SEO' },
+];
+
+const REGEN_STEPS: GenStep[] = [
+  { id: 'brand',   label: 'Applying your brand guidelines' },
+  { id: 'outline', label: 'Rebuilding the blog structure' },
+  { id: 'writing', label: 'Rewriting content sections' },
   { id: 'seo',     label: 'Optimizing for SEO' },
 ];
 
@@ -107,14 +115,17 @@ export function BlogGenerationProgress({
   topic,
   onComplete,
   isExiting = false,
+  isRegen = false,
 }: BlogGenerationProgressProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const totalWords = sections.reduce((sum, section) => sum + section.wordCount, 0);
+  const steps = isRegen ? REGEN_STEPS : GEN_STEPS;
+
   useEffect(() => {
     // Advance one step every STEP_DURATION_MS
     const timers: ReturnType<typeof setTimeout>[] = [];
 
-    GEN_STEPS.forEach((_, i) => {
+    steps.forEach((_, i) => {
       timers.push(
         setTimeout(() => {
           setCurrentStep(i + 1); // moves step i from 'active' to 'done', i+1 becomes 'active'
@@ -126,13 +137,13 @@ export function BlogGenerationProgress({
     timers.push(
       setTimeout(() => {
         onComplete();
-      }, STEP_DURATION_MS * GEN_STEPS.length + DONE_GRACE_MS)
+      }, STEP_DURATION_MS * steps.length + DONE_GRACE_MS)
     );
 
     return () => timers.forEach(clearTimeout);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const progressPercent = Math.round((currentStep / GEN_STEPS.length) * 100);
+  const progressPercent = Math.round((currentStep / steps.length) * 100);
   const visiblePreviewCount = Math.min(PREVIEW_BLOCKS.length, Math.max(0, currentStep - 1));
 
   const getStatus = (idx: number): StepStatus => {
@@ -151,7 +162,9 @@ export function BlogGenerationProgress({
           <div className="p-8">
             <div className="space-y-4">
               <div className="space-y-1">
-                <h2 className="text-[18px] font-medium text-foreground">Generating your blog post</h2>
+                <h2 className="text-[18px] font-medium text-foreground">
+                  {isRegen ? 'Regenerating your blog post' : 'Generating your blog post'}
+                </h2>
                 <p className="text-[13px] text-muted-foreground">{totalWords} words · {sections.length} sections</p>
               </div>
               <div className="h-1.5 overflow-hidden rounded-full bg-muted">
@@ -169,20 +182,22 @@ export function BlogGenerationProgress({
             </div>
 
             <div className="mt-6 space-y-2">
-              {GEN_STEPS.map((step, idx) => (
+              {steps.map((step, idx) => (
                 <StepRow key={step.id} step={step} status={getStatus(idx)} />
               ))}
             </div>
 
             <p className="mt-4 text-[14px] text-muted-foreground">
-              This usually takes 15-20 seconds. Results will appear automatically.
+              {isRegen
+                ? 'This usually takes 2–3 minutes. Results will appear automatically.'
+                : 'This usually takes 15-20 seconds. Results will appear automatically.'}
             </p>
 
             <div className="mt-8 space-y-8">
               {PREVIEW_BLOCKS.slice(0, visiblePreviewCount).map(item => (
                 <PreviewBlock key={item.heading} heading={item.heading} body={item.body} />
               ))}
-              {currentStep < GEN_STEPS.length && <ShimmerLines />}
+              {currentStep < steps.length && <ShimmerLines />}
             </div>
           </div>
         </div>

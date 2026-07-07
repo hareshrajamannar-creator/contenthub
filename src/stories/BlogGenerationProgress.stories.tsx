@@ -47,3 +47,7 @@ export const SingleSection: Story = {
     onComplete: () => console.log('Generation complete'),
   },
 };
+
+export const Regenerating: Story = {
+  args: { sections: Default.args!.sections, onComplete: () => {}, isRegen: true },
+};

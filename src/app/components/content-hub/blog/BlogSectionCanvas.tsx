@@ -180,7 +180,7 @@ function generateBlogBlocks(sections: BlogSection[]): BlogBlock[] {
     id: makeBlockId(),
     type: 'heading',
     level: 1,
-    headingText: 'Dubbo Property Market 2026: What Buyers, Sellers and Landlords Need to Know',
+    headingText: 'Are dental implants right for you?',
     status: 'ready',
   });
 
@@ -188,8 +188,8 @@ function generateBlogBlocks(sections: BlogSection[]): BlogBlock[] {
   blocks.push({
     id: makeBlockId(),
     type: 'image',
-    src: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=900&q=80',
-    alt: 'Dubbo property market 2026',
+    src: 'https://images.unsplash.com/photo-1606811841689-23dfddce3e95?w=900&q=80',
+    alt: 'Dental implant procedure',
     status: 'ready',
   });
 
@@ -197,7 +197,7 @@ function generateBlogBlocks(sections: BlogSection[]): BlogBlock[] {
   blocks.push({
     id: makeBlockId(),
     type: 'paragraph',
-    body: 'The Dubbo property market in 2026 continues to attract strong interest from owner-occupiers, upsizers, and investors across regional NSW. With relatively affordable entry prices, tight rental vacancy, and ongoing infrastructure investment in the region, Dubbo remains one of the most active property markets outside Australia\'s major capital cities. Whether you are thinking of selling, buying, or maximising the return on a rental property, understanding current local conditions is the essential first step.',
+    body: 'Dental implants have transformed how dentists replace missing teeth — offering a permanent, natural-looking solution that preserves jaw bone and doesn\'t affect neighbouring teeth. But they aren\'t right for everyone, and understanding the process, costs, and candidacy requirements is essential before committing. This guide covers everything you need to know to make an informed decision.',
     status: 'ready',
   });
 
@@ -215,17 +215,17 @@ function generateBlogBlocks(sections: BlogSection[]): BlogBlock[] {
       type: 'paragraph',
       body: section.description.length > 60
         ? section.description + '. Getting this right is one of the highest-leverage improvements a multi-location brand can make to its AI search citation share.'
-        : `${section.description}. Taking action on this now will give your Dubbo property listing a clear advantage in the current market.`,
+        : `${section.description}. Understanding this step can help you go into your implant consultation fully prepared.`,
       status: 'ready',
     });
     blocks.push({
       id: makeBlockId(),
       type: 'bullets',
       items: [
-        'Book a free appraisal to establish a realistic price range based on current comparable sales in your suburb',
-        'Present your property at its best — clean, decluttered, and with any minor maintenance addressed before listing',
-        'Work with a local Dubbo agent who knows your suburb and has a track record of results in your price range',
-        'Review the marketing plan carefully — quality photography and digital advertising reach make a measurable difference',
+        'Schedule a consultation to assess bone density and gum health — both are essential for implant candidacy',
+        'Ask your dentist about the full treatment timeline, including any bone grafting that may be needed beforehand',
+        'Compare implants, bridges, and dentures on long-term cost, maintenance, and comfort — not just upfront price',
+        'Check whether your health fund covers any portion of the implant procedure or related restorative work',
       ],
       status: 'ready',
     });
@@ -240,10 +240,10 @@ function generateBlogBlocks(sections: BlogSection[]): BlogBlock[] {
     status: 'ready',
   });
   [
-    { q: 'Is now a good time to sell my property in Dubbo?', a: 'Current conditions in Dubbo — low listing stock, active buyer enquiry, and shorter average days on market — are generally favourable for sellers. A free appraisal with a local Raine & Horne agent will give you a clear, suburb-specific view of what your property could achieve right now.' },
-    { q: 'How do I know what rent to charge for my Dubbo investment property?', a: 'A free rental appraisal compares your property against current Dubbo listings and recent leasing outcomes in your suburb, factoring in size, condition, location, and tenant demand. The goal is to recommend a competitive weekly rent that minimises vacancy while maximising your return.' },
-    { q: 'How long does it take to sell a house in Dubbo?', a: 'Most well-presented Dubbo properties sell within 30–60 days of listing when priced correctly and marketed effectively. Properties that are overpriced tend to sit longer, which can negatively affect buyer perception. An honest appraisal and a strong marketing plan are the two most important factors.' },
-    { q: 'What does a Dubbo property manager do and is it worth the cost?', a: 'A professional property manager handles tenant sourcing, lease preparation, rent collection, routine inspections, maintenance coordination, and NSW tenancy compliance. For most Dubbo landlords the cost is outweighed by the time saved, reduced vacancy, and risk mitigation it provides.' },
+    { q: 'Am I a good candidate for dental implants?', a: 'Most adults in good general health with sufficient jaw bone density are candidates. Key factors include non-smoking status, controlled blood sugar levels, and healthy gums. Your dentist will assess bone volume and overall oral health at a consultation — some patients need a bone graft first, which adds time but doesn\'t rule out implants.' },
+    { q: 'How long do dental implants last?', a: 'With proper care, the titanium implant post can last a lifetime. The crown placed on top typically lasts 10–20 years before it may need replacing due to normal wear. Good brushing, flossing, and regular dental check-ups are the biggest factors in long-term implant success.' },
+    { q: 'Do dental implants hurt?', a: 'The procedure is performed under local anaesthetic, so you shouldn\'t feel pain during surgery. Most patients report mild soreness and swelling for a few days afterwards, which is managed with over-the-counter pain relief. The discomfort is generally less than patients expect and well within normal tolerance.' },
+    { q: 'How much do dental implants cost?', a: 'A single implant including the crown typically ranges from $3,000 to $6,500 in Australia depending on complexity and location. Some health funds offer partial cover under major dental extras. Your dentist will provide a detailed treatment plan and itemised quote at your consultation.' },
   ].forEach(({ q, a }) => blocks.push({
     id: makeBlockId(),
     type: 'faq-item',

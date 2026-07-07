@@ -36,6 +36,14 @@ interface EditorScorePanelProps {
   maxImprovements?: number;
   /** Which fix copy to surface — FAQ-specific or blog-specific. Default 'faq'. */
   improvementSet?: 'faq' | 'blog';
+  /** Content changed since last score calculation */
+  isStale?: boolean;
+  /** User clicked "Recalculate score" */
+  onRecalculate?: () => void;
+  /** Score recalculation animation is running */
+  isRecalculating?: boolean;
+  /** Blog is currently being fully regenerated */
+  isRegenerating?: boolean;
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
@@ -52,11 +60,16 @@ export function EditorScorePanel({
   scoreLabel,
   maxImprovements,
   improvementSet,
+  isStale,
+  onRecalculate,
+  isRecalculating,
+  isRegenerating,
 }: EditorScorePanelProps) {
   const dims: ScoreDim[] = (dimensions ?? config.scoreDimensions).map(d => ({
     label: d.label,
     score: d.score,
     weight: undefined,
+    description: d.description,
   }));
 
   return (
@@ -80,6 +93,10 @@ export function EditorScorePanel({
           onFixAll={onFixAll}
           maxImprovements={maxImprovements}
           improvementSet={improvementSet}
+          isStale={isStale}
+          onRecalculate={onRecalculate}
+          isRecalculating={isRecalculating}
+          isRegenerating={isRegenerating}
         />
       </div>
     </div>

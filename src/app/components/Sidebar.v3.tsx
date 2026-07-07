@@ -135,9 +135,7 @@ export function IconStrip({ currentView, onViewChange, iconSize = L1_STRIP_ICON_
     <div className="w-[66px] bg-sidebar dark:bg-sidebar flex flex-col items-center shrink-0 transition-colors duration-300" data-no-print>
       {/* Birdeye logo */}
       <div className="h-[48px] w-[55px] flex items-center justify-center shrink-0 text-primary">
-        <svg width="17.55" height="16.875" viewBox="0 0 19.5 18.75" fill="none" aria-hidden>
-          <path clipRule="evenodd" d={svgPaths.p23fcc000} fill="currentColor" fillRule="evenodd" />
-        </svg>
+        <div className="h-[22px] w-[22px] rounded-full bg-primary" />
       </div>
 
       {/* Icon buttons */}

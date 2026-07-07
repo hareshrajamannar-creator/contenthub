@@ -2,6 +2,7 @@ import {
   Activity,
   Check,
   ChevronDown,
+  FileText,
   History,
   MessageCircle,
   Redo2,
@@ -56,6 +57,8 @@ interface CanvasEditorTopBarProps {
   onVersionHistory?: () => void;
   onActivity?: () => void;
   onChat?: () => void;
+  onBlogMeta?: () => void;
+  blogMetaOpen?: boolean;
   hideScore?: boolean;
 }
 
@@ -140,6 +143,8 @@ export function CanvasEditorTopBar({
   onVersionHistory,
   onActivity,
   onChat,
+  onBlogMeta,
+  blogMetaOpen = false,
   hideScore = false,
 }: CanvasEditorTopBarProps) {
   const [assignOpen, setAssignOpen] = useState(false);
@@ -220,6 +225,25 @@ export function CanvasEditorTopBar({
         <TileButton title="Comments" onClick={onChat}>
           <MessageCircle size={14} strokeWidth={1.6} absoluteStrokeWidth />
         </TileButton>
+        {onBlogMeta && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                type="button"
+                aria-label="Blog metadata"
+                aria-pressed={blogMetaOpen}
+                onClick={onBlogMeta}
+                className={cn(
+                  'flex w-[30px] h-[30px] items-center justify-center rounded-lg border border-border/70 bg-background transition-colors hover:bg-muted hover:text-foreground',
+                  blogMetaOpen ? 'text-foreground bg-muted' : 'text-muted-foreground',
+                )}
+              >
+                <FileText size={14} strokeWidth={1.6} absoluteStrokeWidth />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" sideOffset={8}>Blog metadata</TooltipContent>
+          </Tooltip>
+        )}
 
         {/* Divider */}
         <div className="mx-1 h-5 w-px bg-border" />

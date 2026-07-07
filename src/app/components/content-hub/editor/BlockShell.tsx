@@ -33,6 +33,7 @@ interface BlockShellProps {
   onDrop?: (e: React.DragEvent) => void;
   onDragEnd?: () => void;
   isDragOver?: boolean;
+  isShimmering?: boolean;
 }
 
 export function BlockShell({
@@ -53,6 +54,7 @@ export function BlockShell({
   onDrop,
   onDragEnd,
   isDragOver,
+  isShimmering,
 }: BlockShellProps) {
   const shellRef = useRef<HTMLDivElement>(null);
 
@@ -132,7 +134,20 @@ export function BlockShell({
 
       {/* Block content */}
       <div className={cn(surface === 'card' ? 'px-5 py-4' : 'px-4 py-0.5')} onBlur={onBlur}>
-        {children}
+        {isShimmering ? (
+          <div className="pointer-events-none space-y-3 py-1">
+            {/* Header skeleton lines */}
+            <div className="h-3 w-2/5 animate-pulse rounded-full bg-muted" />
+            <div className="h-3 w-full animate-pulse rounded-full bg-muted" />
+            <div className="h-3 w-3/5 animate-pulse rounded-full bg-muted" />
+            {/* Large content block */}
+            <div className="mt-2 h-36 w-full animate-pulse rounded-xl bg-muted" />
+          </div>
+        ) : (
+          <div onBlur={onBlur}>
+            {children}
+          </div>
+        )}
       </div>
     </div>
   );

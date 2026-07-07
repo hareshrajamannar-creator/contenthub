@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useLayoutEffect, useMemo, useCallback } from "react";
+import { BirdeyeLogoMark } from "@/app/components/brand/BirdeyeLogoMark";
 import { usePersistedState } from "@/app/hooks/usePersistedState";
 import {
   ChevronDown, ChevronUp, Settings, Camera, Moon, Sun, Monitor, ChevronLeft, ExternalLink, Plus, Info,
@@ -176,9 +177,7 @@ export function IconStrip({ currentView, onViewChange, iconSize = L1_STRIP_ICON_
     >
       {/* Birdeye logo */}
       <div className="h-[48px] w-[55px] flex items-center justify-center shrink-0">
-        <svg width="17.55" height="16.875" viewBox="0 0 19.5 18.75" fill="none">
-          <path clipRule="evenodd" d={svgPaths.p23fcc000} fill="#2552ED" fillRule="evenodd" />
-        </svg>
+        <BirdeyeLogoMark sizePxHeight={22} />
       </div>
 
       {/* Icon buttons */}

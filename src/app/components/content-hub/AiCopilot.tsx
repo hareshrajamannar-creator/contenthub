@@ -241,71 +241,398 @@ interface FAQWizardAnswers {
   };
 }
 
+// ── Block-type contextual chip sets ───────────────────────────────────────────
+
+function getBlockContextChips(blockType: string): string[] {
+  switch (blockType) {
+    case 'heading':
+      return ['Make it punchier', 'Add a keyword', 'Make it shorter', 'Rewrite the headline'];
+    case 'paragraph':
+      return ['Make it shorter', 'Expand this', 'Adjust the tone', 'Add a supporting detail'];
+    case 'image':
+      return ['Write alt text', 'Add a caption', 'Replace this image'];
+    case 'cta':
+      return ['Rewrite CTA', 'Make it more compelling', 'Change the button text'];
+    case 'list':
+      return ['Add more items', 'Make it shorter', 'Reorder the list', 'Adjust the tone'];
+    case 'quote':
+      return ['Find a better quote', 'Add attribution', 'Rewrite this quote'];
+    case 'key-takeaways':
+      return ['Add a takeaway', 'Trim the list', 'Rewrite takeaways'];
+    case 'author-bar':
+      return ['Update the bio', 'Make the bio shorter'];
+    default:
+      return ['Rewrite this section', 'Make it shorter', 'Adjust the tone'];
+  }
+}
+
 // ── EditorCopilot — content-quality focused chat shown after generation ────────
 
 type EditorMode = 'blog' | 'faq' | 'social' | 'email' | 'landing' | 'video' | 'project';
 
-function EditorCopilot({ mode = 'faq' }: { mode?: EditorMode }) {
-  const opening  = mode === 'blog' ? EDITOR_OPENING_BLOG : mode === 'project' ? EDITOR_OPENING_PROJECT : EDITOR_OPENING;
+function EditorCopilot({
+  mode = 'faq',
+  onRegen,
+  onSectionEditStart,
+  onSectionEditEnd,
+  selectedBlock,
+  onClearSelectedBlock,
+}: {
+  mode?: EditorMode;
+  onRegen?: () => void;
+  onSectionEditStart?: (section: string) => void;
+  onSectionEditEnd?: () => void;
+  selectedBlock?: { id: string; type: string; label: string } | null;
+  onClearSelectedBlock?: () => void;
+}) {
+  const opening    = mode === 'blog' ? EDITOR_OPENING_BLOG : mode === 'project' ? EDITOR_OPENING_PROJECT : EDITOR_OPENING;
   const repliesMap = mode === 'blog' ? EDITOR_REPLIES_BLOG : mode === 'project' ? EDITOR_REPLIES_PROJECT : EDITOR_REPLIES;
 
   const [messages, setMessages] = useState<ChatMessage[]>([opening]);
   const [input, setInput] = useState('');
+  const [activeSection, setActiveSection] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  function handleChip(chip: string) {
-    const userId = Date.now().toString();
-    const loadingId = `${userId}-working`;
+  // ── Contextual chips when a canvas block is selected ──────────────────────────
+  const prevBlockIdRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!selectedBlock) {
+      prevBlockIdRef.current = null;
+      return;
+    }
+    // Only push chips when a new block is selected (not on re-renders)
+    if (selectedBlock.id === prevBlockIdRef.current) return;
+    prevBlockIdRef.current = selectedBlock.id;
+
+    const blockChips = getBlockContextChips(selectedBlock.type);
+    pushAi({
+      text: `What would you like to change in "${selectedBlock.label}"?`,
+      chips: blockChips,
+    }, 200);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedBlock]);
+
+  const isBlog = mode === 'blog';
+
+  // ── Helpers ──────────────────────────────────────────────────────────────────
+
+  function clearAndAddUser(text: string) {
     setMessages(prev => [
-      ...prev.map(message => ({ ...message, chips: undefined, multiSelect: undefined })),
-      { id: userId, role: 'user', text: chip },
-      { id: loadingId, role: 'ai', text: 'Working on it', isLoading: true },
+      ...prev.map(m => ({ ...m, chips: undefined, multiSelect: undefined })),
+      { id: Date.now().toString(), role: 'user' as const, text },
     ]);
-    const replyDef = repliesMap[chip];
-    const fallbackChips = mode === 'blog'
-      ? ['Update the headline', 'Rewrite the intro', 'Add SEO keywords']
-      : ['Strengthen answers', 'Add missing questions', 'Improve SEO structure'];
-    const reply: ChatMessage = replyDef
-      ? {
-          id: loadingId,
-          role: 'ai',
-          text: replyDef.text,
-          chips: replyDef.chips,
-          multiSelect: replyDef.multiSelect,
-        }
-      : {
-          id: loadingId,
-          role: 'ai',
-          text: "Tell me more about what you'd like to change and I'll help refine it.",
-          chips: fallbackChips,
-        };
+  }
+
+  function pushAi(msg: Partial<ChatMessage>, delay = 600) {
+    const id = (Date.now() + Math.random() * 1000).toString();
     setTimeout(() => {
-      setMessages(prev => prev.map(message => (
-        message.id === loadingId
-          ? reply
-          : message
-      )));
+      setMessages(prev => [...prev, { id, role: 'ai' as const, text: '', ...msg } as ChatMessage]);
+    }, delay);
+  }
+
+  function showPartialLoading(sectionLabel: string | null) {
+    onSectionEditStart?.(sectionLabel ?? 'full');
+    const loadId = (Date.now() + 1).toString() + '-pl';
+    const loadText = sectionLabel
+      ? `Applying your changes to the ${sectionLabel.toLowerCase()}…`
+      : 'Applying your changes…';
+    setMessages(prev => [
+      ...prev,
+      { id: loadId, role: 'ai' as const, text: loadText, isLoading: true },
+    ]);
+    setTimeout(() => {
+      onSectionEditEnd?.();
+      const successText = sectionLabel
+        ? `Done. The ${sectionLabel.toLowerCase()} has been updated — review it in the canvas.`
+        : 'Done. Changes applied — review them in the canvas.';
+      setMessages(prev =>
+        prev.map(m =>
+          m.id === loadId
+            ? { ...m, text: successText, isLoading: false, chips: AFTER_EDIT_CHIPS }
+            : m
+        )
+      );
+    }, 1800);
+  }
+
+  // ── Constants ────────────────────────────────────────────────────────────────
+
+  const SECTION_CHIPS = ['Introduction', 'Body', 'Call to action', 'Conclusion'];
+  const AFTER_EDIT_CHIPS = ['Edit another section', 'Change the tone', 'Looks good'];
+
+  const SECTION_EDIT_CHIPS: Record<string, string[]> = {
+    // Sectional actions — ALL must be in PARTIAL_EDIT_ACTION_CHIPS
+    'Introduction':   ['Make it shorter', 'Expand this section', 'Rewrite the hook', 'Add a statistic', 'Soften the tone'],
+    'Body':           ['Make it shorter', 'Expand this section', 'Rewrite entirely', 'Add an example', 'Add data or research'],
+    'Call to action': ['Rewrite CTA', 'Make it more compelling', 'Use an approved CTA', 'Make it shorter'],
+    'Conclusion':     ['Rewrite entirely', 'Add key takeaways', 'Soften the tone', 'Make it shorter'],
+  };
+
+  // Chips that trigger a partial (section-level) edit — must NOT overlap with any regen chip labels
+  const PARTIAL_EDIT_ACTION_CHIPS = new Set([
+    'Make it shorter', 'Expand this section', 'Rewrite entirely', 'Add a statistic',
+    'Add an example', 'Add data or research', 'Rewrite CTA', 'Make it more compelling',
+    'Use an approved CTA', 'Add key takeaways', 'Soften the tone', 'Rewrite the hook',
+  ]);
+
+  // Regen direction chips — labels deliberately distinct from any section/tone chip labels
+  const REGEN_DIRECTION_CHIPS_BLOG = [
+    'Fresh angle and hook',
+    'Rewrite with a new tone',
+    'More depth and research',
+    'Tighten it up',
+  ];
+  const REGEN_DIRECTION_CHIPS_FAQ = [
+    'Different set of questions',
+    'More detailed answers',
+    'Shorter, snappier answers',
+    'New tone throughout',
+  ];
+
+  // Tone chips — professional/conversational are partial; persuasive/thought leadership trigger regen
+  const PARTIAL_TONE_CHIPS = new Set(['More professional', 'More conversational']);
+  const REGEN_TONE_CHIPS   = new Set(['More persuasive', 'Thought leadership']);
+
+  // Intent chips — all trigger regen
+  const INTENT_CHIPS = ['Educate the reader', 'Drive more conversions', 'Build brand authority', 'Target local search'];
+
+  // Block-level contextual chips (all trigger partial edits on the selected block)
+  const BLOCK_CONTEXT_CHIPS = new Set([
+    'Make it punchier', 'Add a keyword', 'Rewrite the headline',
+    'Expand this', 'Add a supporting detail',
+    'Write alt text', 'Add a caption', 'Replace this image',
+    'Rewrite CTA', 'Make it more compelling', 'Change the button text',
+    'Add more items', 'Reorder the list',
+    'Find a better quote', 'Add attribution', 'Rewrite this quote',
+    'Add a takeaway', 'Trim the list', 'Rewrite takeaways',
+    'Update the bio', 'Make the bio shorter',
+    'Rewrite this section',
+  ]);
+
+  // ── Chip handler ─────────────────────────────────────────────────────────────
+
+  function triggerRegen(confirmationText: string) {
+    pushAi({
+      text: confirmationText,
+      chips: ['Start regenerating'],
+    });
+  }
+
+  function handleChip(chip: string) {
+    clearAndAddUser(chip);
+
+    // ── Regen confirmation ────────────────────────────────────────────────────
+    if (chip === 'Start regenerating') {
+      onRegen?.();
+      return;
+    }
+
+    // ── Block-level context chip ──────────────────────────────────────────────
+    if (BLOCK_CONTEXT_CHIPS.has(chip)) {
+      showPartialLoading(selectedBlock?.label ?? null);
+      onClearSelectedBlock?.();
+      prevBlockIdRef.current = null;
+      return;
+    }
+
+    // ── Section editing ───────────────────────────────────────────────────────
+
+    if (chip === 'Edit a section') {
+      pushAi({ text: 'Which section would you like to work on?', chips: SECTION_CHIPS });
+      return;
+    }
+
+    if (chip === 'Edit another section' || chip === 'Select a section') {
+      pushAi({ text: 'Which section would you like to work on next?', chips: SECTION_CHIPS });
+      return;
+    }
+
+    if (SECTION_CHIPS.includes(chip)) {
+      setActiveSection(chip);
+      pushAi({
+        text: `What would you like to change in the ${chip.toLowerCase()}?`,
+        chips: SECTION_EDIT_CHIPS[chip] ?? ['Make it shorter', 'Expand this section', 'Rewrite entirely'],
+      });
+      return;
+    }
+
+    if (PARTIAL_EDIT_ACTION_CHIPS.has(chip)) {
+      showPartialLoading(activeSection);
+      return;
+    }
+
+    // ── Tone ─────────────────────────────────────────────────────────────────
+
+    if (chip === 'Change the tone') {
+      pushAi({
+        text: isBlog
+          ? 'What tone would you like for this blog?'
+          : 'What tone would you like for the FAQ answers?',
+        chips: isBlog
+          ? ['More professional', 'More conversational', 'More persuasive', 'Thought leadership']
+          : ['Professional', 'Friendly and casual', 'Authoritative', 'Empathetic'],
+      });
+      return;
+    }
+
+    // Partial tone edits — apply directly, no extra step
+    if (PARTIAL_TONE_CHIPS.has(chip)) {
+      setActiveSection(null);
+      showPartialLoading(null);
+      return;
+    }
+
+    // FAQ tones are all partial edits
+    if (chip === 'Professional' || chip === 'Friendly and casual' || chip === 'Authoritative' || chip === 'Empathetic') {
+      showPartialLoading(null);
+      return;
+    }
+
+    // Regen tones — ask for confirmation before firing
+    if (REGEN_TONE_CHIPS.has(chip)) {
+      triggerRegen(
+        chip === 'Thought leadership'
+          ? 'A thought-leadership voice works best when it shapes the whole piece — this will require a full rewrite. Ready to go?'
+          : 'A persuasive voice needs to run through the whole blog to feel consistent — this will require a full rewrite. Ready to go?',
+      );
+      return;
+    }
+
+    // ── Intent ───────────────────────────────────────────────────────────────
+
+    if (chip === 'Change the intent') {
+      pushAi({
+        text: 'What do you want this blog to accomplish?',
+        chips: INTENT_CHIPS,
+      });
+      return;
+    }
+
+    if (INTENT_CHIPS.includes(chip)) {
+      const intentMap: Record<string, string> = {
+        'Educate the reader':    'educational',
+        'Drive more conversions': 'conversion-focused',
+        'Build brand authority':  'brand-authority',
+        'Target local search':    'local-search',
+      };
+      triggerRegen(
+        `Shifting to a ${intentMap[chip] ?? chip.toLowerCase()} approach requires a full rewrite of the blog. This takes 2–3 minutes — ready to start?`,
+      );
+      return;
+    }
+
+    // ── Regenerate ───────────────────────────────────────────────────────────
+
+    if (chip === 'Regenerate blog') {
+      pushAi({
+        text: 'What would you like to change in the regenerated version?',
+        chips: REGEN_DIRECTION_CHIPS_BLOG,
+      });
+      return;
+    }
+
+    if (chip === 'Regenerate FAQ') {
+      pushAi({
+        text: 'What would you like to change in the new FAQ?',
+        chips: REGEN_DIRECTION_CHIPS_FAQ,
+      });
+      return;
+    }
+
+    // Regen direction chips — trigger immediately (all labels are distinct from section/tone chips)
+    if (REGEN_DIRECTION_CHIPS_BLOG.includes(chip) || REGEN_DIRECTION_CHIPS_FAQ.includes(chip)) {
+      const directionMap: Record<string, string> = {
+        'Fresh angle and hook':         'a fresh angle and new hook',
+        'Rewrite with a new tone':      'a new tone throughout',
+        'More depth and research':      'more depth and supporting research',
+        'Tighten it up':                'a tighter, more focused format',
+        'Different set of questions':   'a different set of questions',
+        'More detailed answers':        'more detailed answers',
+        'Shorter, snappier answers':    'shorter, snappier answers',
+        'New tone throughout':          'a new tone throughout',
+      };
+      const direction = directionMap[chip] ?? chip.toLowerCase();
+      const timeText = isBlog ? '2–3 minutes' : '30–60 seconds';
+      triggerRegen(`This will regenerate the full blog with ${direction}. It takes ${timeText} — ready to start?`);
+      return;
+    }
+
+    // ── FAQ editing ───────────────────────────────────────────────────────────
+
+    if (chip === 'Edit an answer') {
+      pushAi({
+        text: 'What would you like to improve across the answers?',
+        chips: ['Strengthen weak answers', 'Simplify the language', 'Add local keywords', 'Improve SEO structure'],
+      });
+      return;
+    }
+
+    if (chip === 'Add missing questions') {
+      pushAi({
+        text: 'Which area needs more coverage?',
+        chips: ['Pricing and costs', 'How the process works', 'Comparisons and alternatives', 'Local and location info'],
+      });
+      return;
+    }
+
+    // ── Wrap-up ───────────────────────────────────────────────────────────────
+
+    if (chip === 'Looks good') {
+      pushAi({ text: "Your content is looking strong. Let me know whenever you want to make more changes." });
+      return;
+    }
+
+    // ── FAQ answer improvement chips → partial loading ────────────────────────
+
+    const FAQ_PARTIAL_CHIPS = new Set([
+      'Strengthen weak answers', 'Simplify the language', 'Add local keywords', 'Improve SEO structure',
+      'Pricing and costs', 'How the process works', 'Comparisons and alternatives', 'Local and location info',
+    ]);
+    if (FAQ_PARTIAL_CHIPS.has(chip)) {
+      showPartialLoading(null);
+      return;
+    }
+
+    // ── Fall through to repliesMap ────────────────────────────────────────────
+
+    const loadingId = (Date.now() + 2).toString() + '-load';
+    setMessages(prev => [
+      ...prev.map(m => ({ ...m, chips: undefined, multiSelect: undefined })),
+      { id: loadingId, role: 'ai' as const, text: 'Working on it', isLoading: true },
+    ]);
+
+    const replyDef = repliesMap[chip];
+    const fallbackChips = isBlog
+      ? ['Edit a section', 'Change the tone', 'Regenerate blog']
+      : ['Edit an answer', 'Add missing questions', 'Regenerate FAQ'];
+
+    const reply: ChatMessage = replyDef
+      ? { id: loadingId, role: 'ai', text: replyDef.text, chips: replyDef.chips, multiSelect: replyDef.multiSelect }
+      : { id: loadingId, role: 'ai', text: "Tell me more about what you'd like to change and I'll help refine it.", chips: fallbackChips };
+
+    setTimeout(() => {
+      setMessages(prev => prev.map(m => (m.id === loadingId ? reply : m)));
     }, 900);
   }
 
   function handleSend(text: string) {
     if (!text.trim()) return;
     setInput('');
-    setMessages(prev => [...prev, { id: Date.now().toString(), role: 'user', text: text.trim() }]);
-    setTimeout(() => {
-      setMessages(prev => [
-        ...prev,
-        {
-          id: (Date.now() + 1).toString(),
-          role: 'ai',
-          text: "Got it. Select specific content on the canvas or describe which section you want to work on and I'll suggest improvements.",
-        },
-      ]);
-    }, 700);
+    // If a block is selected, prefix the message so the AI knows the context
+    const userText = selectedBlock
+      ? `[${selectedBlock.label}] ${text.trim()}`
+      : text.trim();
+    clearAndAddUser(userText);
+    // Clear the block chip after sending
+    if (selectedBlock) {
+      onClearSelectedBlock?.();
+      prevBlockIdRef.current = null;
+    }
+    showPartialLoading(selectedBlock?.label ?? null);
   }
 
   return (
@@ -341,7 +668,11 @@ function EditorCopilot({ mode = 'faq' }: { mode?: EditorMode }) {
           value={input}
           onChange={setInput}
           onSend={() => handleSend(input)}
-          placeholder="Describe what you want to improve..."
+          placeholder={selectedBlock ? `Ask about "${selectedBlock.label}"…` : "Describe what you want to improve..."}
+          contextChip={selectedBlock ? {
+            label: selectedBlock.label,
+            onRemove: () => { onClearSelectedBlock?.(); prevBlockIdRef.current = null; },
+          } : null}
         />
       </div>
     </div>
@@ -419,17 +750,8 @@ const EDITOR_REPLIES_PROJECT: Record<string, EditorReplyProject> = {
 const EDITOR_OPENING: ChatMessage = {
   id: 'editor-0',
   role: 'ai',
-  text: "What would you like to improve?",
-  chips: [
-    'Strengthen answers',
-    'Add missing questions',
-    'Simplify language',
-    'Improve SEO structure',
-    'Make more concise',
-    'Rewrite in different tone',
-    'Add examples',
-    'Check against objective',
-  ],
+  text: "What would you like to do with this FAQ?",
+  chips: ['Edit an answer', 'Add missing questions', 'Change the tone', 'Regenerate FAQ'],
 };
 
 // ── Blog editor ───────────────────────────────────────────────────────────────
@@ -437,17 +759,8 @@ const EDITOR_OPENING: ChatMessage = {
 const EDITOR_OPENING_BLOG: ChatMessage = {
   id: 'editor-0',
   role: 'ai',
-  text: "What would you like to update in this blog?",
-  chips: [
-    'Update the headline',
-    'Rewrite the intro',
-    'Improve section flow',
-    'Add SEO keywords',
-    'Expand thin sections',
-    'Tighten the CTA',
-    'Change the tone',
-    'Add examples or data',
-  ],
+  text: "What would you like to do with this blog?",
+  chips: ['Edit a section', 'Change the tone', 'Change the intent', 'Regenerate blog'],
 };
 
 const EDITOR_REPLIES_BLOG: Record<string, EditorReply> = {
@@ -913,11 +1226,21 @@ interface AiCopilotProps {
   editorContext?: 'setup' | 'editing';
   /** Wizard output passed in so the copilot can reference tone/objective without re-asking */
   wizardSummary?: string;
+  /** Called when user confirms a full regeneration from the editor copilot */
+  onRegen?: () => void;
+  /** Called when the copilot starts applying a section edit — section name passed as argument */
+  onSectionEditStart?: (section: string) => void;
+  /** Called when the section edit completes */
+  onSectionEditEnd?: () => void;
+  /** Block selected on the canvas — shown as a context chip in the prompt area */
+  selectedBlock?: { id: string; type: string; label: string } | null;
+  /** Called when the user dismisses the block context chip */
+  onClearSelectedBlock?: () => void;
 }
 
 // ── Component ──────────────────────────────────────────────────────────────────
 
-export const AiCopilot = ({ onStartGenerating, onGenerationComplete, initialContentType, onFAQAnswersReady, editorContext = 'setup', wizardSummary: _wizardSummary }: AiCopilotProps) => {
+export const AiCopilot = ({ onStartGenerating, onGenerationComplete, initialContentType, onFAQAnswersReady, editorContext = 'setup', wizardSummary: _wizardSummary, onRegen, onSectionEditStart, onSectionEditEnd, selectedBlock, onClearSelectedBlock }: AiCopilotProps) => {
   // Editing mode — completely separate UI path
   if (editorContext === 'editing') {
     const editorMode: EditorMode =
@@ -927,7 +1250,7 @@ export const AiCopilot = ({ onStartGenerating, onGenerationComplete, initialCont
       initialContentType === 'faq'     ? 'faq'     :
       initialContentType === 'project' ? 'project' :
       'faq';
-    return <EditorCopilot mode={editorMode} />;
+    return <EditorCopilot mode={editorMode} onRegen={onRegen} onSectionEditStart={onSectionEditStart} onSectionEditEnd={onSectionEditEnd} selectedBlock={selectedBlock} onClearSelectedBlock={onClearSelectedBlock} />;
   }
   const initialConvState: ConvState = initialContentType && initialContentType !== 'project'
     ? { path: initialContentType, step: 0, answers: {} }

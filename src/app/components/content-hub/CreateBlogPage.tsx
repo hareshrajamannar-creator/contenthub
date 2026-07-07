@@ -128,8 +128,8 @@ const LENGTH_OPTIONS = [
 
 const GENERATED_TOPIC_PAIRS: { topic: string; keywords: string[] }[] = [
   {
-    topic: 'How to overcome dental anxiety as an adult\n\nMillions of adults skip routine dental care because of fear or past negative experiences. This post covers practical strategies — from open communication with your dentist to sedation options — that help anxious patients finally get the care they need.',
-    keywords: ['dental-anxiety', 'sedation-dentistry', 'patient-experience'],
+    topic: 'Are dental implants right for you?\n\nDental implants are the gold standard for replacing missing teeth — but not everyone is an immediate candidate. This post walks through who qualifies, what the process looks like, and how implants compare to bridges and dentures.',
+    keywords: ['dental-implants', 'tooth-replacement', 'implant-candidacy'],
   },
   {
     topic: '5 tips for finding the right dentist for your family\n\nChoosing a family dentist is one of the most important healthcare decisions you can make. Learn what to look for — from preventive care philosophy to kid-friendly environments — so the whole family feels comfortable and cared for.',
@@ -187,7 +187,9 @@ export function CreateBlogPage({ onCancel, onGenerate }: CreateBlogPageProps) {
   const [agentId, setAgentId] = useState('blog-default');
 
   // Step 2
+  const [createMode, setCreateMode] = useState<'topic' | 'url'>('topic');
   const [topic, setTopic]           = useState('');
+  const [sourceUrl, setSourceUrl]   = useState('');
   const [keywords, setKeywords]     = useState<string[]>([]);
   const [intent, setIntent]         = useState('agent');
   const [objective, setObjective]   = useState('agent');
@@ -198,7 +200,8 @@ export function CreateBlogPage({ onCancel, onGenerate }: CreateBlogPageProps) {
   const [refUrlInput, setRefUrlInput] = useState('');
   const [attachedFiles, setAttachedFiles] = useState<string[]>([]);
   const [isDragOver, setIsDragOver] = useState(false);
-  const [advancedOpen, setAdvancedOpen] = useState(false);
+  const [customiseOpen, setCustomiseOpen] = useState(false);
+  const [advancedOpen, setAdvancedOpen]   = useState(false);
   const [includeImages, setIncludeImages]   = useState(true);
   const [includeCTAs, setIncludeCTAs]       = useState(true);
   const [includeFAQ, setIncludeFAQ]         = useState(true);
@@ -209,7 +212,9 @@ export function CreateBlogPage({ onCancel, onGenerate }: CreateBlogPageProps) {
 
   const canAdvance = step === 0
     ? blogName.trim().length > 0 && selectedLocations.length > 0
-    : topic.trim().length >= 5;
+    : createMode === 'topic'
+      ? topic.trim().length >= 5
+      : sourceUrl.trim().length > 0;
 
   function handleBrandKitChange(id: string) {
     const kit = BRAND_KITS.find(k => k.id === id);
@@ -251,13 +256,14 @@ export function CreateBlogPage({ onCancel, onGenerate }: CreateBlogPageProps) {
       setStep(1);
       return;
     }
-    const resolvedName = blogName.trim() || topic.split('\n')[0].trim();
+    const resolvedTopic = createMode === 'url' ? sourceUrl : topic;
+    const resolvedName = blogName.trim() || resolvedTopic.split('\n')[0].trim();
     onGenerate({
       contentName: resolvedName,
       brandKitId,
       locations: selectedLocations,
       agentId,
-      topic,
+      topic: resolvedTopic,
       keywords,
       intent,
       objective,
@@ -268,182 +274,213 @@ export function CreateBlogPage({ onCancel, onGenerate }: CreateBlogPageProps) {
     });
   }
 
-  // ── Step 1: Blog setup (agent at top, then topic + all setup fields) ─────────
+  // ── Step 1: Blog setup ────────────────────────────────────────────────────────
 
   function renderStep1() {
     return (
-      <div className="space-y-6">
+      <div className="space-y-8">
         <h2 className={CONTENT_FLOW_STEP_TITLE_CLASS}>Blog setup</h2>
 
-        {/* Topic */}
-        <div className="space-y-1.5">
+        {/* Create mode radio list */}
+        <div className="space-y-1">
           <label className="text-[13px] font-medium text-foreground">
-            Topic <span className="text-destructive">*</span>
+            How would you like to create this blog?
           </label>
-          <ContentFlowTextarea
-            value={topic}
-            onChange={e => setTopic(e.target.value)}
-            placeholder="e.g. How to overcome dental anxiety as an adult"
-            className="min-h-[100px]"
-          />
-          <button
-            type="button"
-            disabled={generatingTopic}
-            onClick={handleGenerateTopic}
-            className="flex items-center gap-1.5 text-[12px] font-medium text-muted-foreground hover:text-foreground disabled:opacity-60 transition-colors"
-          >
-            {generatingTopic
-              ? <Loader2 size={13} strokeWidth={1.6} absoluteStrokeWidth className="animate-spin text-[#7c3aed]" />
-              : <Sparkles size={13} strokeWidth={1.6} absoluteStrokeWidth className="text-[#7c3aed]" />
-            }
-            {generatingTopic ? 'Generating...' : topic ? 'Regenerate topic' : 'Generate a topic for me'}
-          </button>
-        </div>
 
-        {/* Target keywords */}
-        <div className="space-y-1.5">
-          <ContentFlowInfoLabel tooltip="Type a keyword and press Enter, or pick from suggestions.">
-            Keywords
-          </ContentFlowInfoLabel>
-          <ContentFlowKeywordTagInput
-            values={keywords}
-            suggestions={KEYWORD_OPTIONS}
-            onChange={setKeywords}
-            placeholder="Select or enter keywords"
-          />
-        </div>
-
-        {/* Intent */}
-        <div className="space-y-1.5">
-          <label className="text-[13px] font-medium text-foreground">Intent</label>
-          <ContentFlowSelect value={intent} options={INTENT_OPTIONS} onChange={setIntent} />
-        </div>
-
-        {/* Objective */}
-        <div className="space-y-1.5">
-          <label className="text-[13px] font-medium text-foreground">Objective</label>
-          <ContentFlowSelect value={objective} options={OBJECTIVE_OPTIONS} onChange={setObjective} />
-        </div>
-
-        {/* Funnel stage */}
-        <div className="space-y-1.5">
-          <label className="text-[13px] font-medium text-foreground">Funnel stage</label>
-          <ContentFlowSelect value={funnelStage} options={FUNNEL_OPTIONS} onChange={setFunnelStage} />
-        </div>
-
-        {/* Length */}
-        <div className="space-y-1.5">
-          <label className="text-[13px] font-medium text-foreground">Length</label>
-          <ContentFlowSelect value={length} options={LENGTH_OPTIONS} onChange={setLength} />
-        </div>
-
-        {/* Brief */}
-        <div className="space-y-1.5">
-          <label className="text-[13px] font-medium text-foreground">Anything specific you want covered?</label>
-          <ContentFlowTextarea
-            value={brief}
-            onChange={e => setBrief(e.target.value)}
-            placeholder="What angle, tone, or specific points should the agent know about?"
-            className="min-h-[100px]"
-          />
-        </div>
-
-        {/* Reference URLs */}
-        <div className="space-y-1.5">
-          <label className="text-[13px] font-medium text-foreground">Reference URLs</label>
-          <div className="flex items-center gap-2">
-            <ContentFlowTextInput
-              value={refUrlInput}
-              onChange={e => setRefUrlInput(e.target.value)}
-              onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleAddUrl(); } }}
-              placeholder="https://..."
-              className="flex-1"
-            />
+          {/* Option 1 — topic */}
+          <div className="pt-4">
             <button
               type="button"
-              onClick={handleAddUrl}
-              disabled={!refUrlInput.trim() || refUrls.length >= 5}
-              className="h-10 px-4 rounded-[8px] border border-border bg-background text-[13px] font-medium text-foreground hover:bg-muted transition-colors disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
+              onClick={() => setCreateMode('topic')}
+              className="flex items-start gap-3 w-full text-left"
             >
-              Add
+              {/* Radio circle */}
+              <span className={cn(
+                'mt-0.5 h-4 w-4 flex-none rounded-full border-2 flex items-center justify-center transition-colors',
+                createMode === 'topic' ? 'border-primary bg-primary' : 'border-border bg-background',
+              )}>
+                {createMode === 'topic' && <span className="h-1.5 w-1.5 rounded-full bg-white" />}
+              </span>
+              <span className="flex flex-col gap-0.5">
+                <span className="text-[13px] font-medium text-foreground">Start with a topic</span>
+                <span className="text-[12px] text-muted-foreground">Describe what you want the blog to cover</span>
+              </span>
             </button>
-          </div>
-          {refUrls.length > 0 && (
-            <div className="flex flex-col gap-1 mt-1">
-              {refUrls.map(url => (
-                <div key={url} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted text-[12px]">
-                  <span className="flex-1 text-foreground truncate">{url}</span>
+
+            {/* Inline expanded input for topic mode */}
+            {createMode === 'topic' && (
+              <div className="ml-7 mt-4 rounded-lg border border-border overflow-hidden focus-within:border-primary/50 focus-within:ring-1 focus-within:ring-primary/20 transition-colors">
+                <textarea
+                  value={topic}
+                  onChange={e => setTopic(e.target.value)}
+                  placeholder="e.g. Top 5 ways restaurants can respond to negative reviews to make it industry-relevant"
+                  rows={4}
+                  className="w-full resize-none bg-background px-4 pt-3 pb-2 text-[13px] text-foreground placeholder:text-muted-foreground/60 outline-none border-none"
+                />
+                <div className="border-t border-border px-3 py-2 bg-background">
                   <button
                     type="button"
-                    onClick={() => setRefUrls(prev => prev.filter(u => u !== url))}
-                    className="text-muted-foreground hover:text-foreground transition-colors shrink-0"
+                    disabled={generatingTopic}
+                    onClick={handleGenerateTopic}
+                    className="flex items-center gap-1.5 text-[12px] font-medium text-muted-foreground hover:text-foreground disabled:opacity-60 transition-colors"
                   >
-                    <X size={12} strokeWidth={1.6} absoluteStrokeWidth />
+                    {generatingTopic
+                      ? <Loader2 size={13} strokeWidth={1.6} absoluteStrokeWidth className="animate-spin text-[#7c3aed]" />
+                      : <Sparkles size={13} strokeWidth={1.6} absoluteStrokeWidth className="text-[#7c3aed]" />
+                    }
+                    {generatingTopic ? 'Generating...' : topic ? 'Regenerate topic' : 'Generate a topic for me'}
                   </button>
                 </div>
-              ))}
-            </div>
-          )}
-          {refUrls.length >= 5 && (
-            <p className="text-[11px] text-muted-foreground">Maximum 5 URLs added</p>
-          )}
+              </div>
+            )}
+          </div>
+
+          {/* Option 2 — URL */}
+          <div className="pt-4">
+            <button
+              type="button"
+              onClick={() => setCreateMode('url')}
+              className="flex items-start gap-3 w-full text-left"
+            >
+              <span className={cn(
+                'mt-0.5 h-4 w-4 flex-none rounded-full border-2 flex items-center justify-center transition-colors',
+                createMode === 'url' ? 'border-primary bg-primary' : 'border-border bg-background',
+              )}>
+                {createMode === 'url' && <span className="h-1.5 w-1.5 rounded-full bg-white" />}
+              </span>
+              <span className="flex flex-col gap-0.5">
+                <span className="text-[13px] font-medium text-foreground">Start with a URL or video link</span>
+                <span className="text-[12px] text-muted-foreground">Paste a website URL or YouTube link to use as source material</span>
+              </span>
+            </button>
+
+            {/* Inline expanded input for URL mode */}
+            {createMode === 'url' && (
+              <div className="ml-7 mt-4">
+                <ContentFlowTextInput
+                  value={sourceUrl}
+                  onChange={e => setSourceUrl(e.target.value)}
+                  placeholder="https://youtube.com/watch?v=... or https://example.com/article"
+                />
+              </div>
+            )}
+          </div>
         </div>
 
-        {/* Attachments */}
-        <div className="space-y-1.5">
-          <label className="text-[13px] font-medium text-foreground">Attachments</label>
+        {/* Customise your blog accordion */}
+        <div className="rounded-lg border border-border">
           <button
             type="button"
-            onClick={() => fileInputRef.current?.click()}
-            onDragOver={e => { e.preventDefault(); setIsDragOver(true); }}
-            onDragLeave={() => setIsDragOver(false)}
-            onDrop={e => { e.preventDefault(); setIsDragOver(false); handleFiles(e.dataTransfer.files); }}
-            className={cn(
-              'w-full rounded-lg border-2 border-dashed px-4 py-5 flex flex-col items-center gap-2 transition-colors',
-              isDragOver
-                ? 'border-primary/50 bg-primary/5'
-                : 'border-border hover:border-primary/30 hover:bg-muted/30',
-            )}
+            onClick={() => setCustomiseOpen(o => !o)}
+            className="flex items-center justify-between w-full px-4 py-3"
           >
-            <Upload size={18} strokeWidth={1.6} absoluteStrokeWidth className="text-muted-foreground" />
-            <span className="text-[13px] font-medium text-foreground">Drop files or click to browse</span>
-            <span className="text-[11px] text-muted-foreground">.pdf · .docx · .txt · .png · .jpg</span>
+            <span className="text-[13px] font-medium text-foreground">Customise your blog</span>
+            {customiseOpen
+              ? <ChevronUp size={14} strokeWidth={1.6} absoluteStrokeWidth className="text-muted-foreground" />
+              : <ChevronDown size={14} strokeWidth={1.6} absoluteStrokeWidth className="text-muted-foreground" />
+            }
           </button>
-          <input
-            ref={fileInputRef}
-            type="file"
-            multiple
-            accept=".pdf,.docx,.txt,.png,.jpg,.jpeg"
-            className="hidden"
-            onChange={e => handleFiles(e.target.files)}
-          />
-          {attachedFiles.length > 0 && (
-            <div className="flex flex-col gap-1">
-              {attachedFiles.map(name => (
-                <div key={name} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted text-[12px]">
-                  <FileText size={13} strokeWidth={1.6} absoluteStrokeWidth className="text-muted-foreground shrink-0" />
-                  <span className="flex-1 text-foreground truncate">{name}</span>
-                  <button
-                    type="button"
-                    onClick={() => setAttachedFiles(prev => prev.filter(f => f !== name))}
-                    className="text-muted-foreground hover:text-foreground transition-colors shrink-0"
-                  >
-                    <X size={12} strokeWidth={1.6} absoluteStrokeWidth />
-                  </button>
-                </div>
-              ))}
+          {customiseOpen && (
+            <div className="flex flex-col gap-5 border-t border-border px-4 py-4">
+
+              {/* Keywords */}
+              <div className="space-y-1.5">
+                <ContentFlowInfoLabel tooltip="Type a keyword and press Enter, or pick from suggestions.">
+                  Keywords
+                </ContentFlowInfoLabel>
+                <ContentFlowKeywordTagInput
+                  values={keywords}
+                  suggestions={KEYWORD_OPTIONS}
+                  onChange={setKeywords}
+                  placeholder="Select or enter keywords"
+                />
+              </div>
+
+              {/* Length */}
+              <div className="space-y-1.5">
+                <label className="text-[13px] font-medium text-foreground">Length</label>
+                <ContentFlowSelect value={length} options={LENGTH_OPTIONS} onChange={setLength} />
+              </div>
+
+              {/* Anything specific */}
+              <div className="space-y-1.5">
+                <label className="text-[13px] font-medium text-foreground">Anything specific you want covered?</label>
+                <ContentFlowTextarea
+                  value={brief}
+                  onChange={e => setBrief(e.target.value)}
+                  placeholder="What angle, tone, or specific points should the agent know about?"
+                  className="min-h-[80px]"
+                />
+              </div>
+
+              {/* Attachments */}
+              <div className="space-y-1.5">
+                <label className="text-[13px] font-medium text-foreground">Attachments</label>
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  onDragOver={e => { e.preventDefault(); setIsDragOver(true); }}
+                  onDragLeave={() => setIsDragOver(false)}
+                  onDrop={e => { e.preventDefault(); setIsDragOver(false); handleFiles(e.dataTransfer.files); }}
+                  className={cn(
+                    'w-full rounded-lg border-2 border-dashed px-4 py-4 flex flex-col items-center gap-2 transition-colors',
+                    isDragOver
+                      ? 'border-primary/50 bg-primary/5'
+                      : 'border-border hover:border-primary/30 hover:bg-muted/30',
+                  )}
+                >
+                  <Upload size={16} strokeWidth={1.6} absoluteStrokeWidth className="text-muted-foreground" />
+                  <span className="text-[13px] font-medium text-foreground">Drop files or click to browse</span>
+                  <span className="text-[11px] text-muted-foreground">.pdf · .docx · .txt · .png · .jpg</span>
+                </button>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  multiple
+                  accept=".pdf,.docx,.txt,.png,.jpg,.jpeg"
+                  className="hidden"
+                  onChange={e => handleFiles(e.target.files)}
+                />
+                {attachedFiles.length > 0 && (
+                  <div className="flex flex-col gap-1">
+                    {attachedFiles.map(name => (
+                      <div key={name} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted text-[12px]">
+                        <FileText size={13} strokeWidth={1.6} absoluteStrokeWidth className="text-muted-foreground shrink-0" />
+                        <span className="flex-1 text-foreground truncate">{name}</span>
+                        <button
+                          type="button"
+                          onClick={() => setAttachedFiles(prev => prev.filter(f => f !== name))}
+                          className="text-muted-foreground hover:text-foreground transition-colors shrink-0"
+                        >
+                          <X size={12} strokeWidth={1.6} absoluteStrokeWidth />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Include toggles */}
+              <div className="flex flex-col gap-3">
+                <label className="text-[13px] font-medium text-foreground">Include in blog</label>
+                <ToggleRow label="Images" checked={includeImages} onChange={setIncludeImages} />
+                <ToggleRow label="CTAs" checked={includeCTAs} onChange={setIncludeCTAs} />
+                <ToggleRow label="FAQ section" checked={includeFAQ} onChange={setIncludeFAQ} />
+                <ToggleRow label="Internal links" checked={internalLinks} onChange={setInternalLinks} />
+              </div>
+
             </div>
           )}
         </div>
 
-        {/* Advanced options */}
+        {/* Advanced settings accordion */}
         <div className="rounded-lg border border-border">
           <button
             type="button"
             onClick={() => setAdvancedOpen(o => !o)}
             className="flex items-center justify-between w-full px-4 py-3"
           >
-            <span className="text-[13px] font-medium text-foreground">Advanced options</span>
+            <span className="text-[13px] font-medium text-foreground">Advanced settings</span>
             {advancedOpen
               ? <ChevronUp size={14} strokeWidth={1.6} absoluteStrokeWidth className="text-muted-foreground" />
               : <ChevronDown size={14} strokeWidth={1.6} absoluteStrokeWidth className="text-muted-foreground" />
@@ -451,10 +488,66 @@ export function CreateBlogPage({ onCancel, onGenerate }: CreateBlogPageProps) {
           </button>
           {advancedOpen && (
             <div className="flex flex-col gap-4 border-t border-border px-4 py-4">
-              <ToggleRow label="Include images" checked={includeImages} onChange={setIncludeImages} />
-              <ToggleRow label="Include CTAs" checked={includeCTAs} onChange={setIncludeCTAs} />
-              <ToggleRow label="Include FAQ section" checked={includeFAQ} onChange={setIncludeFAQ} />
-              <ToggleRow label="Internal links" checked={internalLinks} onChange={setInternalLinks} />
+
+              {/* Intent */}
+              <div className="space-y-1.5">
+                <label className="text-[13px] font-medium text-foreground">Intent</label>
+                <ContentFlowSelect value={intent} options={INTENT_OPTIONS} onChange={setIntent} />
+              </div>
+
+              {/* Objective */}
+              <div className="space-y-1.5">
+                <label className="text-[13px] font-medium text-foreground">Objective</label>
+                <ContentFlowSelect value={objective} options={OBJECTIVE_OPTIONS} onChange={setObjective} />
+              </div>
+
+              {/* Funnel stage */}
+              <div className="space-y-1.5">
+                <label className="text-[13px] font-medium text-foreground">Funnel stage</label>
+                <ContentFlowSelect value={funnelStage} options={FUNNEL_OPTIONS} onChange={setFunnelStage} />
+              </div>
+
+              {/* Reference URLs */}
+              <div className="space-y-1.5">
+                <label className="text-[13px] font-medium text-foreground">Reference URLs</label>
+                <div className="flex items-center gap-2">
+                  <ContentFlowTextInput
+                    value={refUrlInput}
+                    onChange={e => setRefUrlInput(e.target.value)}
+                    onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleAddUrl(); } }}
+                    placeholder="https://..."
+                    className="flex-1"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleAddUrl}
+                    disabled={!refUrlInput.trim() || refUrls.length >= 5}
+                    className="h-10 px-4 rounded-[8px] border border-border bg-background text-[13px] font-medium text-foreground hover:bg-muted transition-colors disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
+                  >
+                    Add
+                  </button>
+                </div>
+                {refUrls.length > 0 && (
+                  <div className="flex flex-col gap-1 mt-1">
+                    {refUrls.map(url => (
+                      <div key={url} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted text-[12px]">
+                        <span className="flex-1 text-foreground truncate">{url}</span>
+                        <button
+                          type="button"
+                          onClick={() => setRefUrls(prev => prev.filter(u => u !== url))}
+                          className="text-muted-foreground hover:text-foreground transition-colors shrink-0"
+                        >
+                          <X size={12} strokeWidth={1.6} absoluteStrokeWidth />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {refUrls.length >= 5 && (
+                  <p className="text-[11px] text-muted-foreground">Maximum 5 URLs added</p>
+                )}
+              </div>
+
             </div>
           )}
         </div>
@@ -629,7 +722,7 @@ export function CreateBlogPage({ onCancel, onGenerate }: CreateBlogPageProps) {
   );
 }
 
-// ── Helper ────────────────────────────────────────────────────────────────────
+// ── Helpers ───────────────────────────────────────────────────────────────────
 
 function ToggleRow({
   label,
@@ -647,3 +740,4 @@ function ToggleRow({
     </div>
   );
 }
+

@@ -58,6 +58,7 @@ export interface ScoreDimension {
   label: string;
   score: number;    // 0–100 mock value shown in right panel
   color: 'green' | 'orange' | 'red';
+  description?: string;
 }
 
 export interface QuickWin {

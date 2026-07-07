@@ -12,7 +12,7 @@
 import React, { useRef, useCallback, useState, useEffect } from 'react';
 import { FileText, Layers, MessageSquare } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { type BlockEditorMode, type Block, type BlockComponentProps, type BlockType } from './blockTypes';
+import { type BlockEditorMode, type Block, type BlockComponentProps, type BlockType, BLOCK_CATALOG } from './blockTypes';
 import { useBlockEditorContext } from './BlockEditorContext';
 import { BlockShell } from './BlockShell';
 import { BlockPicker } from './BlockPicker';
@@ -285,19 +285,54 @@ function EmptyState({ mode, onAdd }: { mode: BlockEditorMode; onAdd: (type: impo
 
 // ── Props ─────────────────────────────────────────────────────────────────────
 
+export interface CanvasBlockInfo {
+  id: string;
+  type: BlockType;
+  label: string;
+}
+
 interface BlockCanvasProps {
   mode: BlockEditorMode;
   /** Controlled zoom level from the parent toolbar */
   zoom?: number;
   /** Called when trackpad/Ctrl+scroll changes zoom */
   onZoomChange?: (zoom: number) => void;
-  /** Called when a block is selected on the canvas */
-  onBlockFocus?: () => void;
+  /** Called when a block is selected on the canvas, with block metadata */
+  onBlockFocus?: (info: CanvasBlockInfo) => void;
+  /** Section name whose blocks should display a shimmer overlay */
+  shimmerSection?: string | null;
+}
+
+/** Derive a short display label from a block's content + type */
+function getBlockDisplayLabel(block: Block): string {
+  if (
+    (block.type === 'heading' || block.type === 'paragraph') &&
+    typeof block.content.text === 'string' &&
+    block.content.text.trim()
+  ) {
+    const t = block.content.text.trim();
+    return t.length > 35 ? t.slice(0, 35) + '…' : t;
+  }
+  return BLOCK_CATALOG.find(e => e.type === block.type)?.label ?? block.type;
+}
+
+function getShimmerBlockIds(blocks: Block[], section: string | null | undefined): Set<string> {
+  if (!section) return new Set();
+  const ids = blocks.map(b => b.id);
+  if (section === 'Introduction') return new Set(ids.slice(0, Math.min(2, ids.length)));
+  if (section === 'Call to action') {
+    const ctaIdx = blocks.findIndex(b => b.type === 'cta');
+    return ctaIdx >= 0 ? new Set([blocks[ctaIdx].id]) : new Set(ids.slice(-1));
+  }
+  if (section === 'Conclusion') return new Set(ids.slice(-2));
+  if (section === 'Body') return new Set(ids.slice(1, Math.max(1, ids.length - 2)));
+  // 'full' or any other string — shimmer everything
+  return new Set(ids);
 }
 
 // ── Canvas ────────────────────────────────────────────────────────────────────
 
-export function BlockCanvas({ mode, zoom = 1, onZoomChange, onBlockFocus }: BlockCanvasProps) {
+export function BlockCanvas({ mode, zoom = 1, onZoomChange, onBlockFocus, shimmerSection }: BlockCanvasProps) {
   const {
     blocks, focusedId,
     addBlock, updateBlock, removeBlock,
@@ -419,11 +454,14 @@ export function BlockCanvas({ mode, zoom = 1, onZoomChange, onBlockFocus }: Bloc
             <div className={cn(
               mode === 'blog' && 'rounded-xl bg-background px-[30px] py-[30px] shadow-sm ring-[0.5px] ring-border/20',
             )}>
-            {blocks.map((block: Block, idx: number) => {
+            {(() => {
+              const shimmerIds = getShimmerBlockIds(blocks, shimmerSection);
+              return blocks.map((block: Block, idx: number) => {
               const BlockComponent = BLOCK_COMPONENTS[block.type];
               const isFocused = focusedId === block.id;
               const prevBlock = idx > 0 ? blocks[idx - 1] : null;
               const topClass = mode === 'blog' ? getBlogBlockTopClass(block, prevBlock, idx) : '';
+              const isShimmering = shimmerIds.has(block.id);
 
               return (
                 <div key={block.id} className={topClass}>
@@ -437,7 +475,7 @@ export function BlockCanvas({ mode, zoom = 1, onZoomChange, onBlockFocus }: Bloc
                     blockId={block.id}
                     focused={isFocused}
                     onFocus={() => {
-                      onBlockFocus?.();
+                      onBlockFocus?.({ id: block.id, type: block.type, label: getBlockDisplayLabel(block) });
                       focusBlock(block.id);
                     }}
                     onBlur={() => {}}
@@ -452,6 +490,7 @@ export function BlockCanvas({ mode, zoom = 1, onZoomChange, onBlockFocus }: Bloc
                     onDragOver={handleDragOver}
                     onDrop={e => handleDrop(e, idx)}
                     onDragEnd={handleDragEnd}
+                    isShimmering={isShimmering}
                   >
                     {BlockComponent && (
                       <BlockComponent
@@ -468,7 +507,8 @@ export function BlockCanvas({ mode, zoom = 1, onZoomChange, onBlockFocus }: Bloc
                   </BlockShell>
                 </div>
               );
-            })}
+            });
+            })()}
 
             {/* Final insertion point */}
             <BlockPicker
