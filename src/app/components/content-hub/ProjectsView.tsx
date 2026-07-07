@@ -146,7 +146,7 @@ function TemplatePreviewModal({ tmpl, onClose, onUse }: { tmpl: TemplateItem | n
 
   return (
     <Dialog open={!!tmpl} onOpenChange={open => { if (!open) onClose(); }}>
-      <DialogContent className="max-w-[1040px] max-h-[88vh] p-0 gap-0 overflow-hidden flex flex-col">
+      <DialogContent className="w-[1000px] sm:max-w-[1000px] max-h-[88vh] p-0 gap-0 overflow-hidden flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-border shrink-0">
           <h2 className="text-[15px] font-semibold text-foreground">Preview of {tmpl.name}</h2>
