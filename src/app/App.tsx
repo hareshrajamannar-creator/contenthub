@@ -862,7 +862,10 @@ export default function App() {
         </div>
       </div>
     </div>
-      <DevInspector captureMode="alt-click" theme="auto" zIndex={99999} />
+      {/* all:revert undoes Tailwind preflight inside the inspector subtree */}
+      <div style={{ all: 'revert' }}>
+        <DevInspector captureMode="alt-click" theme="auto" zIndex={99999} />
+      </div>
     </MonitorNotificationsProvider>
   );
 }
