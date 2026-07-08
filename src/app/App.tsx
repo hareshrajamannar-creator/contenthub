@@ -6,8 +6,8 @@ import {
   RecommendationsL2NavPanel,
 } from "./components/Sidebar";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { DevInspector } from "@balajik-cmyk/dev-inspector";
-import "@balajik-cmyk/dev-inspector/styles.css";
+import { DevInspector } from "@/vendor/dev-inspector/index.js";
+import "@/vendor/dev-inspector/index.css";
 import { usePersistedState } from "./hooks/usePersistedState";
 import { Toaster } from "./components/ui/sonner.v1";
 import { MonitorNotificationsProvider } from "./context/MonitorNotificationsContext";

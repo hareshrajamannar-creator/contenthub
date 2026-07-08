@@ -91,7 +91,6 @@
     "vaul": "1.1.2"
   },
   "devDependencies": {
-    "@balajik-cmyk/dev-inspector": "github:balajik-cmyk/dev-inspector",
     "@playwright/test": "^1.59.1",
     "@storybook/addon-essentials": "^8.6.18",
     "@storybook/addon-interactions": "^8.6.18",
