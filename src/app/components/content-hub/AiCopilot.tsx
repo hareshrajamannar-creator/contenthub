@@ -1,7 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Sparkles, User } from 'lucide-react';
+import {
+  Sparkles, User, Image as ImageIcon, Type, List, Quote, MousePointerClick,
+  LayoutGrid, Minus, MoveVertical, HelpCircle, Video, Code2, Star,
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { CopilotPromptBox } from '@/app/components/ui/copilot-prompt-box';
+import { CopilotPromptBox, ContextChipBadge } from '@/app/components/ui/copilot-prompt-box';
 
 // ── Avatar components ──────────────────────────────────────────────────────────
 
@@ -25,15 +28,56 @@ function UserAvatar() {
   );
 }
 
+// ── Block-type icon mapping (for the selected-element context chip) ────────────
+
+function blockTypeIcon(blockType?: string) {
+  switch (blockType) {
+    case 'image':
+    case 'gallery':
+      return <ImageIcon className="size-3" strokeWidth={1.6} absoluteStrokeWidth />;
+    case 'list':
+      return <List className="size-3" strokeWidth={1.6} absoluteStrokeWidth />;
+    case 'quote':
+      return <Quote className="size-3" strokeWidth={1.6} absoluteStrokeWidth />;
+    case 'cta':
+    case 'cta-section':
+      return <MousePointerClick className="size-3" strokeWidth={1.6} absoluteStrokeWidth />;
+    case 'divider':
+      return <Minus className="size-3" strokeWidth={1.6} absoluteStrokeWidth />;
+    case 'spacer':
+      return <MoveVertical className="size-3" strokeWidth={1.6} absoluteStrokeWidth />;
+    case 'faq-section':
+    case 'faq-qa':
+      return <HelpCircle className="size-3" strokeWidth={1.6} absoluteStrokeWidth />;
+    case 'video-embed':
+      return <Video className="size-3" strokeWidth={1.6} absoluteStrokeWidth />;
+    case 'code':
+      return <Code2 className="size-3" strokeWidth={1.6} absoluteStrokeWidth />;
+    case 'review':
+    case 'testimonials':
+    case 'review-wall':
+      return <Star className="size-3" strokeWidth={1.6} absoluteStrokeWidth />;
+    case 'feature-grid':
+    case 'stats-row':
+    case 'comparison-table':
+      return <LayoutGrid className="size-3" strokeWidth={1.6} absoluteStrokeWidth />;
+    case 'heading':
+    case 'paragraph':
+    default:
+      return <Type className="size-3" strokeWidth={1.6} absoluteStrokeWidth />;
+  }
+}
+
 // ── Chip component ─────────────────────────────────────────────────────────────
 
 interface ChipProps {
   label: string;
   onClick: () => void;
   selected?: boolean;
+  muted?: boolean;
 }
 
-function Chip({ label, onClick, selected }: ChipProps) {
+function Chip({ label, onClick, selected, muted }: ChipProps) {
   return (
     <div
       onClick={onClick}
@@ -41,6 +85,8 @@ function Chip({ label, onClick, selected }: ChipProps) {
         "cursor-pointer border rounded-full px-3 py-1 transition-all text-[13px]",
         selected
           ? "border-primary bg-primary/10 text-primary"
+          : muted
+          ? "border-border bg-background text-muted-foreground hover:border-muted-foreground hover:text-foreground"
           : "border-border bg-background hover:border-primary hover:bg-blue-50/50 text-foreground"
       )}
     >
@@ -75,6 +121,8 @@ interface ChatMessage {
   multiSelect?: boolean;
   isSummary?: boolean;
   isLoading?: boolean;
+  contextLabel?: string;
+  contextBlockType?: string;
 }
 
 function WorkingText({ text }: { text: string }) {
@@ -296,33 +344,24 @@ function EditorCopilot({
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // ── Contextual chips when a canvas block is selected ──────────────────────────
+  // ── Canvas block selection ─────────────────────────────────────────────────────
   const prevBlockIdRef = useRef<string | null>(null);
   useEffect(() => {
     if (!selectedBlock) {
       prevBlockIdRef.current = null;
       return;
     }
-    // Only push chips when a new block is selected (not on re-renders)
-    if (selectedBlock.id === prevBlockIdRef.current) return;
     prevBlockIdRef.current = selectedBlock.id;
-
-    const blockChips = getBlockContextChips(selectedBlock.type);
-    pushAi({
-      text: `What would you like to change in "${selectedBlock.label}"?`,
-      chips: blockChips,
-    }, 200);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedBlock]);
 
   const isBlog = mode === 'blog';
 
   // ── Helpers ──────────────────────────────────────────────────────────────────
 
-  function clearAndAddUser(text: string) {
+  function clearAndAddUser(text: string, contextLabel?: string, contextBlockType?: string) {
     setMessages(prev => [
       ...prev.map(m => ({ ...m, chips: undefined, multiSelect: undefined })),
-      { id: Date.now().toString(), role: 'user' as const, text },
+      { id: Date.now().toString(), role: 'user' as const, text, contextLabel, contextBlockType },
     ]);
   }
 
@@ -511,7 +550,7 @@ function EditorCopilot({
   function triggerRegen(confirmationText: string) {
     pushAi({
       text: confirmationText,
-      chips: ['Start regenerating'],
+      chips: ['Start regenerating', 'Cancel'],
     });
   }
 
@@ -521,6 +560,17 @@ function EditorCopilot({
     // ── Regen confirmation ────────────────────────────────────────────────────
     if (chip === 'Start regenerating') {
       onRegen?.();
+      return;
+    }
+
+    // ── Cancel out of the regeneration flow ───────────────────────────────────
+    if (chip === 'Cancel') {
+      setPendingAction(null);
+      const quickFixChips = isBlog ? BLOG_QUICK_FIX_CHIPS : FAQ_QUICK_FIX_CHIPS;
+      pushAi({
+        text: "No problem — nothing was changed. Let me know if there's anything else you'd like to adjust.",
+        chips: quickFixChips,
+      });
       return;
     }
 
@@ -568,10 +618,7 @@ function EditorCopilot({
   function handleSend(text: string) {
     if (!text.trim()) return;
     setInput('');
-    const userText = selectedBlock
-      ? `[${selectedBlock.label}] ${text.trim()}`
-      : text.trim();
-    clearAndAddUser(userText);
+    clearAndAddUser(text.trim(), selectedBlock?.label, selectedBlock?.type);
 
     // Block chip active — apply as a targeted partial edit
     if (selectedBlock) {
@@ -604,13 +651,21 @@ function EditorCopilot({
                 {isAI ? <CopilotAvatar /> : <UserAvatar />}
               </div>
               <div className="flex-1 flex flex-col gap-2 min-w-0">
+                {msg.contextLabel && (
+                  <div className="self-start">
+                    <ContextChipBadge
+                      label={msg.contextLabel}
+                      icon={blockTypeIcon(msg.contextBlockType)}
+                    />
+                  </div>
+                )}
                 <p className="text-[13px] text-foreground leading-relaxed whitespace-pre-line">
                   {msg.isLoading ? <WorkingText text={msg.text} /> : msg.text}
                 </p>
                 {msg.chips && (
                   <div className="flex flex-wrap gap-2 mt-1">
                     {msg.chips.map(chip => (
-                      <Chip key={chip} label={chip} onClick={() => handleChip(chip)} />
+                      <Chip key={chip} label={chip} muted={chip === 'Cancel'} onClick={() => handleChip(chip)} />
                     ))}
                   </div>
                 )}
@@ -629,6 +684,7 @@ function EditorCopilot({
           placeholder={selectedBlock ? `Ask about "${selectedBlock.label}"…` : "Describe what you want to improve..."}
           contextChip={selectedBlock ? {
             label: selectedBlock.label,
+            icon: blockTypeIcon(selectedBlock.type),
             onRemove: () => { onClearSelectedBlock?.(); prevBlockIdRef.current = null; },
           } : null}
         />

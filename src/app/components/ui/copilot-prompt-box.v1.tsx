@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Paperclip, Wand2, MoreVertical, ArrowUp } from "lucide-react";
+import { Paperclip, Wand2, MoreVertical, ArrowUp, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   PromptInput,
@@ -10,7 +10,8 @@ import {
 
 export interface CopilotPromptBoxContextChip {
   label: string;
-  onRemove: () => void;
+  icon: React.ReactNode;
+  onRemove?: () => void;
 }
 
 export interface CopilotPromptBoxProps {
@@ -23,6 +24,27 @@ export interface CopilotPromptBoxProps {
   className?: string;
   /** When set, renders a dismissible context chip inside the prompt box above the textarea */
   contextChip?: CopilotPromptBoxContextChip | null;
+}
+
+export function ContextChipBadge({ label, icon, onRemove }: CopilotPromptBoxContextChip) {
+  return (
+    <div className="flex items-center gap-1.5 rounded-md border border-primary bg-background pl-1 pr-1.5 py-1 text-[13px] text-foreground max-w-[220px]">
+      <span className="flex items-center justify-center size-5 shrink-0 rounded-[4px] border border-border text-muted-foreground">
+        {icon}
+      </span>
+      <span className="truncate">{label}</span>
+      {onRemove && (
+        <button
+          type="button"
+          onClick={onRemove}
+          className="shrink-0 text-muted-foreground hover:text-foreground transition-colors"
+          aria-label="Clear context"
+        >
+          <X className="size-3.5" strokeWidth={1.6} absoluteStrokeWidth />
+        </button>
+      )}
+    </div>
+  );
 }
 
 export function CopilotPromptBox({
@@ -41,19 +63,7 @@ export function CopilotPromptBox({
     <PromptInput onSubmit={onSend} disabled={disabled} className={className}>
       {contextChip && (
         <div className="flex items-center px-3.5 pt-2.5 pb-0">
-          <div className="flex items-center gap-1 rounded-full border border-primary/40 bg-primary/8 pl-2.5 pr-1 py-0.5 text-[12px] text-primary font-medium max-w-[220px]">
-            <span className="truncate">{contextChip.label}</span>
-            <button
-              type="button"
-              onClick={contextChip.onRemove}
-              className="ml-0.5 shrink-0 rounded-full p-0.5 hover:bg-primary/20 transition-colors"
-              aria-label="Clear context"
-            >
-              <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                <path d="M2 2l6 6M8 2l-6 6" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
-              </svg>
-            </button>
-          </div>
+          <ContextChipBadge {...contextChip} />
         </div>
       )}
       <PromptInputTextarea

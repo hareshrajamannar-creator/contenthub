@@ -307,7 +307,6 @@ function TemplateCard({ tmpl, onUse, onPreview }: { tmpl: TemplateItem; onUse: (
           </span>
         </div>
 
-
         <div className="absolute inset-0 p-6">
           <div className="flex h-full w-full flex-col overflow-hidden rounded-lg border border-zinc-200 bg-white">
             {isBlog && (
