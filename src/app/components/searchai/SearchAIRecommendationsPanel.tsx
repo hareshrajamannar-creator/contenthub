@@ -41,7 +41,7 @@ export type SearchAIRecommendation = {
 
 const recommendationColumnHelper = createColumnHelper<SearchAIRecommendation>();
 
-const MOCK_RECOMMENDATIONS: SearchAIRecommendation[] = [
+export const MOCK_RECOMMENDATIONS: SearchAIRecommendation[] = [
   {
     id: "b1",
     title: "Dubbo Property Market Update 2026: What Buyers, Sellers and Landlords Need to Know",
@@ -201,6 +201,33 @@ const MOCK_RECOMMENDATIONS: SearchAIRecommendation[] = [
         },
       ],
     },
+  },
+  {
+    id: "b3",
+    title: "First Home Buyer Guide: Grants, Schemes and Costs to Expect in Dubbo",
+    description: "A first home buyer guide captures high-intent local search queries and positions Raine & Horne as the go-to resource cited by AI assistants for entry-level buyer questions.",
+    type: "Blog",
+    impact: "Medium",
+    category: "Content",
+    locations: 14,
+  },
+  {
+    id: "b4",
+    title: "5 Signs It's Time to Sell Your Investment Property in Dubbo",
+    description: "Helps investors self-identify the right moment to sell, driving warm seller leads while reinforcing local market authority.",
+    type: "Blog",
+    impact: "Medium",
+    category: "Content",
+    locations: 14,
+  },
+  {
+    id: "b5",
+    title: "How AI Search Assistants Are Changing the Way Home Buyers Research Dubbo Properties",
+    description: "An AEO-focused explainer that builds topical authority around AI-assisted property search, a growing source of buyer discovery.",
+    type: "Blog",
+    impact: "High",
+    category: "Content",
+    locations: 14,
   },
 ];
 

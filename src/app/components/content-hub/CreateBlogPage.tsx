@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { ArrowLeft, ArrowUpRight, Sparkles, Loader2, Upload, X, FileText, ChevronDown, ChevronUp } from 'lucide-react';
+import { ArrowLeft, ArrowUpRight, Sparkles, Loader2, Upload, X, FileText, ChevronDown, ChevronUp, Lightbulb } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/app/components/ui/button';
 import { Switch } from '@/app/components/ui/switch';
@@ -8,6 +8,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/app/components/ui/popover';
+import { MOCK_RECOMMENDATIONS } from '@/app/components/searchai/SearchAIRecommendationsPanel';
 import {
   ContentFlowStepper,
   ContentFlowInfoLabel,
@@ -150,6 +151,64 @@ const STEPS: ContentFlowStep[] = [
   { id: 'setup',     label: 'Blog setup' },
 ];
 
+// ── YouTube source-link validation ───────────────────────────────────────────
+//
+// Covers what's determinable from the URL string alone. Codes that require an
+// actual server-side admission probe (video_unavailable, video_too_long,
+// rate_limited, summary_generation_temporarily_unavailable) belong to the
+// generation API, not this field, and should surface from that response once
+// this flow is wired to a real backend.
+type VideoLinkErrorCode =
+  | 'invalid_youtube_url'
+  | 'unsupported_youtube_url_shape'
+  | 'video_live_not_supported';
+
+const VIDEO_LINK_ERROR_MESSAGES: Record<VideoLinkErrorCode, string> = {
+  invalid_youtube_url: 'Please provide a valid YouTube video link.',
+  unsupported_youtube_url_shape: 'This link does not point to a single YouTube video.',
+  video_live_not_supported: 'Live or currently airing videos are not supported yet.',
+};
+
+const YOUTUBE_HOSTS = ['youtube.com', 'www.youtube.com', 'm.youtube.com', 'youtu.be'];
+
+function validateYoutubeUrl(rawUrl: string): VideoLinkErrorCode | null {
+  const url = rawUrl.trim();
+  if (!url) return 'invalid_youtube_url';
+
+  let parsed: URL;
+  try {
+    parsed = new URL(url);
+  } catch {
+    return 'invalid_youtube_url';
+  }
+
+  if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+    return 'invalid_youtube_url';
+  }
+  if (!YOUTUBE_HOSTS.includes(parsed.hostname)) {
+    return 'invalid_youtube_url';
+  }
+
+  if (/^\/live\/[^/]+/.test(parsed.pathname)) {
+    return 'video_live_not_supported';
+  }
+
+  if (parsed.hostname === 'youtu.be') {
+    const videoId = parsed.pathname.replace(/^\//, '');
+    return videoId ? null : 'unsupported_youtube_url_shape';
+  }
+
+  if (parsed.pathname === '/watch') {
+    return parsed.searchParams.get('v') ? null : 'unsupported_youtube_url_shape';
+  }
+  if (/^\/shorts\/[^/]+/.test(parsed.pathname)) {
+    return null;
+  }
+
+  // /playlist, /channel/*, /@handle, /results, or anything else without a resolvable single-video shape
+  return 'unsupported_youtube_url_shape';
+}
+
 // ── Props ─────────────────────────────────────────────────────────────────────
 
 export interface CreateBlogPageFlowData {
@@ -190,6 +249,7 @@ export function CreateBlogPage({ onCancel, onGenerate }: CreateBlogPageProps) {
   const [createMode, setCreateMode] = useState<'topic' | 'url'>('topic');
   const [topic, setTopic]           = useState('');
   const [sourceUrl, setSourceUrl]   = useState('');
+  const [sourceUrlError, setSourceUrlError] = useState<string | null>(null);
   const [keywords, setKeywords]     = useState<string[]>([]);
   const [intent, setIntent]         = useState('agent');
   const [objective, setObjective]   = useState('agent');
@@ -200,13 +260,13 @@ export function CreateBlogPage({ onCancel, onGenerate }: CreateBlogPageProps) {
   const [refUrlInput, setRefUrlInput] = useState('');
   const [attachedFiles, setAttachedFiles] = useState<string[]>([]);
   const [isDragOver, setIsDragOver] = useState(false);
-  const [customiseOpen, setCustomiseOpen] = useState(false);
   const [advancedOpen, setAdvancedOpen]   = useState(false);
   const [includeImages, setIncludeImages]   = useState(true);
   const [includeCTAs, setIncludeCTAs]       = useState(true);
   const [includeFAQ, setIncludeFAQ]         = useState(true);
   const [internalLinks, setInternalLinks]   = useState(true);
   const [generatingTopic, setGeneratingTopic] = useState(false);
+  const [recommendationsOpen, setRecommendationsOpen] = useState(false);
   const topicIdxRef  = useRef(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -255,6 +315,13 @@ export function CreateBlogPage({ onCancel, onGenerate }: CreateBlogPageProps) {
     if (step < 1) {
       setStep(1);
       return;
+    }
+    if (createMode === 'url') {
+      const errorCode = validateYoutubeUrl(sourceUrl);
+      if (errorCode) {
+        setSourceUrlError(VIDEO_LINK_ERROR_MESSAGES[errorCode]);
+        return;
+      }
     }
     const resolvedTopic = createMode === 'url' ? sourceUrl : topic;
     const resolvedName = blogName.trim() || resolvedTopic.split('\n')[0].trim();
@@ -317,7 +384,42 @@ export function CreateBlogPage({ onCancel, onGenerate }: CreateBlogPageProps) {
                   rows={4}
                   className="w-full resize-none bg-background px-4 pt-3 pb-2 text-[13px] text-foreground placeholder:text-muted-foreground/60 outline-none border-none"
                 />
-                <div className="border-t border-border px-3 py-2 bg-background">
+                <div className="border-t border-border px-3 py-2 bg-background flex items-center gap-1">
+                  <Popover open={recommendationsOpen} onOpenChange={setRecommendationsOpen}>
+                    <PopoverTrigger asChild>
+                      <button
+                        type="button"
+                        aria-label="Insert a Search AI recommendation"
+                        className="flex h-6 w-6 shrink-0 items-center justify-center rounded text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                      >
+                        <Lightbulb size={13} strokeWidth={1.6} absoluteStrokeWidth />
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent align="start" className="w-[440px] p-1">
+                      <div className="px-3 py-2 text-[11px] font-medium text-muted-foreground">
+                        Search AI recommendations
+                      </div>
+                      <div className="flex max-h-80 flex-col gap-0.5 overflow-y-auto">
+                        {MOCK_RECOMMENDATIONS.map(rec => (
+                          <button
+                            key={rec.id}
+                            type="button"
+                            onClick={() => {
+                              setTopic(rec.title);
+                              setRecommendationsOpen(false);
+                            }}
+                            className="flex flex-col items-start gap-0.5 rounded-md px-3 py-2 text-left transition-colors hover:bg-muted"
+                          >
+                            <span className="text-[11px] text-muted-foreground">{rec.category}</span>
+                            <span className="text-[13px] leading-snug text-foreground line-clamp-2">{rec.title}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+
+                  <div className="h-4 w-px bg-border" />
+
                   <button
                     type="button"
                     disabled={generatingTopic}
@@ -349,8 +451,8 @@ export function CreateBlogPage({ onCancel, onGenerate }: CreateBlogPageProps) {
                 {createMode === 'url' && <span className="h-1.5 w-1.5 rounded-full bg-white" />}
               </span>
               <span className="flex flex-col gap-0.5">
-                <span className="text-[13px] font-medium text-foreground">Start with a URL or video link</span>
-                <span className="text-[12px] text-muted-foreground">Paste a website URL or YouTube link to use as source material</span>
+                <span className="text-[13px] font-medium text-foreground">Start with a YouTube video</span>
+                <span className="text-[12px] text-muted-foreground">Paste a YouTube video link to use as source material</span>
               </span>
             </button>
 
@@ -359,28 +461,35 @@ export function CreateBlogPage({ onCancel, onGenerate }: CreateBlogPageProps) {
               <div className="ml-7 mt-4">
                 <ContentFlowTextInput
                   value={sourceUrl}
-                  onChange={e => setSourceUrl(e.target.value)}
-                  placeholder="https://youtube.com/watch?v=... or https://example.com/article"
+                  onChange={e => {
+                    setSourceUrl(e.target.value);
+                    if (sourceUrlError) setSourceUrlError(null);
+                  }}
+                  placeholder="https://youtube.com/watch?v=..."
+                  aria-invalid={!!sourceUrlError}
                 />
+                {sourceUrlError && (
+                  <p className="mt-1.5 text-[11px] text-destructive">{sourceUrlError}</p>
+                )}
               </div>
             )}
           </div>
         </div>
 
-        {/* Customise your blog accordion */}
+        {/* Advanced settings accordion — all blog configuration lives here */}
         <div className="rounded-lg border border-border">
           <button
             type="button"
-            onClick={() => setCustomiseOpen(o => !o)}
+            onClick={() => setAdvancedOpen(o => !o)}
             className="flex items-center justify-between w-full px-4 py-3"
           >
-            <span className="text-[13px] font-medium text-foreground">Customise your blog</span>
-            {customiseOpen
+            <span className="text-[13px] font-medium text-foreground">Advanced settings</span>
+            {advancedOpen
               ? <ChevronUp size={14} strokeWidth={1.6} absoluteStrokeWidth className="text-muted-foreground" />
               : <ChevronDown size={14} strokeWidth={1.6} absoluteStrokeWidth className="text-muted-foreground" />
             }
           </button>
-          {customiseOpen && (
+          {advancedOpen && (
             <div className="flex flex-col gap-5 border-t border-border px-4 py-4">
 
               {/* Keywords */}
@@ -468,26 +577,6 @@ export function CreateBlogPage({ onCancel, onGenerate }: CreateBlogPageProps) {
                 <ToggleRow label="FAQ section" checked={includeFAQ} onChange={setIncludeFAQ} />
                 <ToggleRow label="Internal links" checked={internalLinks} onChange={setInternalLinks} />
               </div>
-
-            </div>
-          )}
-        </div>
-
-        {/* Advanced settings accordion */}
-        <div className="rounded-lg border border-border">
-          <button
-            type="button"
-            onClick={() => setAdvancedOpen(o => !o)}
-            className="flex items-center justify-between w-full px-4 py-3"
-          >
-            <span className="text-[13px] font-medium text-foreground">Advanced settings</span>
-            {advancedOpen
-              ? <ChevronUp size={14} strokeWidth={1.6} absoluteStrokeWidth className="text-muted-foreground" />
-              : <ChevronDown size={14} strokeWidth={1.6} absoluteStrokeWidth className="text-muted-foreground" />
-            }
-          </button>
-          {advancedOpen && (
-            <div className="flex flex-col gap-4 border-t border-border px-4 py-4">
 
               {/* Intent */}
               <div className="space-y-1.5">
