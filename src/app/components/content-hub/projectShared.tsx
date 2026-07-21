@@ -19,7 +19,7 @@ import {
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
-export type ProjectStatus = 'Drafts' | 'Scheduled' | 'Published';
+export type ProjectStatus = 'Drafts' | 'Published';
 
 export type ChannelId =
   | 'facebook' | 'instagram' | 'twitter' | 'linkedin' | 'youtube'
@@ -30,6 +30,10 @@ export interface ProjectRow {
   name: string;
   status: ProjectStatus;
   channels: ChannelId[];
+  /** e.g. "Blog", "FAQs", "Landing page", "Social", "Email", "Project" */
+  contentType: string;
+  /** Brand identity this content was generated under, e.g. "LushGreen corporate" */
+  brandIdentity: string;
   locations: number;
   updated: string;
   createdBy: string;
@@ -41,7 +45,6 @@ export interface ProjectRow {
 
 export const STATUS_VARIANT: Record<ProjectStatus, 'outline' | 'success' | 'warning' | 'secondary'> = {
   Drafts:    'secondary',
-  Scheduled: 'warning',
   Published: 'success',
 };
 

@@ -39,20 +39,20 @@ import { CalendarView as ContentHubCalendarView } from './CalendarView';
 // ── Mock data ─────────────────────────────────────────────────────────────────
 
 const PROJECTS: ProjectRow[] = [
-  { id: 11, name: 'Lawn care FAQ',                     status: 'Published', channels: ['faq'],                                                        locations: 500, updated: 'Nov 07, 2025', createdBy: 'Noah P',    hue: 50  },
-  { id: 12, name: 'Service & pricing FAQ',             status: 'Drafts',    channels: ['faq'],                                                        locations: 500, updated: 'Nov 07, 2025', createdBy: 'Olivia R',  hue: 300 },
-  { id: 13, name: 'How to overseed your lawn',         status: 'Published', channels: ['blog'],                                                       locations: 500, updated: 'Nov 06, 2025', createdBy: 'Liam G',    hue: 110 },
-  { id: 14, name: 'Native plant guide',                status: 'Scheduled', channels: ['blog'],                                                       locations: 500, updated: 'Nov 06, 2025', createdBy: 'Sophia L',  hue: 230 },
-  { id: 1,  name: 'Spring garden cleanup',             status: 'Drafts',    channels: ['facebook','instagram','twitter','linkedin','youtube','web'],  locations: 500, updated: 'Nov 05, 2025', createdBy: 'Elijah M',  hue: 160 },
-  { id: 2,  name: 'Sustainable lawn care launch 🌱',   status: 'Scheduled', channels: ['web','blog','email'],                                          locations: 500, updated: 'Nov 04, 2025', createdBy: 'Jacob K',   hue: 210 },
-  { id: 3,  name: 'Before & after showcase',           status: 'Scheduled', channels: ['facebook','instagram','twitter','linkedin','youtube','email'], locations: 500, updated: 'Nov 03, 2025', createdBy: 'Ava T',     hue: 280 },
-  { id: 4,  name: 'Summer backyard bliss ☀️',          status: 'Scheduled', channels: ['web','blog','email'],                                          locations: 500, updated: 'Nov 01, 2025', createdBy: 'Emily S',   hue: 40  },
-  { id: 5,  name: 'Customer testimonial campaign',     status: 'Drafts',    channels: ['facebook','instagram','twitter','linkedin','youtube','web'],   locations: 500, updated: 'Sep 05, 2025', createdBy: 'William S', hue: 20  },
-  { id: 6,  name: 'Fall planting season',              status: 'Published', channels: ['web','blog','email'],                                          locations: 500, updated: 'Sep 05, 2025', createdBy: 'James K',   hue: 90  },
-  { id: 7,  name: 'Holiday outdoor lighting',          status: 'Published', channels: ['facebook','instagram','twitter','linkedin','youtube','email'], locations: 500, updated: 'Sep 05, 2025', createdBy: 'Emma W',    hue: 320 },
-  { id: 8,  name: 'Local business partnership',        status: 'Published', channels: ['web','blog','email'],                                          locations: 500, updated: 'Sep 05, 2025', createdBy: 'Mia S',     hue: 190 },
-  { id: 9,  name: 'Sustainable landscaping education', status: 'Published', channels: ['facebook','instagram','web','blog'],                           locations: 500, updated: 'Sep 05, 2025', createdBy: 'Mia S',     hue: 130 },
-  { id: 10, name: 'Re-engagement offer',               status: 'Published', channels: ['web','blog','email'],                                          locations: 500, updated: 'Sep 05, 2025', createdBy: 'Mia S',     hue: 260 },
+  { id: 11, name: 'Lawn care FAQ',                     status: 'Published', channels: ['faq'],                                                        contentType: 'FAQs',         brandIdentity: 'LushGreen corporate', locations: 500, updated: 'Nov 07, 2025', createdBy: 'Noah P',    hue: 50  },
+  { id: 12, name: 'Service & pricing FAQ',             status: 'Drafts',    channels: ['faq'],                                                        contentType: 'FAQs',         brandIdentity: 'LushGreen corporate', locations: 500, updated: 'Nov 07, 2025', createdBy: 'Olivia R',  hue: 300 },
+  { id: 13, name: 'How to overseed your lawn',         status: 'Published', channels: ['blog'],                                                       contentType: 'Blog',         brandIdentity: 'Evergreen Gardens',   locations: 500, updated: 'Nov 06, 2025', createdBy: 'Liam G',    hue: 110 },
+  { id: 14, name: 'Native plant guide',                status: 'Drafts',    channels: ['blog'],                                                       contentType: 'Blog',         brandIdentity: 'Evergreen Gardens',   locations: 500, updated: 'Nov 06, 2025', createdBy: 'Sophia L',  hue: 230 },
+  { id: 1,  name: 'Spring garden cleanup',             status: 'Drafts',    channels: ['facebook','instagram','twitter','linkedin','youtube','web'],  contentType: 'Social',       brandIdentity: 'Metro Lawn Co.',      locations: 500, updated: 'Nov 05, 2025', createdBy: 'Elijah M',  hue: 160 },
+  { id: 2,  name: 'Sustainable lawn care launch 🌱',   status: 'Drafts',    channels: ['web','blog','email'],                                          contentType: 'Landing page', brandIdentity: 'LushGreen corporate', locations: 500, updated: 'Nov 04, 2025', createdBy: 'Jacob K',   hue: 210 },
+  { id: 3,  name: 'Before & after showcase',           status: 'Published', channels: ['facebook','instagram','twitter','linkedin','youtube','email'], contentType: 'Social',       brandIdentity: 'Metro Lawn Co.',      locations: 500, updated: 'Nov 03, 2025', createdBy: 'Ava T',     hue: 280 },
+  { id: 4,  name: 'Summer backyard bliss ☀️',          status: 'Published', channels: ['web','blog','email'],                                          contentType: 'Landing page', brandIdentity: 'Evergreen Gardens',   locations: 500, updated: 'Nov 01, 2025', createdBy: 'Emily S',   hue: 40  },
+  { id: 5,  name: 'Customer testimonial campaign',     status: 'Drafts',    channels: ['facebook','instagram','twitter','linkedin','youtube','web'],   contentType: 'Project',      brandIdentity: 'LushGreen corporate', locations: 500, updated: 'Sep 05, 2025', createdBy: 'William S', hue: 20  },
+  { id: 6,  name: 'Fall planting season',              status: 'Published', channels: ['web','blog','email'],                                          contentType: 'Landing page', brandIdentity: 'Metro Lawn Co.',      locations: 500, updated: 'Sep 05, 2025', createdBy: 'James K',   hue: 90  },
+  { id: 7,  name: 'Holiday outdoor lighting',          status: 'Published', channels: ['facebook','instagram','twitter','linkedin','youtube','email'], contentType: 'Social',       brandIdentity: 'Evergreen Gardens',   locations: 500, updated: 'Sep 05, 2025', createdBy: 'Emma W',    hue: 320 },
+  { id: 8,  name: 'Local business partnership',        status: 'Published', channels: ['web','blog','email'],                                          contentType: 'Project',      brandIdentity: 'LushGreen corporate', locations: 500, updated: 'Sep 05, 2025', createdBy: 'Mia S',     hue: 190 },
+  { id: 9,  name: 'Sustainable landscaping education', status: 'Published', channels: ['facebook','instagram','web','blog'],                           contentType: 'Project',      brandIdentity: 'Metro Lawn Co.',      locations: 500, updated: 'Sep 05, 2025', createdBy: 'Mia S',     hue: 130 },
+  { id: 10, name: 'Re-engagement offer',               status: 'Published', channels: ['web','blog','email'],                                          contentType: 'Email',        brandIdentity: 'Evergreen Gardens',   locations: 500, updated: 'Sep 05, 2025', createdBy: 'Mia S',     hue: 260 },
 ];
 
 const TEMPLATE_CREATORS = ['BirdAI', 'Content team', 'Marketing team', 'SEO team'] as const;
@@ -106,7 +106,7 @@ const TYPE_THUMB: Record<ContentType, { iconBg: string; iconColor: string; Icon:
 const CONTENT_TYPE_OPTIONS = ['All', ...Object.values(TYPE_LABEL)];
 const PROJECT_CHANNEL_OPTIONS = ['All channels', 'Facebook', 'Instagram', 'Twitter', 'LinkedIn', 'YouTube', 'Web', 'Blog', 'Email'];
 const PROJECT_CREATOR_OPTIONS = ['All creators', ...Array.from(new Set(PROJECTS.map(project => project.createdBy)))];
-const PROJECT_STATUS_OPTIONS = ['All statuses', 'Drafts', 'Scheduled', 'Published'];
+const PROJECT_STATUS_OPTIONS = ['All statuses', 'Drafts', 'Published'];
 const TEMPLATE_TAG_OPTIONS = ['All tags', ...Array.from(new Set(TEMPLATES.flatMap(template => template.useCases))).sort()];
 const TEMPLATE_CREATOR_OPTIONS = ['All creators', ...TEMPLATE_CREATORS];
 
@@ -383,7 +383,6 @@ function getProjectContentType(project: ProjectRow): ContentType {
 
 const SAVED_STATUS_CLASS: Record<ProjectStatus, string> = {
   Drafts: 'bg-muted text-muted-foreground',
-  Scheduled: 'bg-amber-50 text-amber-700',
   Published: 'bg-green-50 text-green-700',
 };
 
@@ -578,20 +577,22 @@ export const ProjectsView = ({
       enableSorting: true,
       cell: ({ getValue }) => <StatusCell status={getValue() as ProjectStatus} />,
     }),
-    col.accessor('channels', {
-      id: 'channels',
-      header: 'Channels',
-      size: 180,
-      enableSorting: false,
-      cell: ({ getValue }) => <ChannelCell channels={getValue()} />,
-    }),
-    col.accessor('locations', {
-      id: 'locations',
-      header: 'Locations',
-      size: 120,
+    col.accessor('contentType', {
+      id: 'contentType',
+      header: 'Content type',
+      size: 140,
       enableSorting: true,
       cell: ({ getValue }) => (
-        <span className="tabular-nums text-[13px] font-normal text-foreground">{getValue()}</span>
+        <span className="text-[13px] font-normal text-foreground">{getValue()}</span>
+      ),
+    }),
+    col.accessor('brandIdentity', {
+      id: 'brandIdentity',
+      header: 'Brand identity',
+      size: 180,
+      enableSorting: true,
+      cell: ({ getValue }) => (
+        <span className="text-[13px] font-normal text-foreground">{getValue()}</span>
       ),
     }),
     col.accessor('updated', {
