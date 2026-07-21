@@ -26,7 +26,7 @@ function Sparkline({ data }: { data: number[] }) {
   const pts = data.map((v, i) => `${(i / (data.length - 1)) * 120},${norm(v)}`).join(" ");
   return (
     <svg width="120" height="20" className="opacity-60">
-      <polyline fill="none" stroke="#2552ED" strokeWidth="1.5" points={pts} />
+      <polyline fill="none" stroke="#1976D2" strokeWidth="1.5" points={pts} />
     </svg>
   );
 }

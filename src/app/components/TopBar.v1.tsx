@@ -53,7 +53,7 @@ export function TopBar({ currentView, onViewChange, onToggleMynaChat }: TopBarPr
               <linearGradient id="ask-birdai-cta-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
                 <stop offset="0%" stopColor="#9970D7" />
                 <stop offset="55%" stopColor="#7f87e8" />
-                <stop offset="100%" stopColor="#2552ED" />
+                <stop offset="100%" stopColor="#1976D2" />
                 <animateTransform
                   attributeName="gradientTransform"
                   type="translate"
@@ -68,7 +68,7 @@ export function TopBar({ currentView, onViewChange, onToggleMynaChat }: TopBarPr
             className="h-3.5 w-3.5 shrink-0 group-hover:animate-[myna-cta-icon-tilt_360ms_ease-out_1] motion-reduce:group-hover:animate-none"
             style={{ stroke: "url(#ask-birdai-cta-gradient)" }}
           />
-          <span className="bg-gradient-to-r from-[#9970D7] via-[#7f87e8] to-[#2552ED] bg-[length:220%_100%] bg-clip-text text-transparent leading-none animate-[l2-nav-shimmer_2.2s_linear_infinite] motion-reduce:animate-none">
+          <span className="bg-gradient-to-r from-[#9970D7] via-[#7f87e8] to-[#1976D2] bg-[length:220%_100%] bg-clip-text text-transparent leading-none animate-[l2-nav-shimmer_2.2s_linear_infinite] motion-reduce:animate-none">
             Ask BirdAI
           </span>
         </Button>

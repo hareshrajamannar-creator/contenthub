@@ -352,7 +352,7 @@ export function AgentTraceDrawer({
                       }
                     }}
                     placeholder="Add a rule… (Enter to save)"
-                    className="flex-1 rounded-md border border-[#e0e4ea] dark:border-[#333a47] bg-white dark:bg-[#1e2229] px-3 py-1.5 text-[12px] text-[#212121] dark:text-[#e4e4e4] placeholder:text-[#bbb] dark:placeholder:text-[#555] outline-none focus:border-[#2552ED]"
+                    className="flex-1 rounded-md border border-[#e0e4ea] dark:border-[#333a47] bg-white dark:bg-[#1e2229] px-3 py-1.5 text-[12px] text-[#212121] dark:text-[#e4e4e4] placeholder:text-[#bbb] dark:placeholder:text-[#555] outline-none focus:border-[#1976D2]"
                   />
                   <Button
                     size="sm"

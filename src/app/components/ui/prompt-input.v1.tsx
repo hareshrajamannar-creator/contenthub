@@ -174,7 +174,7 @@ PromptInputAction.displayName = "PromptInputAction";
 
 /** Apply to `PromptInputAction` for Myna’s circular gradient send. Documented in **UI / PromptInput → Branded send (Myna)**. */
 export const PROMPT_INPUT_BRANDED_SEND_CLASSNAME =
-  "rounded-full !bg-gradient-to-r from-[#9970D7] to-[#2552ED] !text-white shadow-sm hover:opacity-95 hover:!text-white disabled:opacity-40 disabled:hover:opacity-40 p-2";
+  "rounded-full !bg-gradient-to-r from-[#9970D7] to-[#1976D2] !text-white shadow-sm hover:opacity-95 hover:!text-white disabled:opacity-40 disabled:hover:opacity-40 p-2";
 
 /** Circular primary send/stop layout for prompt-kit–style composers (pair with `Button` variant `default`). */
 export const PROMPT_INPUT_PRIMARY_ICON_SEND_CLASSNAME =

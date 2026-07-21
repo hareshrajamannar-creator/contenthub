@@ -40,7 +40,7 @@ export const BirdeyeLogoMark = forwardRef<SVGSVGElement, BirdeyeLogoMarkProps>(
           aria-hidden={ariaHidden}
           {...rest}
         >
-          <path clipRule="evenodd" d={svgPaths.p23fcc000} fill="#2552ED" fillRule="evenodd" />
+          <path clipRule="evenodd" d={svgPaths.p23fcc000} fill="#1976D2" fillRule="evenodd" />
         </svg>
       );
     }
@@ -60,7 +60,7 @@ export const BirdeyeLogoMark = forwardRef<SVGSVGElement, BirdeyeLogoMarkProps>(
         aria-hidden={ariaHidden}
         {...rest}
       >
-        <path clipRule="evenodd" d={svgPaths.p23fcc000} fill="#2552ED" fillRule="evenodd" />
+        <path clipRule="evenodd" d={svgPaths.p23fcc000} fill="#1976D2" fillRule="evenodd" />
       </svg>
     );
   },

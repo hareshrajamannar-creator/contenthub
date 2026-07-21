@@ -59,7 +59,7 @@ export function ShareModal({ open, onClose, onCustomize, themeColor, showSummary
     onClose();
   };
 
-  const accentColor = themeColor || "#2552ED";
+  const accentColor = themeColor || "#1976D2";
 
   /* ── Page count ── */
   const reportImages = [imgChart, imgTable1, imgTable2, imgTable3, imgTable4, imgTable5, imgTable6, imgTable7];
@@ -133,7 +133,7 @@ export function ShareModal({ open, onClose, onCustomize, themeColor, showSummary
                   onClick={() => setActiveTab(tab)}
                   className={`px-3 py-[5px] rounded-lg text-[12px] capitalize transition-all ${
                     isActive
-                      ? "bg-[#e8effe] dark:bg-[#1e2d5e] text-[#2552ED] dark:text-[#6b9bff]"
+                      ? "bg-[#e8effe] dark:bg-[#1e2d5e] text-[#1976D2] dark:text-[#6b9bff]"
                       : "text-[#888] dark:text-[#6b7280] hover:text-[#555] dark:hover:text-[#c0c6d4] hover:bg-[#f9fafb] dark:hover:bg-[#2e3340]"
                   }`}
                   style={{ fontWeight: 400 }}
@@ -157,7 +157,7 @@ export function ShareModal({ open, onClose, onCustomize, themeColor, showSummary
                   <label className="block text-[11px] text-[#888] dark:text-[#6b7280] mb-1.5" style={{ fontWeight: 400 }}>Share link</label>
                   <div className="flex items-center gap-2 bg-[#f8f9fb] dark:bg-[#262b35] border border-[#eceef2] dark:border-[#333a47] rounded-lg px-3 min-h-[38px] py-1">
                     <Link2 className="w-3.5 h-3.5 text-[#b0b0b0] dark:text-[#4d5568] shrink-0" />
-                    <span className="flex-1 text-[12px] text-[#2552ED] dark:text-[#6b9bff] truncate select-all font-['Inter',sans-serif]">
+                    <span className="flex-1 text-[12px] text-[#1976D2] dark:text-[#6b9bff] truncate select-all font-['Inter',sans-serif]">
                       share.birdeye.com/view/cc6fe16f
                     </span>
                     <Button
@@ -199,7 +199,7 @@ export function ShareModal({ open, onClose, onCustomize, themeColor, showSummary
                             key={opt}
                             onClick={() => { setAccess(opt); setAccessOpen(false); }}
                             className={`w-full text-left px-3 py-2 text-[12px] font-['Inter',sans-serif] transition-colors ${
-                              access === opt ? "bg-[#e8effe] dark:bg-[#1e2d5e] text-[#2552ED] dark:text-[#6b9bff]" : "text-[#333] dark:text-[#e4e4e4] hover:bg-[#f8f9fb] dark:hover:bg-[#2e3340]"
+                              access === opt ? "bg-[#e8effe] dark:bg-[#1e2d5e] text-[#1976D2] dark:text-[#6b9bff]" : "text-[#333] dark:text-[#e4e4e4] hover:bg-[#f8f9fb] dark:hover:bg-[#2e3340]"
                             }`}
                           >
                             {opt}

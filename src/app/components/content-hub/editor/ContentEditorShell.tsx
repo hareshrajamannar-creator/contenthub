@@ -153,8 +153,6 @@ export interface ContentEditorShellProps {
   recAeoScore?: number;
   /** Hide brand/location context in the header for recommendation-driven review flows */
   hideHeaderContext?: boolean;
-  /** Called when user clicks Edit on a blog/faq card in project mode — parent handles routing */
-  onEditCard?: (cardId: string, itemType: ContentItemType) => void;
   /** Pre-populated blog flow data from CreateBlogPage — retained for settings edit */
   initialBlogFlowData?: Partial<BlogFlowData>;
 }
@@ -950,7 +948,7 @@ function AddContentButton({ mode, onAdd }: { mode: ContentMode; onAdd: (t: Conte
 
 // ── Main shell ────────────────────────────────────────────────────────────────
 
-export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupPhase = false, initialTitle, preloadedFAQs, preloadedBlogSections, recAeoScore, hideHeaderContext = false, onEditCard, initialBlogFlowData }: ContentEditorShellProps) {
+export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupPhase = false, initialTitle, preloadedFAQs, preloadedBlogSections, recAeoScore, hideHeaderContext = false, initialBlogFlowData }: ContentEditorShellProps) {
   const config = EDITOR_CONFIGS[mode];
 
   // ── Header state
@@ -1434,14 +1432,10 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
     const card = cards.find(c => c.id === cardId);
     if (!card) return;
     if (card.itemType === 'blog' || card.itemType === 'faq') {
-      if (onEditCard) {
-        onEditCard(cardId, card.itemType);
-      } else {
-        setEditingCardItemType(card.itemType);
-        setEditingCardId(cardId);
-      }
+      setEditingCardItemType(card.itemType);
+      setEditingCardId(cardId);
     }
-  }, [cards, onEditCard]);
+  }, [cards]);
 
   const handleDeleteCard = useCallback((cardId: string) => {
     setCards(prev => prev.filter(c => c.id !== cardId));
@@ -1556,6 +1550,23 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
   const scorePanelConfig = activeCard
     ? EDITOR_CONFIGS[activeCard.itemType as ContentMode] ?? config
     : config;
+
+  // Editing a card from the project canvas — drill into the same full single-item
+  // editor used everywhere else (with its own header, score panel, Publish button),
+  // nested here so the project canvas underneath stays mounted and its cards/layout
+  // survive the round trip when the user goes back.
+  if (editingCardItemType) {
+    return (
+      <ContentEditorShell
+        mode={editingCardItemType}
+        skipSetupPhase
+        // The card was already generated on the project canvas — land straight on
+        // the populated editor instead of replaying the generation animation.
+        preloadedBlogSections={editingCardItemType === 'blog' ? DEFAULT_SEARCH_AI_BLOG_SECTIONS : undefined}
+        onBack={() => { setEditingCardItemType(null); setEditingCardId(null); }}
+      />
+    );
+  }
 
   return (
     <div className="relative flex flex-col h-full bg-background">
@@ -2114,38 +2125,61 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
           <div className="flex-1 min-w-0 flex flex-col gap-2 overflow-hidden">
 
             {/* Toolbar — floating card style, outside scroll area */}
-            {editingCardItemType === null && !isGenerating && cards.length > 0 && (
+            {!isGenerating && cards.length > 0 && (
               <div className="flex h-[48px] flex-none items-center rounded-lg border border-border/60 bg-background px-3">
 
                   {/* Left spacer */}
                   <div className="flex-1" />
 
                   {/* Center: view switcher + layout direction switcher (project only) */}
-                  <div className="flex items-center gap-2">
-                    <SegmentedToggle
-                      ariaLabel="Canvas view"
-                      variant="outline"
-                      items={[
-                        { value: 'grid' as const, label: 'Grid view', icon: <Grid size={13} strokeWidth={1.6} absoluteStrokeWidth /> },
-                        { value: 'list' as const, label: 'List view', icon: <List size={13} strokeWidth={1.6} absoluteStrokeWidth /> },
-                        { value: 'calendar' as const, label: 'Calendar view', icon: <Calendar size={13} strokeWidth={1.6} absoluteStrokeWidth /> },
-                      ]}
-                      value={viewMode}
-                      onChange={setViewMode}
-                      iconOnly
-                    />
+                  <div className="flex items-center gap-1">
+                    {([
+                      { value: 'grid' as const, label: 'Grid view', Icon: Grid },
+                      { value: 'list' as const, label: 'List view', Icon: List },
+                      { value: 'calendar' as const, label: 'Calendar view', Icon: Calendar },
+                    ]).map(({ value, label, Icon }) => (
+                      <button
+                        key={value}
+                        type="button"
+                        title={label}
+                        aria-label={label}
+                        aria-pressed={viewMode === value}
+                        onClick={() => setViewMode(value)}
+                        className={cn(
+                          'flex h-[30px] w-[30px] items-center justify-center rounded-lg border border-border/70 transition-colors',
+                          viewMode === value
+                            ? 'bg-muted text-foreground'
+                            : 'bg-background text-muted-foreground hover:bg-muted hover:text-foreground',
+                        )}
+                      >
+                        <Icon size={14} strokeWidth={1.6} absoluteStrokeWidth />
+                      </button>
+                    ))}
                     {mode === 'project' && (
-                      <SegmentedToggle
-                        ariaLabel="Arrange direction"
-                        variant="outline"
-                        items={[
-                          { value: 'vertical' as const, label: 'Arrange vertically', icon: <ArrowDown size={13} strokeWidth={1.6} absoluteStrokeWidth /> },
-                          { value: 'horizontal' as const, label: 'Arrange horizontally', icon: <ArrowRight size={13} strokeWidth={1.6} absoluteStrokeWidth /> },
-                        ]}
-                        value={layoutDirection}
-                        onChange={v => { handleArrangeCards(v as 'vertical' | 'horizontal'); }}
-                        iconOnly
-                      />
+                      <>
+                        <div className="mx-1 h-4 w-px bg-border" />
+                        {([
+                          { value: 'vertical' as const, label: 'Arrange vertically', Icon: ArrowDown },
+                          { value: 'horizontal' as const, label: 'Arrange horizontally', Icon: ArrowRight },
+                        ]).map(({ value, label, Icon }) => (
+                          <button
+                            key={value}
+                            type="button"
+                            title={label}
+                            aria-label={label}
+                            aria-pressed={layoutDirection === value}
+                            onClick={() => handleArrangeCards(value)}
+                            className={cn(
+                              'flex h-[30px] w-[30px] items-center justify-center rounded-lg border border-border/70 transition-colors',
+                              layoutDirection === value
+                                ? 'bg-muted text-foreground'
+                                : 'bg-background text-muted-foreground hover:bg-muted hover:text-foreground',
+                            )}
+                          >
+                            <Icon size={14} strokeWidth={1.6} absoluteStrokeWidth />
+                          </button>
+                        ))}
+                      </>
                     )}
                   </div>
 
@@ -2212,51 +2246,8 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
                 </div>
             )}
 
-            {/* Card item editor — shown when user clicks Edit on a blog/faq card */}
-            {editingCardItemType !== null ? (
-              <BlockEditorProvider initialBlocks={editingCardItemType === 'blog' ? initialBlogEditorBlocks : []}>
-                <div className="flex flex-1 min-h-0 flex-col overflow-hidden">
-                  <div className="flex-none h-10 flex items-center border-b border-border bg-background px-4">
-                    <button
-                      type="button"
-                      onClick={() => { setEditingCardItemType(null); setEditingCardId(null); }}
-                      className="flex items-center gap-1.5 text-[12px] text-muted-foreground hover:text-foreground transition-colors"
-                    >
-                      <ArrowLeft size={13} strokeWidth={1.6} absoluteStrokeWidth />
-                      Back to project
-                    </button>
-                  </div>
-                  <div className="flex flex-1 min-h-0 overflow-hidden">
-                    <div className="flex flex-1 min-w-0 flex-col gap-2 overflow-hidden p-2">
-                      <CanvasEditorTopBar
-                        score={60}
-                        scoreLabel="Content score"
-                        hideScore={editingCardItemType === 'blog'}
-                        canUndo={canUndo}
-                        canRedo={canRedo}
-                        onUndo={handleUndo}
-                        onRedo={handleRedo}
-                        zoom={zoom}
-                        onZoomChange={setZoom}
-                        onActivity={() => { setActivityOpen(v => !v); setCommentsOpen(false); }}
-                        onChat={() => { setCommentsOpen(v => !v); setActivityOpen(false); }}
-                      />
-                      <div className="min-h-0 flex-1 overflow-hidden rounded-xl">
-                        <BlockCanvas
-                          mode={editingCardItemType}
-                          zoom={zoom}
-                          onZoomChange={setZoom}
-                          onBlockFocus={() => {}}
-                          shimmerSection={shimmerSection}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </BlockEditorProvider>
-            ) : (
-              /* Scrollable canvas */
-              <div
+            {/* Scrollable canvas */}
+            <div
                 className="flex-1 min-h-0 rounded-xl bg-[var(--color-canvas,#F7F8FA)] relative overflow-auto"
                 onWheel={handleCanvasWheel}
               >
@@ -2342,7 +2333,6 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
                   </div>
                 )}
               </div>
-            )}
           </div>
 
             {/* Right score panel — slides in on card score click */}

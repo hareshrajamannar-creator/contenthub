@@ -55,7 +55,7 @@ export function CustomizeShareDrawer({ open, onClose, context }: CustomizeShareD
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-[#f0f1f5] dark:border-[#2e3340] shrink-0">
           <div className="flex items-center gap-2">
-            <Palette className="w-4 h-4 text-[#2552ED]" />
+            <Palette className="w-4 h-4 text-[#1976D2]" />
             <h2 className="text-[15px] text-[#212121] dark:text-[#e4e4e4] tracking-[-0.3px]" style={{ fontWeight: 400 }}>
               Customize & share
             </h2>
@@ -78,7 +78,7 @@ export function CustomizeShareDrawer({ open, onClose, context }: CustomizeShareD
                 type="text"
                 value={titleOverride}
                 onChange={(e) => setTitleOverride(e.target.value)}
-                className="w-full px-3 py-2 text-[13px] text-[#212121] dark:text-[#e4e4e4] bg-white dark:bg-[#262b35] border border-[#e5e9f0] dark:border-[#333a47] rounded-[8px] outline-none focus:border-[#2552ED] transition-colors"
+                className="w-full px-3 py-2 text-[13px] text-[#212121] dark:text-[#e4e4e4] bg-white dark:bg-[#262b35] border border-[#e5e9f0] dark:border-[#333a47] rounded-[8px] outline-none focus:border-[#1976D2] transition-colors"
                 style={{ fontWeight: 400 }}
               />
             </div>
@@ -91,7 +91,7 @@ export function CustomizeShareDrawer({ open, onClose, context }: CustomizeShareD
                 value={subtitleOverride}
                 onChange={(e) => setSubtitleOverride(e.target.value)}
                 placeholder="Optional subtitle"
-                className="w-full px-3 py-2 text-[13px] text-[#212121] dark:text-[#e4e4e4] bg-white dark:bg-[#262b35] border border-[#e5e9f0] dark:border-[#333a47] rounded-[8px] outline-none focus:border-[#2552ED] transition-colors placeholder:text-[#bbb] dark:placeholder:text-[#555]"
+                className="w-full px-3 py-2 text-[13px] text-[#212121] dark:text-[#e4e4e4] bg-white dark:bg-[#262b35] border border-[#e5e9f0] dark:border-[#333a47] rounded-[8px] outline-none focus:border-[#1976D2] transition-colors placeholder:text-[#bbb] dark:placeholder:text-[#555]"
                 style={{ fontWeight: 400 }}
               />
             </div>
@@ -106,7 +106,7 @@ export function CustomizeShareDrawer({ open, onClose, context }: CustomizeShareD
                     onClick={() => setLayout(l.id)}
                     className={`flex-1 px-3 py-2 text-[12px] rounded-[8px] border transition-colors tracking-[-0.24px] ${
                       layout === l.id
-                        ? "text-[#2552ED] dark:text-[#6b9bff] bg-[#f0f4ff] dark:bg-[#1e2d5e] border-[#2552ED]/20 dark:border-[#2552ED]/30"
+                        ? "text-[#1976D2] dark:text-[#6b9bff] bg-[#f0f4ff] dark:bg-[#1e2d5e] border-[#1976D2]/20 dark:border-[#1976D2]/30"
                         : "text-[#888] dark:text-[#6b7280] bg-white dark:bg-[#262b35] border-[#e5e9f0] dark:border-[#333a47] hover:bg-[#f5f5f5] dark:hover:bg-[#2e3340]"
                     }`}
                     style={{ fontWeight: 400 }}
@@ -127,7 +127,7 @@ export function CustomizeShareDrawer({ open, onClose, context }: CustomizeShareD
                     onClick={() => setTheme(t.id)}
                     className={`flex items-center gap-1.5 flex-1 px-3 py-2 text-[12px] rounded-[8px] border transition-colors tracking-[-0.24px] ${
                       theme === t.id
-                        ? "text-[#2552ED] dark:text-[#6b9bff] bg-[#f0f4ff] dark:bg-[#1e2d5e] border-[#2552ED]/20 dark:border-[#2552ED]/30"
+                        ? "text-[#1976D2] dark:text-[#6b9bff] bg-[#f0f4ff] dark:bg-[#1e2d5e] border-[#1976D2]/20 dark:border-[#1976D2]/30"
                         : "text-[#888] dark:text-[#6b7280] bg-white dark:bg-[#262b35] border-[#e5e9f0] dark:border-[#333a47] hover:bg-[#f5f5f5] dark:hover:bg-[#2e3340]"
                     }`}
                     style={{ fontWeight: 400 }}
@@ -146,7 +146,7 @@ export function CustomizeShareDrawer({ open, onClose, context }: CustomizeShareD
                   type="checkbox"
                   checked={branding}
                   onChange={(e) => setBranding(e.target.checked)}
-                  className="w-4 h-4 rounded accent-[#2552ED]"
+                  className="w-4 h-4 rounded accent-[#1976D2]"
                 />
                 <span className="text-[13px] text-[#212121] dark:text-[#e4e4e4]" style={{ fontWeight: 400 }}>Include company branding</span>
               </label>
@@ -169,7 +169,7 @@ export function CustomizeShareDrawer({ open, onClose, context }: CustomizeShareD
                     onClick={() => setFormat(f)}
                     className={`px-3 py-1.5 text-[12px] rounded-[8px] border transition-colors uppercase tracking-[0.3px] ${
                       format === f
-                        ? "text-[#2552ED] dark:text-[#6b9bff] bg-[#f0f4ff] dark:bg-[#1e2d5e] border-[#2552ED]/20 dark:border-[#2552ED]/30"
+                        ? "text-[#1976D2] dark:text-[#6b9bff] bg-[#f0f4ff] dark:bg-[#1e2d5e] border-[#1976D2]/20 dark:border-[#1976D2]/30"
                         : "text-[#888] dark:text-[#6b7280] bg-white dark:bg-[#262b35] border-[#e5e9f0] dark:border-[#333a47] hover:bg-[#f5f5f5] dark:hover:bg-[#2e3340]"
                     }`}
                     style={{ fontWeight: 400 }}
@@ -188,7 +188,7 @@ export function CustomizeShareDrawer({ open, onClose, context }: CustomizeShareD
                 value={recipients}
                 onChange={(e) => setRecipients(e.target.value)}
                 placeholder="Enter email addresses, separated by commas"
-                className="w-full px-3 py-2 text-[13px] text-[#212121] dark:text-[#e4e4e4] bg-white dark:bg-[#262b35] border border-[#e5e9f0] dark:border-[#333a47] rounded-[8px] outline-none focus:border-[#2552ED] transition-colors placeholder:text-[#bbb] dark:placeholder:text-[#555]"
+                className="w-full px-3 py-2 text-[13px] text-[#212121] dark:text-[#e4e4e4] bg-white dark:bg-[#262b35] border border-[#e5e9f0] dark:border-[#333a47] rounded-[8px] outline-none focus:border-[#1976D2] transition-colors placeholder:text-[#bbb] dark:placeholder:text-[#555]"
                 style={{ fontWeight: 400 }}
               />
             </div>
@@ -200,7 +200,7 @@ export function CustomizeShareDrawer({ open, onClose, context }: CustomizeShareD
                 type="text"
                 value={subject}
                 onChange={(e) => setSubject(e.target.value)}
-                className="w-full px-3 py-2 text-[13px] text-[#212121] dark:text-[#e4e4e4] bg-white dark:bg-[#262b35] border border-[#e5e9f0] dark:border-[#333a47] rounded-[8px] outline-none focus:border-[#2552ED] transition-colors"
+                className="w-full px-3 py-2 text-[13px] text-[#212121] dark:text-[#e4e4e4] bg-white dark:bg-[#262b35] border border-[#e5e9f0] dark:border-[#333a47] rounded-[8px] outline-none focus:border-[#1976D2] transition-colors"
                 style={{ fontWeight: 400 }}
               />
             </div>
@@ -213,7 +213,7 @@ export function CustomizeShareDrawer({ open, onClose, context }: CustomizeShareD
                 onChange={(e) => setBody(e.target.value)}
                 placeholder="Add a message to include with the report..."
                 rows={3}
-                className="w-full px-3 py-2 text-[13px] text-[#212121] dark:text-[#e4e4e4] bg-white dark:bg-[#262b35] border border-[#e5e9f0] dark:border-[#333a47] rounded-[8px] outline-none focus:border-[#2552ED] transition-colors resize-none placeholder:text-[#bbb] dark:placeholder:text-[#555]"
+                className="w-full px-3 py-2 text-[13px] text-[#212121] dark:text-[#e4e4e4] bg-white dark:bg-[#262b35] border border-[#e5e9f0] dark:border-[#333a47] rounded-[8px] outline-none focus:border-[#1976D2] transition-colors resize-none placeholder:text-[#bbb] dark:placeholder:text-[#555]"
                 style={{ fontWeight: 400 }}
               />
             </div>
@@ -232,7 +232,7 @@ export function CustomizeShareDrawer({ open, onClose, context }: CustomizeShareD
           <button
             onClick={handleSend}
             disabled={sending}
-            className="px-4 py-2 text-[13px] text-white bg-[#2552ED] hover:bg-[#1E44CC] rounded-[8px] transition-colors disabled:opacity-60"
+            className="px-4 py-2 text-[13px] text-white bg-[#1976D2] hover:bg-[#1976D2] rounded-[8px] transition-colors disabled:opacity-60"
             style={{ fontWeight: 400 }}
           >
             {sending ? "Sending..." : "Send customized report"}

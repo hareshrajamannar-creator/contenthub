@@ -6,7 +6,7 @@ function Icon() {
     <div className="h-[18.75px] relative shrink-0 w-[19.5px]" data-name="Icon">
       <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 19.5 18.75">
         <g clipPath="url(#clip0_124_1889)" id="Icon">
-          <path clipRule="evenodd" d={svgPaths.p1c21f200} fill="var(--fill-0, #2552ED)" fillRule="evenodd" id="Vector" />
+          <path clipRule="evenodd" d={svgPaths.p1c21f200} fill="var(--fill-0, #1976D2)" fillRule="evenodd" id="Vector" />
         </g>
         <defs>
           <clipPath id="clip0_124_1889">
@@ -35,10 +35,10 @@ function Icon1() {
         <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 33.862 31.8437">
           <g filter="url(#filter0_d_124_1857)" id="Icon">
             <g clipPath="url(#clip0_124_1857)">
-              <path d={svgPaths.p1e07de80} fill="var(--fill-0, #2552ED)" id="Vector" opacity="0.665096" />
-              <path d={svgPaths.p3bab1600} fill="var(--fill-0, #2552ED)" id="Vector_2" opacity="0.813712" />
-              <path clipRule="evenodd" d={svgPaths.p3150a00} fill="var(--fill-0, #2552ED)" fillRule="evenodd" id="Vector_3" />
-              <path d={svgPaths.p1e99fcf2} fill="var(--fill-0, #2552ED)" id="Vector_4" />
+              <path d={svgPaths.p1e07de80} fill="var(--fill-0, #1976D2)" id="Vector" opacity="0.665096" />
+              <path d={svgPaths.p3bab1600} fill="var(--fill-0, #1976D2)" id="Vector_2" opacity="0.813712" />
+              <path clipRule="evenodd" d={svgPaths.p3150a00} fill="var(--fill-0, #1976D2)" fillRule="evenodd" id="Vector_3" />
+              <path d={svgPaths.p1e99fcf2} fill="var(--fill-0, #1976D2)" id="Vector_4" />
             </g>
           </g>
           <defs>
@@ -677,7 +677,7 @@ function Text4() {
   return (
     <div className="h-[21px] relative shrink-0 w-[48.852px]" data-name="Text">
       <div className="bg-clip-padding border-0 border-[transparent] border-solid relative size-full">
-        <p className="-translate-x-1/2 absolute font-['Inter:Regular',sans-serif] font-normal leading-[21px] left-[24px] not-italic text-[#2552ed] text-[14px] text-center top-0 tracking-[-0.28px] whitespace-nowrap">Monitor</p>
+        <p className="-translate-x-1/2 absolute font-['Inter:Regular',sans-serif] font-normal leading-[21px] left-[24px] not-italic text-[#1976D2] text-[14px] text-center top-0 tracking-[-0.28px] whitespace-nowrap">Monitor</p>
       </div>
     </div>
   );
@@ -1329,7 +1329,7 @@ function Icon34() {
     <div className="relative shrink-0 size-[16px]" data-name="Icon">
       <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 16 16">
         <g clipPath="url(#clip0_124_1871)" id="Icon">
-          <path d={svgPaths.p3227a460} id="Vector" stroke="var(--stroke-0, #2552ED)" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.33333" />
+          <path d={svgPaths.p3227a460} id="Vector" stroke="var(--stroke-0, #1976D2)" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.33333" />
         </g>
         <defs>
           <clipPath id="clip0_124_1871">
@@ -1618,7 +1618,7 @@ function Text18() {
   return (
     <div className="h-[19.5px] relative shrink-0 w-[143.039px]" data-name="Text">
       <div className="bg-clip-padding border-0 border-[transparent] border-solid relative size-full">
-        <p className="absolute font-['Inter:Regular',sans-serif] font-normal leading-[19.5px] left-0 not-italic text-[#2552ed] text-[13px] top-px whitespace-nowrap">Review response agent</p>
+        <p className="absolute font-['Inter:Regular',sans-serif] font-normal leading-[19.5px] left-0 not-italic text-[#1976D2] text-[13px] top-px whitespace-nowrap">Review response agent</p>
       </div>
     </div>
   );
@@ -1628,7 +1628,7 @@ function CategoryBadge() {
   return (
     <div className="bg-[#e8effe] h-[19px] relative rounded-[4px] shrink-0 w-[107.125px]" data-name="CategoryBadge">
       <div className="bg-clip-padding border-0 border-[transparent] border-solid relative size-full">
-        <p className="absolute font-['Inter:Regular',sans-serif] font-normal leading-[15px] left-[6px] not-italic text-[#2552ed] text-[10px] top-[2.5px] tracking-[-0.2px] whitespace-nowrap">Customer interaction</p>
+        <p className="absolute font-['Inter:Regular',sans-serif] font-normal leading-[15px] left-[6px] not-italic text-[#1976D2] text-[10px] top-[2.5px] tracking-[-0.2px] whitespace-nowrap">Customer interaction</p>
       </div>
     </div>
   );
@@ -1710,7 +1710,7 @@ function Text21() {
   return (
     <div className="h-[19.5px] relative shrink-0 w-[142.516px]" data-name="Text">
       <div className="bg-clip-padding border-0 border-[transparent] border-solid relative size-full">
-        <p className="absolute font-['Inter:Regular',sans-serif] font-normal leading-[19.5px] left-0 not-italic text-[#2552ed] text-[13px] top-px whitespace-nowrap">Social publishing agent</p>
+        <p className="absolute font-['Inter:Regular',sans-serif] font-normal leading-[19.5px] left-0 not-italic text-[#1976D2] text-[13px] top-px whitespace-nowrap">Social publishing agent</p>
       </div>
     </div>
   );
@@ -1798,7 +1798,7 @@ function Text24() {
   return (
     <div className="h-[19.5px] relative shrink-0 w-[94.891px]" data-name="Text">
       <div className="bg-clip-padding border-0 border-[transparent] border-solid relative size-full">
-        <p className="absolute font-['Inter:Regular',sans-serif] font-normal leading-[19.5px] left-0 not-italic text-[#2552ed] text-[13px] top-px whitespace-nowrap">Ticketing agent</p>
+        <p className="absolute font-['Inter:Regular',sans-serif] font-normal leading-[19.5px] left-0 not-italic text-[#1976D2] text-[13px] top-px whitespace-nowrap">Ticketing agent</p>
       </div>
     </div>
   );
@@ -1808,7 +1808,7 @@ function CategoryBadge2() {
   return (
     <div className="bg-[#e8effe] h-[19px] relative rounded-[4px] shrink-0 w-[107.125px]" data-name="CategoryBadge">
       <div className="bg-clip-padding border-0 border-[transparent] border-solid relative size-full">
-        <p className="absolute font-['Inter:Regular',sans-serif] font-normal leading-[15px] left-[6px] not-italic text-[#2552ed] text-[10px] top-[2.5px] tracking-[-0.2px] whitespace-nowrap">Customer interaction</p>
+        <p className="absolute font-['Inter:Regular',sans-serif] font-normal leading-[15px] left-[6px] not-italic text-[#1976D2] text-[10px] top-[2.5px] tracking-[-0.2px] whitespace-nowrap">Customer interaction</p>
       </div>
     </div>
   );
@@ -1890,7 +1890,7 @@ function Text27() {
   return (
     <div className="h-[19.5px] relative shrink-0 w-[151.922px]" data-name="Text">
       <div className="bg-clip-padding border-0 border-[transparent] border-solid relative size-full">
-        <p className="absolute font-['Inter:Regular',sans-serif] font-normal leading-[19.5px] left-0 not-italic text-[#2552ed] text-[13px] top-px whitespace-nowrap">Review generation agent</p>
+        <p className="absolute font-['Inter:Regular',sans-serif] font-normal leading-[19.5px] left-0 not-italic text-[#1976D2] text-[13px] top-px whitespace-nowrap">Review generation agent</p>
       </div>
     </div>
   );
@@ -1982,7 +1982,7 @@ function Text30() {
   return (
     <div className="h-[19.5px] relative shrink-0 w-[157.563px]" data-name="Text">
       <div className="bg-clip-padding border-0 border-[transparent] border-solid relative size-full">
-        <p className="absolute font-['Inter:Regular',sans-serif] font-normal leading-[19.5px] left-0 not-italic text-[#2552ed] text-[13px] top-px whitespace-nowrap">Listing optimization agent</p>
+        <p className="absolute font-['Inter:Regular',sans-serif] font-normal leading-[19.5px] left-0 not-italic text-[#1976D2] text-[13px] top-px whitespace-nowrap">Listing optimization agent</p>
       </div>
     </div>
   );
@@ -2075,7 +2075,7 @@ function Text33() {
   return (
     <div className="h-[19.5px] relative shrink-0 w-[142.516px]" data-name="Text">
       <div className="bg-clip-padding border-0 border-[transparent] border-solid relative size-full">
-        <p className="absolute font-['Inter:Regular',sans-serif] font-normal leading-[19.5px] left-0 not-italic text-[#2552ed] text-[13px] top-px whitespace-nowrap">Social publishing agent</p>
+        <p className="absolute font-['Inter:Regular',sans-serif] font-normal leading-[19.5px] left-0 not-italic text-[#1976D2] text-[13px] top-px whitespace-nowrap">Social publishing agent</p>
       </div>
     </div>
   );
@@ -2163,7 +2163,7 @@ function Text36() {
   return (
     <div className="h-[19.5px] relative shrink-0 w-[143.039px]" data-name="Text">
       <div className="bg-clip-padding border-0 border-[transparent] border-solid relative size-full">
-        <p className="absolute font-['Inter:Regular',sans-serif] font-normal leading-[19.5px] left-0 not-italic text-[#2552ed] text-[13px] top-px whitespace-nowrap">Review response agent</p>
+        <p className="absolute font-['Inter:Regular',sans-serif] font-normal leading-[19.5px] left-0 not-italic text-[#1976D2] text-[13px] top-px whitespace-nowrap">Review response agent</p>
       </div>
     </div>
   );
@@ -2173,7 +2173,7 @@ function CategoryBadge6() {
   return (
     <div className="bg-[#e8effe] h-[19px] relative rounded-[4px] shrink-0 w-[107.125px]" data-name="CategoryBadge">
       <div className="bg-clip-padding border-0 border-[transparent] border-solid relative size-full">
-        <p className="absolute font-['Inter:Regular',sans-serif] font-normal leading-[15px] left-[6px] not-italic text-[#2552ed] text-[10px] top-[2.5px] tracking-[-0.2px] whitespace-nowrap">Customer interaction</p>
+        <p className="absolute font-['Inter:Regular',sans-serif] font-normal leading-[15px] left-[6px] not-italic text-[#1976D2] text-[10px] top-[2.5px] tracking-[-0.2px] whitespace-nowrap">Customer interaction</p>
       </div>
     </div>
   );
@@ -2255,7 +2255,7 @@ function Text39() {
   return (
     <div className="h-[19.5px] relative shrink-0 w-[94.891px]" data-name="Text">
       <div className="bg-clip-padding border-0 border-[transparent] border-solid relative size-full">
-        <p className="absolute font-['Inter:Regular',sans-serif] font-normal leading-[19.5px] left-0 not-italic text-[#2552ed] text-[13px] top-px whitespace-nowrap">Ticketing agent</p>
+        <p className="absolute font-['Inter:Regular',sans-serif] font-normal leading-[19.5px] left-0 not-italic text-[#1976D2] text-[13px] top-px whitespace-nowrap">Ticketing agent</p>
       </div>
     </div>
   );
@@ -2347,7 +2347,7 @@ function Text42() {
   return (
     <div className="h-[19.5px] relative shrink-0 w-[143.039px]" data-name="Text">
       <div className="bg-clip-padding border-0 border-[transparent] border-solid relative size-full">
-        <p className="absolute font-['Inter:Regular',sans-serif] font-normal leading-[19.5px] left-0 not-italic text-[#2552ed] text-[13px] top-px whitespace-nowrap">Review response agent</p>
+        <p className="absolute font-['Inter:Regular',sans-serif] font-normal leading-[19.5px] left-0 not-italic text-[#1976D2] text-[13px] top-px whitespace-nowrap">Review response agent</p>
       </div>
     </div>
   );
@@ -2357,7 +2357,7 @@ function CategoryBadge8() {
   return (
     <div className="bg-[#e8effe] h-[19px] relative rounded-[4px] shrink-0 w-[107.125px]" data-name="CategoryBadge">
       <div className="bg-clip-padding border-0 border-[transparent] border-solid relative size-full">
-        <p className="absolute font-['Inter:Regular',sans-serif] font-normal leading-[15px] left-[6px] not-italic text-[#2552ed] text-[10px] top-[2.5px] tracking-[-0.2px] whitespace-nowrap">Customer interaction</p>
+        <p className="absolute font-['Inter:Regular',sans-serif] font-normal leading-[15px] left-[6px] not-italic text-[#1976D2] text-[10px] top-[2.5px] tracking-[-0.2px] whitespace-nowrap">Customer interaction</p>
       </div>
     </div>
   );
@@ -2439,7 +2439,7 @@ function Text45() {
   return (
     <div className="h-[19.5px] relative shrink-0 w-[156.242px]" data-name="Text">
       <div className="bg-clip-padding border-0 border-[transparent] border-solid relative size-full">
-        <p className="absolute font-['Inter:Regular',sans-serif] font-normal leading-[19.5px] left-0 not-italic text-[#2552ed] text-[13px] top-px whitespace-nowrap">Social engagement agent</p>
+        <p className="absolute font-['Inter:Regular',sans-serif] font-normal leading-[19.5px] left-0 not-italic text-[#1976D2] text-[13px] top-px whitespace-nowrap">Social engagement agent</p>
       </div>
     </div>
   );
@@ -2449,7 +2449,7 @@ function CategoryBadge9() {
   return (
     <div className="bg-[#e8effe] h-[19px] relative rounded-[4px] shrink-0 w-[107.125px]" data-name="CategoryBadge">
       <div className="bg-clip-padding border-0 border-[transparent] border-solid relative size-full">
-        <p className="absolute font-['Inter:Regular',sans-serif] font-normal leading-[15px] left-[6px] not-italic text-[#2552ed] text-[10px] top-[2.5px] tracking-[-0.2px] whitespace-nowrap">Customer interaction</p>
+        <p className="absolute font-['Inter:Regular',sans-serif] font-normal leading-[15px] left-[6px] not-italic text-[#1976D2] text-[10px] top-[2.5px] tracking-[-0.2px] whitespace-nowrap">Customer interaction</p>
       </div>
     </div>
   );
@@ -2527,7 +2527,7 @@ function Text48() {
   return (
     <div className="h-[19.5px] relative shrink-0 w-[157.563px]" data-name="Text">
       <div className="bg-clip-padding border-0 border-[transparent] border-solid relative size-full">
-        <p className="absolute font-['Inter:Regular',sans-serif] font-normal leading-[19.5px] left-0 not-italic text-[#2552ed] text-[13px] top-px whitespace-nowrap">Listing optimization agent</p>
+        <p className="absolute font-['Inter:Regular',sans-serif] font-normal leading-[19.5px] left-0 not-italic text-[#1976D2] text-[13px] top-px whitespace-nowrap">Listing optimization agent</p>
       </div>
     </div>
   );
@@ -2620,7 +2620,7 @@ function Text51() {
   return (
     <div className="h-[19.5px] relative shrink-0 w-[94.891px]" data-name="Text">
       <div className="bg-clip-padding border-0 border-[transparent] border-solid relative size-full">
-        <p className="absolute font-['Inter:Regular',sans-serif] font-normal leading-[19.5px] left-0 not-italic text-[#2552ed] text-[13px] top-px whitespace-nowrap">Ticketing agent</p>
+        <p className="absolute font-['Inter:Regular',sans-serif] font-normal leading-[19.5px] left-0 not-italic text-[#1976D2] text-[13px] top-px whitespace-nowrap">Ticketing agent</p>
       </div>
     </div>
   );
@@ -2904,7 +2904,7 @@ function Container77() {
 }
 
 function Container78() {
-  return <div className="absolute bg-[#2552ed] border-2 border-[#2552ed] border-solid left-[-16px] rounded-[16777200px] size-[10px] top-[5px]" data-name="Container" />;
+  return <div className="absolute bg-[#1976D2] border-2 border-[#1976D2] border-solid left-[-16px] rounded-[16777200px] size-[10px] top-[5px]" data-name="Container" />;
 }
 
 function Container76() {
@@ -3063,11 +3063,11 @@ function Icon50() {
     <div className="absolute left-0 size-[12px] top-[3px]" data-name="Icon">
       <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 12 12">
         <g clipPath="url(#clip0_124_1904)" id="Icon">
-          <path d={svgPaths.pecd8080} id="Vector" stroke="var(--stroke-0, #2552ED)" strokeLinecap="round" strokeLinejoin="round" />
-          <path d="M10 1.5V3.5" id="Vector_2" stroke="var(--stroke-0, #2552ED)" strokeLinecap="round" strokeLinejoin="round" />
-          <path d="M11 2.5H9" id="Vector_3" stroke="var(--stroke-0, #2552ED)" strokeLinecap="round" strokeLinejoin="round" />
-          <path d="M2 8.5V9.5" id="Vector_4" stroke="var(--stroke-0, #2552ED)" strokeLinecap="round" strokeLinejoin="round" />
-          <path d="M2.5 9H1.5" id="Vector_5" stroke="var(--stroke-0, #2552ED)" strokeLinecap="round" strokeLinejoin="round" />
+          <path d={svgPaths.pecd8080} id="Vector" stroke="var(--stroke-0, #1976D2)" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M10 1.5V3.5" id="Vector_2" stroke="var(--stroke-0, #1976D2)" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M11 2.5H9" id="Vector_3" stroke="var(--stroke-0, #1976D2)" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M2 8.5V9.5" id="Vector_4" stroke="var(--stroke-0, #1976D2)" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M2.5 9H1.5" id="Vector_5" stroke="var(--stroke-0, #1976D2)" strokeLinecap="round" strokeLinejoin="round" />
         </g>
         <defs>
           <clipPath id="clip0_124_1904">
@@ -3083,7 +3083,7 @@ function Button44() {
   return (
     <div className="absolute h-[18px] left-[20px] top-[481px] w-[126.75px]" data-name="Button">
       <Icon50 />
-      <p className="-translate-x-1/2 absolute font-['Inter:Regular',sans-serif] font-normal leading-[18px] left-[72px] not-italic text-[#2552ed] text-[12px] text-center top-[0.5px] whitespace-nowrap">Explain this activity</p>
+      <p className="-translate-x-1/2 absolute font-['Inter:Regular',sans-serif] font-normal leading-[18px] left-[72px] not-italic text-[#1976D2] text-[12px] text-center top-[0.5px] whitespace-nowrap">Explain this activity</p>
     </div>
   );
 }

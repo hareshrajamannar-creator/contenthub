@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react';
+import { within, userEvent } from '@storybook/test';
 import { ContentEditorShell } from '@/app/components/content-hub/editor/ContentEditorShell';
 
 const meta: Meta<typeof ContentEditorShell> = {
@@ -90,5 +91,35 @@ export const CreateProject: Story = {
   args: {
     mode: 'project',
     onBack: () => console.log('cancel create project'),
+  },
+};
+
+export const EditCardFromProject: Story = {
+  name: 'Edit card from project',
+  args: {
+    mode: 'project',
+    onBack: () => console.log('cancel create project'),
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+
+    const nameInput = await canvas.findByPlaceholderText(/Spring promotion/i);
+    await userEvent.type(nameInput, 'Spring promotion — Olive Garden');
+
+    // Advance through the setup wizard to the generated multi-card canvas
+    for (let i = 0; i < 3; i++) {
+      const continueBtn = canvas.queryByRole('button', { name: /^Continue$/ });
+      if (!continueBtn) break;
+      await userEvent.click(continueBtn);
+    }
+
+    const generateBtn = await canvas.findByRole('button', { name: /^Generate$/ });
+    await userEvent.click(generateBtn);
+
+    // Click Edit on the first generated card — drills into the full single-item
+    // editor (own header, score panel, Publish button) without losing this
+    // project canvas underneath; "Go back" returns here with cards intact.
+    const editButtons = await canvas.findAllByTitle('Edit', {}, { timeout: 20000 });
+    await userEvent.click(editButtons[0]);
   },
 };

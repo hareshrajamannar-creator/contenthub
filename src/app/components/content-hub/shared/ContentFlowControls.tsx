@@ -24,9 +24,9 @@ export interface ContentFlowStep {
 
 export const CONTENT_FLOW_STEP_TITLE_CLASS = 'text-[16px] font-semibold leading-6 text-foreground';
 export const CONTENT_FLOW_FIELD_CLASS =
-  'h-10 rounded-[8px] border-[#e5e9f0] bg-white px-4 text-[15px] md:text-[15px] font-normal text-[#212121] placeholder:text-[#a3a3a3] transition-[color,box-shadow,border-color] hover:border-[#c0c6d4] focus-visible:border-[#2552ED] focus-visible:ring-[3px] focus-visible:ring-[#2552ED]/10 dark:border-[#333a47] dark:bg-[#262b35] dark:text-[#e4e4e4] dark:placeholder:text-[#4d5568] dark:hover:border-[#4d5568]';
+  'h-10 rounded-[8px] border-[#e5e9f0] bg-white px-4 text-[15px] md:text-[15px] font-normal text-[#212121] placeholder:text-[#a3a3a3] transition-[color,box-shadow,border-color] hover:border-[#c0c6d4] focus-visible:border-[#1976D2] focus-visible:ring-[3px] focus-visible:ring-[#1976D2]/10 dark:border-[#333a47] dark:bg-[#262b35] dark:text-[#e4e4e4] dark:placeholder:text-[#4d5568] dark:hover:border-[#4d5568]';
 export const CONTENT_FLOW_TEXTAREA_CLASS =
-  'min-h-28 rounded-[8px] border-[#e5e9f0] bg-white px-4 py-2 text-[15px] md:text-[15px] font-normal leading-6 text-[#212121] placeholder:text-[#a3a3a3] transition-[color,box-shadow,border-color] hover:border-[#c0c6d4] focus-visible:border-[#2552ED] focus-visible:ring-[3px] focus-visible:ring-[#2552ED]/10 dark:border-[#333a47] dark:bg-[#262b35] dark:text-[#e4e4e4] dark:placeholder:text-[#4d5568] dark:hover:border-[#4d5568]';
+  'min-h-28 rounded-[8px] border-[#e5e9f0] bg-white px-4 py-2 text-[15px] md:text-[15px] font-normal leading-6 text-[#212121] placeholder:text-[#a3a3a3] transition-[color,box-shadow,border-color] hover:border-[#c0c6d4] focus-visible:border-[#1976D2] focus-visible:ring-[3px] focus-visible:ring-[#1976D2]/10 dark:border-[#333a47] dark:bg-[#262b35] dark:text-[#e4e4e4] dark:placeholder:text-[#4d5568] dark:hover:border-[#4d5568]';
 
 export function ContentFlowTextInput({
   className,
@@ -766,7 +766,7 @@ export function ContentFlowLocationMultiSelect({
           type="button"
           className={cn(
             'flex h-10 w-full items-center justify-between rounded-[8px] border border-[#e5e9f0] bg-white px-4 text-[15px] transition-[color,box-shadow,border-color]',
-            'hover:border-[#c0c6d4] focus-visible:border-[#2552ED] focus-visible:ring-[3px] focus-visible:ring-[#2552ED]/10 focus-visible:outline-none',
+            'hover:border-[#c0c6d4] focus-visible:border-[#1976D2] focus-visible:ring-[3px] focus-visible:ring-[#1976D2]/10 focus-visible:outline-none',
             'dark:border-[#333a47] dark:bg-[#262b35]',
             values.length > 0 ? 'text-[#212121] dark:text-[#e4e4e4]' : 'text-[#a3a3a3] dark:text-[#4d5568]',
           )}

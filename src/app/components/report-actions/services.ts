@@ -89,9 +89,9 @@ export const reportCustomizeService = {
 
   getThemeOptions() {
     return [
-      { id: "default", label: "Default", color: "#2552ED" },
+      { id: "default", label: "Default", color: "#1976D2" },
       { id: "dark", label: "Dark", color: "#1e2229" },
-      { id: "brand", label: "Brand", color: "#2552ED" },
+      { id: "brand", label: "Brand", color: "#1976D2" },
     ] as const;
   },
 };

@@ -138,7 +138,7 @@ export function AgentActivityTable({
                   className={cn(
                     "cursor-pointer rounded-md px-2.5 py-1 text-[12px] font-medium transition-colors",
                     filter === f.value
-                      ? "bg-[#2552ED] text-white"
+                      ? "bg-[#1976D2] text-white"
                       : "text-[#555] dark:text-[#8b92a5] hover:bg-[#f0f1f5] dark:hover:bg-[#2e3340]",
                   )}
                 >
@@ -195,7 +195,7 @@ export function AgentActivityTable({
                 selectedId === row.id
                   ? "bg-[#f0f4ff] dark:bg-[#1e2a4a]"
                   : "hover:bg-[#fafafa] dark:hover:bg-[#1a1d23]",
-                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2552ED]/40 focus-visible:ring-inset",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1976D2]/40 focus-visible:ring-inset",
               )}
             >
               {/* When + ID */}

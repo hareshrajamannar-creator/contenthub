@@ -122,7 +122,7 @@ function ToolboxPanel({ mode, onModeChange }: { mode: BuilderMode; onModeChange:
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
             placeholder="Search"
-            className="w-full h-[32px] pl-8 pr-3 bg-white dark:bg-[#262b35] border border-[#e5e9f0] dark:border-[#333a47] rounded-[8px] text-[12px] text-[#212121] dark:text-[#e4e4e4] placeholder-[#999] dark:placeholder-[#6b7280] outline-none focus:border-[#2552ED] dark:focus:border-[#2552ED] transition-colors"
+            className="w-full h-[32px] pl-8 pr-3 bg-white dark:bg-[#262b35] border border-[#e5e9f0] dark:border-[#333a47] rounded-[8px] text-[12px] text-[#212121] dark:text-[#e4e4e4] placeholder-[#999] dark:placeholder-[#6b7280] outline-none focus:border-[#1976D2] dark:focus:border-[#1976D2] transition-colors"
             style={{ fontWeight: 400 }}
           />
         </div>
@@ -222,7 +222,7 @@ function CanvasPanel({
       {/* Agent title pill */}
       <div className="flex justify-center pt-6 pb-2 shrink-0">
         <div className="flex items-center gap-2.5 px-5 py-2.5 bg-[#3b4455] dark:bg-[#2e3340] rounded-[10px]">
-          <div className="w-2 h-2 rounded-full bg-[#2552ED]" />
+          <div className="w-2 h-2 rounded-full bg-[#1976D2]" />
           <div>
             <p className="text-[12px] text-white" style={{ fontWeight: 400 }}>
               Review response agent replying autonomously
@@ -272,7 +272,7 @@ function CanvasPanel({
                 onClick={() => onSelectNode(node.id)}
                 className={`relative w-[340px] rounded-[10px] border-2 transition-all text-left ${
                   selectedNodeId === node.id
-                    ? "border-[#2552ED] bg-white dark:bg-[#1e2229] shadow-[0_0_0_3px_rgba(37,82,237,0.12)]"
+                    ? "border-[#1976D2] bg-white dark:bg-[#1e2229] shadow-[0_0_0_3px_rgba(37,82,237,0.12)]"
                     : "border-[#e5e9f0] dark:border-[#2e3340] bg-white dark:bg-[#1e2229] hover:border-[#c0c6d4] dark:hover:border-[#4d5568]"
                 }`}
               >
@@ -297,7 +297,7 @@ function CanvasPanel({
                         className="p-0.5"
                       >
                         {node.enabled ? (
-                          <ToggleRight className="w-5 h-5 text-[#2552ED]" />
+                          <ToggleRight className="w-5 h-5 text-[#1976D2]" />
                         ) : (
                           <ToggleLeft className="w-5 h-5 text-[#ccc] dark:text-[#4d5568]" />
                         )}
@@ -436,7 +436,7 @@ function PropertiesPanel({
             type="text"
             value={isTrigger ? triggerName : selectedNode.label}
             onChange={e => isTrigger && setTriggerName(e.target.value)}
-            className="w-full h-[36px] px-3 bg-[#f5f5f5] dark:bg-[#262b35] border border-[#ccc] dark:border-[#333a47] rounded-[8px] text-[12px] text-[#555] dark:text-[#9ba2b0] outline-none focus:border-[#2552ED] dark:focus:border-[#2552ED] transition-colors"
+            className="w-full h-[36px] px-3 bg-[#f5f5f5] dark:bg-[#262b35] border border-[#ccc] dark:border-[#333a47] rounded-[8px] text-[12px] text-[#555] dark:text-[#9ba2b0] outline-none focus:border-[#1976D2] dark:focus:border-[#1976D2] transition-colors"
             style={{ fontWeight: 400 }}
           />
         </div>
@@ -451,7 +451,7 @@ function PropertiesPanel({
             value={isTrigger ? description : selectedNode.description}
             onChange={e => isTrigger && setDescription(e.target.value)}
             rows={3}
-            className="w-full px-3 py-2 bg-white dark:bg-[#262b35] border border-[#ccc] dark:border-[#333a47] rounded-[8px] text-[12px] text-[#212121] dark:text-[#e4e4e4] outline-none focus:border-[#2552ED] dark:focus:border-[#2552ED] transition-colors resize-none leading-[1.5]"
+            className="w-full px-3 py-2 bg-white dark:bg-[#262b35] border border-[#ccc] dark:border-[#333a47] rounded-[8px] text-[12px] text-[#212121] dark:text-[#e4e4e4] outline-none focus:border-[#1976D2] dark:focus:border-[#1976D2] transition-colors resize-none leading-[1.5]"
             style={{ fontWeight: 400 }}
           />
         </div>
@@ -516,7 +516,7 @@ function PropertiesPanel({
               {/* Add condition */}
               <button
                 onClick={addCondition}
-                className="flex items-center gap-1.5 py-2 text-[12px] text-[#2552ED] hover:text-[#1E44CC] transition-colors"
+                className="flex items-center gap-1.5 py-2 text-[12px] text-[#1976D2] hover:text-[#1976D2] transition-colors"
                 style={{ fontWeight: 400 }}
               >
                 <PlusCircle className="w-4 h-4" />
@@ -547,7 +547,7 @@ function PropertiesPanel({
         <Button
           type="button"
           onClick={() => toast.success("Configuration saved")}
-          className="w-full rounded-[8px] bg-[#2552ED] hover:bg-[#1E44CC] text-[13px] text-white"
+          className="w-full rounded-[8px] bg-[#1976D2] hover:bg-[#1976D2] text-[13px] text-white"
           style={{ fontWeight: 400 }}
         >
           Save

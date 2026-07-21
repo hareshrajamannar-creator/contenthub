@@ -138,18 +138,18 @@ function DraggableReportThumb({ origIdx, posIdx, totalCount, children, onMove }:
       {/* Drop indicator — above */}
       {isOver && dropIndicator === "above" && (
         <div className="absolute -top-[5px] left-1 right-1 flex items-center z-20 pointer-events-none">
-          <div className="w-[5px] h-[5px] rounded-full bg-[#2552ED] shrink-0" />
-          <div className="flex-1 h-[2px] bg-[#2552ED] rounded-full" />
-          <div className="w-[5px] h-[5px] rounded-full bg-[#2552ED] shrink-0" />
+          <div className="w-[5px] h-[5px] rounded-full bg-[#1976D2] shrink-0" />
+          <div className="flex-1 h-[2px] bg-[#1976D2] rounded-full" />
+          <div className="w-[5px] h-[5px] rounded-full bg-[#1976D2] shrink-0" />
         </div>
       )}
       {children}
       {/* Drop indicator — below */}
       {isOver && dropIndicator === "below" && (
         <div className="absolute -bottom-[5px] left-1 right-1 flex items-center z-20 pointer-events-none">
-          <div className="w-[5px] h-[5px] rounded-full bg-[#2552ED] shrink-0" />
-          <div className="flex-1 h-[2px] bg-[#2552ED] rounded-full" />
-          <div className="w-[5px] h-[5px] rounded-full bg-[#2552ED] shrink-0" />
+          <div className="w-[5px] h-[5px] rounded-full bg-[#1976D2] shrink-0" />
+          <div className="flex-1 h-[2px] bg-[#1976D2] rounded-full" />
+          <div className="w-[5px] h-[5px] rounded-full bg-[#1976D2] shrink-0" />
         </div>
       )}
     </div>
@@ -157,7 +157,7 @@ function DraggableReportThumb({ origIdx, posIdx, totalCount, children, onMove }:
 }
 
 const colorPresets = [
-  { name: "Blue", color: "#2552ED" },
+  { name: "Blue", color: "#1976D2" },
   { name: "Purple", color: "#7B1FA2" },
   { name: "Teal", color: "#00897B" },
   { name: "Orange", color: "#E65100" },
@@ -168,7 +168,7 @@ const colorPresets = [
 ];
 
 const themePresets = [
-  { name: "Professional blue", primary: "#2552ED", secondary: "#e3f2fd", accent: "#0d47a1" },
+  { name: "Professional blue", primary: "#1976D2", secondary: "#e3f2fd", accent: "#0d47a1" },
   { name: "Bold purple", primary: "#7B1FA2", secondary: "#f3e5f5", accent: "#4a148c" },
   { name: "Nature green", primary: "#2E7D32", secondary: "#e8f5e9", accent: "#1b5e20" },
   { name: "Warm orange", primary: "#E65100", secondary: "#fff3e0", accent: "#bf360c" },
@@ -202,7 +202,7 @@ const stylePresets = [
     cardBg: "#f5f5f5",
     titleColor: "#1a1a1a",
     bodyColor: "#666666",
-    linkColor: "#2552ED",
+    linkColor: "#1976D2",
     borderColor: "#e0e0e0",
     headerBg: "linear-gradient(135deg, #f5f5f5 0%, #eeeeee 100%)",
     preview: "default" as const,
@@ -701,7 +701,7 @@ export function AICustomizePanel({ onClose, themeColor, onThemeColorChange, show
     <button
       onClick={() => onChange(!checked)}
       className={`w-[36px] h-[20px] rounded-full transition-colors relative shrink-0 ${
-        checked ? "bg-[#2552ED]" : "bg-[#ccc] dark:bg-[#3d4555]"
+        checked ? "bg-[#1976D2]" : "bg-[#ccc] dark:bg-[#3d4555]"
       }`}
     >
       <span
@@ -726,7 +726,7 @@ export function AICustomizePanel({ onClose, themeColor, onThemeColorChange, show
     };
 
     const colorMap: Record<string, string> = {
-      blue: "#2552ED", red: "#C62828", green: "#2E7D32", purple: "#7B1FA2",
+      blue: "#1976D2", red: "#C62828", green: "#2E7D32", purple: "#7B1FA2",
       orange: "#E65100", teal: "#00897B", pink: "#AD1457", indigo: "#283593",
       black: "#212121", navy: "#0D47A1",
     };
@@ -972,7 +972,7 @@ export function AICustomizePanel({ onClose, themeColor, onThemeColorChange, show
                 if (e.key === "Enter") commitName();
                 if (e.key === "Escape") setIsEditingName(false);
               }}
-              className="text-[16px] text-[#212121] dark:text-[#e4e4e4] border-b border-[#2552ED] outline-none bg-transparent w-[220px] py-0.5"
+              className="text-[16px] text-[#212121] dark:text-[#e4e4e4] border-b border-[#1976D2] outline-none bg-transparent w-[220px] py-0.5"
               style={{ fontWeight: 400 }}
               autoFocus
             />
@@ -1030,7 +1030,7 @@ export function AICustomizePanel({ onClose, themeColor, onThemeColorChange, show
             <Button
               type="button"
               onClick={() => setShowScheduleModal(true)}
-              className="rounded-[4px] bg-[#2552ED] px-3 font-normal text-white hover:bg-[#1E44CC]"
+              className="rounded-[4px] bg-[#1976D2] px-3 font-normal text-white hover:bg-[#1976D2]"
             >
               <span className="font-['Roboto',sans-serif] text-[16px] tracking-[-0.32px] whitespace-nowrap leading-[24px]" style={{ fontVariationSettings: "'wdth' 100" }}>Schedule</span>
             </Button>
@@ -1039,7 +1039,7 @@ export function AICustomizePanel({ onClose, themeColor, onThemeColorChange, show
               <DropdownMenuTrigger asChild>
                 <Button
                   type="button"
-                  className="rounded-[4px] bg-[#2552ED] px-3 font-normal text-white hover:bg-[#1E44CC]"
+                  className="rounded-[4px] bg-[#1976D2] px-3 font-normal text-white hover:bg-[#1976D2]"
                 >
                   <span
                     className="font-['Roboto',sans-serif] text-[16px] tracking-[-0.32px] whitespace-nowrap leading-[24px]"
@@ -1210,7 +1210,7 @@ export function AICustomizePanel({ onClose, themeColor, onThemeColorChange, show
                         disabled={!input.trim()}
                         className={`rounded-lg shadow-sm disabled:opacity-100 ${
                           input.trim()
-                            ? "bg-[#2552ED] hover:bg-[#1E44CC]"
+                            ? "bg-[#1976D2] hover:bg-[#1976D2]"
                             : "bg-[#e8e8e8] dark:bg-[#333a47]"
                         }`}
                         title="Send message"
@@ -1235,7 +1235,7 @@ export function AICustomizePanel({ onClose, themeColor, onThemeColorChange, show
                   <div className="pb-4 pl-7">
                     <div className="flex items-center justify-between mb-2.5">
                       <p className="text-[11px] text-[#777] dark:text-[#6b7280] leading-tight">Use one of our report styles below to change how analytics are visualized.</p>
-                      <button className="flex items-center gap-1 text-[11px] text-[#2552ED] hover:underline shrink-0 ml-2">
+                      <button className="flex items-center gap-1 text-[11px] text-[#1976D2] hover:underline shrink-0 ml-2">
                         <Sparkles className="w-3 h-3" />
                         View more
                       </button>
@@ -1251,7 +1251,7 @@ export function AICustomizePanel({ onClose, themeColor, onThemeColorChange, show
                             onClick={() => setSelectedStyle(style.id)}
                             className={`rounded-xl border-2 overflow-hidden transition-all text-left cursor-pointer ${
                               isSelected
-                                ? "border-[#2552ED] shadow-[0_0_0_1px_#2552ED]"
+                                ? "border-[#1976D2] shadow-[0_0_0_1px_#1976D2]"
                                 : "border-[#e8eaed] dark:border-[#333a47] hover:border-[#ccc] dark:hover:border-[#3d4555] hover:shadow-sm"
                             }`}
                           >
@@ -1367,9 +1367,9 @@ export function AICustomizePanel({ onClose, themeColor, onThemeColorChange, show
                               </div>
                             </div>
                             <div className="px-2.5 py-1.5 flex items-center gap-1.5 bg-white dark:bg-[#262b35]" style={{ backgroundColor: isDark ? style.bg : undefined }}>
-                              {isSelected && <Check className="w-3 h-3 text-[#2552ED]" />}
+                              {isSelected && <Check className="w-3 h-3 text-[#1976D2]" />}
                               <span
-                                className={`text-[11px] ${isSelected ? "text-[#2552ED]" : "text-[#212121] dark:text-[#e4e4e4]"}`}
+                                className={`text-[11px] ${isSelected ? "text-[#1976D2]" : "text-[#212121] dark:text-[#e4e4e4]"}`}
                                 style={{ fontWeight: isSelected ? 400 : 300, color: isSelected ? undefined : (isDark ? style.titleColor : undefined) }}
                               >{style.name}</span>
                             </div>
@@ -1393,7 +1393,7 @@ export function AICustomizePanel({ onClose, themeColor, onThemeColorChange, show
                           onClick={() => setSelectedLayout(opt.id)}
                           className={`flex flex-col items-center gap-1 py-3 px-2 rounded-lg border transition-colors ${
                             selectedLayout === opt.id
-                              ? "border-[#2552ED] bg-[#e8effe] dark:bg-[#1e2d5e]"
+                              ? "border-[#1976D2] bg-[#e8effe] dark:bg-[#1e2d5e]"
                               : "border-[#e5e9f0] dark:border-[#333a47] hover:bg-[#fafafa] dark:hover:bg-[#2e3340]"
                           }`}
                         >
@@ -1445,7 +1445,7 @@ export function AICustomizePanel({ onClose, themeColor, onThemeColorChange, show
                             type="text"
                             value={coverTitle}
                             onChange={e => setCoverTitle(e.target.value)}
-                            className="w-full border border-[#e5e9f0] dark:border-[#333a47] rounded px-2.5 py-1.5 text-[12px] text-[#212121] dark:text-[#e4e4e4] bg-white dark:bg-[#262b35] outline-none focus:border-[#2552ED]"
+                            className="w-full border border-[#e5e9f0] dark:border-[#333a47] rounded px-2.5 py-1.5 text-[12px] text-[#212121] dark:text-[#e4e4e4] bg-white dark:bg-[#262b35] outline-none focus:border-[#1976D2]"
                           />
                         </div>
                         <div>
@@ -1454,7 +1454,7 @@ export function AICustomizePanel({ onClose, themeColor, onThemeColorChange, show
                             type="text"
                             value={coverSubtitle}
                             onChange={e => setCoverSubtitle(e.target.value)}
-                            className="w-full border border-[#e5e9f0] dark:border-[#333a47] rounded px-2.5 py-1.5 text-[12px] text-[#212121] dark:text-[#e4e4e4] bg-white dark:bg-[#262b35] outline-none focus:border-[#2552ED]"
+                            className="w-full border border-[#e5e9f0] dark:border-[#333a47] rounded px-2.5 py-1.5 text-[12px] text-[#212121] dark:text-[#e4e4e4] bg-white dark:bg-[#262b35] outline-none focus:border-[#1976D2]"
                           />
                         </div>
                         <div>
@@ -1463,7 +1463,7 @@ export function AICustomizePanel({ onClose, themeColor, onThemeColorChange, show
                             type="text"
                             value={coverDate}
                             onChange={e => setCoverDate(e.target.value)}
-                            className="w-full border border-[#e5e9f0] dark:border-[#333a47] rounded px-2.5 py-1.5 text-[12px] text-[#212121] dark:text-[#e4e4e4] bg-white dark:bg-[#262b35] outline-none focus:border-[#2552ED]"
+                            className="w-full border border-[#e5e9f0] dark:border-[#333a47] rounded px-2.5 py-1.5 text-[12px] text-[#212121] dark:text-[#e4e4e4] bg-white dark:bg-[#262b35] outline-none focus:border-[#1976D2]"
                           />
                         </div>
                         <div className="flex items-center justify-between">
@@ -1491,7 +1491,7 @@ export function AICustomizePanel({ onClose, themeColor, onThemeColorChange, show
                               {/* Upload button */}
                               <button
                                 onClick={() => logoFileRef.current?.click()}
-                                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg border border-dashed border-[#ccc] dark:border-[#3d4555] hover:border-[#2552ED] hover:bg-[#f5f8ff] dark:hover:bg-[#1e2d5e] transition-all text-left"
+                                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg border border-dashed border-[#ccc] dark:border-[#3d4555] hover:border-[#1976D2] hover:bg-[#f5f8ff] dark:hover:bg-[#1e2d5e] transition-all text-left"
                               >
                                 <Upload className="w-[14px] h-[14px] text-[#999] dark:text-[#6b7280] shrink-0" />
                                 <span className="text-[12px] text-[#555] dark:text-[#9ba2b0]">Upload from device</span>
@@ -1499,7 +1499,7 @@ export function AICustomizePanel({ onClose, themeColor, onThemeColorChange, show
                               {/* Search by website */}
                               <div>
                                 <div className="flex items-center gap-1.5">
-                                  <div className="flex-1 flex items-center gap-2 border border-[#e5e9f0] dark:border-[#333a47] rounded-lg px-2.5 py-1.5 focus-within:border-[#2552ED] transition-colors bg-white dark:bg-[#262b35]">
+                                  <div className="flex-1 flex items-center gap-2 border border-[#e5e9f0] dark:border-[#333a47] rounded-lg px-2.5 py-1.5 focus-within:border-[#1976D2] transition-colors bg-white dark:bg-[#262b35]">
                                     <Globe className="w-3.5 h-3.5 text-[#999] dark:text-[#6b7280] shrink-0" />
                                     <input
                                       type="text"
@@ -1513,7 +1513,7 @@ export function AICustomizePanel({ onClose, themeColor, onThemeColorChange, show
                                   <button
                                     onClick={handleLogoSearch}
                                     disabled={isFetchingLogo || !logoSearchUrl.trim()}
-                                    className="px-2.5 py-1.5 rounded-lg bg-[#2552ED] hover:bg-[#1E44CC] disabled:bg-[#ccc] transition-colors shrink-0"
+                                    className="px-2.5 py-1.5 rounded-lg bg-[#1976D2] hover:bg-[#1976D2] disabled:bg-[#ccc] transition-colors shrink-0"
                                   >
                                     {isFetchingLogo ? (
                                       <Loader2 className="w-3.5 h-3.5 text-white animate-spin" />
@@ -1598,7 +1598,7 @@ export function AICustomizePanel({ onClose, themeColor, onThemeColorChange, show
                             step={5}
                             value={fontScale}
                             onChange={e => setFontScale(Number(e.target.value))}
-                            className="w-full h-1 bg-[#e5e9f0] dark:bg-[#333a47] rounded-full appearance-none cursor-pointer accent-[#2552ED]"
+                            className="w-full h-1 bg-[#e5e9f0] dark:bg-[#333a47] rounded-full appearance-none cursor-pointer accent-[#1976D2]"
                           />
                         </div>
                         <button
@@ -1613,7 +1613,7 @@ export function AICustomizePanel({ onClose, themeColor, onThemeColorChange, show
                         <span className="text-[10px] text-[#999] dark:text-[#6b7280]">75%</span>
                         <button
                           onClick={() => setFontScale(100)}
-                          className={`text-[11px] transition-colors ${fontScale !== 100 ? "text-[#2552ED] hover:underline cursor-pointer" : "text-[#999] dark:text-[#6b7280]"}`}
+                          className={`text-[11px] transition-colors ${fontScale !== 100 ? "text-[#1976D2] hover:underline cursor-pointer" : "text-[#999] dark:text-[#6b7280]"}`}
                         >
                           {fontScale}%{fontScale !== 100 ? " — Reset" : ""}
                         </button>
@@ -1630,7 +1630,7 @@ export function AICustomizePanel({ onClose, themeColor, onThemeColorChange, show
                             key={f.name}
                             onClick={() => setSelectedFont(f.name)}
                             className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg border transition-colors ${
-                              selectedFont === f.name ? "border-[#2552ED] bg-[#e8effe] dark:bg-[#1e2d5e]" : "border-[#e5e9f0] dark:border-[#333a47] hover:bg-[#fafafa] dark:hover:bg-[#2e3340]"
+                              selectedFont === f.name ? "border-[#1976D2] bg-[#e8effe] dark:bg-[#1e2d5e]" : "border-[#e5e9f0] dark:border-[#333a47] hover:bg-[#fafafa] dark:hover:bg-[#2e3340]"
                             }`}
                           >
                             <div>
@@ -1639,7 +1639,7 @@ export function AICustomizePanel({ onClose, themeColor, onThemeColorChange, show
                               </span>
                               <span className="text-[10px] text-[#999] dark:text-[#6b7280]">{f.style}</span>
                             </div>
-                            {selectedFont === f.name && <Check className="w-4 h-4 text-[#2552ED]" />}
+                            {selectedFont === f.name && <Check className="w-4 h-4 text-[#1976D2]" />}
                           </button>
                         ))}
                       </div>
@@ -1671,7 +1671,7 @@ export function AICustomizePanel({ onClose, themeColor, onThemeColorChange, show
                     <div className="bg-[#fafafa] dark:bg-[#262b35] rounded-md px-3 py-2 mt-1">
                       <div className="flex items-center justify-between">
                         <span className="text-[11px] text-[#555] dark:text-[#9ba2b0]">Inner padding</span>
-                        <span className="text-[11px] text-[#2552ED]" style={{ fontWeight: 400 }}>{pagePadding}px</span>
+                        <span className="text-[11px] text-[#1976D2]" style={{ fontWeight: 400 }}>{pagePadding}px</span>
                       </div>
                     </div>
                   </div>
@@ -1702,7 +1702,7 @@ export function AICustomizePanel({ onClose, themeColor, onThemeColorChange, show
                           type="text"
                           value={headerText}
                           onChange={e => setHeaderText(e.target.value)}
-                          className="w-full border border-[#e5e9f0] dark:border-[#333a47] rounded px-2.5 py-1.5 text-[12px] text-[#212121] dark:text-[#e4e4e4] bg-white dark:bg-[#262b35] outline-none focus:border-[#2552ED]"
+                          className="w-full border border-[#e5e9f0] dark:border-[#333a47] rounded px-2.5 py-1.5 text-[12px] text-[#212121] dark:text-[#e4e4e4] bg-white dark:bg-[#262b35] outline-none focus:border-[#1976D2]"
                         />
                       </div>
                     )}
@@ -1719,10 +1719,10 @@ export function AICustomizePanel({ onClose, themeColor, onThemeColorChange, show
           <div className="absolute top-3 left-1/2 -translate-x-1/2 z-20" data-no-print>
             <div className="flex items-center gap-0.5 bg-white dark:bg-[#22262f] rounded-full shadow-[0px_2px_12px_rgba(0,0,0,0.12)] dark:shadow-[0px_2px_12px_rgba(0,0,0,0.35)] px-1.5 py-1">
               {/* Group 1: Page view */}
-              <button onClick={() => setViewMode("single")} title="Single-page view" className={`p-1.5 rounded-full transition-colors ${viewMode === "single" ? "bg-[#e8effe] dark:bg-[#1e2d5e] text-[#2552ED]" : "hover:bg-[#f5f5f5] dark:hover:bg-[#2e3340] text-[#555] dark:text-[#9ba2b0]"}`}>
+              <button onClick={() => setViewMode("single")} title="Single-page view" className={`p-1.5 rounded-full transition-colors ${viewMode === "single" ? "bg-[#e8effe] dark:bg-[#1e2d5e] text-[#1976D2]" : "hover:bg-[#f5f5f5] dark:hover:bg-[#2e3340] text-[#555] dark:text-[#9ba2b0]"}`}>
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="1" width="12" height="14" rx="1.5" stroke="currentColor" strokeWidth="1.2" fill="none"/><line x1="5" y1="5" x2="11" y2="5" stroke="currentColor" strokeWidth="0.8"/><line x1="5" y1="7.5" x2="11" y2="7.5" stroke="currentColor" strokeWidth="0.8"/><line x1="5" y1="10" x2="9" y2="10" stroke="currentColor" strokeWidth="0.8"/></svg>
               </button>
-              <button onClick={() => setViewMode("two")} title="Two-page view" className={`p-1.5 rounded-full transition-colors ${viewMode === "two" ? "bg-[#e8effe] dark:bg-[#1e2d5e] text-[#2552ED]" : "hover:bg-[#f5f5f5] dark:hover:bg-[#2e3340] text-[#555] dark:text-[#9ba2b0]"}`}>
+              <button onClick={() => setViewMode("two")} title="Two-page view" className={`p-1.5 rounded-full transition-colors ${viewMode === "two" ? "bg-[#e8effe] dark:bg-[#1e2d5e] text-[#1976D2]" : "hover:bg-[#f5f5f5] dark:hover:bg-[#2e3340] text-[#555] dark:text-[#9ba2b0]"}`}>
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="1" y="2" width="6" height="12" rx="1" stroke="currentColor" strokeWidth="1" fill="none"/><rect x="9" y="2" width="6" height="12" rx="1" stroke="currentColor" strokeWidth="1" fill="none"/></svg>
               </button>
 
@@ -1737,7 +1737,7 @@ export function AICustomizePanel({ onClose, themeColor, onThemeColorChange, show
                   <button
                     type="button"
                     title="Zoom level"
-                    className={`text-[12px] min-w-[46px] text-center tabular-nums select-none cursor-pointer rounded-full px-1.5 py-0.5 transition-colors flex items-center gap-0.5 justify-center ${autoFit ? "text-[#2552ED]" : "text-[#555] dark:text-[#9ba2b0] hover:text-[#2552ED]"}`}
+                    className={`text-[12px] min-w-[46px] text-center tabular-nums select-none cursor-pointer rounded-full px-1.5 py-0.5 transition-colors flex items-center gap-0.5 justify-center ${autoFit ? "text-[#1976D2]" : "text-[#555] dark:text-[#9ba2b0] hover:text-[#1976D2]"}`}
                   >
                     {zoomPercent}%
                     <ChevronDown className="w-3 h-3 opacity-50" aria-hidden />
@@ -1954,7 +1954,7 @@ export function AICustomizePanel({ onClose, themeColor, onThemeColorChange, show
                     <div className="w-full group relative">
                       <button onClick={() => showCoverPage && scrollToPage(0)} className={`w-full cursor-pointer text-left ${!showCoverPage ? "opacity-40" : ""}`} disabled={!showCoverPage}>
                         <div
-                          className="w-full rounded-lg overflow-hidden border-2 transition-all shadow-[0_1px_3px_rgba(0,0,0,0.08)] group-hover:shadow-[0_2px_8px_rgba(0,0,0,0.12)] group-hover:border-[#2552ED]/40"
+                          className="w-full rounded-lg overflow-hidden border-2 transition-all shadow-[0_1px_3px_rgba(0,0,0,0.08)] group-hover:shadow-[0_2px_8px_rgba(0,0,0,0.12)] group-hover:border-[#1976D2]/40"
                           style={{ aspectRatio: `1/${currentLayout.ratio}`, backgroundColor: currentStyle.bg, borderColor: 'var(--thumb-border, #e5e9f0)' }}
                         >
                           <div className="w-full h-full flex flex-col items-center justify-center p-1.5 relative [--thumb-border:#e5e9f0] dark:[--thumb-border:#333a47]">
@@ -1994,7 +1994,7 @@ export function AICustomizePanel({ onClose, themeColor, onThemeColorChange, show
                     <div className="w-full group relative">
                       <button onClick={() => showSummaryPage && scrollToPage(showCoverPage ? 1 : 0)} className={`w-full cursor-pointer text-left ${!showSummaryPage ? "opacity-40" : ""}`} disabled={!showSummaryPage}>
                         <div
-                          className="w-full rounded-lg overflow-hidden border-2 transition-all shadow-[0_1px_3px_rgba(0,0,0,0.08)] group-hover:shadow-[0_2px_8px_rgba(0,0,0,0.12)] group-hover:border-[#2552ED]/40"
+                          className="w-full rounded-lg overflow-hidden border-2 transition-all shadow-[0_1px_3px_rgba(0,0,0,0.08)] group-hover:shadow-[0_2px_8px_rgba(0,0,0,0.12)] group-hover:border-[#1976D2]/40"
                           style={{ aspectRatio: `1/${currentLayout.ratio}`, backgroundColor: currentStyle.bg, borderColor: '#e5e9f0' }}
                         >
                           <div className="w-full h-full p-1.5 relative" style={{ borderTop: `2px solid ${themeColor}` }}>

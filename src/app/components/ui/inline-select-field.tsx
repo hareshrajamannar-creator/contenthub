@@ -111,7 +111,7 @@ export function InlineSelectField({
                       "w-full shrink-0 rounded-lg px-3 text-left transition-colors duration-150",
                       optionText,
                       selected
-                        ? "bg-[#e8effe] text-[#2552ED] dark:bg-[#1e2d5e] dark:text-[#6b9bff]"
+                        ? "bg-[#e8effe] text-[#1976D2] dark:bg-[#1e2d5e] dark:text-[#6b9bff]"
                         : "text-[#212121] hover:bg-[#f3f4f6] dark:text-[#e4e4e4] dark:hover:bg-white/[0.06]",
                     )}
                     style={{ fontWeight: 400 }}

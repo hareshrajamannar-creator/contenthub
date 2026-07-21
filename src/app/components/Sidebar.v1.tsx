@@ -153,7 +153,7 @@ export function IconStrip({ currentView, onViewChange, iconSize = L1_STRIP_ICON_
       {/* Birdeye logo */}
       <div className="h-[48px] w-[55px] flex items-center justify-center shrink-0">
         <svg width="17.55" height="16.875" viewBox="0 0 19.5 18.75" fill="none">
-          <path clipRule="evenodd" d={svgPaths.p23fcc000} fill="#2552ED" fillRule="evenodd" />
+          <path clipRule="evenodd" d={svgPaths.p23fcc000} fill="#1976D2" fillRule="evenodd" />
         </svg>
       </div>
 
@@ -182,7 +182,7 @@ export function IconStrip({ currentView, onViewChange, iconSize = L1_STRIP_ICON_
               className={`
                 group relative w-[32px] h-[32px] flex items-center justify-center rounded-[10px] shrink-0
                 transition-all duration-200 ease-out outline-none
-                focus-visible:ring-2 focus-visible:ring-[#1E44CC]/50 focus-visible:ring-offset-1 focus-visible:ring-offset-app-shell-rail
+                focus-visible:ring-2 focus-visible:ring-[#1976D2]/50 focus-visible:ring-offset-1 focus-visible:ring-offset-app-shell-rail
                 ${isActive
                   ? "bg-[#d4dae3] dark:bg-[#282e3a] shadow-none"
                   : "bg-transparent hover:bg-[#d4dae3] dark:hover:bg-[#282e3a] active:bg-[#c8d0dc] dark:active:bg-[#313845] hover:scale-110 active:scale-95"
@@ -191,9 +191,9 @@ export function IconStrip({ currentView, onViewChange, iconSize = L1_STRIP_ICON_
             >
               <Icon
                 size={iconSize}
-                className={`transition-all duration-200 group-hover:text-[#1E44CC] dark:group-hover:text-[#2952E3] group-active:text-[#1E44CC] dark:group-active:text-[#2952E3] ${
+                className={`transition-all duration-200 group-hover:text-[#1976D2] dark:group-hover:text-[#1976D2] group-active:text-[#1976D2] dark:group-active:text-[#1976D2] ${
                   isActive
-                    ? "text-[#1E44CC] dark:text-[#2952E3]"
+                    ? "text-[#1976D2] dark:text-[#1976D2]"
                     : "text-[#505050] dark:text-[#9ba2b0] group-hover:scale-110"
                 } ${label === "Agents" && isActive ? "group-hover:animate-[agents-shimmer_3s_ease-in-out_infinite]" : ""}`}
               />
@@ -207,13 +207,13 @@ export function IconStrip({ currentView, onViewChange, iconSize = L1_STRIP_ICON_
         {/* Settings gear — same surface / hover / focus as L1 nav icons */}
         <button
           type="button"
-          className="group relative w-[32px] h-[32px] flex items-center justify-center rounded-[10px] shrink-0 transition-all duration-200 ease-out outline-none bg-transparent hover:bg-[#d4dae3] dark:hover:bg-[#282e3a] active:bg-[#c8d0dc] dark:active:bg-[#313845] hover:scale-110 active:scale-95 focus-visible:ring-2 focus-visible:ring-[#1E44CC]/50 focus-visible:ring-offset-1 focus-visible:ring-offset-app-shell-rail"
+          className="group relative w-[32px] h-[32px] flex items-center justify-center rounded-[10px] shrink-0 transition-all duration-200 ease-out outline-none bg-transparent hover:bg-[#d4dae3] dark:hover:bg-[#282e3a] active:bg-[#c8d0dc] dark:active:bg-[#313845] hover:scale-110 active:scale-95 focus-visible:ring-2 focus-visible:ring-[#1976D2]/50 focus-visible:ring-offset-1 focus-visible:ring-offset-app-shell-rail"
         >
           <Settings
             width={L1_STRIP_ICON_SIZE}
             height={L1_STRIP_ICON_SIZE}
             strokeWidth={L1_STRIP_ICON_STROKE_PX}
-            className="text-[#505050] dark:text-[#9ba2b0] transition-all duration-200 group-hover:text-[#1E44CC] dark:group-hover:text-[#2952E3] group-active:text-[#1E44CC] dark:group-active:text-[#2952E3] group-hover:scale-110"
+            className="text-[#505050] dark:text-[#9ba2b0] transition-all duration-200 group-hover:text-[#1976D2] dark:group-hover:text-[#1976D2] group-active:text-[#1976D2] dark:group-active:text-[#1976D2] group-hover:scale-110"
           />
         </button>
 
@@ -299,11 +299,11 @@ export function IconStrip({ currentView, onViewChange, iconSize = L1_STRIP_ICON_
                         }}
                         className={`w-full flex items-center gap-3 px-4 py-2 text-[13px] transition-colors ${
                           currentView === "shared-by-me"
-                            ? "text-[#2552ED] bg-[#e8effe] dark:bg-[#1e2d5e]"
+                            ? "text-[#1976D2] bg-[#e8effe] dark:bg-[#1e2d5e]"
                             : "text-[#212121] dark:text-[#e4e4e4] hover:bg-[#f5f5f5] dark:hover:bg-[#2e3340]"
                         }`}
                       >
-                        <Share2 className="w-4 h-4" style={{ color: currentView === "shared-by-me" ? "#2552ED" : undefined }} />
+                        <Share2 className="w-4 h-4" style={{ color: currentView === "shared-by-me" ? "#1976D2" : undefined }} />
                         Shared by me
                       </button>
                       <button
@@ -314,11 +314,11 @@ export function IconStrip({ currentView, onViewChange, iconSize = L1_STRIP_ICON_
                         }}
                         className={`w-full flex items-center gap-3 px-4 py-2 text-[13px] transition-colors ${
                           currentView === "scheduled-deliveries"
-                            ? "text-[#2552ED] bg-[#e8effe] dark:bg-[#1e2d5e]"
+                            ? "text-[#1976D2] bg-[#e8effe] dark:bg-[#1e2d5e]"
                             : "text-[#212121] dark:text-[#e4e4e4] hover:bg-[#f5f5f5] dark:hover:bg-[#2e3340]"
                         }`}
                       >
-                        <Clock className="w-4 h-4" style={{ color: currentView === "scheduled-deliveries" ? "#2552ED" : undefined }} />
+                        <Clock className="w-4 h-4" style={{ color: currentView === "scheduled-deliveries" ? "#1976D2" : undefined }} />
                         Scheduled deliveries
                       </button>
                       <button className="w-full flex items-center gap-3 px-4 py-2 text-[13px] text-[#212121] dark:text-[#e4e4e4] hover:bg-[#f5f5f5] dark:hover:bg-[#2e3340] transition-colors">
@@ -376,9 +376,9 @@ export function IconStrip({ currentView, onViewChange, iconSize = L1_STRIP_ICON_
                         variant="outline"
                         size="icon"
                         onClick={() => setShowAppearance(false)}
-                        className="shrink-0 border-2 border-[#2552ED] transition-colors hover:bg-[#e8effe] dark:hover:bg-[#1e2d5e]"
+                        className="shrink-0 border-2 border-[#1976D2] transition-colors hover:bg-[#e8effe] dark:hover:bg-[#1e2d5e]"
                       >
-                        <ChevronLeft className="h-4 w-4 text-[#2552ED]" />
+                        <ChevronLeft className="h-4 w-4 text-[#1976D2]" />
                       </Button>
                       <span className="text-[14px] text-[#212121] dark:text-[#e4e4e4] flex-1" style={{ fontWeight: 400 }}>
                         Switch appearance
@@ -402,14 +402,14 @@ export function IconStrip({ currentView, onViewChange, iconSize = L1_STRIP_ICON_
                             onClick={() => setPreference(value)}
                             className={`w-full flex items-center justify-between px-4 py-2.5 text-[13px] transition-colors ${
                               isSelected
-                                ? "text-[#2552ED] bg-[#e8effe] dark:bg-[#1e2d5e]"
+                                ? "text-[#1976D2] bg-[#e8effe] dark:bg-[#1e2d5e]"
                                 : "text-[#212121] dark:text-[#e4e4e4] hover:bg-[#f5f5f5] dark:hover:bg-[#2e3340]"
                             }`}
                           >
                             <span className="flex items-center gap-3">
                               <Icon
                                 className={`w-4 h-4 transition-transform duration-500 ${
-                                  isSelected ? "text-[#2552ED]" : "text-[#555] dark:text-[#8b92a5]"
+                                  isSelected ? "text-[#1976D2]" : "text-[#555] dark:text-[#8b92a5]"
                                 }`}
                                 style={{
                                   transform: value === "dark" && isDark ? "rotate(-30deg)" : "rotate(0deg)",
@@ -421,12 +421,12 @@ export function IconStrip({ currentView, onViewChange, iconSize = L1_STRIP_ICON_
                             <span
                               className={`w-[18px] h-[18px] rounded-full border-2 flex items-center justify-center transition-colors ${
                                 isSelected
-                                  ? "border-[#2552ED]"
+                                  ? "border-[#1976D2]"
                                   : "border-[#ccc] dark:border-[#4d5568]"
                               }`}
                             >
                               {isSelected && (
-                                <span className="w-[10px] h-[10px] rounded-full bg-[#2552ED]" />
+                                <span className="w-[10px] h-[10px] rounded-full bg-[#1976D2]" />
                               )}
                             </span>
                           </button>

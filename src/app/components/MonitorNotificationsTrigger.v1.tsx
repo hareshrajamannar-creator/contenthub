@@ -35,7 +35,7 @@ export function MonitorNotificationsTrigger() {
           className={cn(
             "group relative shrink-0 rounded-[10px] transition-all duration-200 ease-out",
             "bg-transparent hover:bg-[#d4dae3] dark:hover:bg-[#282e3a] active:bg-[#c8d0dc] dark:active:bg-[#313845] hover:scale-110 active:scale-95",
-            "focus-visible:ring-2 focus-visible:ring-[#1E44CC]/50 focus-visible:ring-offset-1 focus-visible:ring-offset-app-shell-rail",
+            "focus-visible:ring-2 focus-visible:ring-[#1976D2]/50 focus-visible:ring-offset-1 focus-visible:ring-offset-app-shell-rail",
             /* Open popover = same surface as L1 active item */
             "data-[state=open]:bg-[#d4dae3] dark:data-[state=open]:bg-[#282e3a] data-[state=open]:shadow-none",
           )}
@@ -47,8 +47,8 @@ export function MonitorNotificationsTrigger() {
             className={cn(
               "transition-all duration-200",
               "text-[#505050] dark:text-[#9ba2b0]",
-              "group-hover:text-[#1E44CC] dark:group-hover:text-[#2952E3] group-active:text-[#1E44CC] dark:group-active:text-[#2952E3]",
-              "group-data-[state=open]:text-[#1E44CC] dark:group-data-[state=open]:text-[#2952E3] group-hover:scale-110",
+              "group-hover:text-[#1976D2] dark:group-hover:text-[#1976D2] group-active:text-[#1976D2] dark:group-active:text-[#1976D2]",
+              "group-data-[state=open]:text-[#1976D2] dark:group-data-[state=open]:text-[#1976D2] group-hover:scale-110",
             )}
             aria-hidden
           />

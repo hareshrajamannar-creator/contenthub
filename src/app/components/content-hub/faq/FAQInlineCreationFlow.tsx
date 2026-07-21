@@ -256,7 +256,7 @@ function Step1BrandKit({ contentName, brandKit, locations, customAgent, onChange
                     className={cn(
                       'flex w-full items-center rounded-md px-3 py-2 text-[13px] text-left transition-colors',
                       customAgent === agent.id
-                        ? 'bg-[#e8effe] text-[#2552ED] dark:bg-[#1e2d5e] dark:text-[#6b9bff]'
+                        ? 'bg-[#e8effe] text-[#1976D2] dark:bg-[#1e2d5e] dark:text-[#6b9bff]'
                         : 'text-foreground hover:bg-muted',
                     )}
                   >
@@ -317,7 +317,7 @@ function AgentSelect({ value, onChange }: { value: string; onChange: (v: string)
               className={cn(
                 'flex w-full items-center rounded-md px-3 py-2 text-[13px] text-left transition-colors',
                 value === agent.id
-                  ? 'bg-[#e8effe] text-[#2552ED] dark:bg-[#1e2d5e] dark:text-[#6b9bff]'
+                  ? 'bg-[#e8effe] text-[#1976D2] dark:bg-[#1e2d5e] dark:text-[#6b9bff]'
                   : 'text-foreground hover:bg-muted',
               )}
             >

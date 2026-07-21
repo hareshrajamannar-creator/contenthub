@@ -67,7 +67,7 @@ export function ScheduleModal({ open, onClose, onCustomize, themeColor, showSumm
 
   if (!open) return null;
 
-  const accentColor = themeColor || "#2552ED";
+  const accentColor = themeColor || "#1976D2";
   const reportImages = [imgChart, imgTable1, imgTable2, imgTable3, imgTable4, imgTable5, imgTable6, imgTable7];
   const totalPages = 1 + (showSummaryPage ? 1 : 0) + reportImages.length;
 
@@ -121,7 +121,7 @@ export function ScheduleModal({ open, onClose, onCustomize, themeColor, showSumm
               onClick={() => { onSelect(opt); onToggle(); }}
               className={`w-full text-left px-3 py-2 text-[12px] font-['Inter',sans-serif] transition-colors ${
                 value === opt
-                  ? "bg-[#e8effe] dark:bg-[#1e2d5e] text-[#2552ED] dark:text-[#6b9bff]"
+                  ? "bg-[#e8effe] dark:bg-[#1e2d5e] text-[#1976D2] dark:text-[#6b9bff]"
                   : "text-[#333] dark:text-[#e4e4e4] hover:bg-[#f8f9fb] dark:hover:bg-[#2e3340]"
               }`}
             >
@@ -217,7 +217,7 @@ export function ScheduleModal({ open, onClose, onCustomize, themeColor, showSumm
                       onClick={() => setSelectedFormat(f.label)}
                       className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-all ${
                         selectedFormat === f.label
-                          ? "border-[#2552ED] dark:border-[#5580e0] bg-[#e8effe] dark:bg-[#1e2d5e]"
+                          ? "border-[#1976D2] dark:border-[#5580e0] bg-[#e8effe] dark:bg-[#1e2d5e]"
                           : "border-[#eceef2] dark:border-[#333a47] bg-white dark:bg-[#1e2229] hover:bg-[#f8f9fb] dark:hover:bg-[#2e3340]"
                       }`}
                     >
@@ -421,7 +421,7 @@ export function ScheduleModal({ open, onClose, onCustomize, themeColor, showSumm
                       onClick={() => setSelectedFormat(f.label)}
                       className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-all ${
                         selectedFormat === f.label
-                          ? "border-[#2552ED] dark:border-[#5580e0] bg-[#e8effe] dark:bg-[#1e2d5e]"
+                          ? "border-[#1976D2] dark:border-[#5580e0] bg-[#e8effe] dark:bg-[#1e2d5e]"
                           : "border-[#eceef2] dark:border-[#333a47] bg-white dark:bg-[#1e2229] hover:bg-[#f8f9fb] dark:hover:bg-[#2e3340]"
                       }`}
                     >

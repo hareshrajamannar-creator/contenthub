@@ -62,7 +62,7 @@ export function ScheduleReportModal({ open, onClose, context }: ScheduleReportMo
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-[#f0f1f5] dark:border-[#2e3340] shrink-0">
           <div className="flex items-center gap-2">
-            <Clock className="w-4 h-4 text-[#2552ED]" />
+            <Clock className="w-4 h-4 text-[#1976D2]" />
             <h2 className="text-[15px] text-[#212121] dark:text-[#e4e4e4] tracking-[-0.3px]" style={{ fontWeight: 400 }}>
               Schedule report
             </h2>
@@ -100,7 +100,7 @@ export function ScheduleReportModal({ open, onClose, context }: ScheduleReportMo
                   onClick={() => setFormat(f.id)}
                   className={`px-3 py-1.5 text-[12px] rounded-[8px] border transition-colors uppercase tracking-[0.3px] ${
                     format === f.id
-                      ? "text-[#2552ED] dark:text-[#6b9bff] bg-[#f0f4ff] dark:bg-[#1e2d5e] border-[#2552ED]/20 dark:border-[#2552ED]/30"
+                      ? "text-[#1976D2] dark:text-[#6b9bff] bg-[#f0f4ff] dark:bg-[#1e2d5e] border-[#1976D2]/20 dark:border-[#1976D2]/30"
                       : "text-[#888] dark:text-[#6b7280] bg-white dark:bg-[#262b35] border-[#e5e9f0] dark:border-[#333a47] hover:bg-[#f5f5f5] dark:hover:bg-[#2e3340]"
                   }`}
                   style={{ fontWeight: 400 }}
@@ -119,7 +119,7 @@ export function ScheduleReportModal({ open, onClose, context }: ScheduleReportMo
               value={recipients}
               onChange={(e) => setRecipients(e.target.value)}
               placeholder="Enter email addresses, separated by commas"
-              className="w-full px-3 py-2 text-[13px] text-[#212121] dark:text-[#e4e4e4] bg-white dark:bg-[#262b35] border border-[#e5e9f0] dark:border-[#333a47] rounded-[8px] outline-none focus:border-[#2552ED] transition-colors placeholder:text-[#bbb] dark:placeholder:text-[#555]"
+              className="w-full px-3 py-2 text-[13px] text-[#212121] dark:text-[#e4e4e4] bg-white dark:bg-[#262b35] border border-[#e5e9f0] dark:border-[#333a47] rounded-[8px] outline-none focus:border-[#1976D2] transition-colors placeholder:text-[#bbb] dark:placeholder:text-[#555]"
               style={{ fontWeight: 400 }}
             />
           </div>
@@ -131,7 +131,7 @@ export function ScheduleReportModal({ open, onClose, context }: ScheduleReportMo
               type="text"
               value={subject}
               onChange={(e) => setSubject(e.target.value)}
-              className="w-full px-3 py-2 text-[13px] text-[#212121] dark:text-[#e4e4e4] bg-white dark:bg-[#262b35] border border-[#e5e9f0] dark:border-[#333a47] rounded-[8px] outline-none focus:border-[#2552ED] transition-colors"
+              className="w-full px-3 py-2 text-[13px] text-[#212121] dark:text-[#e4e4e4] bg-white dark:bg-[#262b35] border border-[#e5e9f0] dark:border-[#333a47] rounded-[8px] outline-none focus:border-[#1976D2] transition-colors"
               style={{ fontWeight: 400 }}
             />
           </div>
@@ -143,7 +143,7 @@ export function ScheduleReportModal({ open, onClose, context }: ScheduleReportMo
               value={body}
               onChange={(e) => setBody(e.target.value)}
               rows={4}
-              className="w-full px-3 py-2 text-[13px] text-[#212121] dark:text-[#e4e4e4] bg-white dark:bg-[#262b35] border border-[#e5e9f0] dark:border-[#333a47] rounded-[8px] outline-none focus:border-[#2552ED] transition-colors resize-none"
+              className="w-full px-3 py-2 text-[13px] text-[#212121] dark:text-[#e4e4e4] bg-white dark:bg-[#262b35] border border-[#e5e9f0] dark:border-[#333a47] rounded-[8px] outline-none focus:border-[#1976D2] transition-colors resize-none"
               style={{ fontWeight: 400 }}
             />
           </div>
@@ -161,7 +161,7 @@ export function ScheduleReportModal({ open, onClose, context }: ScheduleReportMo
           <button
             onClick={handleSave}
             disabled={saving}
-            className="px-4 py-2 text-[13px] text-white bg-[#2552ED] hover:bg-[#1E44CC] rounded-[8px] transition-colors disabled:opacity-60"
+            className="px-4 py-2 text-[13px] text-white bg-[#1976D2] hover:bg-[#1976D2] rounded-[8px] transition-colors disabled:opacity-60"
             style={{ fontWeight: 400 }}
           >
             {saving ? "Saving..." : context.existingScheduleId ? "Update schedule" : "Create schedule"}

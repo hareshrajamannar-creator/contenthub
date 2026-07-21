@@ -54,7 +54,7 @@ const productSubTabs: { id: ProductSubTab; label: string }[] = [
 const dateOptions = ["Last 7 days", "Last 30 days", "Last 90 days", "This year", "Custom"];
 
 /* ─── Shared chart colors ─── */
-const ACCENT = "#2552ED";
+const ACCENT = "#1976D2";
 const GREEN = "#4caf50";
 const AMBER = "#F59E0B";
 const RED = "#ef5350";
@@ -246,7 +246,7 @@ function MetricCard({ label, value, icon: Icon, color }: {
 function InsightBlock({ text }: { text: string }) {
   return (
     <div className="bg-[#f8f6ff] dark:bg-[#1e1a2e] border border-[#e8e0f5] dark:border-[#362e50] rounded-[12px] px-5 py-4 flex items-start gap-3">
-      <div className="w-7 h-7 rounded-[8px] bg-gradient-to-br from-[#9970D7] to-[#2552ED] flex items-center justify-center shrink-0 mt-0.5">
+      <div className="w-7 h-7 rounded-[8px] bg-gradient-to-br from-[#9970D7] to-[#1976D2] flex items-center justify-center shrink-0 mt-0.5">
         <Sparkles className="w-3.5 h-3.5 text-white" />
       </div>
       <div>
@@ -487,7 +487,7 @@ function AttentionRiskPage() {
                 <p className="text-[13px] text-[#212121] dark:text-[#e4e4e4]" style={{ fontWeight: 400 }}>{item.agent}</p>
                 <p className="text-[12px] text-[#888] dark:text-[#6b7280] mt-0.5" style={{ fontWeight: 300 }}>{item.issue}</p>
               </div>
-              <button className="text-[12px] text-[#2552ED] dark:text-[#6b9bff] hover:underline shrink-0" style={{ fontWeight: 400 }}>
+              <button className="text-[12px] text-[#1976D2] dark:text-[#6b9bff] hover:underline shrink-0" style={{ fontWeight: 400 }}>
                 View in monitor
               </button>
             </div>
@@ -622,7 +622,7 @@ export function BirdAIReportsView() {
                 onClick={() => setProductSubTab(st.id)}
                 className={`px-3 py-1.5 text-[12px] rounded-[8px] border transition-colors tracking-[-0.24px] ${
                   productSubTab === st.id
-                    ? "text-[#2552ED] dark:text-[#6b9bff] bg-[#f0f4ff] dark:bg-[#1e2d5e] border-[#2552ED]/20 dark:border-[#2552ED]/30"
+                    ? "text-[#1976D2] dark:text-[#6b9bff] bg-[#f0f4ff] dark:bg-[#1e2d5e] border-[#1976D2]/20 dark:border-[#1976D2]/30"
                     : "text-[#888] dark:text-[#6b7280] bg-white dark:bg-[#1e2229] border-[#e5e9f0] dark:border-[#333a47] hover:bg-[#f5f5f5] dark:hover:bg-[#2e3340]"
                 }`}
                 style={{ fontWeight: 400 }}

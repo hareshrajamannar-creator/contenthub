@@ -39,7 +39,7 @@ import { MainCanvasViewHeader } from "@/app/components/layout/MainCanvasViewHead
 
 /** Selected activity row: blue highlight on the title (agent name) only. */
 const ACTIVITY_ROW_TITLE_SELECTED =
-  "text-[#1E44CC] dark:text-[#6b9bff]";
+  "text-[#1976D2] dark:text-[#6b9bff]";
 
 /** Default share of the feed/detail row for the activity list (~⅓ list, ~⅔ detail). */
 const DEFAULT_ACTIVITY_LIST_FRACTION = 1 / 3;
@@ -56,7 +56,7 @@ function clampActivityListDividerLeft(
 
 /* ─── Mock Data ─── */
 const monitorMetrics = [
-  { label: "Agent actions today", value: "342", icon: Activity, color: "#2552ED" },
+  { label: "Agent actions today", value: "342", icon: Activity, color: "#1976D2" },
   { label: "Successful actions", value: "318", icon: CheckCircle2, color: "#4caf50" },
   { label: "Automation rate", value: "93%", icon: Zap, color: "#9970D7" },
   { label: "Avg response time", value: "4.2s", icon: Clock, color: "#F59E0B" },
@@ -199,7 +199,7 @@ function InspectionPanel({ activity, onClose, onNavigateToReviews }: {
                     {/* Dot */}
                     <div className={`absolute -left-4 top-[5px] w-[10px] h-[10px] rounded-full border-2 ${
                       i === activity.timeline!.length - 1
-                        ? "border-[#2552ED] bg-[#2552ED]"
+                        ? "border-[#1976D2] bg-[#1976D2]"
                         : "border-[#E5E7EB] dark:border-[#4d5568] bg-white dark:bg-[#1e2229]"
                     }`} />
                     <div>
@@ -269,7 +269,7 @@ function InspectionPanel({ activity, onClose, onNavigateToReviews }: {
               {/* Review content */}
               <div className="px-4 py-3 space-y-2 bg-[#f8f9fa] dark:bg-[#1a1e26]">
                 <div className="flex items-center gap-2">
-                  <span className="text-[10px] px-1.5 py-0.5 bg-[#e8f0fe] text-[#2552ED] dark:bg-[#1e2d5e] dark:text-[#6b9bff] rounded-[3px] font-medium">
+                  <span className="text-[10px] px-1.5 py-0.5 bg-[#e8f0fe] text-[#1976D2] dark:bg-[#1e2d5e] dark:text-[#6b9bff] rounded-[3px] font-medium">
                     {activity.reviewLink.platform}
                   </span>
                   <StarRating rating={activity.reviewLink.rating} />
@@ -293,10 +293,10 @@ function InspectionPanel({ activity, onClose, onNavigateToReviews }: {
                   onClick={onNavigateToReviews}
                   className="w-full flex items-center justify-between px-4 py-2.5 border-t border-[#E5E7EB] dark:border-[#2e3340] bg-white dark:bg-[#1e2229] hover:bg-[#f0f4ff] dark:hover:bg-[#1a2040] transition-colors group"
                 >
-                  <span className="text-[11px] text-[#2552ED] dark:text-[#6b9bff]" style={{ fontWeight: 400 }}>
+                  <span className="text-[11px] text-[#1976D2] dark:text-[#6b9bff]" style={{ fontWeight: 400 }}>
                     View in Reviews
                   </span>
-                  <ArrowRight className="w-3 h-3 text-[#2552ED] dark:text-[#6b9bff] group-hover:translate-x-0.5 transition-transform" />
+                  <ArrowRight className="w-3 h-3 text-[#1976D2] dark:text-[#6b9bff] group-hover:translate-x-0.5 transition-transform" />
                 </button>
               )}
             </div>
@@ -307,7 +307,7 @@ function InspectionPanel({ activity, onClose, onNavigateToReviews }: {
         <div>
           <button
             onClick={() => setExplainOpen(!explainOpen)}
-            className="flex items-center gap-1.5 text-[12px] text-[#2552ED] dark:text-[#6b9bff] hover:underline transition-colors"
+            className="flex items-center gap-1.5 text-[12px] text-[#1976D2] dark:text-[#6b9bff] hover:underline transition-colors"
             style={{ fontWeight: 400 }}
           >
             <Sparkles className="w-3 h-3" />
@@ -640,7 +640,7 @@ export function AgentsMonitorView({
                     className={cn(
                       "group w-full flex cursor-pointer items-start gap-2 rounded-[4px] px-2 py-4 text-left",
                       "transition-colors duration-200",
-                      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1E44CC]/40 focus-visible:ring-offset-1 focus-visible:ring-offset-white dark:focus-visible:ring-offset-[#13161b]",
+                      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1976D2]/40 focus-visible:ring-offset-1 focus-visible:ring-offset-white dark:focus-visible:ring-offset-[#13161b]",
                     )}
                   >
                     <span
@@ -656,7 +656,7 @@ export function AgentsMonitorView({
                             "text-[13px] transition-colors duration-200",
                             isSelected
                               ? ACTIVITY_ROW_TITLE_SELECTED
-                              : "text-[#212121] dark:text-[#e4e4e4] group-hover:text-[#1E44CC] dark:group-hover:text-[#6b9bff] group-focus-visible:text-[#1E44CC] dark:group-focus-visible:text-[#6b9bff]",
+                              : "text-[#212121] dark:text-[#e4e4e4] group-hover:text-[#1976D2] dark:group-hover:text-[#6b9bff] group-focus-visible:text-[#1976D2] dark:group-focus-visible:text-[#6b9bff]",
                           )}
                           style={{ fontWeight: 400 }}
                         >

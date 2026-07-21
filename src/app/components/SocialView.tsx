@@ -29,7 +29,7 @@ function PlaceholderPanel({
   return (
     <div className="flex h-full items-center justify-center bg-background p-8">
       <div className="max-w-[440px] rounded-[12px] border border-border bg-muted p-6 text-center">
-        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[#e8effe]  text-[#2552ed] ">
+        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[#e8effe]  text-[#1976D2] ">
           <MessageSquareDashed className="h-5 w-5" />
         </div>
         <h2 className="mt-4 text-[20px] tracking-[-0.4px] text-foreground">{title}</h2>

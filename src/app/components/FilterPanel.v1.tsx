@@ -64,7 +64,7 @@ function FilterRow({
                   }}
                   className={`w-full text-left px-2.5 py-2 text-[13px] hover:bg-[#f5f5f5] dark:hover:bg-[#2e3340] transition-colors ${
                     filter.value === option
-                      ? "text-[#2552ED] bg-[#f0f3ff] dark:bg-[#1e2d5e]"
+                      ? "text-[#1976D2] bg-[#f0f3ff] dark:bg-[#1e2d5e]"
                       : "text-[#212121] dark:text-[#e4e4e4]"
                   }`}
                   style={{ fontWeight: 400 }}
@@ -216,7 +216,7 @@ export function FilterPanel({
         </button>
         <button
           onClick={onApply}
-          className="flex-1 px-3 py-2 text-[13px] text-white bg-[#2552ED] rounded-lg hover:bg-[#1E44CC] transition-colors"
+          className="flex-1 px-3 py-2 text-[13px] text-white bg-[#1976D2] rounded-lg hover:bg-[#1976D2] transition-colors"
           style={{ fontWeight: 400 }}
         >
           Apply

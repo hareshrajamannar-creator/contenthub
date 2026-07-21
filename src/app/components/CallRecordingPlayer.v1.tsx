@@ -297,7 +297,7 @@ function TranscriptBubble({
           isAgent
             ? "bg-[#e3f0ff] dark:bg-[#1e3a5f] text-[#212121] dark:text-[#e4e4e4] rounded-br-md"
             : "bg-white dark:bg-[#262b35] text-[#212121] dark:text-[#e4e4e4] rounded-bl-md",
-          isActive && "ring-2 ring-[#2552ED]/40 ring-offset-1",
+          isActive && "ring-2 ring-[#1976D2]/40 ring-offset-1",
         )}
         style={{ fontWeight: 400 }}
       >
@@ -379,7 +379,7 @@ export function CallRecordingPlayer() {
           <button
             onClick={handlePlayPause}
             aria-label={isPlaying ? "Pause" : "Play"}
-            className="flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-full bg-[#2552ED] text-white transition-colors hover:bg-[#1E44CC] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2552ED]/50"
+            className="flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-full bg-[#1976D2] text-white transition-colors hover:bg-[#1976D2] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1976D2]/50"
           >
             {isPlaying ? (
               <Pause className="size-3.5 fill-current" />
@@ -411,7 +411,7 @@ export function CallRecordingPlayer() {
                 className={cn(
                   "cursor-pointer rounded px-2 py-0.5 text-[11px] transition-colors duration-150",
                   speed === opt.value
-                    ? "bg-[#2552ED] text-white"
+                    ? "bg-[#1976D2] text-white"
                     : "text-[#555] dark:text-[#8b92a5] hover:bg-[#eaeaea] dark:hover:bg-[#2e3340]",
                 )}
               >

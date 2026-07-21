@@ -31,7 +31,7 @@ export function AppBootShimmer({ bootInsightsIntervalMs = 560 }: AppBootShimmerP
       {/* L1 rail */}
       <div className={`flex w-[66px] shrink-0 flex-col items-center ${APP_SHELL_RAIL_SURFACE_CLASS}`}>
         <div className="flex h-[48px] w-[55px] shrink-0 items-center justify-center">
-          <div className="size-[18px] rounded-sm bg-[#2552ED]/30" aria-hidden />
+          <div className="size-[18px] rounded-sm bg-[#1976D2]/30" aria-hidden />
         </div>
         <div className="flex flex-1 flex-col items-center gap-2 px-2 pb-2">
           {Array.from({ length: 6 }).map((_, i) => (

@@ -24,7 +24,7 @@ export const WithExistingKit: Story = {
       tagline: "When you're here, you're family",
       brandVoice: 'friendly',
       toneNotes: 'Always warm, never salesy. Use first names.',
-      primaryColor: '#1E44CC',
+      primaryColor: '#1976D2',
       locations: ['All 500 locations', 'Downtown Chicago'],
     },
   },

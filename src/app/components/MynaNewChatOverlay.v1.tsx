@@ -107,7 +107,7 @@ export function MynaNewChatOverlay({
             <button
               type="button"
               onClick={submit}
-              className="inline-flex size-10 items-center justify-center rounded-lg bg-[#2552ED] text-white hover:opacity-90"
+              className="inline-flex size-10 items-center justify-center rounded-lg bg-[#1976D2] text-white hover:opacity-90"
               aria-label="Start chat"
             >
               <SendHorizontal className="size-4" />

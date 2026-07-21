@@ -137,7 +137,7 @@ export function SidebarSectioned({
         type="button"
         aria-label={item.label}
         onClick={() => setCurrent(item.label)}
-        className={`group relative w-[32px] h-[32px] flex items-center justify-center rounded-[10px] shrink-0 transition-all duration-200 ease-out outline-none focus-visible:ring-2 focus-visible:ring-[#2552ED]/40 ${
+        className={`group relative w-[32px] h-[32px] flex items-center justify-center rounded-[10px] shrink-0 transition-all duration-200 ease-out outline-none focus-visible:ring-2 focus-visible:ring-[#1976D2]/40 ${
           isActive ? activeBg : `bg-transparent ${hoverBg} hover:scale-110 active:scale-95`
         }`}
       >
@@ -145,13 +145,13 @@ export function SidebarSectioned({
           size={iconSize}
           strokeWidth={L1_STRIP_ICON_STROKE_PX}
           className={`transition-colors duration-200 ${
-            isActive ? "text-[#2552ED] dark:text-[#6b9bff]" : "text-[#505050] dark:text-[#9ba2b0] group-hover:text-[#2552ED]"
+            isActive ? "text-[#1976D2] dark:text-[#6b9bff]" : "text-[#505050] dark:text-[#9ba2b0] group-hover:text-[#1976D2]"
           }`}
         />
         {item.badge?.kind === "dot" && (
           <span
             className={`absolute top-[3px] right-[3px] w-[6px] h-[6px] rounded-full ring-2 ring-app-shell-rail ${
-              item.badge.tone === "red" ? "bg-[#e53935]" : "bg-[#2552ED]"
+              item.badge.tone === "red" ? "bg-[#e53935]" : "bg-[#1976D2]"
             }`}
           />
         )}
@@ -183,18 +183,18 @@ export function SidebarSectioned({
             size={iconSize}
             strokeWidth={L1_STRIP_ICON_STROKE_PX}
             className={`${
-              isActive ? "text-[#2552ED] dark:text-[#6b9bff]" : "text-[#505050] dark:text-[#9ba2b0]"
+              isActive ? "text-[#1976D2] dark:text-[#6b9bff]" : "text-[#505050] dark:text-[#9ba2b0]"
             }`}
           />
         </span>
         <span className={`ml-3 flex-1 text-left text-[13px] whitespace-nowrap ${
-          isActive ? "text-[#2552ED] dark:text-[#6b9bff] font-medium" : "text-[#303030] dark:text-[#c0c6d4]"
+          isActive ? "text-[#1976D2] dark:text-[#6b9bff] font-medium" : "text-[#303030] dark:text-[#c0c6d4]"
         }`}>
           {item.label}
         </span>
         {item.badge?.kind === "dot" && (
           <span className={`mr-2 w-[6px] h-[6px] rounded-full shrink-0 ${
-            item.badge.tone === "red" ? "bg-[#e53935]" : "bg-[#2552ED]"
+            item.badge.tone === "red" ? "bg-[#e53935]" : "bg-[#1976D2]"
           }`} />
         )}
         {item.badge?.kind === "pill" && (
@@ -219,7 +219,7 @@ export function SidebarSectioned({
           {/* Logo */}
           <div className="h-[48px] w-[55px] flex items-center justify-center shrink-0 self-center">
             <svg width="17.55" height="16.875" viewBox="0 0 19.5 18.75" fill="none">
-              <path clipRule="evenodd" d={svgPaths.p23fcc000} fill="#2552ED" fillRule="evenodd" />
+              <path clipRule="evenodd" d={svgPaths.p23fcc000} fill="#1976D2" fillRule="evenodd" />
             </svg>
           </div>
 
@@ -252,7 +252,7 @@ export function SidebarSectioned({
           {/* Header — logo + Birdeye + collapse chevron */}
           <div className="h-[48px] pl-[17px] pr-3 flex items-center gap-2 shrink-0">
             <svg width="17.55" height="16.875" viewBox="0 0 19.5 18.75" fill="none" className="shrink-0">
-              <path clipRule="evenodd" d={svgPaths.p23fcc000} fill="#2552ED" fillRule="evenodd" />
+              <path clipRule="evenodd" d={svgPaths.p23fcc000} fill="#1976D2" fillRule="evenodd" />
             </svg>
             <span className="text-[15px] font-medium text-[#212121] dark:text-[#e4e4e4] flex-1">Birdeye</span>
             <button

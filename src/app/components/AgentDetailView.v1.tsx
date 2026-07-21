@@ -576,7 +576,7 @@ function AgentConfigModal({ agent, onClose }: AgentConfigModalProps) {
               type="text"
               value={name}
               onChange={e => setName(e.target.value)}
-              className="w-full h-[38px] px-3 bg-white dark:bg-[#262b35] border border-[#e5e9f0] dark:border-[#333a47] rounded-[8px] text-[13px] text-[#212121] dark:text-[#e4e4e4] outline-none focus:border-[#2552ED] dark:focus:border-[#2552ED] transition-colors"
+              className="w-full h-[38px] px-3 bg-white dark:bg-[#262b35] border border-[#e5e9f0] dark:border-[#333a47] rounded-[8px] text-[13px] text-[#212121] dark:text-[#e4e4e4] outline-none focus:border-[#1976D2] dark:focus:border-[#1976D2] transition-colors"
               style={{ fontWeight: 400 }}
             />
           </div>
@@ -590,7 +590,7 @@ function AgentConfigModal({ agent, onClose }: AgentConfigModalProps) {
               value={description}
               onChange={e => setDescription(e.target.value)}
               rows={3}
-              className="w-full px-3 py-2.5 bg-white dark:bg-[#262b35] border border-[#e5e9f0] dark:border-[#333a47] rounded-[8px] text-[13px] text-[#212121] dark:text-[#e4e4e4] outline-none focus:border-[#2552ED] dark:focus:border-[#2552ED] transition-colors resize-none"
+              className="w-full px-3 py-2.5 bg-white dark:bg-[#262b35] border border-[#e5e9f0] dark:border-[#333a47] rounded-[8px] text-[13px] text-[#212121] dark:text-[#e4e4e4] outline-none focus:border-[#1976D2] dark:focus:border-[#1976D2] transition-colors resize-none"
               style={{ fontWeight: 300 }}
             />
           </div>
@@ -607,7 +607,7 @@ function AgentConfigModal({ agent, onClose }: AgentConfigModalProps) {
                 style={{ fontWeight: 400 }}
               >
                 {status === "active" ? (
-                  <ToggleRight className="w-5 h-5 text-[#2552ED]" />
+                  <ToggleRight className="w-5 h-5 text-[#1976D2]" />
                 ) : (
                   <ToggleLeft className="w-5 h-5 text-[#999] dark:text-[#6b7280]" />
                 )}
@@ -625,7 +625,7 @@ function AgentConfigModal({ agent, onClose }: AgentConfigModalProps) {
               <div className="bg-[#fafbfc] dark:bg-[#262b35] border border-[#e5e9f0] dark:border-[#333a47] rounded-[8px] px-3 py-2.5">
                 <div className="flex items-baseline gap-1.5 mb-1">
                   <p className="text-[16px] text-[#212121] dark:text-[#e4e4e4]" style={{ fontWeight: 400 }}>{agent.tasksToday}</p>
-                  <Zap className="w-3 h-3 text-[#2552ED] self-center" />
+                  <Zap className="w-3 h-3 text-[#1976D2] self-center" />
                 </div>
                 <span className="text-[10px] text-[#888] dark:text-[#6b7280]" style={{ fontWeight: 400 }}>Tasks today</span>
               </div>
@@ -739,7 +739,7 @@ function AgentConfigModal({ agent, onClose }: AgentConfigModalProps) {
             <Button
               type="button"
               onClick={handleSave}
-              className="rounded-[8px] px-4 text-[13px] bg-[#2552ED] hover:bg-[#1E44CC] text-white"
+              className="rounded-[8px] px-4 text-[13px] bg-[#1976D2] hover:bg-[#1976D2] text-white"
               style={{ fontWeight: 400 }}
             >
               Save changes
@@ -779,7 +779,7 @@ function AgentCard({ agent, onConfigure }: { agent: AgentInstance; onConfigure: 
       {/* Metrics row */}
       <div className="flex items-center gap-4 mb-3">
         <div className="flex items-center gap-1.5">
-          <Zap className="w-3 h-3 text-[#2552ED]" />
+          <Zap className="w-3 h-3 text-[#1976D2]" />
           <span className="text-[12px] text-[#888] dark:text-[#6b7280]" style={{ fontWeight: 300 }}>
             {agent.tasksToday} today
           </span>
@@ -804,7 +804,7 @@ function AgentCard({ agent, onConfigure }: { agent: AgentInstance; onConfigure: 
             </Button>
           ) : agent.status === "paused" ? (
             <Button type="button" variant="ghost" size="icon" onClick={handleToggleStatus} className="rounded-[6px]" title="Resume agent">
-              <Play className="w-3.5 h-3.5 text-[#2552ED]" />
+              <Play className="w-3.5 h-3.5 text-[#1976D2]" />
             </Button>
           ) : null}
           <Button type="button" variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); onConfigure(agent); }} className="rounded-[6px]" title="Settings">
@@ -865,7 +865,7 @@ function AgentRow({ agent, onConfigure }: { agent: AgentInstance; onConfigure: (
             </Button>
           ) : agent.status === "paused" ? (
             <Button type="button" variant="ghost" size="icon" onClick={handleToggleStatus} className="rounded-[6px]" title="Resume">
-              <Play className="w-3.5 h-3.5 text-[#2552ED]" />
+              <Play className="w-3.5 h-3.5 text-[#1976D2]" />
             </Button>
           ) : null}
           <Button type="button" variant="ghost" size="icon" onClick={(e) => e.stopPropagation()} className="rounded-[6px]">
@@ -897,7 +897,7 @@ function TemplateCard({ template, onUseTemplate }: { template: LibraryTemplate; 
         </span>
         <button
           onClick={() => onUseTemplate(template.name)}
-          className="text-[12px] text-[#2552ED] hover:text-[#1E44CC] opacity-0 group-hover:opacity-100 transition-all"
+          className="text-[12px] text-[#1976D2] hover:text-[#1976D2] opacity-0 group-hover:opacity-100 transition-all"
           style={{ fontWeight: 400 }}
         >
           Use template
@@ -1020,7 +1020,7 @@ export function AgentDetailView({ agentSlug, onOpenBuilder }: AgentDetailViewPro
                   onChange={e => setSearchQuery(e.target.value)}
                   onBlur={() => { if (!searchQuery) setSearchOpen(false); }}
                   placeholder="Search..."
-                  className="h-[36px] w-[200px] pl-8 pr-3 bg-white dark:bg-[#262b35] border border-[#e5e9f0] dark:border-[#333a47] rounded-[8px] text-[13px] text-[#212121] dark:text-[#e4e4e4] placeholder-[#999] dark:placeholder-[#6b7280] outline-none focus:border-[#2552ED] dark:focus:border-[#2552ED] transition-colors"
+                  className="h-[36px] w-[200px] pl-8 pr-3 bg-white dark:bg-[#262b35] border border-[#e5e9f0] dark:border-[#333a47] rounded-[8px] text-[13px] text-[#212121] dark:text-[#e4e4e4] placeholder-[#999] dark:placeholder-[#6b7280] outline-none focus:border-[#1976D2] dark:focus:border-[#1976D2] transition-colors"
                   style={{ fontWeight: 300 }}
                 />
               </div>
@@ -1068,11 +1068,11 @@ export function AgentDetailView({ agentSlug, onOpenBuilder }: AgentDetailViewPro
               onClick={() => setFilterActive(!filterActive)}
               className={`rounded-[8px] ${
                 filterActive
-                  ? "bg-[#e8effe] dark:bg-[#1e2d5e] border-[#2552ED] dark:border-[#2552ED]"
+                  ? "bg-[#e8effe] dark:bg-[#1e2d5e] border-[#1976D2] dark:border-[#1976D2]"
                   : "bg-white dark:bg-[#262b35]"
               }`}
             >
-              <Filter className={`w-[14px] h-[14px] ${filterActive ? "text-[#2552ED]" : "text-[#555] dark:text-[#8b92a5]"}`} />
+              <Filter className={`w-[14px] h-[14px] ${filterActive ? "text-[#1976D2]" : "text-[#555] dark:text-[#8b92a5]"}`} />
             </Button>
           </div>
           }
@@ -1103,7 +1103,7 @@ export function AgentDetailView({ agentSlug, onOpenBuilder }: AgentDetailViewPro
                 onClick={() => setStatusFilter(s)}
                 className={`px-2.5 py-1 rounded-full text-[12px] transition-colors border ${
                   statusFilter === s
-                    ? "bg-[#e8effe] dark:bg-[#1e2d5e] border-[#2552ED] text-[#2552ED]"
+                    ? "bg-[#e8effe] dark:bg-[#1e2d5e] border-[#1976D2] text-[#1976D2]"
                     : "border-[#e5e9f0] dark:border-[#333a47] text-[#555] dark:text-[#8b92a5] hover:bg-[#f5f5f5] dark:hover:bg-[#2e3340]"
                 }`}
                 style={{ fontWeight: 400 }}
@@ -1132,7 +1132,7 @@ export function AgentDetailView({ agentSlug, onOpenBuilder }: AgentDetailViewPro
                 <div className="bg-white dark:bg-[#1e2229] border border-[#e5e9f0] dark:border-[#2e3340] rounded-[8px] px-4 py-3">
                   <div className="flex items-baseline gap-1.5 mb-1">
                     <p className="text-[20px] text-[#212121] dark:text-[#e4e4e4] tracking-[-0.4px]" style={{ fontWeight: 400 }}>{totalTasksToday}</p>
-                    <Zap className="w-3.5 h-3.5 text-[#2552ED] self-center" />
+                    <Zap className="w-3.5 h-3.5 text-[#1976D2] self-center" />
                   </div>
                   <span className="text-[11px] text-[#888] dark:text-[#6b7280]" style={{ fontWeight: 400 }}>Tasks today</span>
                 </div>

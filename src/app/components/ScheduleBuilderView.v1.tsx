@@ -198,7 +198,7 @@ function AiChatPanel({ onApply }: { onApply: (text: string) => void }) {
             <div
               className={`max-w-[90%] px-3 py-2.5 rounded-[10px] text-[12px] ${
                 msg.role === "user"
-                  ? "bg-[#2552ED] text-white rounded-br-[3px]"
+                  ? "bg-[#1976D2] text-white rounded-br-[3px]"
                   : "bg-[#f0f1f5] dark:bg-[#262b35] text-[#212121] dark:text-[#e4e4e4] rounded-bl-[3px]"
               }`}
               style={{ fontWeight: 300, lineHeight: "18px", whiteSpace: "pre-wrap" }}
@@ -209,9 +209,9 @@ function AiChatPanel({ onApply }: { onApply: (text: string) => void }) {
         {isThinking && (
           <div className="flex justify-start">
             <div className="bg-[#f0f1f5] dark:bg-[#262b35] px-3 py-2.5 rounded-[10px] rounded-bl-[3px] flex items-center gap-1.5">
-              <div className="w-1.5 h-1.5 rounded-full bg-[#2552ED] animate-bounce" style={{ animationDelay: "0ms" }} />
-              <div className="w-1.5 h-1.5 rounded-full bg-[#2552ED] animate-bounce" style={{ animationDelay: "150ms" }} />
-              <div className="w-1.5 h-1.5 rounded-full bg-[#2552ED] animate-bounce" style={{ animationDelay: "300ms" }} />
+              <div className="w-1.5 h-1.5 rounded-full bg-[#1976D2] animate-bounce" style={{ animationDelay: "0ms" }} />
+              <div className="w-1.5 h-1.5 rounded-full bg-[#1976D2] animate-bounce" style={{ animationDelay: "150ms" }} />
+              <div className="w-1.5 h-1.5 rounded-full bg-[#1976D2] animate-bounce" style={{ animationDelay: "300ms" }} />
             </div>
           </div>
         )}
@@ -232,7 +232,7 @@ function AiChatPanel({ onApply }: { onApply: (text: string) => void }) {
           <button
             onClick={handleSend}
             disabled={!input.trim() || isThinking}
-            className="w-6 h-6 rounded-md bg-[#2552ED] hover:bg-[#1E44CC] disabled:opacity-30 flex items-center justify-center transition-colors shrink-0"
+            className="w-6 h-6 rounded-md bg-[#1976D2] hover:bg-[#1976D2] disabled:opacity-30 flex items-center justify-center transition-colors shrink-0"
           >
             <Send className="w-3 h-3 text-white" />
           </button>
@@ -272,7 +272,7 @@ function ManualToolbox() {
         {triggerExpanded && triggers.map(t => (
           <div key={t.label} className="flex items-center gap-2.5 px-2.5 py-2 rounded-[8px] hover:bg-[#f0f1f5] dark:hover:bg-[#262b35] cursor-grab transition-colors">
             <div className="w-7 h-7 rounded-[6px] bg-[#f0f1f5] dark:bg-[#2a3040] flex items-center justify-center shrink-0">
-              <t.icon className="w-3.5 h-3.5 text-[#2552ED]" />
+              <t.icon className="w-3.5 h-3.5 text-[#1976D2]" />
             </div>
             <span className="text-[12px] text-[#212121] dark:text-[#e4e4e4]" style={{ fontWeight: 400 }}>{t.label}</span>
           </div>
@@ -336,7 +336,7 @@ function WorkflowCanvas({
     delivery: Send,
   };
   const stepColors: Record<WorkflowStepType, string> = {
-    trigger: "#2552ED",
+    trigger: "#1976D2",
     reports: "#7b1fa2",
     customize: "#e65100",
     summary: "#9970D7",
@@ -359,7 +359,7 @@ function WorkflowCanvas({
                 onClick={() => onSelectStep(step.id)}
                 className={`relative w-[340px] border rounded-[12px] px-5 py-4 text-left transition-all ${
                   isActive
-                    ? "border-[#2552ED] bg-white dark:bg-[#1e2229] shadow-[0_0_0_2px_rgba(37,82,237,0.15)]"
+                    ? "border-[#1976D2] bg-white dark:bg-[#1e2229] shadow-[0_0_0_2px_rgba(37,82,237,0.15)]"
                     : step.enabled
                     ? "border-[#e5e9f0] dark:border-[#333a47] bg-white dark:bg-[#1e2229] hover:border-[#c0c6d4] dark:hover:border-[#4d5568]"
                     : "border-[#e5e9f0] dark:border-[#333a47] bg-[#fafbfc] dark:bg-[#1a1d24] opacity-50"
@@ -388,7 +388,7 @@ function WorkflowCanvas({
                         onClick={(e) => { e.stopPropagation(); onToggleStep(step.id); }}
                         className={`w-7 h-4 rounded-full relative transition-colors ${
                           step.enabled
-                            ? "bg-[#2552ED]"
+                            ? "bg-[#1976D2]"
                             : "bg-[#d0d5dd] dark:bg-[#4d5568]"
                         }`}
                       >
@@ -433,7 +433,7 @@ function TriggerConfig({ config, onChange }: { config: ScheduleConfig; onChange:
         <input
           value={config.name}
           onChange={e => onChange({ ...config, name: e.target.value })}
-          className="w-full px-3 py-2 bg-white dark:bg-[#262b35] border border-[#e5e9f0] dark:border-[#333a47] rounded-[8px] text-[12px] text-[#212121] dark:text-[#e4e4e4] outline-none focus:border-[#2552ED]"
+          className="w-full px-3 py-2 bg-white dark:bg-[#262b35] border border-[#e5e9f0] dark:border-[#333a47] rounded-[8px] text-[12px] text-[#212121] dark:text-[#e4e4e4] outline-none focus:border-[#1976D2]"
           style={{ fontWeight: 400 }}
         />
       </div>
@@ -478,7 +478,7 @@ function ReportSelector({ modules, onToggle }: { modules: ReportModule[]; onTogg
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <span className="text-[11px] text-[#888] dark:text-[#6b7280] uppercase tracking-[0.5px]" style={{ fontWeight: 400 }}>Select reports</span>
-        <span className="text-[11px] text-[#2552ED] dark:text-[#6b9bff]" style={{ fontWeight: 400 }}>{selectedCount} selected</span>
+        <span className="text-[11px] text-[#1976D2] dark:text-[#6b9bff]" style={{ fontWeight: 400 }}>{selectedCount} selected</span>
       </div>
       <div className="space-y-1">
         {modules.map(mod => {
@@ -494,7 +494,7 @@ function ReportSelector({ modules, onToggle }: { modules: ReportModule[]; onTogg
                   <mod.icon className="w-3.5 h-3.5 text-[#555] dark:text-[#9ba2b0]" />
                   <span className="text-[12px] text-[#212121] dark:text-[#e4e4e4]" style={{ fontWeight: 400 }}>{mod.module}</span>
                   {modSelectedCount > 0 && (
-                    <span className="text-[10px] text-[#2552ED] dark:text-[#6b9bff] bg-[#e8effe] dark:bg-[#1e2d5e] px-1.5 py-0.5 rounded-full">{modSelectedCount}</span>
+                    <span className="text-[10px] text-[#1976D2] dark:text-[#6b9bff] bg-[#e8effe] dark:bg-[#1e2d5e] px-1.5 py-0.5 rounded-full">{modSelectedCount}</span>
                   )}
                 </div>
                 {isExpanded ? <ChevronUp className="w-3 h-3 text-[#888] dark:text-[#6b7280]" /> : <ChevronDown className="w-3 h-3 text-[#888] dark:text-[#6b7280]" />}
@@ -508,7 +508,7 @@ function ReportSelector({ modules, onToggle }: { modules: ReportModule[]; onTogg
                       className="w-full flex items-center gap-2.5 px-2 py-1.5 rounded-[6px] hover:bg-[#f0f1f5] dark:hover:bg-[#262b35] transition-colors text-left"
                     >
                       <div className={`w-4 h-4 rounded-[3px] border-2 flex items-center justify-center shrink-0 transition-all ${
-                        report.selected ? "bg-[#2552ED] border-[#2552ED]" : "border-[#d0d5dd] dark:border-[#4d5568]"
+                        report.selected ? "bg-[#1976D2] border-[#1976D2]" : "border-[#d0d5dd] dark:border-[#4d5568]"
                       }`}>
                         {report.selected && <Check className="w-2.5 h-2.5 text-white" />}
                       </div>
@@ -548,19 +548,19 @@ function CustomizeConfig({ config, onChange }: { config: CustomizationConfig; on
       </div>
       <div className="flex items-center justify-between">
         <span className="text-[12px] text-[#212121] dark:text-[#e4e4e4]" style={{ fontWeight: 400 }}>Page cover</span>
-        <button onClick={() => onChange({ ...config, pageCover: !config.pageCover })} className={`w-8 h-[18px] rounded-full relative transition-colors ${config.pageCover ? "bg-[#2552ED]" : "bg-[#d0d5dd] dark:bg-[#4d5568]"}`}>
+        <button onClick={() => onChange({ ...config, pageCover: !config.pageCover })} className={`w-8 h-[18px] rounded-full relative transition-colors ${config.pageCover ? "bg-[#1976D2]" : "bg-[#d0d5dd] dark:bg-[#4d5568]"}`}>
           <span className={`absolute top-[2px] w-[14px] h-[14px] rounded-full bg-white shadow-sm transition-all ${config.pageCover ? "left-[15px]" : "left-[2px]"}`} />
         </button>
       </div>
       <div className="flex items-center justify-between">
         <span className="text-[12px] text-[#212121] dark:text-[#e4e4e4]" style={{ fontWeight: 400 }}>Page numbers</span>
-        <button onClick={() => onChange({ ...config, pageNumbers: !config.pageNumbers })} className={`w-8 h-[18px] rounded-full relative transition-colors ${config.pageNumbers ? "bg-[#2552ED]" : "bg-[#d0d5dd] dark:bg-[#4d5568]"}`}>
+        <button onClick={() => onChange({ ...config, pageNumbers: !config.pageNumbers })} className={`w-8 h-[18px] rounded-full relative transition-colors ${config.pageNumbers ? "bg-[#1976D2]" : "bg-[#d0d5dd] dark:bg-[#4d5568]"}`}>
           <span className={`absolute top-[2px] w-[14px] h-[14px] rounded-full bg-white shadow-sm transition-all ${config.pageNumbers ? "left-[15px]" : "left-[2px]"}`} />
         </button>
       </div>
       <div className="flex items-center justify-between">
         <span className="text-[12px] text-[#212121] dark:text-[#e4e4e4]" style={{ fontWeight: 400 }}>Generated date</span>
-        <button onClick={() => onChange({ ...config, generatedDate: !config.generatedDate })} className={`w-8 h-[18px] rounded-full relative transition-colors ${config.generatedDate ? "bg-[#2552ED]" : "bg-[#d0d5dd] dark:bg-[#4d5568]"}`}>
+        <button onClick={() => onChange({ ...config, generatedDate: !config.generatedDate })} className={`w-8 h-[18px] rounded-full relative transition-colors ${config.generatedDate ? "bg-[#1976D2]" : "bg-[#d0d5dd] dark:bg-[#4d5568]"}`}>
           <span className={`absolute top-[2px] w-[14px] h-[14px] rounded-full bg-white shadow-sm transition-all ${config.generatedDate ? "left-[15px]" : "left-[2px]"}`} />
         </button>
       </div>
@@ -614,7 +614,7 @@ function DeliveryConfig({ config, onChange }: { config: DeliveryConfig; onChange
               onClick={() => onChange({ ...config, format: fmt })}
               className={`px-3 py-1.5 rounded-[8px] border text-[12px] transition-all ${
                 config.format === fmt
-                  ? "border-[#2552ED] bg-[#e8effe] dark:bg-[#1e2d5e] text-[#2552ED] dark:text-[#6b9bff]"
+                  ? "border-[#1976D2] bg-[#e8effe] dark:bg-[#1e2d5e] text-[#1976D2] dark:text-[#6b9bff]"
                   : "border-[#e5e9f0] dark:border-[#333a47] text-[#555] dark:text-[#9ba2b0] hover:border-[#c0c6d4] dark:hover:border-[#4d5568]"
               }`}
               style={{ fontWeight: 400 }}
@@ -642,7 +642,7 @@ function DeliveryConfig({ config, onChange }: { config: DeliveryConfig; onChange
             onChange={e => setRecipientInput(e.target.value)}
             onKeyDown={e => e.key === "Enter" && addRecipient()}
             placeholder="Add email address"
-            className="flex-1 px-3 py-2 bg-white dark:bg-[#262b35] border border-[#e5e9f0] dark:border-[#333a47] rounded-[8px] text-[12px] text-[#212121] dark:text-[#e4e4e4] placeholder:text-[#bbb] dark:placeholder:text-[#4d5568] outline-none focus:border-[#2552ED]"
+            className="flex-1 px-3 py-2 bg-white dark:bg-[#262b35] border border-[#e5e9f0] dark:border-[#333a47] rounded-[8px] text-[12px] text-[#212121] dark:text-[#e4e4e4] placeholder:text-[#bbb] dark:placeholder:text-[#4d5568] outline-none focus:border-[#1976D2]"
             style={{ fontWeight: 300 }}
           />
           <button onClick={addRecipient} className="px-2.5 py-2 bg-[#f0f1f5] dark:bg-[#262b35] border border-[#e5e9f0] dark:border-[#333a47] rounded-[8px] hover:bg-[#e4e6ea] dark:hover:bg-[#2e3340] transition-colors">
@@ -655,7 +655,7 @@ function DeliveryConfig({ config, onChange }: { config: DeliveryConfig; onChange
         <input
           value={config.subject}
           onChange={e => onChange({ ...config, subject: e.target.value })}
-          className="w-full px-3 py-2 bg-white dark:bg-[#262b35] border border-[#e5e9f0] dark:border-[#333a47] rounded-[8px] text-[12px] text-[#212121] dark:text-[#e4e4e4] outline-none focus:border-[#2552ED]"
+          className="w-full px-3 py-2 bg-white dark:bg-[#262b35] border border-[#e5e9f0] dark:border-[#333a47] rounded-[8px] text-[12px] text-[#212121] dark:text-[#e4e4e4] outline-none focus:border-[#1976D2]"
           style={{ fontWeight: 400 }}
         />
       </div>
@@ -665,7 +665,7 @@ function DeliveryConfig({ config, onChange }: { config: DeliveryConfig; onChange
           value={config.body}
           onChange={e => onChange({ ...config, body: e.target.value })}
           rows={4}
-          className="w-full px-3 py-2 bg-white dark:bg-[#262b35] border border-[#e5e9f0] dark:border-[#333a47] rounded-[8px] text-[12px] text-[#212121] dark:text-[#e4e4e4] outline-none focus:border-[#2552ED] resize-none"
+          className="w-full px-3 py-2 bg-white dark:bg-[#262b35] border border-[#e5e9f0] dark:border-[#333a47] rounded-[8px] text-[12px] text-[#212121] dark:text-[#e4e4e4] outline-none focus:border-[#1976D2] resize-none"
           style={{ fontWeight: 300 }}
         />
       </div>
@@ -794,7 +794,7 @@ export function ScheduleBuilderView({ onBack }: ScheduleBuilderViewProps) {
                 <Save className="size-3.5" />
                 Save draft
               </Button>
-              <Button type="button" size="sm" className="gap-1.5 bg-[#2552ED] text-xs text-white hover:bg-[#1E44CC]" onClick={() => handleSave(true)}>
+              <Button type="button" size="sm" className="gap-1.5 bg-[#1976D2] text-xs text-white hover:bg-[#1976D2]" onClick={() => handleSave(true)}>
                 <Play className="size-3" />
                 Activate
               </Button>
@@ -874,7 +874,7 @@ export function ScheduleBuilderView({ onBack }: ScheduleBuilderViewProps) {
             <div className="flex items-center gap-2">
               {currentStep && (
                 <>
-                  {currentStep.type === "trigger" && <Clock className="w-3.5 h-3.5 text-[#2552ED]" />}
+                  {currentStep.type === "trigger" && <Clock className="w-3.5 h-3.5 text-[#1976D2]" />}
                   {currentStep.type === "reports" && <FileText className="w-3.5 h-3.5 text-[#7b1fa2]" />}
                   {currentStep.type === "customize" && <Palette className="w-3.5 h-3.5 text-[#e65100]" />}
                   {currentStep.type === "summary" && <Sparkles className="w-3.5 h-3.5 text-[#9970D7]" />}

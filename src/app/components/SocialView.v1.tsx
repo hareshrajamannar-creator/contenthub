@@ -335,7 +335,7 @@ function SocialWeekGrid({
               <div className="flex items-center gap-1">
                 <span className="text-[#125598] dark:text-[#6b9bff]">{day.label}</span>
                 <span
-                  className="flex h-5 w-5 items-center justify-center rounded-full bg-[#125598] text-[11px] text-white dark:bg-[#2552ED]"
+                  className="flex h-5 w-5 items-center justify-center rounded-full bg-[#125598] text-[11px] text-white dark:bg-[#1976D2]"
                   style={{ fontWeight: 400 }}
                 >
                   {day.date}

@@ -422,7 +422,7 @@ export function Dashboard({ aiPanelOpen, onAiPanelChange, editingDraft }: { aiPa
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [scheduleModalOpen, setScheduleModalOpen] = useState(false);
   const [aiEntryMode, setAiEntryMode] = useState<"share" | "schedule">("share");
-  const [themeColor, setThemeColor] = useState("#2552ED");
+  const [themeColor, setThemeColor] = useState("#1976D2");
   const [showSummaryPage, setShowSummaryPage] = useState(false);
 
   // ─── AI Customize Panel (page-level, replaces dashboard) ───

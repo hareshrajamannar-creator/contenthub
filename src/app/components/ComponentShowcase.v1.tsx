@@ -36,7 +36,7 @@ const lightPalette = [
   { token: "--text-muted",    hex: "#999999", label: "Muted text" },
 ];
 
-const accentColor = "#2552ED";
+const accentColor = "#1976D2";
 
 /* ══════════════════════════════════════════════════
    Section wrapper
@@ -195,7 +195,7 @@ export function ComponentShowcase() {
           <Row label="AI / gradient">
             <button className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-[8px] hover:bg-[#f5f3ff] dark:hover:bg-[#1e2d5e] transition-colors group border border-[#e8def6] dark:border-[#2d2d50]">
               <Sparkles className="w-3.5 h-3.5 text-[#9970D7]" />
-              <span className="text-[11px] bg-gradient-to-r from-[#9970D7] to-[#2552ED] bg-clip-text text-transparent" style={{ fontWeight: 400 }}>
+              <span className="text-[11px] bg-gradient-to-r from-[#9970D7] to-[#1976D2] bg-clip-text text-transparent" style={{ fontWeight: 400 }}>
                 Customise with BirdAI
               </span>
             </button>
@@ -228,7 +228,7 @@ export function ComponentShowcase() {
           <Row label="Link field">
             <div className="flex items-center gap-2 bg-[#f8f9fb] dark:bg-[#262b35] border border-[#eceef2] dark:border-[#333a47] rounded-lg px-3 h-[36px] w-[320px]">
               <Link2 className="w-3.5 h-3.5 text-[#b0b0b0] dark:text-[#4d5568] shrink-0" />
-              <span className="flex-1 text-[12px] text-[#2552ED] dark:text-[#6b9bff] truncate select-all">
+              <span className="flex-1 text-[12px] text-[#1976D2] dark:text-[#6b9bff] truncate select-all">
                 share.birdeye.com/view/cc6fe16f
               </span>
               <button className="shrink-0 h-[26px] px-2.5 rounded-md text-[11px] flex items-center gap-1 bg-white dark:bg-[#262b35] border border-[#e5e7eb] dark:border-[#3d4555] text-[#555] dark:text-[#9ba2b0] hover:bg-[#f3f4f6] dark:hover:bg-[#2e3340] shadow-sm transition-colors" style={{ fontWeight: 400 }}>
@@ -245,7 +245,7 @@ export function ComponentShowcase() {
                 max={100}
                 value={sliderVal}
                 onChange={e => setSliderVal(+e.target.value)}
-                className="flex-1 accent-[#2552ED] h-1"
+                className="flex-1 accent-[#1976D2] h-1"
               />
               <span className="text-[11px] text-[#555] dark:text-[#9ba2b0] tabular-nums w-[30px] text-right">{sliderVal}%</span>
             </div>
@@ -265,15 +265,15 @@ export function ComponentShowcase() {
                 onClick={() => setRadio(v)}
                 className={`flex items-center gap-2 px-3 py-2 rounded-lg text-[12px] transition-colors ${
                   radio === v
-                    ? "text-[#2552ED] bg-[#e8effe] dark:bg-[#1e2d5e]"
+                    ? "text-[#1976D2] bg-[#e8effe] dark:bg-[#1e2d5e]"
                     : "text-[#555] dark:text-[#9ba2b0] hover:bg-[#f5f5f5] dark:hover:bg-[#2e3340]"
                 }`}
                 style={{ fontWeight: 400 }}
               >
                 <span className={`w-[16px] h-[16px] rounded-full border-2 flex items-center justify-center ${
-                  radio === v ? "border-[#2552ED]" : "border-[#ccc] dark:border-[#4d5568]"
+                  radio === v ? "border-[#1976D2]" : "border-[#ccc] dark:border-[#4d5568]"
                 }`}>
-                  {radio === v && <span className="w-[8px] h-[8px] rounded-full bg-[#2552ED]" />}
+                  {radio === v && <span className="w-[8px] h-[8px] rounded-full bg-[#1976D2]" />}
                 </span>
                 <span className="capitalize">{v}</span>
               </button>
@@ -286,7 +286,7 @@ export function ComponentShowcase() {
               style={{ fontWeight: 400 }}
             >
               <span className={`w-[16px] h-[16px] rounded border-2 flex items-center justify-center transition-colors ${
-                checked ? "border-[#2552ED] bg-[#2552ED]" : "border-[#ccc] dark:border-[#4d5568]"
+                checked ? "border-[#1976D2] bg-[#1976D2]" : "border-[#ccc] dark:border-[#4d5568]"
               }`}>
                 {checked && <Check className="w-3 h-3 text-white" />}
               </span>
@@ -322,7 +322,7 @@ export function ComponentShowcase() {
                   onClick={() => setActiveTab(tab)}
                   className={`px-3 py-[5px] rounded-lg text-[12px] capitalize transition-all ${
                     activeTab === tab
-                      ? "bg-[#e8effe] dark:bg-[#1e2d5e] text-[#2552ED] dark:text-[#6b9bff]"
+                      ? "bg-[#e8effe] dark:bg-[#1e2d5e] text-[#1976D2] dark:text-[#6b9bff]"
                       : "text-[#888] dark:text-[#6b7280] hover:text-[#555] dark:hover:text-[#c0c6d4] hover:bg-[#f9fafb] dark:hover:bg-[#2e3340]"
                   }`}
                   style={{ fontWeight: 400 }}
@@ -333,7 +333,7 @@ export function ComponentShowcase() {
             </div>
           </Row>
           <Row label="Badge / chip">
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] bg-[#e8effe] dark:bg-[#1e2d5e] text-[#2552ED] dark:text-[#6b9bff]" style={{ fontWeight: 400 }}>
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] bg-[#e8effe] dark:bg-[#1e2d5e] text-[#1976D2] dark:text-[#6b9bff]" style={{ fontWeight: 400 }}>
               Active
             </span>
             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] bg-[#d4edda] dark:bg-[#1a3328] text-[#28a745] dark:text-[#6fcf73]" style={{ fontWeight: 400 }}>
@@ -375,7 +375,7 @@ export function ComponentShowcase() {
               <p className="text-[11px] text-[#999] dark:text-[#6b7280]" style={{ fontWeight: 300 }}>Shadow elevation, no border</p>
             </div>
             {/* Interactive card */}
-            <div className="bg-white dark:bg-[#1e2229] border border-[#e5e9f0] dark:border-[#333a47] rounded-xl p-4 hover:border-[#2552ED]/40 dark:hover:border-[#2552ED]/40 hover:shadow-[0_2px_8px_rgba(37,82,237,0.08)] transition-all cursor-pointer">
+            <div className="bg-white dark:bg-[#1e2229] border border-[#e5e9f0] dark:border-[#333a47] rounded-xl p-4 hover:border-[#1976D2]/40 dark:hover:border-[#1976D2]/40 hover:shadow-[0_2px_8px_rgba(37,82,237,0.08)] transition-all cursor-pointer">
               <p className="text-[12px] text-[#212121] dark:text-[#e4e4e4] mb-1" style={{ fontWeight: 400 }}>Interactive card</p>
               <p className="text-[11px] text-[#999] dark:text-[#6b7280]" style={{ fontWeight: 300 }}>Hover to see accent border</p>
             </div>
@@ -389,7 +389,7 @@ export function ComponentShowcase() {
               <button className="w-full text-left px-3 py-2 text-[12px] text-[#333] dark:text-[#e4e4e4] hover:bg-[#f5f5f5] dark:hover:bg-[#2e3340] transition-colors flex items-center gap-2.5">
                 <Eye className="w-3.5 h-3.5 text-[#555] dark:text-[#9ba2b0]" /> View report
               </button>
-              <button className="w-full text-left px-3 py-2 text-[12px] bg-[#e8effe] dark:bg-[#1e2d5e] text-[#2552ED] flex items-center gap-2.5">
+              <button className="w-full text-left px-3 py-2 text-[12px] bg-[#e8effe] dark:bg-[#1e2d5e] text-[#1976D2] flex items-center gap-2.5">
                 <Share2 className="w-3.5 h-3.5" /> Share (selected)
               </button>
               <button className="w-full text-left px-3 py-2 text-[12px] text-[#333] dark:text-[#e4e4e4] hover:bg-[#f5f5f5] dark:hover:bg-[#2e3340] transition-colors flex items-center gap-2.5">
@@ -407,7 +407,7 @@ export function ComponentShowcase() {
         <Section title="Floating toolbar">
           <div className="flex justify-center py-4">
             <div className="flex items-center gap-0.5 bg-white dark:bg-[#22262f] rounded-full shadow-[0px_2px_12px_rgba(0,0,0,0.12)] dark:shadow-[0px_2px_12px_rgba(0,0,0,0.35)] px-2 py-1.5">
-              <button className="p-1.5 rounded-full bg-[#e8effe] dark:bg-[#1e2d5e] text-[#2552ED]">
+              <button className="p-1.5 rounded-full bg-[#e8effe] dark:bg-[#1e2d5e] text-[#1976D2]">
                 <Eye className="w-3.5 h-3.5" />
               </button>
               <button className="p-1.5 rounded-full hover:bg-[#f5f5f5] dark:hover:bg-[#2e3340] text-[#555] dark:text-[#9ba2b0] transition-colors">
@@ -489,7 +489,7 @@ function ToggleSwitch({ checked, onChange, label }: { checked: boolean; onChange
       className="flex items-center gap-2"
     >
       <div className={`w-[36px] h-[20px] rounded-full relative transition-colors duration-200 ${
-        checked ? "bg-[#2552ED]" : "bg-[#ccc] dark:bg-[#4d5568]"
+        checked ? "bg-[#1976D2]" : "bg-[#ccc] dark:bg-[#4d5568]"
       }`}>
         <div className={`absolute top-[2px] w-[16px] h-[16px] rounded-full bg-white shadow-sm transition-transform duration-200 ${
           checked ? "left-[18px]" : "left-[2px]"
@@ -502,7 +502,7 @@ function ToggleSwitch({ checked, onChange, label }: { checked: boolean; onChange
 
 function AlertBox({ icon, variant, message }: { icon: React.ReactNode; variant: "info" | "success" | "warning" | "error"; message: string }) {
   const styles = {
-    info: "bg-[#e8effe] dark:bg-[#1e2d5e]/50 border-[#bcd0ff] dark:border-[#2552ED]/30 text-[#2552ED] dark:text-[#6b9bff]",
+    info: "bg-[#e8effe] dark:bg-[#1e2d5e]/50 border-[#bcd0ff] dark:border-[#1976D2]/30 text-[#1976D2] dark:text-[#6b9bff]",
     success: "bg-[#d4edda] dark:bg-[#1a3328]/50 border-[#b7dfbf] dark:border-[#28a745]/30 text-[#28a745] dark:text-[#6fcf73]",
     warning: "bg-[#fff3cd] dark:bg-[#3a3020]/50 border-[#ffe69c] dark:border-[#856404]/30 text-[#856404] dark:text-[#ffd45e]",
     error: "bg-[#fce4ec] dark:bg-[#3b1c1c]/50 border-[#f5c6cb] dark:border-[#c62828]/30 text-[#c62828] dark:text-[#ef9a9a]",

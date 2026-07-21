@@ -60,10 +60,10 @@ function SecOverview() {
         <button
           key={label}
           type="button"
-          className="flex cursor-pointer flex-col gap-3 rounded-xl border border-[#eaeaea] dark:border-[#2e3340] bg-white dark:bg-[#1e2229] p-4 text-left transition-colors hover:border-[#2552ED]/40 hover:bg-[#f8f9ff] dark:hover:bg-[#1e2a4a]"
+          className="flex cursor-pointer flex-col gap-3 rounded-xl border border-[#eaeaea] dark:border-[#2e3340] bg-white dark:bg-[#1e2229] p-4 text-left transition-colors hover:border-[#1976D2]/40 hover:bg-[#f8f9ff] dark:hover:bg-[#1e2a4a]"
         >
           <div className="flex size-8 items-center justify-center rounded-lg bg-[#f0f4ff] dark:bg-[#1e2a4a]">
-            <Icon className="size-4 text-[#2552ED]" />
+            <Icon className="size-4 text-[#1976D2]" />
           </div>
           <div>
             <p className="text-[12px] text-[#999] dark:text-[#6b7280]">{label}</p>
@@ -87,10 +87,10 @@ function ToneSlider({ axis, onChange }: { axis: ToneAxis; onChange: (id: string,
           min={0} max={100}
           value={axis.value}
           onChange={(e) => onChange(axis.id, Number(e.target.value))}
-          className="h-1 w-full cursor-pointer appearance-none rounded-full bg-[#e0e4ea] dark:bg-[#2e3340] accent-[#2552ED] [&::-webkit-slider-thumb]:size-4 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[#2552ED] [&::-webkit-slider-thumb]:shadow-sm"
+          className="h-1 w-full cursor-pointer appearance-none rounded-full bg-[#e0e4ea] dark:bg-[#2e3340] accent-[#1976D2] [&::-webkit-slider-thumb]:size-4 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[#1976D2] [&::-webkit-slider-thumb]:shadow-sm"
         />
         <div
-          className="pointer-events-none absolute top-0 h-1 rounded-l-full bg-[#2552ED]"
+          className="pointer-events-none absolute top-0 h-1 rounded-l-full bg-[#1976D2]"
           style={{ width: `${axis.value}%` }}
         />
       </div>
@@ -201,7 +201,7 @@ function RuleCard({ rule, onToggle }: { rule: PolicyRule; onToggle: (id: string)
           type="button"
           onClick={() => onToggle(rule.id)}
           aria-label={rule.active ? "Disable rule" : "Enable rule"}
-          className={cn("relative inline-flex h-5 w-9 cursor-pointer items-center rounded-full transition-colors", rule.active ? "bg-[#2552ED]" : "bg-[#ddd] dark:bg-[#444]")}
+          className={cn("relative inline-flex h-5 w-9 cursor-pointer items-center rounded-full transition-colors", rule.active ? "bg-[#1976D2]" : "bg-[#ddd] dark:bg-[#444]")}
         >
           <span className={cn("inline-block size-4 translate-x-0.5 transform rounded-full bg-white shadow-sm transition-transform", rule.active && "translate-x-4")} />
         </button>
@@ -252,18 +252,18 @@ function SecAutonomy() {
           {/* Gradient bar */}
           <div className="relative mb-3 h-3 rounded-full overflow-hidden" style={{ background: "linear-gradient(to right, #ef4444 0%, #f59e0b 30%, #10b981 70%)" }}>
             <div
-              className="absolute top-1/2 -translate-y-1/2 size-5 rounded-full bg-white border-2 border-[#2552ED] shadow-md cursor-pointer"
+              className="absolute top-1/2 -translate-y-1/2 size-5 rounded-full bg-white border-2 border-[#1976D2] shadow-md cursor-pointer"
               style={{ left: `calc(${floor}% - 10px)` }}
             />
           </div>
           <input
             type="range" min={60} max={100} value={floor}
             onChange={(e) => setFloor(Number(e.target.value))}
-            className="w-full cursor-pointer appearance-none rounded-full bg-transparent h-1 accent-[#2552ED]"
+            className="w-full cursor-pointer appearance-none rounded-full bg-transparent h-1 accent-[#1976D2]"
           />
           <div className="mt-2 flex justify-between text-[10px] font-mono text-[#999]">
             <span>0.60 — Escalate</span>
-            <span className="font-bold text-[#2552ED]">{(floor / 100).toFixed(2)} — Floor</span>
+            <span className="font-bold text-[#1976D2]">{(floor / 100).toFixed(2)} — Floor</span>
             <span>1.00 — Auto-send</span>
           </div>
         </div>
@@ -384,7 +384,7 @@ function SecLocations() {
             <tr key={loc.id} className={cn("transition-colors", loc.override ? "bg-[#f0f4ff] dark:bg-[#1e2a4a]" : "bg-white dark:bg-[#1e2229] hover:bg-[#fafafa] dark:hover:bg-[#1a1d23]")}>
               <td className="px-4 py-3">
                 <div className="flex items-center gap-2">
-                  {loc.override && <span className="size-1.5 shrink-0 rounded-full bg-[#2552ED]" />}
+                  {loc.override && <span className="size-1.5 shrink-0 rounded-full bg-[#1976D2]" />}
                   <span className="text-[13px] font-medium text-[#212121] dark:text-[#e4e4e4]">{loc.name}</span>
                 </div>
               </td>
@@ -491,7 +491,7 @@ function FixtureItem({ fixture, active, onSelect }: { fixture: TestFixture; acti
     <button
       type="button"
       onClick={onSelect}
-      className={cn("w-full rounded-xl border p-3 text-left transition-colors cursor-pointer", active ? "border-[#2552ED] bg-[#f0f4ff] dark:bg-[#1e2a4a]" : "border-[#eaeaea] dark:border-[#2e3340] bg-white dark:bg-[#1e2229] hover:border-[#2552ED]/40")}
+      className={cn("w-full rounded-xl border p-3 text-left transition-colors cursor-pointer", active ? "border-[#1976D2] bg-[#f0f4ff] dark:bg-[#1e2a4a]" : "border-[#eaeaea] dark:border-[#2e3340] bg-white dark:bg-[#1e2229] hover:border-[#1976D2]/40")}
     >
       <div className="mb-1 flex items-center gap-2">
         <span className="text-[12px] tracking-[-1px]">{Array.from({length:5},(_,i)=><span key={i} className={i<fixture.rating?"text-amber-400":"text-[#ddd] dark:text-[#444]"}>★</span>)}</span>
@@ -620,7 +620,7 @@ export function AgentConfigView() {
                   className={cn(
                     "flex w-full cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-left text-[13px] transition-colors",
                     isActive
-                      ? "bg-[#f0f4ff] dark:bg-[#1e2a4a] text-[#2552ED] font-medium"
+                      ? "bg-[#f0f4ff] dark:bg-[#1e2a4a] text-[#1976D2] font-medium"
                       : "text-[#555] dark:text-[#9ba2b0] hover:bg-[#f5f6f8] dark:hover:bg-[#1a1d23]",
                   )}
                 >
@@ -639,7 +639,7 @@ export function AgentConfigView() {
         <div className="sticky top-0 z-10 -mx-8 mb-2 flex items-center justify-between border-b border-[#eaeaea] dark:border-[#2e3340] bg-[#f5f6f8] dark:bg-[#13161b] px-8 py-3 transition-colors">
           <div className="flex items-center gap-3">
             <div className="flex size-8 items-center justify-center rounded-lg bg-[#f0f4ff] dark:bg-[#1e2a4a]">
-              <Sparkles className="size-4 text-[#2552ED]" />
+              <Sparkles className="size-4 text-[#1976D2]" />
             </div>
             <div>
               <p className="text-[14px] font-semibold text-[#212121] dark:text-[#e4e4e4]">Review Response Agent</p>

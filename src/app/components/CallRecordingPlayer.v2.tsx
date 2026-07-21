@@ -336,7 +336,7 @@ function WaveformSection({
               className={cn(
                 "flex-1 rounded-full transition-colors duration-75",
                 played
-                  ? "bg-[#2552ED] dark:bg-[#4f7ef8]"
+                  ? "bg-[#1976D2] dark:bg-[#4f7ef8]"
                   : "bg-[#dde1e9] dark:bg-[#2e3340]",
               )}
               style={{ height: `${h * 100}%`, minHeight: 2 }}
@@ -345,7 +345,7 @@ function WaveformSection({
         })}
         {/* Playhead needle */}
         <div
-          className="pointer-events-none absolute top-0 bottom-0 w-0.5 rounded-full bg-[#2552ED] dark:bg-[#4f7ef8] shadow-sm"
+          className="pointer-events-none absolute top-0 bottom-0 w-0.5 rounded-full bg-[#1976D2] dark:bg-[#4f7ef8] shadow-sm"
           style={{ left: `${progress * 100}%` }}
         />
       </div>
@@ -385,7 +385,7 @@ function PlayControls({
         type="button"
         onClick={isPlaying ? onPause : onPlay}
         aria-label={isPlaying ? "Pause" : "Play"}
-        className="flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-full bg-[#2552ED] text-white shadow-sm transition-all hover:bg-[#1E44CC] hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2552ED]/50"
+        className="flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-full bg-[#1976D2] text-white shadow-sm transition-all hover:bg-[#1976D2] hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1976D2]/50"
       >
         {isPlaying
           ? <Pause  className="size-4 fill-current" />
@@ -423,7 +423,7 @@ function PlayControls({
             className={cn(
               "cursor-pointer rounded-md px-2 py-1 text-[11px] font-medium transition-colors duration-150",
               speed === opt.value
-                ? "bg-[#2552ED] text-white"
+                ? "bg-[#1976D2] text-white"
                 : "text-[#555] dark:text-[#8b92a5] hover:bg-[#f0f1f5] dark:hover:bg-[#2e3340]",
             )}
           >
@@ -484,7 +484,7 @@ function CallSummary({ record }: { record: CallRecord }) {
         onClick={() => setExpanded((x) => !x)}
         className="flex w-full cursor-pointer items-center gap-2 px-4 py-3 text-left transition-colors hover:bg-[#fafafa] dark:hover:bg-[#252a3a]"
       >
-        <Sparkles className="size-3.5 shrink-0 text-[#2552ED]" />
+        <Sparkles className="size-3.5 shrink-0 text-[#1976D2]" />
         <span className="flex-1 text-[13px] font-semibold text-[#212121] dark:text-[#e4e4e4]">AI Summary</span>
         {expanded
           ? <ChevronUp   className="size-3.5 text-[#999] dark:text-[#6b7280]" />
@@ -512,7 +512,7 @@ function CallSummary({ record }: { record: CallRecord }) {
                     className="flex cursor-pointer items-start gap-2 text-left text-[12px] leading-snug text-[#444] dark:text-[#b0b7c3] transition-colors hover:text-[#212121] dark:hover:text-[#e4e4e4]"
                   >
                     {checked[i]
-                      ? <CheckSquare className="mt-px size-3.5 shrink-0 text-[#2552ED]" />
+                      ? <CheckSquare className="mt-px size-3.5 shrink-0 text-[#1976D2]" />
                       : <Square      className="mt-px size-3.5 shrink-0 text-[#bbb] dark:text-[#555]" />
                     }
                     <span className={cn(checked[i] && "line-through text-[#bbb] dark:text-[#555]")}>
@@ -554,7 +554,7 @@ function TranscriptBubble({
             isAgent
               ? "bg-[#e3f0ff] dark:bg-[#1e3a5f] text-[#212121] dark:text-[#e4e4e4] rounded-br-md"
               : "bg-white dark:bg-[#262b35] text-[#212121] dark:text-[#e4e4e4] rounded-bl-md border border-[#eaeaea] dark:border-[#333a47]",
-            isActive && "ring-2 ring-[#2552ED]/40 ring-offset-1",
+            isActive && "ring-2 ring-[#1976D2]/40 ring-offset-1",
           )}
           style={{ fontWeight: 400 }}
         >
@@ -567,7 +567,7 @@ function TranscriptBubble({
             type="button"
             onClick={() => onSeek(msg.timestampSec)}
             className={cn(
-              "absolute -top-2.5 cursor-pointer rounded-full border border-[#e5e9f0] bg-white px-2 py-0.5 text-[10px] font-medium text-[#555] shadow-sm transition-colors hover:bg-[#f0f4ff] hover:text-[#2552ED] dark:border-[#333a47] dark:bg-[#262b35] dark:text-[#9ba2b0] dark:hover:bg-[#252a3a] dark:hover:text-[#6b9bff]",
+              "absolute -top-2.5 cursor-pointer rounded-full border border-[#e5e9f0] bg-white px-2 py-0.5 text-[10px] font-medium text-[#555] shadow-sm transition-colors hover:bg-[#f0f4ff] hover:text-[#1976D2] dark:border-[#333a47] dark:bg-[#262b35] dark:text-[#9ba2b0] dark:hover:bg-[#252a3a] dark:hover:text-[#6b9bff]",
               isAgent ? "right-2" : "left-2",
             )}
           >

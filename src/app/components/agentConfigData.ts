@@ -95,7 +95,7 @@ export const LOCATION_ROWS: LocationRow[] = [
 
 /* ─── Team ──────────────────────────────────────────────────────────── */
 export const TEAM_MEMBERS: TeamMember[] = [
-  { id:"u1", initials:"BK", hue:"#2552ED", name:"Balaji K.",       email:"balaji.k@birdeye.com",    role:"Owner",      perm:"admin", approvals:0   },
+  { id:"u1", initials:"BK", hue:"#1976D2", name:"Balaji K.",       email:"balaji.k@birdeye.com",    role:"Owner",      perm:"admin", approvals:0   },
   { id:"u2", initials:"SM", hue:"#7c3aed", name:"Sarah Martinez",  email:"s.martinez@birdeye.com",  role:"Head of CX", perm:"admin", approvals:48  },
   { id:"u3", initials:"DR", hue:"#0891b2", name:"David Rodriguez", email:"d.rodriguez@birdeye.com", role:"CX Manager", perm:"edit",  approvals:124 },
   { id:"u4", initials:"PL", hue:"#059669", name:"Priya Lal",       email:"p.lal@birdeye.com",       role:"Reviewer",   perm:"edit",  approvals:89  },
@@ -146,7 +146,7 @@ export const ACTIVITY_ROWS: ActivityRow[] = [
   { id:"A4829", when:"Just now", ts:"Apr 20 · 4:38 PM", name:"Maria Torres",   initials:"MT", hue:"#7c3aed", location:"Miami, FL",         source:"Google",   rating:4, draft:"Thank you for taking the time to share your feedback, Maria. We're delighted to hear…",     conf:0.91, state:"queued"    },
   { id:"A4828", when:"3m ago",   ts:"Apr 20 · 4:35 PM", name:"James Chen",     initials:"JC", hue:"#0891b2", location:"Seattle, WA",        source:"Yelp",     rating:3, draft:"We sincerely appreciate your honest feedback, James. We'd love the opportunity to…",        conf:0.78, state:"escalated" },
   { id:"A4827", when:"8m ago",   ts:"Apr 20 · 4:30 PM", name:"Sarah Williams", initials:"SW", hue:"#059669", location:"Chicago, IL",        source:"Google",   rating:5, draft:"What a wonderful review — thank you so much, Sarah! We look forward to welcoming you…",    conf:0.97, state:"auto-sent" },
-  { id:"A4826", when:"14m ago",  ts:"Apr 20 · 4:24 PM", name:"Alex K.",        initials:"AK", hue:"#2552ED", location:"Los Angeles, CA",    source:"Facebook", rating:4, draft:"Thank you for the kind words, Alex! Our team works hard every day to deliver…",             conf:0.89, state:"approved"  },
+  { id:"A4826", when:"14m ago",  ts:"Apr 20 · 4:24 PM", name:"Alex K.",        initials:"AK", hue:"#1976D2", location:"Los Angeles, CA",    source:"Facebook", rating:4, draft:"Thank you for the kind words, Alex! Our team works hard every day to deliver…",             conf:0.89, state:"approved"  },
   { id:"A4825", when:"22m ago",  ts:"Apr 20 · 4:16 PM", name:"Priya Sharma",   initials:"PS", hue:"#d97706", location:"Austin, TX",         source:"Google",   rating:2, draft:"We're truly sorry to hear about your experience, Priya. This falls well below the…",       conf:0.71, state:"edited"    },
   { id:"A4824", when:"31m ago",  ts:"Apr 20 · 4:07 PM", name:"Robert Kim",     initials:"RK", hue:"#dc2626", location:"San Francisco, CA",  source:"Yelp",     rating:1, draft:"",                                                                                            conf:0.00, state:"escalated" },
   { id:"A4823", when:"45m ago",  ts:"Apr 20 · 3:53 PM", name:"Linda Park",     initials:"LP", hue:"#0891b2", location:"Denver, CO",         source:"Google",   rating:5, draft:"Linda, reviews like yours truly make our day! We're so glad you enjoyed every…",            conf:0.94, state:"auto-sent" },

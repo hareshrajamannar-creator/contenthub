@@ -115,7 +115,7 @@ function ViewSwitcher({
                 onClick={() => onChange(v.value)}
                 className={`px-2 py-1 rounded-full text-[11px] transition-all ${
                   current === v.value
-                    ? "bg-[#2552ED] text-white"
+                    ? "bg-[#1976D2] text-white"
                     : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                 }`}
               >

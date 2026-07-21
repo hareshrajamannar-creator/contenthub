@@ -262,7 +262,6 @@ export default function App() {
   const [createViewStartAtFAQCanvas, setCreateViewStartAtFAQCanvas] = useState(false);
   const [createViewStartAtBlogCanvas, setCreateViewStartAtBlogCanvas] = useState(false);
   const [createViewBlogFlowData, setCreateViewBlogFlowData] = useState<CreateBlogPageFlowData | undefined>(undefined);
-  const [editingFromProjectCard, setEditingFromProjectCard] = useState(false);
   // Recommendation context passed into CreateView
   const [createViewRecId, setCreateViewRecId] = useState<string | undefined>(undefined);
   const [createViewRecTitle, setCreateViewRecTitle] = useState<string | undefined>(undefined);
@@ -751,11 +750,7 @@ export default function App() {
                     setCreateViewRecTitle(undefined);
                     setCreateViewRecAeoScore(undefined);
                     setCreateViewPreloadedQuestions(undefined);
-                    if (editingFromProjectCard) {
-                      setEditingFromProjectCard(false);
-                    } else {
-                      setCurrentView("recommendations");
-                    }
+                    setCurrentView("recommendations");
                   }}
                 />
               ) : createViewStartAtBlogCanvas ? (
@@ -784,11 +779,7 @@ export default function App() {
                     setCreateViewRecTitle(undefined);
                     setCreateViewRecAeoScore(undefined);
                     setCreateViewPreloadedBlogSections(undefined);
-                    if (editingFromProjectCard) {
-                      setEditingFromProjectCard(false);
-                    } else {
-                      setCurrentView("content-hub-projects");
-                    }
+                    setCurrentView("content-hub-projects");
                   }}
                 />
               ) : (
@@ -812,11 +803,6 @@ export default function App() {
                     setCreateViewRecTitle(undefined);
                     setCreateViewRecAeoScore(undefined);
                     setCurrentView("content-hub");
-                  }}
-                  onEditCard={(cardId, itemType) => {
-                    setEditingFromProjectCard(true);
-                    if (itemType === 'blog') setCreateViewStartAtBlogCanvas(true);
-                    else if (itemType === 'faq') setCreateViewStartAtFAQCanvas(true);
                   }}
                 />
               )

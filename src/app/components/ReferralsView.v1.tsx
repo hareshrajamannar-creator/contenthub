@@ -159,7 +159,7 @@ function channelLabelsList(channels: Channel[]) {
 /** Plain referral code text (matches table styling; no badge chrome). */
 function ReferralCodeText({ code }: { code: string }) {
   return (
-    <span className="font-mono text-[14px] tabular-nums text-[#2552ED] dark:text-[#2952E3]">
+    <span className="font-mono text-[14px] tabular-nums text-[#1976D2] dark:text-[#1976D2]">
       {code}
     </span>
   );
@@ -201,7 +201,7 @@ function LeadDetailSheet({ lead, open, onClose }: { lead: LeadRow | null; open: 
             <SheetHeader>
               <SheetTitle className="flex items-center gap-2">
                 {lead.name}
-                <Gift size={14} className="text-[#1E44CC]" strokeWidth={1} absoluteStrokeWidth />
+                <Gift size={14} className="text-[#1976D2]" strokeWidth={1} absoluteStrokeWidth />
               </SheetTitle>
               <SheetDescription className="flex items-center gap-1 text-sm">
                 <MapPin size={12} strokeWidth={1} absoluteStrokeWidth />
@@ -396,7 +396,7 @@ export function ReferralsView({ activeSection }: ReferralsViewProps) {
             <div className="flex flex-col gap-0.5">
               <span className="flex items-center gap-1 font-medium text-foreground">
                 {r.name}
-                <Gift size={11} className="text-[#1E44CC] dark:text-[#2952E3]" strokeWidth={1} absoluteStrokeWidth />
+                <Gift size={11} className="text-[#1976D2] dark:text-[#1976D2]" strokeWidth={1} absoluteStrokeWidth />
               </span>
               <span className="flex items-center gap-1 text-muted-foreground">
                 <MapPin size={10} strokeWidth={1} absoluteStrokeWidth />
@@ -444,7 +444,7 @@ export function ReferralsView({ activeSection }: ReferralsViewProps) {
           ) : (
             <button
               type="button"
-              className="flex items-center gap-1 font-medium text-[#1E44CC] hover:underline dark:text-[#2952E3]"
+              className="flex items-center gap-1 font-medium text-[#1976D2] hover:underline dark:text-[#1976D2]"
               onClick={(e) => {
                 e.stopPropagation();
                 openLead(r);
@@ -512,7 +512,7 @@ export function ReferralsView({ activeSection }: ReferralsViewProps) {
                   }}
                   autoFocus
                   placeholder="Search referrals"
-                  className="h-full w-full rounded-[8px] border border-[#e5e9f0] bg-white py-0 pr-2 pl-8 text-[14px] text-[#212121] outline-none transition-colors placeholder:text-[#757575] focus:border-[#2552ED] focus:ring-1 focus:ring-[#2552ED] dark:border-[#333a47] dark:bg-[#262b35] dark:text-[#e4e4e4] dark:placeholder:text-[#8b92a5]"
+                  className="h-full w-full rounded-[8px] border border-[#e5e9f0] bg-white py-0 pr-2 pl-8 text-[14px] text-[#212121] outline-none transition-colors placeholder:text-[#757575] focus:border-[#1976D2] focus:ring-1 focus:ring-[#1976D2] dark:border-[#333a47] dark:bg-[#262b35] dark:text-[#e4e4e4] dark:placeholder:text-[#8b92a5]"
                   aria-label="Search referrals"
                 />
               </div>

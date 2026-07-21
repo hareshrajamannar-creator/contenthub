@@ -89,7 +89,7 @@ export function FilterPaneTriggerButton({
       onClick={() => onOpenChange(!open)}
       className={cn(
         open
-          ? "bg-[#e8effe] dark:bg-[#1e2d5e] border-[#2552ED] dark:border-[#2552ED]"
+          ? "bg-[#e8effe] dark:bg-[#1e2d5e] border-[#1976D2] dark:border-[#1976D2]"
           : "",
         className,
       )}
@@ -100,7 +100,7 @@ export function FilterPaneTriggerButton({
         size={14}
         weight={open ? "fill" : "regular"}
         className={
-          open ? "text-[#1E44CC]" : "text-[#555] dark:text-[#8b92a5]"
+          open ? "text-[#1976D2]" : "text-[#555] dark:text-[#8b92a5]"
         }
       />
     </Button>

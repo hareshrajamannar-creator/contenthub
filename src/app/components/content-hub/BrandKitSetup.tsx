@@ -48,7 +48,7 @@ const DEFAULT_KIT: BrandKit = {
   tagline: '',
   brandVoice: 'friendly',
   toneNotes: '',
-  primaryColor: '#1E44CC',
+  primaryColor: '#1976D2',
   locations: DEFAULT_LOCATIONS,
   styleGuideUrl: '',
 };

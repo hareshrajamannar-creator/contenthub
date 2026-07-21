@@ -325,7 +325,7 @@ function FilterDropdown({ label, options, value, onChange }: {
         onClick={() => setOpen(!open)}
         className={`flex items-center gap-1 px-3 py-[6px] rounded-[8px] border text-[12px] font-['Inter',sans-serif] transition-colors ${
           value !== "All"
-            ? "border-[#2552ED] dark:border-[#5580e0] bg-[#e8effe] dark:bg-[#1e2d5e] text-[#2552ED] dark:text-[#6b9bff]"
+            ? "border-[#1976D2] dark:border-[#5580e0] bg-[#e8effe] dark:bg-[#1e2d5e] text-[#1976D2] dark:text-[#6b9bff]"
             : "border-[#e5e9f0] dark:border-[#333a47] bg-white dark:bg-[#262b35] text-[#555] dark:text-[#9ba2b0] hover:bg-[#f5f5f5] dark:hover:bg-[#2e3340]"
         }`}
         style={{ fontWeight: 400 }}
@@ -341,7 +341,7 @@ function FilterDropdown({ label, options, value, onChange }: {
               onClick={() => { onChange(opt); setOpen(false); }}
               className={`w-full text-left px-3 py-2 text-[12px] font-['Inter',sans-serif] transition-colors ${
                 value === opt
-                  ? "bg-[#e8effe] dark:bg-[#1e2d5e] text-[#2552ED] dark:text-[#6b9bff]"
+                  ? "bg-[#e8effe] dark:bg-[#1e2d5e] text-[#1976D2] dark:text-[#6b9bff]"
                   : "text-[#333] dark:text-[#e4e4e4] hover:bg-[#f8f9fb] dark:hover:bg-[#2e3340]"
               }`}
             >
@@ -529,7 +529,7 @@ export function ScheduledDeliveriesView({ onCreateSchedule }: { onCreateSchedule
             <button
               type="button"
               onClick={() => onCreateSchedule?.()}
-              className="flex items-center gap-1.5 rounded-lg bg-[#2552ED] px-4 py-1.5 text-sm text-white transition-all tracking-tight hover:brightness-[0.92]"
+              className="flex items-center gap-1.5 rounded-lg bg-[#1976D2] px-4 py-1.5 text-sm text-white transition-all tracking-tight hover:brightness-[0.92]"
             >
               <Plus className="size-4" aria-hidden />
               Create schedule
@@ -543,7 +543,7 @@ export function ScheduledDeliveriesView({ onCreateSchedule }: { onCreateSchedule
         <div className="grid grid-cols-4 gap-4">
           {[
             { label: "Active schedules", value: activeCount, icon: CheckCircle2, color: "#2e7d32", bg: "#e8f5e9", darkBg: "#1a3328" },
-            { label: "Total sends", value: totalSends, icon: Send, color: "#2552ED", bg: "#e8effe", darkBg: "#1e2d5e" },
+            { label: "Total sends", value: totalSends, icon: Send, color: "#1976D2", bg: "#e8effe", darkBg: "#1e2d5e" },
             { label: "Unique recipients", value: uniqueRecipients, icon: Users, color: "#7b1fa2", bg: "#f3e5f5", darkBg: "#2a1f33" },
             { label: "Failed deliveries", value: failedCount, icon: AlertTriangle, color: "#c62828", bg: "#ffebee", darkBg: "#352020" },
           ].map(card => (
@@ -641,7 +641,7 @@ export function ScheduledDeliveriesView({ onCreateSchedule }: { onCreateSchedule
                     <span className="text-[11px] text-[#bbb] dark:text-[#4d5568] font-['Inter',sans-serif]">Updated {draft.updatedAt}</span>
                     <button
                       onClick={() => toast.success(`Editing draft "${draft.name}"...`)}
-                      className="px-3 py-1 text-[12px] text-[#2552ED] dark:text-[#6b9bff] rounded-lg border border-[#2552ED] dark:border-[#5580e0] opacity-0 group-hover:opacity-100 transition-opacity font-['Inter',sans-serif]"
+                      className="px-3 py-1 text-[12px] text-[#1976D2] dark:text-[#6b9bff] rounded-lg border border-[#1976D2] dark:border-[#5580e0] opacity-0 group-hover:opacity-100 transition-opacity font-['Inter',sans-serif]"
                       style={{ fontWeight: 400 }}
                     >
                       Continue editing
@@ -725,7 +725,7 @@ export function ScheduledDeliveriesView({ onCreateSchedule }: { onCreateSchedule
                             <button
                               onClick={() => toast.success("Opening schedule creator...")}
                               className="px-4 py-1.5 text-[13px] text-white rounded-[8px] transition-all"
-                              style={{ fontWeight: 400, backgroundColor: "#2552ED" }}
+                              style={{ fontWeight: 400, backgroundColor: "#1976D2" }}
                             >
                               Create your first scheduled delivery
                             </button>

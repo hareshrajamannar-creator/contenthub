@@ -161,9 +161,9 @@ function OnboardingSidebar({ current }: { current: OnboardingStep }) {
               <div
                 className={`w-6 h-6 rounded-full flex items-center justify-center text-[11px] shrink-0 transition-all ${
                   isCompleted
-                    ? "bg-[#2552ED] text-white"
+                    ? "bg-[#1976D2] text-white"
                     : isCurrent
-                    ? "border-2 border-[#2552ED] text-[#6b9bff]"
+                    ? "border-2 border-[#1976D2] text-[#6b9bff]"
                     : "border border-[#d0d5dd] dark:border-[#333a47] text-[#999] dark:text-[#6b7280]"
                 }`}
                 style={{ fontWeight: 400 }}
@@ -176,7 +176,7 @@ function OnboardingSidebar({ current }: { current: OnboardingStep }) {
                   isCurrent
                     ? "text-[#212121] dark:text-[#e4e4e4]"
                     : isCompleted
-                    ? "text-[#2552ED] dark:text-[#6b9bff]"
+                    ? "text-[#1976D2] dark:text-[#6b9bff]"
                     : "text-[#999] dark:text-[#6b7280]"
                 }`}
                 style={{ fontWeight: 400 }}
@@ -209,10 +209,10 @@ function WelcomeStep({ onNext, onSkip }: { onNext: () => void; onSkip: () => voi
         {/* AI sparkle icon */}
         <div className="flex justify-center mb-6">
           <div
-            className="w-16 h-16 rounded-[16px] flex items-center justify-center border border-[#2552ED]/20"
+            className="w-16 h-16 rounded-[16px] flex items-center justify-center border border-[#1976D2]/20"
             style={{ background: "linear-gradient(135deg, rgba(37, 82, 237, 0.2) 0%, rgba(37, 82, 237, 0.05) 100%)" }}
           >
-            <Sparkles className="w-7 h-7 text-[#2552ED]" />
+            <Sparkles className="w-7 h-7 text-[#1976D2]" />
           </div>
         </div>
 
@@ -232,10 +232,10 @@ function WelcomeStep({ onNext, onSkip }: { onNext: () => void; onSkip: () => voi
           <div className="flex flex-col gap-2.5">
             {capabilities.map((cap) => (
               <div key={cap} className="flex items-center gap-2.5">
-                <div className="w-5 h-5 rounded-full bg-[#2552ED]/20 flex items-center justify-center shrink-0">
+                <div className="w-5 h-5 rounded-full bg-[#1976D2]/20 flex items-center justify-center shrink-0">
                   <svg className="w-3 h-3" fill="none" viewBox="0 0 12 12">
-                    <circle cx="6" cy="6" r="5" stroke="#2552ED" strokeWidth="1" />
-                    <path d="M4.5 6L5.5 7L7.5 5" stroke="#2552ED" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1" />
+                    <circle cx="6" cy="6" r="5" stroke="#1976D2" strokeWidth="1" />
+                    <path d="M4.5 6L5.5 7L7.5 5" stroke="#1976D2" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1" />
                   </svg>
                 </div>
                 <span className="text-[13px] text-[#212121] dark:text-[#e4e4e4]" style={{ fontWeight: 300 }}>
@@ -251,7 +251,7 @@ function WelcomeStep({ onNext, onSkip }: { onNext: () => void; onSkip: () => voi
           <Button
             type="button"
             onClick={onNext}
-            className="w-full gap-2 rounded-[8px] bg-[#2552ED] hover:bg-[#1E44CC] text-[14px] text-white"
+            className="w-full gap-2 rounded-[8px] bg-[#1976D2] hover:bg-[#1976D2] text-[14px] text-white"
             style={{ fontWeight: 400 }}
           >
             Get started
@@ -305,21 +305,21 @@ function ChooseStep({
                 onClick={() => onToggle(p.id)}
                 className={`w-full flex items-center gap-4 px-4 py-3.5 rounded-[10px] border text-left transition-all ${
                   isSelected
-                    ? "border-[#2552ED] bg-[#2552ED]/5 dark:bg-[#2552ED]/10"
+                    ? "border-[#1976D2] bg-[#1976D2]/5 dark:bg-[#1976D2]/10"
                     : "border-[#E5E7EB] dark:border-[#2e3340] hover:border-[#c0c6d4] dark:hover:border-[#4d5568] bg-white dark:bg-[#1e2229]"
                 }`}
               >
                 <div
                   className={`w-9 h-9 rounded-[8px] flex items-center justify-center shrink-0 transition-colors ${
                     isSelected
-                      ? "bg-[#2552ED]/10 dark:bg-[#2552ED]/20"
+                      ? "bg-[#1976D2]/10 dark:bg-[#1976D2]/20"
                       : "bg-[#f0f1f5] dark:bg-[#262b35]"
                   }`}
                 >
-                  <p.icon className={`w-4 h-4 ${isSelected ? "text-[#2552ED]" : "text-[#888] dark:text-[#6b7280]"}`} />
+                  <p.icon className={`w-4 h-4 ${isSelected ? "text-[#1976D2]" : "text-[#888] dark:text-[#6b7280]"}`} />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className={`text-[14px] tracking-[-0.28px] ${isSelected ? "text-[#2552ED] dark:text-[#6b9bff]" : "text-[#212121] dark:text-[#e4e4e4]"}`} style={{ fontWeight: 400 }}>
+                  <p className={`text-[14px] tracking-[-0.28px] ${isSelected ? "text-[#1976D2] dark:text-[#6b9bff]" : "text-[#212121] dark:text-[#e4e4e4]"}`} style={{ fontWeight: 400 }}>
                     {p.label}
                   </p>
                   <p className="text-[12px] text-[#888] dark:text-[#6b7280] mt-0.5" style={{ fontWeight: 300 }}>
@@ -329,7 +329,7 @@ function ChooseStep({
                 <div
                   className={`w-5 h-5 rounded-[4px] border-2 flex items-center justify-center shrink-0 transition-all ${
                     isSelected
-                      ? "bg-[#2552ED] border-[#2552ED]"
+                      ? "bg-[#1976D2] border-[#1976D2]"
                       : "border-[#d0d5dd] dark:border-[#4d5568]"
                   }`}
                 >
@@ -355,7 +355,7 @@ function ChooseStep({
             type="button"
             onClick={onNext}
             disabled={selected.size === 0}
-            className="gap-1.5 rounded-[8px] px-5 bg-[#2552ED] hover:bg-[#1E44CC] text-[13px] text-white disabled:opacity-40 disabled:cursor-not-allowed"
+            className="gap-1.5 rounded-[8px] px-5 bg-[#1976D2] hover:bg-[#1976D2] text-[13px] text-white disabled:opacity-40 disabled:cursor-not-allowed"
             style={{ fontWeight: 400 }}
           >
             Continue
@@ -405,8 +405,8 @@ function ContextStep({
                 className="bg-white dark:bg-[#1e2229] border border-[#E5E7EB] dark:border-[#2e3340] rounded-[12px] px-5 py-4"
               >
                 <div className="flex items-center gap-2 mb-3">
-                  {problem && <problem.icon className="w-3.5 h-3.5 text-[#2552ED]" />}
-                  <span className="text-[12px] text-[#2552ED] dark:text-[#6b9bff]" style={{ fontWeight: 400 }}>
+                  {problem && <problem.icon className="w-3.5 h-3.5 text-[#1976D2]" />}
+                  <span className="text-[12px] text-[#1976D2] dark:text-[#6b9bff]" style={{ fontWeight: 400 }}>
                     {problem?.agentName}
                   </span>
                 </div>
@@ -422,16 +422,16 @@ function ContextStep({
                         onClick={() => onAnswer(q.problemId, opt.id)}
                         className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-[8px] border text-left transition-all ${
                           isSelected
-                            ? "border-[#2552ED] bg-[#2552ED]/5 dark:bg-[#2552ED]/10"
+                            ? "border-[#1976D2] bg-[#1976D2]/5 dark:bg-[#1976D2]/10"
                             : "border-[#E5E7EB] dark:border-[#2e3340] hover:border-[#c0c6d4] dark:hover:border-[#4d5568]"
                         }`}
                       >
                         <div
                           className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${
-                            isSelected ? "border-[#2552ED]" : "border-[#d0d5dd] dark:border-[#4d5568]"
+                            isSelected ? "border-[#1976D2]" : "border-[#d0d5dd] dark:border-[#4d5568]"
                           }`}
                         >
-                          {isSelected && <div className="w-2 h-2 rounded-full bg-[#2552ED]" />}
+                          {isSelected && <div className="w-2 h-2 rounded-full bg-[#1976D2]" />}
                         </div>
                         <span
                           className={`text-[13px] ${isSelected ? "text-[#212121] dark:text-[#e4e4e4]" : "text-[#555] dark:text-[#8b92a5]"}`}
@@ -463,7 +463,7 @@ function ContextStep({
             type="button"
             onClick={onNext}
             disabled={!allAnswered}
-            className="gap-1.5 rounded-[8px] px-5 bg-[#2552ED] hover:bg-[#1E44CC] text-[13px] text-white disabled:opacity-40 disabled:cursor-not-allowed"
+            className="gap-1.5 rounded-[8px] px-5 bg-[#1976D2] hover:bg-[#1976D2] text-[13px] text-white disabled:opacity-40 disabled:cursor-not-allowed"
             style={{ fontWeight: 400 }}
           >
             Continue
@@ -507,17 +507,17 @@ function RecommendStep({
               key={agent.id}
               className={`border rounded-[12px] px-5 py-4 transition-all ${
                 agent.enabled
-                  ? "border-[#2552ED]/40 bg-[#2552ED]/[0.03] dark:bg-[#2552ED]/[0.06]"
+                  ? "border-[#1976D2]/40 bg-[#1976D2]/[0.03] dark:bg-[#1976D2]/[0.06]"
                   : "border-[#E5E7EB] dark:border-[#2e3340] bg-white dark:bg-[#1e2229]"
               }`}
             >
               <div className="flex items-start gap-4">
                 <div
                   className={`w-9 h-9 rounded-[8px] flex items-center justify-center shrink-0 ${
-                    agent.enabled ? "bg-[#2552ED]/10 dark:bg-[#2552ED]/20" : "bg-[#f0f1f5] dark:bg-[#262b35]"
+                    agent.enabled ? "bg-[#1976D2]/10 dark:bg-[#1976D2]/20" : "bg-[#f0f1f5] dark:bg-[#262b35]"
                   }`}
                 >
-                  <agent.icon className={`w-4 h-4 ${agent.enabled ? "text-[#2552ED]" : "text-[#888] dark:text-[#6b7280]"}`} />
+                  <agent.icon className={`w-4 h-4 ${agent.enabled ? "text-[#1976D2]" : "text-[#888] dark:text-[#6b7280]"}`} />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between mb-1">
@@ -531,7 +531,7 @@ function RecommendStep({
                       onClick={() => onToggleAgent(agent.id)}
                       className={`rounded-[6px] px-3 text-[12px] ${
                         agent.enabled
-                          ? "bg-[#2552ED] border-[#2552ED] text-white hover:bg-[#1E44CC]"
+                          ? "bg-[#1976D2] border-[#1976D2] text-white hover:bg-[#1976D2]"
                           : "text-[#555] dark:text-[#8b92a5]"
                       }`}
                       style={{ fontWeight: 400 }}
@@ -581,7 +581,7 @@ function RecommendStep({
               type="button"
               onClick={onNext}
               disabled={enabledCount === 0}
-              className="gap-1.5 rounded-[8px] px-5 bg-[#2552ED] hover:bg-[#1E44CC] text-[13px] text-white disabled:opacity-40 disabled:cursor-not-allowed"
+              className="gap-1.5 rounded-[8px] px-5 bg-[#1976D2] hover:bg-[#1976D2] text-[13px] text-white disabled:opacity-40 disabled:cursor-not-allowed"
               style={{ fontWeight: 400 }}
             >
               Continue
@@ -632,8 +632,8 @@ function TestStep({
         {reviewAgent ? (
           <div className="bg-white dark:bg-[#1e2229] border border-[#E5E7EB] dark:border-[#2e3340] rounded-[12px] px-5 py-5 mb-5">
             <div className="flex items-center gap-2 mb-4">
-              <div className="w-7 h-7 rounded-[6px] bg-[#2552ED]/10 dark:bg-[#2552ED]/20 flex items-center justify-center">
-                <MessageSquare className="w-3.5 h-3.5 text-[#2552ED]" />
+              <div className="w-7 h-7 rounded-[6px] bg-[#1976D2]/10 dark:bg-[#1976D2]/20 flex items-center justify-center">
+                <MessageSquare className="w-3.5 h-3.5 text-[#1976D2]" />
               </div>
               <span className="text-[13px] text-[#212121] dark:text-[#e4e4e4]" style={{ fontWeight: 400 }}>
                 Review response agent
@@ -670,7 +670,7 @@ function TestStep({
                 className="gap-2 rounded-[8px] px-4 bg-white dark:bg-[#262b35] text-[13px] text-[#212121] dark:text-[#e4e4e4]"
                 style={{ fontWeight: 400 }}
               >
-                <Play className="w-3.5 h-3.5 text-[#2552ED]" />
+                <Play className="w-3.5 h-3.5 text-[#1976D2]" />
                 Test with this review
               </Button>
             )}
@@ -678,9 +678,9 @@ function TestStep({
             {isGenerating && (
               <div className="flex items-center gap-2 py-3">
                 <div className="flex gap-1">
-                  <div className="w-1.5 h-1.5 rounded-full bg-[#2552ED] animate-bounce" style={{ animationDelay: "0ms" }} />
-                  <div className="w-1.5 h-1.5 rounded-full bg-[#2552ED] animate-bounce" style={{ animationDelay: "150ms" }} />
-                  <div className="w-1.5 h-1.5 rounded-full bg-[#2552ED] animate-bounce" style={{ animationDelay: "300ms" }} />
+                  <div className="w-1.5 h-1.5 rounded-full bg-[#1976D2] animate-bounce" style={{ animationDelay: "0ms" }} />
+                  <div className="w-1.5 h-1.5 rounded-full bg-[#1976D2] animate-bounce" style={{ animationDelay: "150ms" }} />
+                  <div className="w-1.5 h-1.5 rounded-full bg-[#1976D2] animate-bounce" style={{ animationDelay: "300ms" }} />
                 </div>
                 <span className="text-[12px] text-[#888] dark:text-[#6b7280]" style={{ fontWeight: 300 }}>
                   Generating response...
@@ -689,10 +689,10 @@ function TestStep({
             )}
 
             {showAiResponse && (
-              <div className="border border-[#2552ED]/30 bg-[#2552ED]/[0.03] dark:bg-[#2552ED]/[0.06] rounded-[8px] p-4">
+              <div className="border border-[#1976D2]/30 bg-[#1976D2]/[0.03] dark:bg-[#1976D2]/[0.06] rounded-[8px] p-4">
                 <div className="flex items-center gap-1.5 mb-2">
-                  <Sparkles className="w-3 h-3 text-[#2552ED]" />
-                  <span className="text-[11px] text-[#2552ED] dark:text-[#6b9bff]" style={{ fontWeight: 400 }}>
+                  <Sparkles className="w-3 h-3 text-[#1976D2]" />
+                  <span className="text-[11px] text-[#1976D2] dark:text-[#6b9bff]" style={{ fontWeight: 400 }}>
                     AI-generated response
                   </span>
                 </div>
@@ -725,7 +725,7 @@ function TestStep({
                 .map((a) => (
                   <div key={a.id} className="flex items-center gap-2.5">
                     <div className="w-6 h-6 rounded-[6px] bg-[#f0f1f5] dark:bg-[#262b35] flex items-center justify-center">
-                      <a.icon className="w-3 h-3 text-[#2552ED]" />
+                      <a.icon className="w-3 h-3 text-[#1976D2]" />
                     </div>
                     <span className="text-[13px] text-[#212121] dark:text-[#e4e4e4]" style={{ fontWeight: 300 }}>
                       {a.name}
@@ -751,7 +751,7 @@ function TestStep({
           <Button
             type="button"
             onClick={onNext}
-            className="gap-1.5 rounded-[8px] px-5 bg-[#2552ED] hover:bg-[#1E44CC] text-[13px] text-white"
+            className="gap-1.5 rounded-[8px] px-5 bg-[#1976D2] hover:bg-[#1976D2] text-[13px] text-white"
             style={{ fontWeight: 400 }}
           >
             Activate agents
@@ -809,7 +809,7 @@ function DoneStep({
           <Button
             type="button"
             onClick={onGoToMonitor}
-            className="gap-2 rounded-[8px] px-6 bg-[#2552ED] hover:bg-[#1E44CC] text-[14px] text-white"
+            className="gap-2 rounded-[8px] px-6 bg-[#1976D2] hover:bg-[#1976D2] text-[14px] text-white"
             style={{ fontWeight: 400 }}
           >
             Go to monitor

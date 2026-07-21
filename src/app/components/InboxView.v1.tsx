@@ -788,8 +788,8 @@ function Composer({ textareaRef }: { textareaRef: RefObject<HTMLTextAreaElement 
             aria-label="Send"
             className={`h-10 w-10 shrink-0 rounded-[10px] p-0 text-white ${
               canSend
-                ? "bg-[#2552ED] hover:bg-[#1E44CC]"
-                : "bg-[#2552ED]/70 hover:bg-[#2552ED]/75 dark:bg-[#2552ED]/50 dark:hover:bg-[#2552ED]/55"
+                ? "bg-[#1976D2] hover:bg-[#1976D2]"
+                : "bg-[#1976D2]/70 hover:bg-[#1976D2]/75 dark:bg-[#1976D2]/50 dark:hover:bg-[#1976D2]/55"
             }`}
           >
             <ArrowUp className="mx-auto h-4 w-4" strokeWidth={L1_STRIP_ICON_STROKE_PX} absoluteStrokeWidth />
@@ -824,7 +824,7 @@ function InboxNav() {
           <button className="flex items-center justify-between px-2 py-1.5 w-full text-[14px] text-[#212121] dark:text-[#e4e4e4] rounded-[4px] hover:bg-[#e4e6ea] dark:hover:bg-[#2e3340] transition-colors tracking-[-0.28px]">
             <span>New message</span>
             <div className="w-[20px] h-[20px] flex items-center justify-center">
-              <MessageSquarePlus className="w-[15px] h-[15px] text-[#2552ED]" />
+              <MessageSquarePlus className="w-[15px] h-[15px] text-[#1976D2]" />
             </div>
           </button>
 
@@ -833,7 +833,7 @@ function InboxNav() {
             onClick={() => setActiveItem("All messages")}
             className={`flex items-center gap-2.5 px-2 py-1.5 w-full text-[14px] rounded-[4px] transition-colors tracking-[-0.28px] ${
               activeItem === "All messages"
-                ? "text-[#2552ED] bg-[#e4e6ea] dark:bg-[#252a3a] dark:text-[#6b9bff]"
+                ? "text-[#1976D2] bg-[#e4e6ea] dark:bg-[#252a3a] dark:text-[#6b9bff]"
                 : "text-[#212121] dark:text-[#e4e4e4] hover:bg-[#e4e6ea] dark:hover:bg-[#2e3340]"
             }`}
           >
@@ -864,7 +864,7 @@ function InboxNav() {
                     onClick={() => setActiveItem(label)}
                     className={`text-left px-2 py-1.5 text-[13px] rounded-[4px] transition-colors tracking-[-0.26px] ${
                       activeItem === label
-                        ? "text-[#2552ED] bg-[#e4e6ea] dark:bg-[#252a3a] dark:text-[#6b9bff]"
+                        ? "text-[#1976D2] bg-[#e4e6ea] dark:bg-[#252a3a] dark:text-[#6b9bff]"
                         : "text-[#555] dark:text-[#9ba2b0] hover:bg-[#e4e6ea] dark:hover:bg-[#2e3340]"
                     }`}
                   >
@@ -880,7 +880,7 @@ function InboxNav() {
             onClick={() => setActiveItem("Spam")}
             className={`text-left px-2 py-1.5 text-[14px] rounded-[4px] transition-colors tracking-[-0.28px] ${
               activeItem === "Spam"
-                ? "text-[#2552ED] bg-[#e4e6ea] dark:bg-[#252a3a] dark:text-[#6b9bff]"
+                ? "text-[#1976D2] bg-[#e4e6ea] dark:bg-[#252a3a] dark:text-[#6b9bff]"
                 : "text-[#212121] dark:text-[#e4e4e4] hover:bg-[#e4e6ea] dark:hover:bg-[#2e3340]"
             }`}
           >
