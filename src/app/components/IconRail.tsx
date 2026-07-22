@@ -67,7 +67,7 @@ function NavTab({ item, active, onSelect }: {
         )}
       </span>
       {/* Label — hidden collapsed, fades in on hover */}
-      <span className={`relative ml-[10px] min-w-0 flex-1 truncate text-left text-sm ${
+      <span className={`relative ml-[10px] min-w-0 flex-1 truncate text-left text-[13px] font-normal ${
         active ? 'text-[#0d0d12]' : 'text-[#0d0d12]'
       } opacity-0 transition-opacity duration-150 group-hover:opacity-100`}>
         {item.label}
@@ -97,7 +97,7 @@ function BottomIconButton({ label, active, onClick, children }: {
       }`}>
         {children}
       </span>
-      <span className="ml-[10px] min-w-0 flex-1 truncate text-left text-[13px] text-[#0d0d12] opacity-0 transition-opacity duration-150 group-hover:opacity-100">
+      <span className="ml-[10px] min-w-0 flex-1 truncate text-left text-[13px] font-normal text-[#0d0d12] opacity-0 transition-opacity duration-150 group-hover:opacity-100">
         {label}
       </span>
     </button>
@@ -283,7 +283,7 @@ export function IconRail({
               {logoElement ?? (logoSrc ? <img src={logoSrc} alt="" className="size-7" /> : null)}
             </span>
             <span className="flex min-w-0 flex-1 items-center gap-1 opacity-0 transition-opacity duration-150 group-hover:opacity-100">
-              <span className="truncate text-sm text-foreground">{brand}</span>
+              <span className="truncate text-[13px] font-normal text-[#0d0d12]">{brand}</span>
               {products && products.length > 0 && (
                 switcherOpen
                   ? <ChevronUp size={14} className="shrink-0 text-muted-foreground" />
@@ -337,7 +337,7 @@ export function IconRail({
                   <circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/>
                 </svg>
               </span>
-              <span className="text-sm text-foreground/80 opacity-0 transition-opacity duration-150 group-hover:opacity-100">More</span>
+              <span className="text-[13px] font-normal text-[#0d0d12] opacity-0 transition-opacity duration-150 group-hover:opacity-100">More</span>
             </button>
           )}
         </div>
@@ -363,7 +363,7 @@ export function IconRail({
                 : <span className="flex size-6 items-center justify-center rounded-full bg-black/10 text-[11px] text-muted-foreground">{initials}</span>
               }
             </span>
-            <span className="ml-[10px] min-w-0 flex-1 truncate text-left text-[13px] text-[#0d0d12] opacity-0 transition-opacity duration-150 group-hover:opacity-100">
+            <span className="ml-[10px] min-w-0 flex-1 truncate text-left text-[13px] font-normal text-[#0d0d12] opacity-0 transition-opacity duration-150 group-hover:opacity-100">
               Profile
             </span>
           </button>
