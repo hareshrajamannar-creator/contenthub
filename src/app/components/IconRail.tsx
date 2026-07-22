@@ -59,7 +59,7 @@ function NavTab({ item, active, onSelect }: {
       {/* Icon pill — visible in both states; active bg transitions away on hover */}
       <span className={`relative flex size-6 shrink-0 items-center justify-center rounded-sm transition-colors ${
         active
-          ? 'bg-[#c7d6f6] text-primary group-hover:bg-transparent'
+          ? 'bg-[#c7d6f6] text-[#303030] group-hover:bg-[#c7d6f6]'
           : 'text-[#303030]'
       }`}>
         {item.kind === 'element' ? (item.icon as React.ReactNode) : (
@@ -68,7 +68,7 @@ function NavTab({ item, active, onSelect }: {
       </span>
       {/* Label — hidden collapsed, fades in on hover */}
       <span className={`relative ml-[10px] min-w-0 flex-1 truncate text-left text-sm ${
-        active ? 'text-primary' : 'text-[#0d0d12]'
+        active ? 'text-[#0d0d12]' : 'text-[#0d0d12]'
       } opacity-0 transition-opacity duration-150 group-hover:opacity-100`}>
         {item.label}
       </span>
@@ -93,11 +93,11 @@ function BottomIconButton({ label, active, onClick, children }: {
       }`}
     >
       <span className={`flex size-6 shrink-0 items-center justify-center rounded-sm transition-colors ${
-        active ? 'bg-[#c7d6f6] text-primary group-hover:bg-transparent' : 'text-[#303030]'
+        active ? 'bg-[#c7d6f6] text-[#303030]' : 'text-[#303030]'
       }`}>
         {children}
       </span>
-      <span className="ml-[10px] min-w-0 flex-1 truncate text-left text-sm text-[#0d0d12] opacity-0 transition-opacity duration-150 group-hover:opacity-100">
+      <span className="ml-[10px] min-w-0 flex-1 truncate text-left text-[13px] text-[#0d0d12] opacity-0 transition-opacity duration-150 group-hover:opacity-100">
         {label}
       </span>
     </button>
@@ -308,9 +308,9 @@ export function IconRail({
 
         {/* ── Main nav items ── */}
         <div ref={navContainerRef}
-          className="flex flex-1 flex-col gap-[6px] overflow-hidden py-[6px]">
+          className="flex flex-1 flex-col gap-[8px] overflow-hidden py-[6px]">
           {visibleGroups.map((group, gi) => (
-            <div key={group.id} className="flex flex-col gap-[6px]">
+            <div key={group.id} className="flex flex-col gap-[8px]">
               {gi > 0 && (
                 <span className="my-1 h-px bg-black/[0.08]"
                   style={{ marginLeft: RAIL_ICON_PX, marginRight: RAIL_ICON_PX }} />
@@ -343,7 +343,7 @@ export function IconRail({
         </div>
 
         {/* ── Bottom: Settings, Help, Profile ── */}
-        <div className="flex shrink-0 flex-col gap-[6px] border-t border-black/[0.08] py-[6px]">
+        <div className="flex shrink-0 flex-col gap-[8px] border-t border-black/[0.08] py-[6px]">
           <BottomIconButton label="Settings" active={activeId === 'settings'} onClick={() => onSelect?.('settings')}>
             <Settings size={18} strokeWidth={1.6} />
           </BottomIconButton>
@@ -363,7 +363,7 @@ export function IconRail({
                 : <span className="flex size-6 items-center justify-center rounded-full bg-black/10 text-[11px] text-muted-foreground">{initials}</span>
               }
             </span>
-            <span className="ml-[10px] min-w-0 flex-1 truncate text-left text-sm text-[#0d0d12] opacity-0 transition-opacity duration-150 group-hover:opacity-100">
+            <span className="ml-[10px] min-w-0 flex-1 truncate text-left text-[13px] text-[#0d0d12] opacity-0 transition-opacity duration-150 group-hover:opacity-100">
               Profile
             </span>
           </button>
