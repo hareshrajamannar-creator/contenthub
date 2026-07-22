@@ -395,12 +395,12 @@ export function CreateBlogPage({ onCancel, onGenerate }: CreateBlogPageProps) {
                         <Lightbulb size={13} strokeWidth={1.6} absoluteStrokeWidth />
                       </button>
                     </PopoverTrigger>
-                    <PopoverContent align="start" className="w-[440px] p-1">
-                      <div className="px-3 py-2 text-[11px] font-medium text-muted-foreground">
+                    <PopoverContent align="start" className="w-[560px] p-0">
+                      <div className="px-4 py-3 text-[12px] font-medium text-muted-foreground border-b border-border">
                         Search AI recommendations
                       </div>
-                      <div className="flex max-h-80 flex-col gap-0.5 overflow-y-auto">
-                        {MOCK_RECOMMENDATIONS.map(rec => (
+                      <div className="flex max-h-[440px] flex-col overflow-y-auto p-2">
+                        {MOCK_RECOMMENDATIONS.map((rec, idx) => (
                           <button
                             key={rec.id}
                             type="button"
@@ -408,15 +408,18 @@ export function CreateBlogPage({ onCancel, onGenerate }: CreateBlogPageProps) {
                               setTopic(rec.title);
                               setRecommendationsOpen(false);
                             }}
-                            className="flex flex-col items-start gap-1 rounded-md px-3 py-2.5 text-left transition-colors hover:bg-muted"
+                            className={cn(
+                              'flex flex-col items-start gap-2 rounded-lg px-3 py-3.5 text-left transition-colors hover:bg-muted',
+                              idx > 0 && 'mt-1 border-t border-border/60 pt-4',
+                            )}
                           >
-                            <span className="text-[13px] font-medium leading-snug text-foreground line-clamp-2">
+                            <span className="text-[14px] font-medium leading-snug text-foreground">
                               {rec.title}
                             </span>
-                            <div className="flex w-full items-center gap-1.5">
+                            <div className="flex w-full items-center gap-2">
                               <span
                                 className={cn(
-                                  'shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-medium',
+                                  'shrink-0 rounded-full px-2 py-0.5 text-[11px] font-medium',
                                   rec.impact === 'High'
                                     ? 'bg-red-50 text-red-600'
                                     : rec.impact === 'Medium'
@@ -426,7 +429,7 @@ export function CreateBlogPage({ onCancel, onGenerate }: CreateBlogPageProps) {
                               >
                                 {rec.impact} impact
                               </span>
-                              <span className="truncate text-[11px] leading-snug text-muted-foreground">
+                              <span className="text-[12px] leading-relaxed text-muted-foreground">
                                 {rec.whyItMatters ?? rec.description}
                               </span>
                             </div>
