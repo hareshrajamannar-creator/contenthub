@@ -22,6 +22,8 @@ import { L1_STRIP_ICON_SIZE, L1_STRIP_ICON_STROKE_PX } from "./l1StripIconTokens
 import { MonitorNotificationsTrigger } from "./MonitorNotificationsTrigger";
 import { AccountSettingsSheet } from "./settings/AccountSettingsSheet";
 import { useTheme, type ThemePreference } from "./useTheme";
+import { IconRail } from "@/app/components/IconRail";
+import type { RailGroup } from "@/app/components/IconRail.types";
 import {
   L2NavLayout,
   PANEL,
@@ -100,405 +102,101 @@ interface IconStripProps {
   onSignOut?: () => void;
 }
 
-export function IconStrip({ currentView, onViewChange, iconSize = L1_STRIP_ICON_SIZE, onOpenKeyboardShortcuts, onSignOut }: IconStripProps) {
-  const [activeIcon, setActiveIcon] = useState("Agents");
-  const [profileOpen, setProfileOpen] = useState(false);
-  const [accountSheetOpen, setAccountSheetOpen] = useState(false);
-  // Portal tooltip — fixed position so it escapes overflow-y: auto clipping
-  const [tooltip, setTooltip] = useState<{ label: string; top: number } | null>(null);
+// ─── view ↔ rail-id mapping ─────────────────────────────────────────────────
 
-  const showTooltip = (e: React.MouseEvent<HTMLElement>, label: string) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    setTooltip({ label, top: rect.top + rect.height / 2 });
+function viewToActiveId(view: AppView): string {
+  if (!view) return "agents-monitor";
+  if (view === "inbox") return "inbox";
+  if (view === "listings") return "listings";
+  if (view === "searchai" || view === "recommendations") return "searchai";
+  if (view === "reviews") return "reviews";
+  if (view === "referrals") return "referrals";
+  if (view === "payments") return "payments";
+  if (view === "appointments") return "appointments";
+  if (view === "social") return "social";
+  if (view.startsWith("content-hub")) return "content-hub";
+  if (view === "surveys") return "surveys";
+  if (view === "ticketing") return "ticketing";
+  if (view === "contacts") return "contacts";
+  if (view === "campaigns") return "campaigns";
+  if (view === "competitors") return "competitors";
+  if (view === "insights") return "insights";
+  if (view === "dashboard" || view === "shared-by-me" || view === "birdai-reports" || view === "birdai-journeys") return "reports";
+  // agents / bird-ai
+  return "agents-monitor";
+}
+
+function activeIdToView(id: string): AppView {
+  const map: Record<string, AppView> = {
+    "inbox":          "inbox",
+    "listings":       "listings",
+    "searchai":       "recommendations",
+    "reviews":        "reviews",
+    "referrals":      "referrals",
+    "payments":       "payments",
+    "appointments":   "appointments",
+    "social":         "social",
+    "content-hub":    "content-hub",
+    "surveys":        "surveys",
+    "ticketing":      "ticketing",
+    "contacts":       "contacts",
+    "campaigns":      "campaigns",
+    "competitors":    "competitors",
+    "insights":       "insights",
+    "reports":        "dashboard",
+    "agents-monitor": "agents-monitor",
   };
-  const hideTooltip = () => setTooltip(null);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  void showTooltip; void hideTooltip; void tooltip;
-  const [showAppearance, setShowAppearance] = useState(false);
-  const profileRef = useRef<HTMLDivElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const { isDark, preference, setPreference } = useTheme();
+  return map[id] ?? "agents-monitor";
+}
 
-  const [avatarUrl, setAvatarUrl] = useState<string>(() => {
-    return localStorage.getItem("profile_avatar") || DEFAULT_AVATAR;
-  });
+const RAIL_GROUPS: RailGroup[] = [
+  {
+    id: "main",
+    items: [
+      { id: "agents-monitor", label: "Agents",       kind: "element", icon: <FigmaIconBirdAI      size={18} /> },
+      { id: "inbox",          label: "Inbox",        kind: "element", icon: <FigmaIconInbox       size={18} /> },
+      { id: "listings",       label: "Listings",     kind: "element", icon: <FigmaIconListings    size={18} /> },
+      { id: "searchai",       label: "Search AI",    kind: "element", icon: <FigmaIconSearchAI    size={18} /> },
+      { id: "reviews",        label: "Reviews",      kind: "element", icon: <FigmaIconReviews     size={18} /> },
+      { id: "referrals",      label: "Referrals",    kind: "element", icon: <FigmaIconReferrals   size={18} /> },
+      { id: "payments",       label: "Payments",     kind: "element", icon: <FigmaIconPayments    size={18} /> },
+      { id: "appointments",   label: "Appointments", kind: "element", icon: <FigmaIconAppointments size={18} /> },
+      { id: "social",         label: "Social",       kind: "element", icon: <FigmaIconSocial      size={18} /> },
+      { id: "content-hub",    label: "Content Hub",  kind: "element", icon: <FigmaIconContentHub  size={18} /> },
+      { id: "surveys",        label: "Surveys",      kind: "element", icon: <FigmaIconSurveys     size={18} /> },
+      { id: "ticketing",      label: "Ticketing",    kind: "element", icon: <FigmaIconTicketing   size={18} /> },
+      { id: "contacts",       label: "Contacts",     kind: "element", icon: <FigmaIconContacts    size={18} /> },
+      { id: "campaigns",      label: "Campaigns",    kind: "element", icon: <FigmaIconCampaigns   size={18} /> },
+      { id: "competitors",    label: "Competitors",  kind: "element", icon: <FigmaIconCompetitors size={18} /> },
+      { id: "insights",       label: "Insights",     kind: "element", icon: <FigmaIconInsights    size={18} /> },
+      { id: "reports",        label: "Reports",      kind: "element", icon: <FigmaIconReports     size={18} /> },
+    ],
+  },
+];
 
-  // Sync activeIcon with currentView (layout effect avoids wrong rail highlight on first paint)
-  useLayoutEffect(() => {
-    if (currentView === "business-overview") setActiveIcon("Agents");
-    else if (currentView === "inbox") setActiveIcon("Inbox");
-    else if (currentView === "reviews") setActiveIcon("Reviews");
-    else if (currentView === "social") setActiveIcon("Social");
-    else if (currentView === "searchai" || currentView === "recommendations") setActiveIcon("Search AI");
-    else if (currentView === "contacts") setActiveIcon("Contacts");
-    else if (currentView === "listings") setActiveIcon("Listings");
-    else if (currentView === "surveys") setActiveIcon("Surveys");
-    else if (currentView === "ticketing") setActiveIcon("Ticketing");
-    else if (currentView === "campaigns") setActiveIcon("Campaigns");
-    else if (currentView === "insights") setActiveIcon("Insights");
-    else if (currentView === "competitors") setActiveIcon("Competitors");
-    else if (currentView === "referrals") setActiveIcon("Referrals");
-    else if (currentView === "payments") setActiveIcon("Payments");
-    else if (currentView === "appointments") setActiveIcon("Appointments");
-    else if (currentView?.startsWith("content-hub")) setActiveIcon("Content Hub");
-    else if (currentView === "dashboard" || currentView === "shared-by-me") setActiveIcon("Reports");
-    else if (currentView === "agents-monitor" || currentView === "agents-analyze-performance" || currentView === "agents-builder" || currentView === "agent-detail" || currentView === "agents-onboarding" || currentView === "birdai-reports" || currentView === "birdai-journeys") setActiveIcon("Agents");
-    // scheduled-deliveries / schedule-builder: no icon mapping
-  }, [currentView]);
-
-  const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !file.type.startsWith("image/")) return;
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      const dataUrl = ev.target?.result as string;
-      setAvatarUrl(dataUrl);
-      localStorage.setItem("profile_avatar", dataUrl);
-    };
-    reader.readAsDataURL(file);
-    e.target.value = "";
-  };
-
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (profileRef.current && !profileRef.current.contains(e.target as Node)) {
-        setProfileOpen(false);
-        setShowAppearance(false);
-      }
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, []);
-
+export function IconStrip({ currentView, onViewChange, onOpenKeyboardShortcuts, onSignOut }: IconStripProps) {
   return (
-    <div
-      className={`w-[66px] flex flex-col items-center shrink-0 text-base ${APP_SHELL_RAIL_SURFACE_CLASS}`}
-      data-no-print
-    >
-      {/* Birdeye logo */}
-      <div className="h-[48px] w-[55px] flex items-center justify-center shrink-0">
-        <BirdeyeLogoMark sizePxHeight={22} />
-      </div>
-
-      {/* Icon buttons */}
-      <div className="flex flex-col items-center px-[12px] pb-[8px] pt-0 gap-[2px] flex-1 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        {iconStripItems.map(({ label, Icon }) => {
-          const isActive = label === activeIcon;
-          return (
-            <button
-              key={label}
-              onClick={() => {
-                setActiveIcon(label);
-                if (label === "Inbox") onViewChange("inbox");
-                else if (label === "Reports") onViewChange("dashboard");
-                else if (label === "Reviews") onViewChange("reviews");
-                else if (label === "Social") onViewChange("social");
-                else if (label === "Search AI") onViewChange("recommendations");
-                else if (label === "Insights") onViewChange("recommendations");
-                else if (label === "Contacts") onViewChange("contacts");
-                else if (label === "Agents") onViewChange("agents-monitor");
-                else if (label === "Listings") onViewChange("listings");
-                else if (label === "Surveys") onViewChange("surveys");
-                else if (label === "Ticketing") onViewChange("ticketing");
-                else if (label === "Campaigns") onViewChange("campaigns");
-                else if (label === "Competitors") onViewChange("competitors");
-                else if (label === "Referrals") onViewChange("referrals");
-                else if (label === "Payments") onViewChange("payments");
-                else if (label === "Appointments") onViewChange("appointments");
-                else if (label === "Content Hub") onViewChange("content-hub");
-              }}
-              className={`
-                group relative w-[32px] h-[32px] flex items-center justify-center rounded-[10px] shrink-0
-                transition-all duration-200 ease-out outline-none
-                focus-visible:ring-2 focus-visible:ring-[#1976D2]/50 focus-visible:ring-offset-1 focus-visible:ring-offset-app-shell-rail
-                ${isActive
-                  ? "bg-[#d4dae3] dark:bg-[#282e3a] shadow-none"
-                  : "bg-transparent hover:bg-[#d4dae3] dark:hover:bg-[#282e3a] active:bg-[#c8d0dc] dark:active:bg-[#313845] hover:scale-110 active:scale-95"
-                }
-              `}
-            >
-              <Icon
-                size={iconSize}
-                className={`transition-all duration-200 group-hover:text-[#1976D2] dark:group-hover:text-[#1976D2] group-active:text-[#1976D2] dark:group-active:text-[#1976D2] ${
-                  isActive
-                    ? "text-[#1976D2] dark:text-[#1976D2]"
-                    : "text-[#505050] dark:text-[#9ba2b0] group-hover:scale-110"
-                } ${label === "Agents" && isActive ? "group-hover:animate-[agents-shimmer_3s_ease-in-out_infinite]" : ""}`}
-              />
-            </button>
-          );
-        })}
-      </div>
-
-      {/* ─── Bottom tower: Settings + Notifications + Profile (matches main rail order + v2 notifications) ─── */}
-      <div className="flex flex-col items-center gap-2 pb-3 pt-2 shrink-0">
-        {/* Settings gear — same surface / hover / focus as L1 nav icons */}
-        <button
-          type="button"
-          className="group relative w-[32px] h-[32px] flex items-center justify-center rounded-[10px] shrink-0 transition-all duration-200 ease-out outline-none bg-transparent hover:bg-[#d4dae3] dark:hover:bg-[#282e3a] active:bg-[#c8d0dc] dark:active:bg-[#313845] hover:scale-110 active:scale-95 focus-visible:ring-2 focus-visible:ring-[#1976D2]/50 focus-visible:ring-offset-1 focus-visible:ring-offset-app-shell-rail"
-        >
-          <Settings
-            width={L1_STRIP_ICON_SIZE}
-            height={L1_STRIP_ICON_SIZE}
-            strokeWidth={L1_STRIP_ICON_STROKE_PX}
-            absoluteStrokeWidth
-            className="text-[#505050] dark:text-[#9ba2b0] transition-all duration-200 group-hover:text-[#1976D2] dark:group-hover:text-[#1976D2] group-active:text-[#1976D2] dark:group-active:text-[#1976D2] group-hover:scale-110"
-          />
-        </button>
-
-        <MonitorNotificationsTrigger />
-
-        {/* Profile avatar with upward dropdown */}
-        <div className="relative" ref={profileRef}>
-          <Button
-            type="button"
-            variant="ghost"
-            size="iconXs"
-            onClick={() => {
-              setProfileOpen(!profileOpen);
-              if (profileOpen) setShowAppearance(false);
-            }}
-            className="relative min-h-0 min-w-0 shrink-0 cursor-pointer overflow-hidden rounded-full p-0 shadow-sm ring-2 ring-white/80 transition-all hover:ring-white dark:ring-[#3d4555] dark:hover:ring-[#4d5568]"
-          >
-            <img src={avatarUrl} alt="Profile" className="h-full w-full object-cover" />
-          </Button>
-
-          {/* Dropdown - opens UPWARD from bottom-left */}
-          {profileOpen && (
-            <div
-              className={`absolute bottom-0 left-[calc(100%+8px)] z-50 w-[260px] overflow-hidden transition-colors duration-300 ${FLOATING_PANEL_SURFACE_CLASSNAME}`}
-            >
-              {/* Slide between main menu and appearance sub-panel */}
-              <div className="relative overflow-hidden">
-                <div
-                  className="flex transition-transform duration-250 ease-in-out"
-                  style={{ transform: showAppearance ? "translateX(-100%)" : "translateX(0)" }}
-                >
-                  {/* ─── Main menu panel ─── */}
-                  <div className="w-full shrink-0">
-                    {/* Profile header — inset from card edge (Subframe-style shell) */}
-                    <div className="px-4 pb-2 pt-4">
-                      <div className="flex items-center gap-3">
-                        <div className="relative group shrink-0">
-                          <div className="w-9 h-9 rounded-full overflow-hidden ring-2 ring-[#e8eaed] dark:ring-[#3d4555]">
-                            <img src={avatarUrl} alt="Profile" className="w-full h-full object-cover" />
-                          </div>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              fileInputRef.current?.click();
-                            }}
-                            className="absolute inset-0 rounded-full bg-black/0 group-hover:bg-black/40 flex items-center justify-center transition-all duration-200 cursor-pointer"
-                          >
-                            <Camera className="w-3.5 h-3.5 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
-                          </button>
-                          <input
-                            ref={fileInputRef}
-                            type="file"
-                            accept="image/*"
-                            onChange={handleAvatarUpload}
-                            className="hidden"
-                          />
-                        </div>
-                        <div className="min-w-0">
-                          <p className="text-[13px] text-[#212121] dark:text-[#e4e4e4] truncate" style={{ fontWeight: 400 }}>John Doe</p>
-                          <p className="text-[11px] text-[#999] dark:text-[#777] truncate">john.doe@acmecorp.com</p>
-                        </div>
-                      </div>
-                    </div>
-                    {/* Text-only rows: inset pill hovers (Subframe-style), no icons */}
-                    <div className="flex flex-col gap-1 px-2 pb-3">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setAccountSheetOpen(true);
-                          setProfileOpen(false);
-                          setShowAppearance(false);
-                        }}
-                        className="w-full rounded-lg px-3 py-2 text-left text-[13px] text-[#212121] transition-colors duration-150 hover:bg-[#f3f4f6] dark:text-[#e4e4e4] dark:hover:bg-white/[0.06]"
-                      >
-                        My profile
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          onViewChange("shared-by-me");
-                          setProfileOpen(false);
-                          setShowAppearance(false);
-                        }}
-                        className={`w-full rounded-lg px-3 py-2 text-left text-[13px] transition-colors duration-150 ${
-                          currentView === "shared-by-me"
-                            ? "bg-[#e8effe] text-[#1976D2] dark:bg-[#1e2d5e] dark:text-[#6b9bff]"
-                            : "text-[#212121] hover:bg-[#f3f4f6] dark:text-[#e4e4e4] dark:hover:bg-white/[0.06]"
-                        }`}
-                      >
-                        Shared by me
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          onViewChange("scheduled-deliveries");
-                          setProfileOpen(false);
-                          setShowAppearance(false);
-                        }}
-                        className={`w-full rounded-lg px-3 py-2 text-left text-[13px] transition-colors duration-150 ${
-                          currentView === "scheduled-deliveries"
-                            ? "bg-[#e8effe] text-[#1976D2] dark:bg-[#1e2d5e] dark:text-[#6b9bff]"
-                            : "text-[#212121] hover:bg-[#f3f4f6] dark:text-[#e4e4e4] dark:hover:bg-white/[0.06]"
-                        }`}
-                      >
-                        Scheduled deliveries
-                      </button>
-                      <button
-                        type="button"
-                        className="w-full rounded-lg px-3 py-2 text-left text-[13px] text-[#212121] transition-colors duration-150 hover:bg-[#f3f4f6] dark:text-[#e4e4e4] dark:hover:bg-white/[0.06]"
-                      >
-                        Settings
-                      </button>
-                      {onOpenKeyboardShortcuts && (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            onOpenKeyboardShortcuts();
-                            setProfileOpen(false);
-                            setShowAppearance(false);
-                          }}
-                          className="w-full rounded-lg px-3 py-2 text-left text-[13px] text-[#212121] transition-colors duration-150 hover:bg-[#f3f4f6] dark:text-[#e4e4e4] dark:hover:bg-white/[0.06]"
-                        >
-                          Keyboard shortcuts
-                        </button>
-                      )}
-                      <button
-                        type="button"
-                        onClick={() => setShowAppearance(true)}
-                        className="w-full rounded-lg px-3 py-2 text-left text-[13px] text-[#212121] transition-colors duration-150 hover:bg-[#f3f4f6] dark:text-[#e4e4e4] dark:hover:bg-white/[0.06]"
-                      >
-                        Switch appearance
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setProfileOpen(false);
-                          setShowAppearance(false);
-                          onSignOut?.();
-                        }}
-                        className="w-full rounded-lg px-3 py-2 text-left text-[13px] text-[#C62828] transition-colors duration-150 hover:bg-[#fce4ec] dark:hover:bg-[#3d2528]"
-                      >
-                        Sign out
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* ─── Appearance sub-panel ─── */}
-                  <div className="w-full shrink-0">
-                    {/* Header row */}
-                    <div className="flex items-center gap-2 border-b border-[#f0f0f0] px-4 py-2 dark:border-[#333a47]">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="icon"
-                        onClick={() => setShowAppearance(false)}
-                        className="shrink-0 border-2 border-[#1976D2] transition-colors hover:bg-[#e8effe] dark:hover:bg-[#1e2d5e]"
-                      >
-                        <ChevronLeft className="h-4 w-4 text-[#1976D2]" />
-                      </Button>
-                      <span className="text-[14px] text-[#212121] dark:text-[#e4e4e4] flex-1" style={{ fontWeight: 400 }}>
-                        Switch appearance
-                      </span>
-                      <Moon
-                        className="w-5 h-5 text-[#555] dark:text-[#ccc] transition-transform duration-500"
-                        style={{ transform: isDark ? "rotate(-30deg)" : "rotate(0deg)" }}
-                      />
-                    </div>
-                    {/* Theme options — same inset pill rows as main profile menu */}
-                    <div className="flex flex-col gap-1 px-2 pb-3 pt-1">
-                      {([
-                        { value: "light" as ThemePreference, label: "Light", Icon: Sun },
-                        { value: "dark" as ThemePreference, label: "Dark", Icon: Moon },
-                        { value: "auto" as ThemePreference, label: "System", Icon: Monitor },
-                      ]).map(({ value, label, Icon }) => {
-                        const isSelected = preference === value;
-                        return (
-                          <button
-                            key={value}
-                            onClick={() => setPreference(value)}
-                            className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-[13px] transition-colors duration-150 ${
-                              isSelected
-                                ? "bg-[#e8effe] text-[#1976D2] dark:bg-[#1e2d5e] dark:text-[#6b9bff]"
-                                : "text-[#212121] hover:bg-[#f3f4f6] dark:text-[#e4e4e4] dark:hover:bg-white/[0.06]"
-                            }`}
-                          >
-                            <span className="flex items-center gap-3">
-                              <Icon
-                                className={`w-4 h-4 transition-transform duration-500 ${
-                                  isSelected ? "text-[#1976D2]" : "text-[#555] dark:text-[#8b92a5]"
-                                }`}
-                                style={{
-                                  transform: value === "dark" && isDark ? "rotate(-30deg)" : "rotate(0deg)",
-                                }}
-                              />
-                              {label}
-                            </span>
-                            {/* Radio indicator */}
-                            <span
-                              className={`w-[18px] h-[18px] rounded-full border-2 flex items-center justify-center transition-colors ${
-                                isSelected
-                                  ? "border-[#1976D2]"
-                                  : "border-[#ccc] dark:border-[#4d5568]"
-                              }`}
-                            >
-                              {isSelected && (
-                                <span className="w-[10px] h-[10px] rounded-full bg-[#1976D2]" />
-                              )}
-                            </span>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-
-      <AccountSettingsSheet
-        open={accountSheetOpen}
-        onOpenChange={setAccountSheetOpen}
-        avatarUrl={avatarUrl}
-        onAvatarUpload={handleAvatarUpload}
-        defaultFirstName="John"
-        defaultLastName="Doe"
-        defaultEmail="john.doe@acmecorp.com"
-      />
-    </div>
+    <IconRail
+      logoElement={<BirdeyeLogoMark sizePxHeight={22} />}
+      brand="Birdeye"
+      groups={RAIL_GROUPS}
+      activeId={viewToActiveId(currentView)}
+      onSelect={(id) => onViewChange(activeIdToView(id))}
+      userName="John Doe"
+      userEmail="john.doe@acmecorp.com"
+      onProfileAction={(action) => {
+        if (action === "sign-out") onSignOut?.();
+        if (action === "keyboard-shortcuts") onOpenKeyboardShortcuts?.();
+        if (action === "shared-by-me") onViewChange("shared-by-me");
+        if (action === "scheduled-deliveries") onViewChange("scheduled-deliveries");
+      }}
+    />
   );
 }
 
 /* ═══════════════════════════════════════════
-   L2 Nav Panel (Reports sub-nav) – exported separately
+   L2 Nav Panels – all unchanged below
    ═══════════════════════════════════════════ */
-interface L2NavPanelProps {
-  currentView: AppView;
-  onViewChange: (view: AppView, agentSlug?: string) => void;
-}
-
-/* ─── Reporting nav data ─── */
-const dashboardSections = [
-  { label: "Created by me", children: ["Palo Alto performance", "2024 Yearly report"] },
-  { label: "Shared with me", children: ["2025 Q1 dashboard", "2025 Q2 dashboard", "2025 Q3 dashboard"] },
-];
-
-/** Product report catalogs in Reports L2 (no "Agent Reports" parent). */
-const reportCatalogSections = [
-  { label: "Listings", children: ["All", "Google", "Apple", "Facebook", "Bing", "Yelp"] },
-  { label: "Social", children: ["All channels", "Post performance", "Response trends", "Best time to post"] },
-  { label: "Campaigns", children: ["Review campaigns", "Referral campaigns", "CX campaigns", "Custom campaigns"] },
-  { label: "Inbox", children: ["Over time", "Location", "Users", "Channels"] },
-  { label: "Surveys", children: ["Survey NPS", "Responses"] },
-  { label: "Ticketing", children: ["Resolution time", "Volume"] },
-];
 
 export function L2NavPanel({ currentView: _currentView, onViewChange }: L2NavPanelProps) {
   // Active item tracked internally
