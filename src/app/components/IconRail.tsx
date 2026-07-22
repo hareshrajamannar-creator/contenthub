@@ -57,7 +57,7 @@ function NavTab({ item, active, onSelect }: {
         <span className="pointer-events-none absolute inset-y-0 left-1 right-1 rounded-sm bg-[#c7d6f6] opacity-0 transition-opacity duration-150 group-hover:opacity-100" />
       )}
       {/* Icon pill — visible in both states; active bg transitions away on hover */}
-      <span className={`relative flex size-6 shrink-0 items-center justify-center rounded-sm transition-colors ${
+      <span className={`relative flex size-[26px] shrink-0 items-center justify-center rounded-sm transition-colors ${
         active
           ? 'bg-[#c7d6f6] text-[#303030] group-hover:bg-[#c7d6f6]'
           : 'text-[#303030]'
