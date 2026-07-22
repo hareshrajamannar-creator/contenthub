@@ -54,13 +54,13 @@ function NavTab({ item, active, onSelect }: {
     >
       {/* Expanded-state full-row highlight (fades in on hover) */}
       {active && (
-        <span className="pointer-events-none absolute inset-y-0 left-1 right-1 rounded-sm bg-primary/[0.08] opacity-0 transition-opacity duration-150 group-hover:opacity-100" />
+        <span className="pointer-events-none absolute inset-y-0 left-1 right-1 rounded-sm bg-[#c7d6f6] opacity-0 transition-opacity duration-150 group-hover:opacity-100" />
       )}
       {/* Icon pill — visible in both states; active bg transitions away on hover */}
       <span className={`relative flex size-6 shrink-0 items-center justify-center rounded-sm transition-colors ${
         active
-          ? 'bg-primary/[0.1] text-primary group-hover:bg-transparent'
-          : 'text-muted-foreground'
+          ? 'bg-[#c7d6f6] text-primary group-hover:bg-transparent'
+          : 'text-[#303030]'
       }`}>
         {item.kind === 'element' ? (item.icon as React.ReactNode) : (
           <img src={item.icon as string} alt="" className="size-[18px]" />
@@ -68,7 +68,7 @@ function NavTab({ item, active, onSelect }: {
       </span>
       {/* Label — hidden collapsed, fades in on hover */}
       <span className={`relative ml-[10px] min-w-0 flex-1 truncate text-left text-sm ${
-        active ? 'text-primary' : 'text-foreground/80'
+        active ? 'text-primary' : 'text-[#0d0d12]'
       } opacity-0 transition-opacity duration-150 group-hover:opacity-100`}>
         {item.label}
       </span>
@@ -93,11 +93,11 @@ function BottomIconButton({ label, active, onClick, children }: {
       }`}
     >
       <span className={`flex size-6 shrink-0 items-center justify-center rounded-sm transition-colors ${
-        active ? 'bg-app-shell-l1-nav-pressed text-foreground group-hover:bg-transparent' : 'text-muted-foreground'
+        active ? 'bg-[#c7d6f6] text-primary group-hover:bg-transparent' : 'text-[#303030]'
       }`}>
         {children}
       </span>
-      <span className="ml-[10px] min-w-0 flex-1 truncate text-left text-sm text-foreground/80 opacity-0 transition-opacity duration-150 group-hover:opacity-100">
+      <span className="ml-[10px] min-w-0 flex-1 truncate text-left text-sm text-[#0d0d12] opacity-0 transition-opacity duration-150 group-hover:opacity-100">
         {label}
       </span>
     </button>
@@ -316,7 +316,7 @@ export function IconRail({
                   style={{ marginLeft: RAIL_ICON_PX, marginRight: RAIL_ICON_PX }} />
               )}
               {group.header && (
-                <p className="h-0 overflow-hidden truncate px-[14px] text-[11px] text-muted-foreground opacity-0 transition-all duration-200 group-hover:h-[20px] group-hover:opacity-100">
+                <p className="h-0 overflow-hidden truncate px-[14px] text-[11px] text-[#9ca3af] opacity-0 transition-all duration-200 group-hover:h-[20px] group-hover:opacity-100">
                   {group.header}
                 </p>
               )}
@@ -363,7 +363,7 @@ export function IconRail({
                 : <span className="flex size-6 items-center justify-center rounded-full bg-black/10 text-[11px] text-muted-foreground">{initials}</span>
               }
             </span>
-            <span className="ml-[10px] min-w-0 flex-1 truncate text-left text-sm text-foreground/80 opacity-0 transition-opacity duration-150 group-hover:opacity-100">
+            <span className="ml-[10px] min-w-0 flex-1 truncate text-left text-sm text-[#0d0d12] opacity-0 transition-opacity duration-150 group-hover:opacity-100">
               Profile
             </span>
           </button>
