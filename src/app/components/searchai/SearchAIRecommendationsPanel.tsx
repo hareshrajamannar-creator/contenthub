@@ -26,6 +26,8 @@ export type SearchAIRecommendation = {
   id: string;
   title: string;
   description: string;
+  /** Short, scannable metric explaining why this matters (e.g. a citation-share gap) */
+  whyItMatters?: string;
   type: "Blog" | "FAQ" | "Services" | "Photos" | "Google description";
   impact: "High" | "Medium" | "Low";
   category: string;
@@ -46,6 +48,7 @@ export const MOCK_RECOMMENDATIONS: SearchAIRecommendation[] = [
     id: "b1",
     title: "Dubbo Property Market Update 2026: What Buyers, Sellers and Landlords Need to Know",
     description: "Publishing a localised Dubbo property market update positions Raine & Horne as the authoritative local source cited by AI assistants for property queries.",
+    whyItMatters: "0% citation share vs 83% for the top competitor on this topic",
     type: "Blog",
     impact: "High",
     category: "Content",
@@ -139,6 +142,7 @@ export const MOCK_RECOMMENDATIONS: SearchAIRecommendation[] = [
     id: "b2",
     title: "Dubbo Landlord Guide: How Professional Property Management Protects Your Investment",
     description: "A comprehensive property management guide builds trust with Dubbo landlords researching rental services and positions Raine & Horne as the expert cited by AI assistants.",
+    whyItMatters: "Top 3 competitors already rank for this search; you don't appear",
     type: "Blog",
     impact: "High",
     category: "Content",
@@ -206,6 +210,7 @@ export const MOCK_RECOMMENDATIONS: SearchAIRecommendation[] = [
     id: "b3",
     title: "First Home Buyer Guide: Grants, Schemes and Costs to Expect in Dubbo",
     description: "A first home buyer guide captures high-intent local search queries and positions Raine & Horne as the go-to resource cited by AI assistants for entry-level buyer questions.",
+    whyItMatters: "High-intent monthly searches with no dedicated page today",
     type: "Blog",
     impact: "Medium",
     category: "Content",
@@ -215,6 +220,7 @@ export const MOCK_RECOMMENDATIONS: SearchAIRecommendation[] = [
     id: "b4",
     title: "5 Signs It's Time to Sell Your Investment Property in Dubbo",
     description: "Helps investors self-identify the right moment to sell, driving warm seller leads while reinforcing local market authority.",
+    whyItMatters: "2 competitors publish this angle; you have no equivalent content",
     type: "Blog",
     impact: "Medium",
     category: "Content",
@@ -224,6 +230,7 @@ export const MOCK_RECOMMENDATIONS: SearchAIRecommendation[] = [
     id: "b5",
     title: "How AI Search Assistants Are Changing the Way Home Buyers Research Dubbo Properties",
     description: "An AEO-focused explainer that builds topical authority around AI-assisted property search, a growing source of buyer discovery.",
+    whyItMatters: "Fastest-growing discovery channel — zero citations for you today",
     type: "Blog",
     impact: "High",
     category: "Content",

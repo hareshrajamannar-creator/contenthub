@@ -410,8 +410,10 @@ export function CreateBlogPage({ onCancel, onGenerate }: CreateBlogPageProps) {
                             }}
                             className="flex flex-col items-start gap-1 rounded-md px-3 py-2.5 text-left transition-colors hover:bg-muted"
                           >
-                            <div className="flex w-full items-start justify-between gap-2">
-                              <span className="text-[11px] text-muted-foreground">{rec.category}</span>
+                            <span className="text-[13px] font-medium leading-snug text-foreground line-clamp-2">
+                              {rec.title}
+                            </span>
+                            <div className="flex w-full items-center gap-1.5">
                               <span
                                 className={cn(
                                   'shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-medium',
@@ -424,11 +426,10 @@ export function CreateBlogPage({ onCancel, onGenerate }: CreateBlogPageProps) {
                               >
                                 {rec.impact} impact
                               </span>
+                              <span className="truncate text-[11px] leading-snug text-muted-foreground">
+                                {rec.whyItMatters ?? rec.description}
+                              </span>
                             </div>
-                            <span className="text-[13px] leading-snug text-foreground line-clamp-2">{rec.title}</span>
-                            <span className="text-[11px] leading-snug text-muted-foreground line-clamp-2">
-                              {rec.description}
-                            </span>
                           </button>
                         ))}
                       </div>
