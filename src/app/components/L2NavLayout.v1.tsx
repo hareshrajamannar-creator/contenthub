@@ -49,15 +49,15 @@ export const L2_PANEL_SURFACE = "bg-app-shell-l2-surface";
 
 /** Default column copy is muted; bump to `text-foreground` on section headers, header/footer rows, and `CHILD_ACTIVE`. */
 export const PANEL =
-  `w-[220px] ${L2_PANEL_SURFACE} border-r border-app-shell-border rounded-tl-lg rounded-bl-lg flex flex-col h-full overflow-hidden shrink-0 transition-colors duration-300 text-muted-foreground`;
+  `w-[222px] ${L2_PANEL_SURFACE} border-r border-app-shell-border rounded-tl-lg rounded-bl-lg flex flex-col h-full overflow-hidden shrink-0 transition-colors duration-300 text-muted-foreground`;
 
 /** Inbox L2 only — no `border-r`; `InboxView` draws matching left/right list borders (`#eaeaea` / dark `#333a47`) as one seam. */
 export const PANEL_INBOX_L2 =
-  `w-[220px] ${L2_PANEL_SURFACE} rounded-tl-lg rounded-bl-lg flex flex-col h-full overflow-hidden shrink-0 transition-colors duration-300 text-muted-foreground`;
+  `w-[222px] ${L2_PANEL_SURFACE} rounded-tl-lg rounded-bl-lg flex flex-col h-full overflow-hidden shrink-0 transition-colors duration-300 text-muted-foreground`;
 
 // Shared row geometry — same for headers, children, footer
 export const ROW =
-  "flex items-center justify-between w-full px-[8px] py-[6px] text-[13px] rounded-[4px] transition-colors tracking-[-0.26px]";
+  "flex items-center justify-between w-full px-[8px] py-[6px] text-[14px] rounded-[4px] transition-colors tracking-[-0.28px]";
 
 export const HOVER = "hover:bg-app-shell-l2-row-hover";
 
@@ -373,14 +373,14 @@ export function L2NavLayout({
     </>
   );
 
-  const navScrollClass = "min-h-0 flex-1 overflow-y-auto px-[8px] pb-4";
+  const navScrollClass = "min-h-0 flex-1 overflow-y-auto px-[16px] pb-4";
 
   return (
     <div className={PANEL} data-no-print={noprint}>
       {stickyNavHeader ? (
         <>
           <div
-            className={`sticky top-0 z-10 shrink-0 px-[8px] pt-3 pb-0 ${L2_PANEL_SURFACE}`}
+            className={`sticky top-0 z-10 shrink-0 px-[16px] pt-[16px] pb-0 ${L2_PANEL_SURFACE}`}
           >
             {titleBlock}
             {headerActionBlock}
@@ -388,7 +388,7 @@ export function L2NavLayout({
           <div className={cn(navScrollClass, "pt-0")}>{navScrollBody}</div>
         </>
       ) : (
-        <div className={cn(navScrollClass, "pt-3")}>
+        <div className={cn(navScrollClass, "pt-[16px]")}>
           {titleBlock}
           {headerActionBlock}
           {navScrollBody}

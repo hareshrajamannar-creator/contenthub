@@ -35,7 +35,7 @@ export function TopBar({ currentView, onViewChange, onToggleMynaChat }: TopBarPr
       data-no-print
     >
       {/* Left: current area (aligned with L1 rail / route) */}
-      <p className="text-[16px] text-[#212121] dark:text-[#e4e4e4] tracking-[-0.31px]" style={{ fontWeight: 400 }}>
+      <p className="text-[16px] text-[#0d0d12] dark:text-[#e4e4e4] tracking-[-0.31px]" style={{ fontWeight: 400 }}>
         {getAppViewTitle(currentView)}
       </p>
 
@@ -46,7 +46,7 @@ export function TopBar({ currentView, onViewChange, onToggleMynaChat }: TopBarPr
           type="button"
           variant="ghost"
           onClick={onToggleMynaChat}
-          className="group ml-1 h-[30px] min-h-[30px] gap-1 rounded-lg border-0 bg-app-shell-l2-surface px-2 py-0 text-[12px] leading-none hover:bg-app-shell-l2-surface hover:text-inherit dark:bg-[#252a3a] dark:hover:bg-[#252a3a]"
+          className="group ml-1 h-[30px] min-h-[30px] gap-1 rounded-lg border-0 bg-app-shell-l2-surface px-2 py-0 text-[12px] leading-none hover:bg-[#dbe5f5] hover:text-inherit dark:bg-[#252a3a] dark:hover:bg-[#252a3a]"
         >
           <svg aria-hidden className="absolute h-0 w-0 overflow-hidden">
             <defs>

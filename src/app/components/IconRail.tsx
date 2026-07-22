@@ -49,7 +49,7 @@ function NavTab({ item, active, onSelect }: {
       onClick={() => onSelect?.(item.id)}
       style={{ paddingLeft: RAIL_ICON_PX, paddingRight: RAIL_ICON_PX }}
       className={`relative flex h-7 w-full items-center rounded-sm transition-colors ${
-        active ? '' : 'hover:bg-app-shell-l1-nav-highlight'
+        active ? '' : 'hover:bg-black/[0.04]'
       }`}
     >
       {/* Expanded-state full-row highlight (fades in on hover) */}
@@ -59,7 +59,7 @@ function NavTab({ item, active, onSelect }: {
       {/* Icon pill — visible in both states; active bg transitions away on hover */}
       <span className={`relative flex size-[26px] shrink-0 items-center justify-center rounded-sm transition-colors ${
         active
-          ? 'bg-[#c7d6f6] text-[#303030] group-hover:bg-[#c7d6f6]'
+          ? 'bg-[#c7d6f6] text-[#303030] group-hover:bg-transparent'
           : 'text-[#303030]'
       }`}>
         {item.kind === 'element' ? (item.icon as React.ReactNode) : (
@@ -67,7 +67,7 @@ function NavTab({ item, active, onSelect }: {
         )}
       </span>
       {/* Label — hidden collapsed, fades in on hover */}
-      <span className={`relative ml-[10px] min-w-0 flex-1 truncate text-left text-[13px] font-normal ${
+      <span className={`relative ml-[10px] min-w-0 flex-1 truncate text-left text-[14px] tracking-[-0.28px] ${
         active ? 'text-[#0d0d12]' : 'text-[#0d0d12]'
       } opacity-0 transition-opacity duration-150 group-hover:opacity-100`}>
         {item.label}
@@ -89,7 +89,7 @@ function BottomIconButton({ label, active, onClick, children }: {
       onClick={onClick}
       style={{ paddingLeft: RAIL_ICON_PX, paddingRight: RAIL_ICON_PX }}
       className={`flex h-7 w-full items-center rounded-sm transition-colors ${
-        active ? '' : 'hover:bg-app-shell-l1-nav-highlight'
+        active ? '' : 'hover:bg-black/[0.04]'
       }`}
     >
       <span className={`flex size-6 shrink-0 items-center justify-center rounded-sm transition-colors ${
@@ -97,7 +97,7 @@ function BottomIconButton({ label, active, onClick, children }: {
       }`}>
         {children}
       </span>
-      <span className="ml-[10px] min-w-0 flex-1 truncate text-left text-[13px] font-normal text-[#0d0d12] opacity-0 transition-opacity duration-150 group-hover:opacity-100">
+      <span className="ml-[10px] min-w-0 flex-1 truncate text-left text-[14px] tracking-[-0.28px] text-[#0d0d12] opacity-0 transition-opacity duration-150 group-hover:opacity-100">
         {label}
       </span>
     </button>
@@ -283,7 +283,7 @@ export function IconRail({
               {logoElement ?? (logoSrc ? <img src={logoSrc} alt="" className="size-7" /> : null)}
             </span>
             <span className="flex min-w-0 flex-1 items-center gap-1 opacity-0 transition-opacity duration-150 group-hover:opacity-100">
-              <span className="truncate text-[13px] font-normal text-[#0d0d12]">{brand}</span>
+              <span className="truncate text-[18px] tracking-[-0.36px] text-[#0d0d12]">{brand}</span>
               {products && products.length > 0 && (
                 switcherOpen
                   ? <ChevronUp size={14} className="shrink-0 text-muted-foreground" />
@@ -308,15 +308,15 @@ export function IconRail({
 
         {/* ── Main nav items ── */}
         <div ref={navContainerRef}
-          className="flex flex-1 flex-col gap-[8px] overflow-hidden py-[6px]">
+          className="flex flex-1 flex-col gap-[6px] overflow-hidden py-[6px]">
           {visibleGroups.map((group, gi) => (
-            <div key={group.id} className="flex flex-col gap-[8px]">
+            <div key={group.id} className="flex flex-col gap-[6px]">
               {gi > 0 && (
-                <span className="my-1 h-px bg-black/[0.08]"
+                <span className="my-1 h-px bg-black/10"
                   style={{ marginLeft: RAIL_ICON_PX, marginRight: RAIL_ICON_PX }} />
               )}
               {group.header && (
-                <p className="h-0 overflow-hidden truncate px-[14px] text-[11px] text-[#9ca3af] opacity-0 transition-all duration-200 group-hover:h-[20px] group-hover:opacity-100">
+                <p className="h-0 overflow-hidden truncate px-[14px] text-[12px] tracking-[-0.24px] text-[#9ca3af] opacity-0 transition-all duration-200 group-hover:h-[20px] group-hover:opacity-100">
                   {group.header}
                 </p>
               )}
@@ -331,19 +331,19 @@ export function IconRail({
             <button ref={dotsBtnRef} type="button" title="More" aria-label="More modules"
               onClick={handleDotsClick}
               style={{ paddingLeft: RAIL_ICON_PX, paddingRight: RAIL_ICON_PX }}
-              className="flex h-7 w-full items-center gap-[10px] rounded-sm transition-colors hover:bg-app-shell-l1-nav-highlight">
+              className="flex h-7 w-full items-center gap-[10px] rounded-sm transition-colors hover:bg-black/[0.04]">
               <span className="flex size-6 shrink-0 items-center justify-center text-muted-foreground">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
                   <circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/>
                 </svg>
               </span>
-              <span className="text-[13px] font-normal text-[#0d0d12] opacity-0 transition-opacity duration-150 group-hover:opacity-100">More</span>
+              <span className="text-[14px] tracking-[-0.28px] text-[#0d0d12] opacity-0 transition-opacity duration-150 group-hover:opacity-100">More</span>
             </button>
           )}
         </div>
 
         {/* ── Bottom: Settings, Help, Profile ── */}
-        <div className="flex shrink-0 flex-col gap-[8px] border-t border-black/[0.08] py-[6px]">
+        <div className="flex shrink-0 flex-col gap-[6px] border-t border-black/10 py-[6px]">
           <BottomIconButton label="Settings" active={activeId === 'settings'} onClick={() => onSelect?.('settings')}>
             <Settings size={18} strokeWidth={1.6} />
           </BottomIconButton>
@@ -355,7 +355,7 @@ export function IconRail({
           {/* Profile */}
           <button type="button" title="Profile" aria-label="Profile"
             onClick={() => setProfileOpen(o => !o)}
-            className="flex h-8 w-full items-center transition-colors hover:bg-app-shell-l1-nav-highlight"
+            className="flex h-8 w-full items-center transition-colors hover:bg-black/[0.04]"
             style={{ paddingLeft: RAIL_ICON_PX, paddingRight: RAIL_ICON_PX }}>
             <span className="flex size-7 shrink-0 items-center justify-center">
               {avatarUrl
@@ -363,7 +363,7 @@ export function IconRail({
                 : <span className="flex size-6 items-center justify-center rounded-full bg-black/10 text-[11px] text-muted-foreground">{initials}</span>
               }
             </span>
-            <span className="ml-[10px] min-w-0 flex-1 truncate text-left text-[13px] font-normal text-[#0d0d12] opacity-0 transition-opacity duration-150 group-hover:opacity-100">
+            <span className="ml-[10px] min-w-0 flex-1 truncate text-left text-[14px] tracking-[-0.28px] text-[#0d0d12] opacity-0 transition-opacity duration-150 group-hover:opacity-100">
               Profile
             </span>
           </button>
