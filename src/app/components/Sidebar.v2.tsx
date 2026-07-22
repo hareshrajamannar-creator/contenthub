@@ -121,7 +121,8 @@ function viewToActiveId(view: AppView): string {
   if (view === "campaigns") return "campaigns";
   if (view === "competitors") return "competitors";
   if (view === "insights") return "insights";
-  if (view === "dashboard" || view === "shared-by-me" || view === "birdai-reports" || view === "birdai-journeys") return "reports";
+  if (view === "dashboard" || view === "shared-by-me") return "dashboard";
+  if (view === "birdai-reports" || view === "birdai-journeys") return "reports";
   // agents / bird-ai
   return "agents-monitor";
 }
@@ -143,7 +144,8 @@ function activeIdToView(id: string): AppView {
     "campaigns":      "campaigns",
     "competitors":    "competitors",
     "insights":       "insights",
-    "reports":        "dashboard",
+    "dashboard":      "dashboard",
+    "reports":        "birdai-reports",
     "agents-monitor": "agents-monitor",
   };
   return map[id] ?? "agents-monitor";
@@ -153,41 +155,42 @@ const RAIL_GROUPS: RailGroup[] = [
   {
     id: "top",
     items: [
-      { id: "agents-monitor", label: "Agents",   kind: "element", icon: <FigmaIconBirdAI size={18} />, badge: "New" },
+      { id: "dashboard",      label: "Home",     kind: "element", icon: <FigmaIconOverview  size={16} /> },
+      { id: "agents-monitor", label: "Agents",   kind: "element", icon: <FigmaIconBirdAI    size={16} />, badge: "New" },
     ],
   },
   {
     id: "marketing",
     header: "Marketing",
     items: [
-      { id: "searchai",     label: "Search AI",    kind: "element", icon: <FigmaIconSearchAI    size={18} /> },
-      { id: "listings",     label: "Listings",     kind: "element", icon: <FigmaIconListings    size={18} /> },
-      { id: "reviews",      label: "Reviews",      kind: "element", icon: <FigmaIconReviews     size={18} /> },
-      { id: "social",       label: "Social",       kind: "element", icon: <FigmaIconSocial      size={18} /> },
-      { id: "content-hub",  label: "Content Hub",  kind: "element", icon: <FigmaIconContentHub  size={18} /> },
-      { id: "campaigns",    label: "Campaigns",    kind: "element", icon: <FigmaIconCampaigns   size={18} /> },
-      { id: "referrals",    label: "Referrals",    kind: "element", icon: <FigmaIconReferrals   size={18} /> },
+      { id: "searchai",     label: "Search AI",    kind: "element", icon: <FigmaIconSearchAI    size={16} /> },
+      { id: "listings",     label: "Listings",     kind: "element", icon: <FigmaIconListings    size={16} /> },
+      { id: "reviews",      label: "Reviews",      kind: "element", icon: <FigmaIconReviews     size={16} /> },
+      { id: "social",       label: "Social",       kind: "element", icon: <FigmaIconSocial      size={16} /> },
+      { id: "content-hub",  label: "Content Hub",  kind: "element", icon: <FigmaIconContentHub  size={16} /> },
+      { id: "campaigns",    label: "Campaigns",    kind: "element", icon: <FigmaIconCampaigns   size={16} /> },
+      { id: "referrals",    label: "Referrals",    kind: "element", icon: <FigmaIconReferrals   size={16} /> },
     ],
   },
   {
     id: "operations",
     header: "Operations",
     items: [
-      { id: "inbox",        label: "Inbox",        kind: "element", icon: <FigmaIconInbox       size={18} /> },
-      { id: "contacts",     label: "Contacts",     kind: "element", icon: <FigmaIconContacts    size={18} /> },
-      { id: "payments",     label: "Payments",     kind: "element", icon: <FigmaIconPayments    size={18} /> },
-      { id: "appointments", label: "Appointments", kind: "element", icon: <FigmaIconAppointments size={18} /> },
+      { id: "inbox",        label: "Inbox",        kind: "element", icon: <FigmaIconInbox       size={16} /> },
+      { id: "contacts",     label: "Contacts",     kind: "element", icon: <FigmaIconContacts    size={16} /> },
+      { id: "payments",     label: "Payments",     kind: "element", icon: <FigmaIconPayments    size={16} /> },
+      { id: "appointments", label: "Appointments", kind: "element", icon: <FigmaIconAppointments size={16} /> },
     ],
   },
   {
     id: "experience",
     header: "Customer experience",
     items: [
-      { id: "surveys",      label: "Surveys",      kind: "element", icon: <FigmaIconSurveys     size={18} /> },
-      { id: "ticketing",    label: "Ticketing",    kind: "element", icon: <FigmaIconTicketing   size={18} /> },
-      { id: "insights",     label: "Insights",     kind: "element", icon: <FigmaIconInsights    size={18} /> },
-      { id: "competitors",  label: "Competitors",  kind: "element", icon: <FigmaIconCompetitors size={18} /> },
-      { id: "reports",      label: "Reports",      kind: "element", icon: <FigmaIconReports     size={18} /> },
+      { id: "surveys",      label: "Surveys",      kind: "element", icon: <FigmaIconSurveys     size={16} /> },
+      { id: "ticketing",    label: "Ticketing",    kind: "element", icon: <FigmaIconTicketing   size={16} /> },
+      { id: "insights",     label: "Insights",     kind: "element", icon: <FigmaIconInsights    size={16} /> },
+      { id: "competitors",  label: "Competitors",  kind: "element", icon: <FigmaIconCompetitors size={16} /> },
+      { id: "reports",      label: "Reports",      kind: "element", icon: <FigmaIconReports     size={16} /> },
     ],
   },
 ];

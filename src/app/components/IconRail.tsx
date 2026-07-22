@@ -306,9 +306,6 @@ export function IconRail({
           )}
         </div>
 
-        {/* ── Divider below logo ── */}
-        <span className="shrink-0 h-px bg-black/[0.08]" style={{ marginLeft: RAIL_ICON_PX, marginRight: RAIL_ICON_PX }} />
-
         {/* ── Main nav items ── */}
         <div ref={navContainerRef}
           className="flex flex-1 flex-col gap-[6px] overflow-hidden py-[6px]">
