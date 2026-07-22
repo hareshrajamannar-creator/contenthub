@@ -151,25 +151,43 @@ function activeIdToView(id: string): AppView {
 
 const RAIL_GROUPS: RailGroup[] = [
   {
-    id: "main",
+    id: "top",
     items: [
-      { id: "agents-monitor", label: "Agents",       kind: "element", icon: <FigmaIconBirdAI      size={18} /> },
-      { id: "inbox",          label: "Inbox",        kind: "element", icon: <FigmaIconInbox       size={18} /> },
-      { id: "listings",       label: "Listings",     kind: "element", icon: <FigmaIconListings    size={18} /> },
-      { id: "searchai",       label: "Search AI",    kind: "element", icon: <FigmaIconSearchAI    size={18} /> },
-      { id: "reviews",        label: "Reviews",      kind: "element", icon: <FigmaIconReviews     size={18} /> },
-      { id: "referrals",      label: "Referrals",    kind: "element", icon: <FigmaIconReferrals   size={18} /> },
-      { id: "payments",       label: "Payments",     kind: "element", icon: <FigmaIconPayments    size={18} /> },
-      { id: "appointments",   label: "Appointments", kind: "element", icon: <FigmaIconAppointments size={18} /> },
-      { id: "social",         label: "Social",       kind: "element", icon: <FigmaIconSocial      size={18} /> },
-      { id: "content-hub",    label: "Content Hub",  kind: "element", icon: <FigmaIconContentHub  size={18} /> },
-      { id: "surveys",        label: "Surveys",      kind: "element", icon: <FigmaIconSurveys     size={18} /> },
-      { id: "ticketing",      label: "Ticketing",    kind: "element", icon: <FigmaIconTicketing   size={18} /> },
-      { id: "contacts",       label: "Contacts",     kind: "element", icon: <FigmaIconContacts    size={18} /> },
-      { id: "campaigns",      label: "Campaigns",    kind: "element", icon: <FigmaIconCampaigns   size={18} /> },
-      { id: "competitors",    label: "Competitors",  kind: "element", icon: <FigmaIconCompetitors size={18} /> },
-      { id: "insights",       label: "Insights",     kind: "element", icon: <FigmaIconInsights    size={18} /> },
-      { id: "reports",        label: "Reports",      kind: "element", icon: <FigmaIconReports     size={18} /> },
+      { id: "agents-monitor", label: "Agents",   kind: "element", icon: <FigmaIconBirdAI size={18} />, badge: "New" },
+    ],
+  },
+  {
+    id: "marketing",
+    header: "Marketing",
+    items: [
+      { id: "searchai",     label: "Search AI",    kind: "element", icon: <FigmaIconSearchAI    size={18} /> },
+      { id: "listings",     label: "Listings",     kind: "element", icon: <FigmaIconListings    size={18} /> },
+      { id: "reviews",      label: "Reviews",      kind: "element", icon: <FigmaIconReviews     size={18} /> },
+      { id: "social",       label: "Social",       kind: "element", icon: <FigmaIconSocial      size={18} /> },
+      { id: "content-hub",  label: "Content Hub",  kind: "element", icon: <FigmaIconContentHub  size={18} /> },
+      { id: "campaigns",    label: "Campaigns",    kind: "element", icon: <FigmaIconCampaigns   size={18} /> },
+      { id: "referrals",    label: "Referrals",    kind: "element", icon: <FigmaIconReferrals   size={18} /> },
+    ],
+  },
+  {
+    id: "operations",
+    header: "Operations",
+    items: [
+      { id: "inbox",        label: "Inbox",        kind: "element", icon: <FigmaIconInbox       size={18} /> },
+      { id: "contacts",     label: "Contacts",     kind: "element", icon: <FigmaIconContacts    size={18} /> },
+      { id: "payments",     label: "Payments",     kind: "element", icon: <FigmaIconPayments    size={18} /> },
+      { id: "appointments", label: "Appointments", kind: "element", icon: <FigmaIconAppointments size={18} /> },
+    ],
+  },
+  {
+    id: "experience",
+    header: "Customer experience",
+    items: [
+      { id: "surveys",      label: "Surveys",      kind: "element", icon: <FigmaIconSurveys     size={18} /> },
+      { id: "ticketing",    label: "Ticketing",    kind: "element", icon: <FigmaIconTicketing   size={18} /> },
+      { id: "insights",     label: "Insights",     kind: "element", icon: <FigmaIconInsights    size={18} /> },
+      { id: "competitors",  label: "Competitors",  kind: "element", icon: <FigmaIconCompetitors size={18} /> },
+      { id: "reports",      label: "Reports",      kind: "element", icon: <FigmaIconReports     size={18} /> },
     ],
   },
 ];

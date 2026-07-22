@@ -54,12 +54,12 @@ function NavTab({ item, active, onSelect }: {
     >
       {/* Expanded-state full-row highlight (fades in on hover) */}
       {active && (
-        <span className="pointer-events-none absolute inset-y-0 left-1 right-1 rounded-sm bg-app-shell-l1-nav-highlight opacity-0 transition-opacity duration-150 group-hover:opacity-100" />
+        <span className="pointer-events-none absolute inset-y-0 left-1 right-1 rounded-sm bg-primary/[0.08] opacity-0 transition-opacity duration-150 group-hover:opacity-100" />
       )}
       {/* Icon pill — visible in both states; active bg transitions away on hover */}
       <span className={`relative flex size-6 shrink-0 items-center justify-center rounded-sm transition-colors ${
         active
-          ? 'bg-app-shell-l1-nav-pressed text-foreground group-hover:bg-transparent'
+          ? 'bg-primary/[0.1] text-primary group-hover:bg-transparent'
           : 'text-muted-foreground'
       }`}>
         {item.kind === 'element' ? (item.icon as React.ReactNode) : (
@@ -68,7 +68,7 @@ function NavTab({ item, active, onSelect }: {
       </span>
       {/* Label — hidden collapsed, fades in on hover */}
       <span className={`relative ml-[10px] min-w-0 flex-1 truncate text-left text-sm ${
-        active ? 'text-foreground' : 'text-foreground/80'
+        active ? 'text-primary' : 'text-foreground/80'
       } opacity-0 transition-opacity duration-150 group-hover:opacity-100`}>
         {item.label}
       </span>
@@ -319,11 +319,9 @@ export function IconRail({
                   style={{ marginLeft: RAIL_ICON_PX, marginRight: RAIL_ICON_PX }} />
               )}
               {group.header && (
-                <div className="grid grid-rows-[0fr] opacity-0 transition-all duration-200 group-hover:grid-rows-[1fr] group-hover:opacity-100">
-                  <p className="min-h-0 overflow-hidden truncate px-[12px] text-xs text-muted-foreground">
-                    {group.header}
-                  </p>
-                </div>
+                <p className="h-0 overflow-hidden truncate px-[14px] text-[11px] text-muted-foreground opacity-0 transition-all duration-200 group-hover:h-[20px] group-hover:opacity-100">
+                  {group.header}
+                </p>
               )}
               {group.items.map((item) => (
                 <NavTab key={item.id} item={item} active={item.id === activeId} onSelect={onSelect} />
