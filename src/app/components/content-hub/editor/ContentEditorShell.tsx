@@ -49,7 +49,7 @@ import { EditorScorePanel } from './EditorScorePanel';
 import { ManualPanel } from './EditorLeftPanel';
 import { SegmentedToggle } from '@/app/components/ui/segmented-toggle.v1';
 import { BlockCanvas, type CanvasBlockInfo } from './BlockCanvas';
-import { BlockEditorProvider } from './BlockEditorContext';
+import { BlockEditorProvider, useBlockEditorContext } from './BlockEditorContext';
 import { BlockLibraryPanel } from './BlockLibraryPanel';
 import { BlockSettingsPanel } from './BlockSettingsPanel';
 import { InlineCreationFlow } from '../inline/InlineCreationFlow';
@@ -91,6 +91,20 @@ import {
 
 /** Modes that use the block-based WYSIWYG canvas */
 const BLOCK_MODES = new Set<ContentMode>(['blog', 'landing', 'faq']);
+
+/**
+ * Lives inside BlockEditorProvider. When `active` flips to true it clears
+ * the block focus so only one right panel is ever open at a time.
+ */
+function ClearBlockFocusEffect({ active }: { active: boolean }) {
+  const { focusBlock } = useBlockEditorContext();
+  const prevRef = useRef(false);
+  useEffect(() => {
+    if (active && !prevRef.current) focusBlock(null);
+    prevRef.current = active;
+  }, [active, focusBlock]);
+  return null;
+}
 
 function scoreColorFor(value: number): ScoreDimension['color'] {
   if (value >= 80) return 'green';
@@ -2049,10 +2063,13 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
               </div>
             </div>
 
-            {/* Right — blog score panel or block settings panel */}
-            {mode === 'blog' && (
+            {/* Clears block focus whenever another right panel becomes active */}
+            <ClearBlockFocusEffect active={blogScorePanelOpen || commentsOpen || activityOpen || blogMetaOpen} />
+
+            {/* Right — exactly one right panel open at a time, same 300px width */}
+            {mode === 'blog' && blogScorePanelOpen && (
               <EditorScorePanel
-                open={blogScorePanelOpen}
+                open
                 onClose={() => setBlogScorePanelOpen(false)}
                 config={EDITOR_CONFIGS.blog}
                 dimensions={buildBlogScoreDimensions(blogScore)}
@@ -2068,7 +2085,9 @@ export function ContentEditorShell({ mode, level = 'project', onBack, skipSetupP
                 onItemFixed={() => { setBlogFixShimmer(false); setIsScoreStale(true); }}
               />
             )}
-            {!(mode === 'blog' && blogScorePanelOpen) && !commentsOpen && <BlockSettingsPanel />}
+            {!blogScorePanelOpen && !commentsOpen && !activityOpen && !blogMetaOpen && (
+              <BlockSettingsPanel />
+            )}
 
             {/* Comment panel — slides in from right when comments toggle is active */}
             <CommentPanel

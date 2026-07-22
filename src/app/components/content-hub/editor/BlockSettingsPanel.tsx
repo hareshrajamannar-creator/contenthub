@@ -504,11 +504,11 @@ export function BlockSettingsPanel() {
     <div
       className={cn(
         'flex-none flex flex-col overflow-hidden rounded-xl bg-background shadow-sm transition-all duration-200',
-        isOpen ? 'w-[320px]' : 'w-0',
+        isOpen ? 'w-[300px]' : 'w-0',
       )}
       aria-hidden={!isOpen}
     >
-      <div className="flex h-full w-[320px] flex-col overflow-hidden">
+      <div className="flex h-full w-[300px] flex-col overflow-hidden">
         {block && definition && (
           <>
             <div className="flex h-12 flex-none items-center justify-between border-b border-border px-4">
