@@ -408,10 +408,27 @@ export function CreateBlogPage({ onCancel, onGenerate }: CreateBlogPageProps) {
                               setTopic(rec.title);
                               setRecommendationsOpen(false);
                             }}
-                            className="flex flex-col items-start gap-0.5 rounded-md px-3 py-2 text-left transition-colors hover:bg-muted"
+                            className="flex flex-col items-start gap-1 rounded-md px-3 py-2.5 text-left transition-colors hover:bg-muted"
                           >
-                            <span className="text-[11px] text-muted-foreground">{rec.category}</span>
+                            <div className="flex w-full items-start justify-between gap-2">
+                              <span className="text-[11px] text-muted-foreground">{rec.category}</span>
+                              <span
+                                className={cn(
+                                  'shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-medium',
+                                  rec.impact === 'High'
+                                    ? 'bg-red-50 text-red-600'
+                                    : rec.impact === 'Medium'
+                                      ? 'bg-amber-50 text-amber-700'
+                                      : 'bg-muted text-muted-foreground',
+                                )}
+                              >
+                                {rec.impact} impact
+                              </span>
+                            </div>
                             <span className="text-[13px] leading-snug text-foreground line-clamp-2">{rec.title}</span>
+                            <span className="text-[11px] leading-snug text-muted-foreground line-clamp-2">
+                              {rec.description}
+                            </span>
                           </button>
                         ))}
                       </div>
