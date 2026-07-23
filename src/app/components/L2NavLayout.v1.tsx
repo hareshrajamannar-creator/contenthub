@@ -47,13 +47,12 @@ import { cn } from "@/app/components/ui/utils";
 /** L2 column background only (matches `PANEL`) — use behind main-content lists that mirror L2 selection. */
 export const L2_PANEL_SURFACE = "bg-app-shell-l2-surface";
 
-/** Default column copy is muted; bump to `text-foreground` on section headers, header/footer rows, and `CHILD_ACTIVE`. */
 export const PANEL =
-  `w-[222px] ${L2_PANEL_SURFACE} border-r border-app-shell-border rounded-tl-lg rounded-bl-lg flex flex-col h-full overflow-hidden shrink-0 transition-colors duration-300 text-muted-foreground`;
+  `w-[222px] ${L2_PANEL_SURFACE} rounded-tl-lg rounded-bl-lg flex flex-col h-full overflow-hidden shrink-0 transition-colors duration-300 text-foreground`;
 
-/** Inbox L2 only — no `border-r`; `InboxView` draws matching left/right list borders (`#eaeaea` / dark `#333a47`) as one seam. */
+/** Inbox L2 only — no border-r. */
 export const PANEL_INBOX_L2 =
-  `w-[222px] ${L2_PANEL_SURFACE} rounded-tl-lg rounded-bl-lg flex flex-col h-full overflow-hidden shrink-0 transition-colors duration-300 text-muted-foreground`;
+  `w-[222px] ${L2_PANEL_SURFACE} rounded-tl-lg rounded-bl-lg flex flex-col h-full overflow-hidden shrink-0 transition-colors duration-300 text-foreground`;
 
 // Shared row geometry — same for headers, children, footer
 export const ROW =
@@ -62,7 +61,7 @@ export const ROW =
 export const HOVER = "hover:bg-app-shell-l2-row-hover";
 
 export const SECTION_HEADER    = `${ROW} ${HOVER} text-foreground`;
-export const CHILD_INACTIVE    = `${ROW} ${HOVER} text-left text-muted-foreground`;
+export const CHILD_INACTIVE    = `${ROW} ${HOVER} text-left text-foreground`;
 /**
  * Neutral selected row — slightly darker than row hover (`--app-shell-l2-row-hover`).
  * Use anywhere L2 selection should match in-content lists (e.g. Monitor activity feed).
