@@ -78,10 +78,10 @@ export const L2_CONTENT_MUTED_BAND = "bg-app-shell-l2-content-muted";
 
 /** L2 header row “+” — primary tint + Lucide `Plus` (shared across L2 + custom sidebars). ~10% under `2rem` circle. */
 export const L2_HEADER_PLUS_WRAPPER_BLUE =
-  "size-[1.8rem] rounded-full flex items-center justify-center shrink-0 bg-primary/15 dark:bg-primary/20";
+  "size-[1.8rem] rounded-full flex items-center justify-center shrink-0 bg-primary";
 /** Class names for `<Plus />` inside `L2_HEADER_PLUS_WRAPPER_*`. */
 export const L2_HEADER_PLUS_GLYPH_BLUE =
-  "size-[13.5px] shrink-0 text-primary pointer-events-none";
+  "size-[13.5px] shrink-0 text-white pointer-events-none";
 
 /** Same shape for `headerActionColor="green"` (pale green surface + darker plus). */
 export const L2_HEADER_PLUS_WRAPPER_GREEN =
