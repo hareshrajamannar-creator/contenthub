@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { ArrowLeft, ArrowUpRight, Sparkles, Loader2, Upload, X, FileText, ChevronDown, ChevronUp, Lightbulb } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/app/components/ui/button';
@@ -267,8 +267,18 @@ export function CreateBlogPage({ onCancel, onGenerate }: CreateBlogPageProps) {
   const [internalLinks, setInternalLinks]   = useState(true);
   const [generatingTopic, setGeneratingTopic] = useState(false);
   const [recommendationsOpen, setRecommendationsOpen] = useState(false);
-  const topicIdxRef  = useRef(0);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const topicIdxRef   = useRef(0);
+  const fileInputRef  = useRef<HTMLInputElement>(null);
+  const topicTextareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const autoResizeTopic = useCallback(() => {
+    const el = topicTextareaRef.current;
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = `${el.scrollHeight}px`;
+  }, []);
+
+  useEffect(() => { autoResizeTopic(); }, [topic, autoResizeTopic]);
 
   const canAdvance = step === 0
     ? blogName.trim().length > 0 && selectedLocations.length > 0
@@ -378,19 +388,19 @@ export function CreateBlogPage({ onCancel, onGenerate }: CreateBlogPageProps) {
             {createMode === 'topic' && (
               <div className="ml-7 mt-4 rounded-lg border border-border overflow-hidden focus-within:border-primary/50 focus-within:ring-1 focus-within:ring-primary/20 transition-colors">
                 <textarea
+                  ref={topicTextareaRef}
                   value={topic}
-                  onChange={e => setTopic(e.target.value)}
+                  onChange={e => { setTopic(e.target.value); autoResizeTopic(); }}
                   placeholder="e.g. Top 5 ways restaurants can respond to negative reviews to make it industry-relevant"
-                  rows={4}
-                  className="w-full resize-none bg-background px-4 pt-3 pb-2 text-[13px] text-foreground placeholder:text-muted-foreground/60 outline-none border-none"
+                  className="w-full resize-none overflow-hidden bg-background px-4 pt-3 pb-2 text-[13px] text-foreground placeholder:text-muted-foreground/60 outline-none border-none min-h-[100px]"
                 />
-                <div className="border-t border-border px-3 py-2 bg-background flex items-center gap-1">
+                <div className="px-3 py-2 bg-background flex items-center gap-1">
                   <Popover open={recommendationsOpen} onOpenChange={setRecommendationsOpen}>
                     <PopoverTrigger asChild>
                       <button
                         type="button"
                         aria-label="Insert a Search AI recommendation"
-                        className="flex h-6 w-6 shrink-0 items-center justify-center rounded text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                        className="hidden"
                       >
                         <Lightbulb size={13} strokeWidth={1.6} absoluteStrokeWidth />
                       </button>
@@ -438,8 +448,6 @@ export function CreateBlogPage({ onCancel, onGenerate }: CreateBlogPageProps) {
                       </div>
                     </PopoverContent>
                   </Popover>
-
-                  <div className="h-4 w-px bg-border" />
 
                   <button
                     type="button"
