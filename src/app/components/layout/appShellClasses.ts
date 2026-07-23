@@ -11,7 +11,7 @@
  * Keep L2 `PANEL` seam on the same token (`L2NavLayout.v1.tsx`).
  */
 export const APP_SHELL_BELOW_TOPBAR_CARD_CLASS =
-  "flex min-h-0 min-w-0 flex-1 flex-row overflow-hidden rounded-lg border border-app-shell-border";
+  "flex min-h-0 min-w-0 flex-1 flex-row overflow-hidden rounded-lg";
 
 /** Gutter row below TopBar — pair with `pr-[10px] pb-[10px] pl-0` on the same element as in `App.tsx`. */
 export const APP_SHELL_GUTTER_SURFACE_CLASS =
